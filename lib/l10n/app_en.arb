@@ -1,0 +1,96 @@
+{
+  "appTitle": "Stork nav",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "mapLoadingError": "Error loading map style",
+  "@mapLoadingError": {
+    "description": "Message displayed when the map style fails to load"
+  },
+  "menu": "Menu",
+  "offlineMaps": "Offline maps",
+  "aircraft": "Aircraft",
+  "pilot": "Pilot",
+  "unknownAircraft": "Unknown aircraft",
+  "anonymousPilot": "Anonymous pilot",
+  "editSettings": "Settings",
+  "pilotTotalHours": "Pilot total",
+  "aircraftTotalHours": "Aircraft total",
+  "downloadMaps": "Download Maps",
+  "updateMaps": "Update Maps",
+  "lastUpdate": "Last update: {date}",
+  "@lastUpdate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "addArea": "Add Area",
+  "deleteArea": "Delete Area",
+  "deleteAll": "Delete All",
+  "areaCount": "Areas to download: {count}",
+  "@areaCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noAreasSelected": "No areas to download",
+  "deleteConfirmationTitle": "Delete All",
+  "deleteConfirmationContent": "Are you sure you want to delete all areas and downloaded maps? This action is irreversible and will remove all data from storage.",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "tileProgress": "{downloaded} / {total} tiles ({size})",
+  "@tileProgress": {
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadingMetadata": "Downloading country metadata...",
+  "metadataProgress": "{current} / {total} files",
+  "@metadataProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "lastUpdateDetail": "({size} - World: {world}, openAIP: {openaip}, Terrain: {terrain}, Metadata: {metadata})",
+  "@lastUpdateDetail": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "world": {
+        "type": "String"
+      },
+      "openaip": {
+        "type": "String"
+      },
+      "terrain": {
+        "type": "String"
+      },
+      "metadata": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelDownload": "Cancel Download",
+  "@cancelDownload": {
+    "description": "Button to cancel the current map download"
+  },
+  "downloadError": "Error downloading maps. Please check your internet connection."
+}

@@ -1,0 +1,62 @@
+# Antigravity Skills: Stork Flutter Development
+
+You are an expert Flutter and Dart developer. When working on this project (Stork), adhere strictly to the following modern development practices, utilizing the latest features of Dart 3 and project-specific architectural patterns.
+
+## 1. Modern Dart 3 Features
+- **Pattern Matching & Destructuring**: Use pattern matching for JSON parsing and variable destructuring.
+- **Switch Expressions**: Prefer switch expressions over switch statements and if-else chains.
+- **Sealed Classes**: Use `sealed class` for defining state and events to ensure exhaustive switch statements.
+- **Records**: Use Records `(T1, T2)` to return multiple values from functions.
+- **Extension Types**: Use `extension type` for zero-cost abstraction.
+- **Immutability**: Use `final` and `const` by default.
+
+## 2. Architecture: Feature-First
+Organize the codebase by feature (`lib/features/[feature_name]/`).
+- `presentation/`: Pages, Widgets, State Providers.
+- `domain/`: Entities, Repository Interfaces, State Models.
+- `data/`: DTOs, Repository Implementations, Data Sources.
+
+## 3. State Management (Riverpod)
+- Use **Riverpod** with `@riverpod` code generation.
+- Keep UI components stateless. Use `unawaited()` for background tasks started from UI actions to avoid blocking.
+- Use `ref.watch` for reactive updates and `ref.read` only inside callbacks.
+
+## 4. UI & Styling (Material 3)
+- Always use **Material 3** (`useMaterial3: true`).
+- Use `const` widgets extensively to optimize the widget tree.
+- Prefer `MediaQuery.sizeOf(context)` over `MediaQuery.of(context).size` for better performance.
+
+## 5. Navigation
+- Use **go_router** for declarative routing.
+- Prefer strongly typed routes where applicable.
+
+## 6. Error Handling
+- Use sealed classes or `Result<T>` types for explicit failure handling.
+- In long-running services, use `try-catch` with specific exceptions (e.g., `TileNotFoundException`) and implement graceful fallbacks.
+
+## 7. Performance Optimization
+- Use `ListView.builder` for lists.
+- Implement **batching** for network and database operations (e.g., batch size of 5000 for tiles, 50 for database updates).
+
+## 8. Localization
+- Hardcoded strings in the UI are forbidden. Use `AppLocalizations`.
+
+## 9. Testing
+- Write unit tests for business logic. Use `mocktail` for mocking.
+
+## 10. Offline Data & SQLite
+- Use `sqlite3` directly for performance-critical offline data (IO only).
+- **Transactions**: Always wrap multiple inserts/updates in `BEGIN TRANSACTION` / `COMMIT`.
+- **Prepared Statements**: Use `db.prepare()` for loops to maximize performance.
+- **Indexing**: Ensure critical query paths (ZXY, Kind) are indexed.
+- **Polling**: For UI progress, poll the database (e.g., `Timer.periodic`) instead of pushing updates for every single record change.
+
+## 11. Background Services & Streams
+- **Decoupling**: Use `StreamController` to decouple data producers (network) from consumers (database).
+- **Cancellation**: Implement waitable cancellation via `Completer<void>`. Services should check an `_isCancelled` flag frequently.
+- **Retry Logic**: For batch network failures, implement recursive binary search (split batch in half) to isolate and skip individual missing records.
+
+## 12. Map Data Handling
+- **PMTiles**: Optimize network usage by sorting tile requests by `tile_id` to enable HTTP Range Requests.
+- **Vector Tiles**: Use `vector_tile` library for parsing `.pbf` data. Handle GZIP decompression explicitly if needed.
+- **Placeholders**: Store minimal placeholders (e.g., 1-byte `[0]`) for missing tiles to prevent infinite retry loops in the UI.

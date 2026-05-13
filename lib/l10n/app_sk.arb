@@ -1,0 +1,90 @@
+{
+  "appTitle": "Stork nav",
+  "mapLoadingError": "Chyba pri načítavaní štýlu mapy",
+  "menu": "Menu",
+  "offlineMaps": "Offline mapy",
+  "aircraft": "Lietadlo",
+  "pilot": "Pilot",
+  "unknownAircraft": "Neznáme lietadlo",
+  "anonymousPilot": "Anonymný pilot",
+  "editSettings": "Nastavenia",
+  "pilotTotalHours": "Nálet (pilot)",
+  "aircraftTotalHours": "Nálet (lietadlo)",
+  "downloadMaps": "Stiahnuť mapy",
+  "updateMaps": "Aktualizovať mapy",
+  "lastUpdate": "Posledná aktualizácia: {date}",
+  "@lastUpdate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "addArea": "Pridať oblasť",
+  "deleteArea": "Vymazať oblasť",
+  "deleteAll": "Vymazať všetko",
+  "areaCount": "Počet oblastí na stiahnutie: {count}",
+  "@areaCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noAreasSelected": "Žiadne oblasti na stiahnutie",
+  "deleteConfirmationTitle": "Vymazať všetko",
+  "deleteConfirmationContent": "Naozaj chcete vymazať všetky oblasti a stiahnuté mapy? Táto akcia je nevratná a odstráni aj všetky dáta z pamäte.",
+  "cancel": "Zrušiť",
+  "delete": "Vymazať",
+  "tileProgress": "{downloaded} / {total} dlaždíc ({size})",
+  "@tileProgress": {
+    "placeholders": {
+      "downloaded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadingMetadata": "Sťahovanie metadát štátov...",
+  "metadataProgress": "{current} / {total} súborov",
+  "@metadataProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "lastUpdateDetail": "({size} - Svet: {world}, openAIP: {openaip}, Terén: {terrain}, Metadáta: {metadata})",
+  "@lastUpdateDetail": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "world": {
+        "type": "String"
+      },
+      "openaip": {
+        "type": "String"
+      },
+      "terrain": {
+        "type": "String"
+      },
+      "metadata": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelDownload": "Zrušiť sťahovanie",
+  "@cancelDownload": {
+    "description": "Button to cancel the current map download"
+  },
+  "downloadError": "Chyba pri sťahovaní máp. Skontrolujte prosím internetové pripojenie."
+}
