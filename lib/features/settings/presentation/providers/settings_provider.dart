@@ -23,7 +23,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<void> updateFontSize(double fontSize) async {
     final prefs = await ref.read(sharedPreferencesProvider.future);
     await prefs.setDouble('mapFontSize', fontSize);
-    state = AsyncData(state.value!.copyWith(mapFontSize: fontSize));
+    state = state.whenData((settings) => settings.copyWith(mapFontSize: fontSize));
   }
 
   Future<void> updateDefaultZoom(double zoom) async {
