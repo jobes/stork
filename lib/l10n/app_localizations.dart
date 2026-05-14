@@ -296,6 +296,18 @@ abstract class AppLocalizations {
   /// **'Map Default Zoom'**
   String get mapDefaultZoom;
 
+  /// No description provided for @mapOverviewZoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Overview Zoom'**
+  String get mapOverviewZoom;
+
+  /// No description provided for @mapFollowZoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Follow Zoom'**
+  String get mapFollowZoom;
+
   /// No description provided for @resetSettings.
   ///
   /// In en, this message translates to:

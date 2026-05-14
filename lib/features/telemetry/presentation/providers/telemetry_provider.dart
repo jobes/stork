@@ -17,12 +17,22 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     double? heading,
     double? speed,
   }) {
+    final oldState = state;
     state = state.copyWith(
       latitude: latitude,
       longitude: longitude,
       heading: heading,
       speed: speed,
     );
+
+    // Auto-transition to overview if GPS is filled and we are in init/waiting state
+    if ((oldState.mapViewState == MapViewState.init ||
+            oldState.mapViewState == MapViewState.waitingForGps) &&
+        latitude != null &&
+        longitude != null &&
+        (latitude != 0.0 || longitude != 0.0)) {
+      state = state.copyWith(mapViewState: MapViewState.overview);
+    }
   }
 
   void updateEngineRPM(double rpm) {

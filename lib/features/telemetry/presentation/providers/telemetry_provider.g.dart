@@ -20,7 +20,7 @@ final class TelemetryNotifierProvider
         argument: null,
         retry: null,
         name: r'telemetryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -41,7 +41,7 @@ final class TelemetryNotifierProvider
   }
 }
 
-String _$telemetryNotifierHash() => r'e8e8f2200e80910aa5bc06babb6c7de48f3c8711';
+String _$telemetryNotifierHash() => r'7ec1a802d9fae01de3447d3c222878ea0a1dea4d';
 
 abstract class _$TelemetryNotifier extends $Notifier<TelemetryState> {
   TelemetryState build();

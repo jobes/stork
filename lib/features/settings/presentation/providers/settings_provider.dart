@@ -17,6 +17,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     return AppSettings(
       mapFontSize: prefs.getDouble('mapFontSize') ?? 1.0,
       mapDefaultZoom: prefs.getDouble('mapDefaultZoom') ?? 6.0,
+      mapOverviewZoom: prefs.getDouble('mapOverviewZoom') ?? 10.0,
+      mapFollowZoom: prefs.getDouble('mapFollowZoom') ?? 12.0,
     );
   }
 
@@ -30,5 +32,17 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final prefs = await ref.read(sharedPreferencesProvider.future);
     await prefs.setDouble('mapDefaultZoom', zoom);
     state = state.whenData((settings) => settings.copyWith(mapDefaultZoom: zoom));
+  }
+
+  Future<void> updateOverviewZoom(double zoom) async {
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+    await prefs.setDouble('mapOverviewZoom', zoom);
+    state = state.whenData((settings) => settings.copyWith(mapOverviewZoom: zoom));
+  }
+
+  Future<void> updateFollowZoom(double zoom) async {
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+    await prefs.setDouble('mapFollowZoom', zoom);
+    state = state.whenData((settings) => settings.copyWith(mapFollowZoom: zoom));
   }
 }

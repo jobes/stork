@@ -123,5 +123,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapDefaultZoom => 'Map Default Zoom';
 
   @override
+  String get mapOverviewZoom => 'Map Overview Zoom';
+
+  @override
+  String get mapFollowZoom => 'Map Follow Zoom';
+
+  @override
   String get resetSettings => 'Reset Settings';
 }

@@ -96,5 +96,7 @@
   "settings": "Settings",
   "mapFontSize": "Map Font Size",
   "mapDefaultZoom": "Map Default Zoom",
+  "mapOverviewZoom": "Map Overview Zoom",
+  "mapFollowZoom": "Map Follow Zoom",
   "resetSettings": "Reset Settings"
 }

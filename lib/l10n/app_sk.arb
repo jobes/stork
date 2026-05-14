@@ -90,5 +90,7 @@
   "settings": "Nastavenia",
   "mapFontSize": "Veľkosť písma na mape",
   "mapDefaultZoom": "Predvolený zoom mapy",
+  "mapOverviewZoom": "Zoom prehľadu mapy",
+  "mapFollowZoom": "Zoom sledovania mapy",
   "resetSettings": "Resetovať nastavenia"
 }
