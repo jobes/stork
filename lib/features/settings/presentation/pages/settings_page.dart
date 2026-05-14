@@ -36,8 +36,8 @@ class SettingsPage extends ConsumerWidget {
                   label: l10n.mapDefaultZoom,
                   value: settings.mapDefaultZoom,
                   min: 0.0,
-                  max: 18.0,
-                  divisions: 18,
+                  max: 14.0,
+                  divisions: 14,
                   onChanged: (val) {
                     ref.read(appSettingsProvider.notifier).updateDefaultZoom(val);
                   },
