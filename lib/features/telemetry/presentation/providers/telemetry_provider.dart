@@ -4,7 +4,7 @@ import '../../domain/models/map_view_state.dart';
 
 part 'telemetry_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class TelemetryNotifier extends _$TelemetryNotifier {
   @override
   TelemetryState build() {
