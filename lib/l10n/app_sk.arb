@@ -86,5 +86,9 @@
   "@cancelDownload": {
     "description": "Button to cancel the current map download"
   },
-  "downloadError": "Chyba pri sťahovaní máp. Skontrolujte prosím internetové pripojenie."
+  "downloadError": "Chyba pri sťahovaní máp. Skontrolujte prosím internetové pripojenie.",
+  "settings": "Nastavenia",
+  "mapFontSize": "Veľkosť písma na mape",
+  "mapDefaultZoom": "Predvolený zoom mapy",
+  "resetSettings": "Resetovať nastavenia"
 }

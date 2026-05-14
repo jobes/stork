@@ -112,4 +112,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get downloadError =>
       'Error downloading maps. Please check your internet connection.';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get mapFontSize => 'Map Font Size';
+
+  @override
+  String get mapDefaultZoom => 'Map Default Zoom';
+
+  @override
+  String get resetSettings => 'Reset Settings';
 }

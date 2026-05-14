@@ -9,6 +9,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
 import '../../../../core/services/location_provider.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});
@@ -24,15 +25,20 @@ class _MapPageState extends ConsumerState<MapPage> {
   @override
   Widget build(BuildContext context) {
     final styleAsync = ref.watch(mapStyleProvider);
+    final settingsAsync = ref.watch(appSettingsProvider);
     final l10n = AppLocalizations.of(context)!;
+    final settings = settingsAsync.value;
 
     // Enable immersive mode on the map page
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
     ref.listen(currentLocationProvider, (previous, next) {
       next.whenData((location) {
-        if (location != null && _mapController != null) {
-          _mapController!.animateCamera(center: location, zoom: 6);
+        if (location != null && _mapController != null && settings != null) {
+          _mapController!.animateCamera(
+            center: location,
+            zoom: settings.mapDefaultZoom,
+          );
         }
       });
     });
@@ -123,7 +129,8 @@ class _MapPageState extends ConsumerState<MapPage> {
                           icon: const Icon(Icons.settings),
                           color: Theme.of(context).colorScheme.onPrimary,
                           onPressed: () {
-                            // TODO: Open settings
+                            context.pop();
+                            context.push('/settings');
                           },
                         ),
                       ],
@@ -146,7 +153,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                 title: Text(l10n.editSettings),
                 onTap: () {
                   context.pop();
-                  // context.push('/settings'); // To be implemented
+                  context.push('/settings');
                 },
               ),
             ],
@@ -170,8 +177,11 @@ class _MapPageState extends ConsumerState<MapPage> {
                     _mapController = controller;
                     // If location is already available, move the map immediately
                     ref.read(currentLocationProvider).whenData((location) {
-                      if (location != null) {
-                        controller.animateCamera(center: location, zoom: 6);
+                      if (location != null && settings != null) {
+                        controller.animateCamera(
+                          center: location,
+                          zoom: settings.mapDefaultZoom,
+                        );
                       }
                     });
                   },

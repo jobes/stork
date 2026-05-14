@@ -277,6 +277,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error downloading maps. Please check your internet connection.'**
   String get downloadError;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @mapFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Font Size'**
+  String get mapFontSize;
+
+  /// No description provided for @mapDefaultZoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Default Zoom'**
+  String get mapDefaultZoom;
+
+  /// No description provided for @resetSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Settings'**
+  String get resetSettings;
 }
 
 class _AppLocalizationsDelegate

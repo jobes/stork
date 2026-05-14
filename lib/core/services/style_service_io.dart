@@ -5,7 +5,7 @@ import 'map_assets_server.dart';
 class StyleService {
   static const _stylePath = 'assets/openaip/styles.json';
 
-  static Future<String> loadStyle() async {
+  static Future<String> loadStyle({double fontSize = 1.0}) async {
     var styleStr = await rootBundle.loadString(_stylePath);
     styleStr = styleStr.replaceAll('asset://', '${MapAssetsServer.baseUrl}/');
 
