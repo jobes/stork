@@ -112,4 +112,16 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String get downloadError =>
       'Chyba pri sťahovaní máp. Skontrolujte prosím internetové pripojenie.';
+
+  @override
+  String get settings => 'Nastavenia';
+
+  @override
+  String get mapFontSize => 'Veľkosť písma na mape';
+
+  @override
+  String get mapDefaultZoom => 'Predvolený zoom mapy';
+
+  @override
+  String get resetSettings => 'Resetovať nastavenia';
 }

@@ -6,7 +6,7 @@ import 'protomaps_resolver.dart';
 class StyleService {
   static const _stylePath = 'assets/openaip/styles.json';
 
-  static Future<String> loadStyle() async {
+  static Future<String> loadStyle({double fontSize = 1.0}) async {
     var styleJson = await rootBundle.loadString(_stylePath);
     styleJson = styleJson.replaceAll('asset://', '${Uri.base.origin}/assets/');
 

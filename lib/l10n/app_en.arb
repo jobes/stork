@@ -92,5 +92,9 @@
   "@cancelDownload": {
     "description": "Button to cancel the current map download"
   },
-  "downloadError": "Error downloading maps. Please check your internet connection."
+  "downloadError": "Error downloading maps. Please check your internet connection.",
+  "settings": "Settings",
+  "mapFontSize": "Map Font Size",
+  "mapDefaultZoom": "Map Default Zoom",
+  "resetSettings": "Reset Settings"
 }
