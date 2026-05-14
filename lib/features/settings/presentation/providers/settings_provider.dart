@@ -29,6 +29,6 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<void> updateDefaultZoom(double zoom) async {
     final prefs = await ref.read(sharedPreferencesProvider.future);
     await prefs.setDouble('mapDefaultZoom', zoom);
-    state = AsyncData(state.value!.copyWith(mapDefaultZoom: zoom));
+    state = state.whenData((settings) => settings.copyWith(mapDefaultZoom: zoom));
   }
 }
