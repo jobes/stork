@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'telemetry_provider.dart';
+part of 'cannelloni_service.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,51 @@ part of 'telemetry_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(TelemetryNotifier)
-final telemetryProvider = TelemetryNotifierProvider._();
+@ProviderFor(CannelloniService)
+final cannelloniServiceProvider = CannelloniServiceProvider._();
 
-final class TelemetryNotifierProvider
-    extends $NotifierProvider<TelemetryNotifier, TelemetryState> {
-  TelemetryNotifierProvider._()
+final class CannelloniServiceProvider
+    extends $NotifierProvider<CannelloniService, void> {
+  CannelloniServiceProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'telemetryProvider',
+        name: r'cannelloniServiceProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$telemetryNotifierHash();
+  String debugGetCreateSourceHash() => _$cannelloniServiceHash();
 
   @$internal
   @override
-  TelemetryNotifier create() => TelemetryNotifier();
+  CannelloniService create() => CannelloniService();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(TelemetryState value) {
+  Override overrideWithValue(void value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<TelemetryState>(value),
+      providerOverride: $SyncValueProvider<void>(value),
     );
   }
 }
 
-String _$telemetryNotifierHash() => r'0bb2c62c2b6d3e2d09269e79c3ffb1d8254fc2b6';
+String _$cannelloniServiceHash() => r'7d68088aa0e5d61107f16f482bfe0c53f09b9c65';
 
-abstract class _$TelemetryNotifier extends $Notifier<TelemetryState> {
-  TelemetryState build();
+abstract class _$CannelloniService extends $Notifier<void> {
+  void build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<TelemetryState, TelemetryState>;
+    final ref = this.ref as $Ref<void, void>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<TelemetryState, TelemetryState>,
-              TelemetryState,
+              AnyNotifier<void, void>,
+              void,
               Object?,
               Object?
             >;
