@@ -14,6 +14,7 @@ part 'map_camera_provider.g.dart';
 @riverpod
 class MapCamera extends _$MapCamera {
   MapController? _mapController;
+  final _controllerCompleter = Completer<MapController>();
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
   bool _isMovingProgrammatically = false;
@@ -95,6 +96,9 @@ class MapCamera extends _$MapCamera {
 
   void attachController(MapController controller) {
     _mapController = controller;
+    if (!_controllerCompleter.isCompleted) {
+      _controllerCompleter.complete(controller);
+    }
 
     // Initial move if telemetry is already valid
     final telemetry = ref.read(telemetryProvider);
@@ -219,11 +223,9 @@ class MapCamera extends _$MapCamera {
         requestPermission: false,
       );
 
-      // Wait a bit if controller is not ready yet
-      int retries = 0;
-      while (_mapController == null && retries < 10) {
-        await Future.delayed(const Duration(milliseconds: 200));
-        retries++;
+      // Wait for controller to be ready
+      if (_mapController == null) {
+        await _controllerCompleter.future;
       }
 
       if (initialLocation != null && _mapController != null) {
