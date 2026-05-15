@@ -186,6 +186,8 @@ class MapCamera extends _$MapCamera {
     }
 
     _followResumeTimer = Timer(const Duration(seconds: 5), () {
+      if (!ref.mounted) return;
+
       _isFollowPaused = false;
 
       // Immediate snap back if still in follow mode
@@ -313,6 +315,7 @@ class MapCamera extends _$MapCamera {
         id: 'aircraft-icon',
         asset: 'assets/images/aircraft.png',
       );
+      if (!ref.mounted) return;
 
       final telemetry = ref.read(telemetryProvider);
       await style.addSource(
@@ -325,6 +328,7 @@ class MapCamera extends _$MapCamera {
           ),
         ),
       );
+      if (!ref.mounted) return;
 
       await style.addLayer(
         SymbolStyleLayer(
@@ -341,6 +345,7 @@ class MapCamera extends _$MapCamera {
           },
         ),
       );
+      if (!ref.mounted) return;
 
       _isAircraftSymbolInitialized = true;
       debugPrint('Aircraft symbol initialized 😎');
