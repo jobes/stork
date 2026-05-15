@@ -204,6 +204,14 @@ class MapCamera extends _$MapCamera {
         ref
             .read(telemetryProvider.notifier)
             .updateGPS(latitude: location.lat, longitude: location.lon);
+      } else {
+        // If GPS is denied or failed, return to init state
+        final hasPermission = await LocationService.hasPermission();
+        if (!hasPermission) {
+          ref
+              .read(telemetryProvider.notifier)
+              .setMapViewState(MapViewState.init);
+        }
       }
     } else {
       final nextState = mapViewState == MapViewState.follow
