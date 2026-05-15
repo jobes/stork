@@ -9,47 +9,6 @@ part of 'settings_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(sharedPreferences)
-final sharedPreferencesProvider = SharedPreferencesProvider._();
-
-final class SharedPreferencesProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<SharedPreferences>,
-          SharedPreferences,
-          FutureOr<SharedPreferences>
-        >
-    with
-        $FutureModifier<SharedPreferences>,
-        $FutureProvider<SharedPreferences> {
-  SharedPreferencesProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'sharedPreferencesProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$sharedPreferencesHash();
-
-  @$internal
-  @override
-  $FutureProviderElement<SharedPreferences> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<SharedPreferences> create(Ref ref) {
-    return sharedPreferences(ref);
-  }
-}
-
-String _$sharedPreferencesHash() => r'521242eaeb5f10f2cde43323533c84cd5c5135ef';
-
 @ProviderFor(AppSettingsNotifier)
 final appSettingsProvider = AppSettingsNotifierProvider._();
 
@@ -75,7 +34,7 @@ final class AppSettingsNotifierProvider
 }
 
 String _$appSettingsNotifierHash() =>
-    r'cb3e4cb085ba227bc30caf4b4dbe5cb2ddb1179f';
+    r'55f7b7a196bac3c514251189988981957d6a9c01';
 
 abstract class _$AppSettingsNotifier extends $AsyncNotifier<AppSettings> {
   FutureOr<AppSettings> build();

@@ -337,6 +337,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop following location'**
   String get gpsStopFollow;
+
+  /// No description provided for @cannelloniGateway.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannelloni Gateway'**
+  String get cannelloniGateway;
+
+  /// No description provided for @autoSelectDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-select device'**
+  String get autoSelectDevice;
+
+  /// No description provided for @selectedDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected device'**
+  String get selectedDevice;
+
+  /// No description provided for @noneSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get noneSelected;
 }
 
 class _AppLocalizationsDelegate

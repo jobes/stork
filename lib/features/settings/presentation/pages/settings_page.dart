@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/services/mdns_service.dart';
+import '../../domain/cannelloni_device.dart';
 import '../providers/settings_provider.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -9,6 +11,7 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(appSettingsProvider);
+    final devicesAsync = ref.watch(discoveredDevicesProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
@@ -16,6 +19,31 @@ class SettingsPage extends ConsumerWidget {
       body: settingsAsync.when(
         data: (settings) => ListView(
           children: [
+            _SettingsSection(
+              title: l10n.cannelloniGateway,
+              children: [
+                _CheckboxSetting(
+                  label: l10n.autoSelectDevice,
+                  value: settings.autoSelectDevice,
+                  onChanged: (val) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateAutoSelectDevice(val);
+                  },
+                ),
+                _DeviceDropdownSetting(
+                  label: l10n.selectedDevice,
+                  selectedDevice: settings.selectedDevice,
+                  devices: devicesAsync.asData?.value ?? [],
+                  enabled: !settings.autoSelectDevice,
+                  onChanged: (device) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateSelectedDevice(device);
+                  },
+                ),
+              ],
+            ),
             _SettingsSection(
               title: l10n.offlineMaps,
               children: [
@@ -158,6 +186,120 @@ class _SliderSetting extends StatelessWidget {
             max: max,
             divisions: divisions,
             onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CheckboxSetting extends StatelessWidget {
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _CheckboxSetting({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CheckboxListTile(
+      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+      value: value,
+      onChanged: (val) => onChanged(val ?? false),
+      controlAffinity: ListTileControlAffinity.trailing,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    );
+  }
+}
+
+class _DeviceDropdownSetting extends StatelessWidget {
+  final String label;
+  final CannelloniDevice? selectedDevice;
+  final List<CannelloniDevice> devices;
+  final bool enabled;
+  final ValueChanged<CannelloniDevice?> onChanged;
+
+  const _DeviceDropdownSetting({
+    required this.label,
+    required this.selectedDevice,
+    required this.devices,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    // Check if the currently selected device is in the list
+    CannelloniDevice? value;
+    try {
+      value = devices.firstWhere(
+        (d) => d == selectedDevice,
+      );
+    } catch (_) {
+      value = null;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<CannelloniDevice?>(
+            key: ValueKey(value),
+            initialValue: value,
+            isExpanded: true,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            items: [
+              DropdownMenuItem<CannelloniDevice?>(
+                value: null,
+                child: Text(l10n.noneSelected),
+              ),
+              ...devices.map(
+                (device) => DropdownMenuItem(
+                  value: device,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        device.hostname,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '${device.ip}:${device.port}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            selectedItemBuilder: (context) {
+              return [
+                Text(l10n.noneSelected),
+                ...devices.map((device) => Text(device.hostname)),
+              ];
+            },
+            onChanged: enabled ? onChanged : null,
           ),
         ],
       ),

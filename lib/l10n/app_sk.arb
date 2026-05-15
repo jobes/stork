@@ -96,5 +96,9 @@
   "gpsEnable": "Zapnúť GPS",
   "gpsWaiting": "Čakám na GPS...",
   "gpsFollow": "Sledovať polohu",
-  "gpsStopFollow": "Prestať sledovať polohu"
+  "gpsStopFollow": "Prestať sledovať polohu",
+  "cannelloniGateway": "Cannelloni brána",
+  "autoSelectDevice": "Automaticky vybrať zariadenie",
+  "selectedDevice": "Vybrané zariadenie",
+  "noneSelected": "Žiadne"
 }
