@@ -13,7 +13,8 @@ Future<Geographic?> currentLocation(Ref ref) async {
   return await LocationService.getCurrentLocation();
 }
 
-final positionStreamProvider = StreamProvider<Geographic>((ref) {
+@riverpod
+Stream<Geographic> positionStream(Ref ref) {
   final mapViewState =
       ref.watch(telemetryProvider.select((s) => s.mapViewState));
 
@@ -28,4 +29,4 @@ final positionStreamProvider = StreamProvider<Geographic>((ref) {
       distanceFilter: 1,
     ),
   ).map((pos) => Geographic(lon: pos.longitude, lat: pos.latitude));
-});
+}

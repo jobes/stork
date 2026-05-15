@@ -47,3 +47,41 @@ final class CurrentLocationProvider
 }
 
 String _$currentLocationHash() => r'cb79119672f4cb95e04b9d102ca104793b740642';
+
+@ProviderFor(positionStream)
+final positionStreamProvider = PositionStreamProvider._();
+
+final class PositionStreamProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Geographic>,
+          Geographic,
+          Stream<Geographic>
+        >
+    with $FutureModifier<Geographic>, $StreamProvider<Geographic> {
+  PositionStreamProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'positionStreamProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$positionStreamHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Geographic> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<Geographic> create(Ref ref) {
+    return positionStream(ref);
+  }
+}
+
+String _$positionStreamHash() => r'7d8bff576e629d478d04b36c0e28bb93190b243c';

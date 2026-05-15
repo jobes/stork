@@ -21,10 +21,10 @@ The map operates in four distinct modes, each with specific camera and UI behavi
 
 | Mode | Camera Behavior | GPS Usage | Aircraft Icon |
 | :--- | :--- | :--- | :--- |
-| **`init`** | Static (Zoom 2-6) | GeoIP / Quiet GPS | Hidden |
+| **`init`** | Configurable via settings (`mapDefaultZoom`) — default 6.0 | GeoIP / Quiet GPS | Hidden |
 | **`waitingForGps`** | Static | Active GPS Search | Hidden |
-| **`overview`** | Static (North-up) | Real-time GPS | Visible & Moving |
-| **`follow`** | Tracking | Real-time GPS | Visible & Centered |
+| **`overview`** | Configurable via settings (`mapOverviewZoom`) — default 10.0 | Real-time GPS | Visible & Moving |
+| **`follow`** | Configurable via settings (`mapFollowZoom`) — default 12.0 | Real-time GPS | Visible & Centered |
 
 ### State Transitions
 1. **Startup**: Enters `init`. Centers camera via IP.
@@ -41,6 +41,7 @@ In this mode, the camera automatically:
 - Centers on the aircraft's latitude/longitude.
 - Rotates to match the aircraft's **Heading** (bearing).
 - Applies a **Tilt** (pitch) of 60° for a pseudo-3D perspective.
+- Adjusts **Zoom** to a configurable level (`mapFollowZoom`, default 12.0).
 
 ### Interaction Resume (5s Timer)
 If the user manually interacts with the map (pan/zoom/rotate) while in Follow Mode:
