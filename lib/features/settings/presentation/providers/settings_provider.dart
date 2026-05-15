@@ -25,24 +25,32 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<void> updateFontSize(double fontSize) async {
     final prefs = await ref.read(sharedPreferencesProvider.future);
     await prefs.setDouble('mapFontSize', fontSize);
-    state = state.whenData((settings) => settings.copyWith(mapFontSize: fontSize));
+    state = state.whenData(
+      (settings) => settings.copyWith(mapFontSize: fontSize),
+    );
   }
 
   Future<void> updateDefaultZoom(double zoom) async {
     final prefs = await ref.read(sharedPreferencesProvider.future);
     await prefs.setDouble('mapDefaultZoom', zoom);
-    state = state.whenData((settings) => settings.copyWith(mapDefaultZoom: zoom));
+    state = state.whenData(
+      (settings) => settings.copyWith(mapDefaultZoom: zoom),
+    );
   }
 
   Future<void> updateOverviewZoom(double zoom) async {
     final prefs = await ref.read(sharedPreferencesProvider.future);
     await prefs.setDouble('mapOverviewZoom', zoom);
-    state = state.whenData((settings) => settings.copyWith(mapOverviewZoom: zoom));
+    state = state.whenData(
+      (settings) => settings.copyWith(mapOverviewZoom: zoom),
+    );
   }
 
   Future<void> updateFollowZoom(double zoom) async {
     final prefs = await ref.read(sharedPreferencesProvider.future);
     await prefs.setDouble('mapFollowZoom', zoom);
-    state = state.whenData((settings) => settings.copyWith(mapFollowZoom: zoom));
+    state = state.whenData(
+      (settings) => settings.copyWith(mapFollowZoom: zoom),
+    );
   }
 }

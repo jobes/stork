@@ -73,12 +73,12 @@ class LocationService {
       if (permission == geo.LocationPermission.denied) {
         permission = await geo.Geolocator.requestPermission();
       }
-      
+
       if (permission == geo.LocationPermission.deniedForever) {
         // On Web, we can't easily open settings, so we just fail
         return null;
       }
-      
+
       // If we have permission (or just got it), perform an active fetch
       if (permission == geo.LocationPermission.always ||
           permission == geo.LocationPermission.whileInUse) {

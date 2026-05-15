@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/telemetry_state.dart';
 import '../../domain/models/map_view_state.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 
 part 'telemetry_provider.g.dart';
 
@@ -25,6 +26,8 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       speed: speed,
     );
 
+    _updateIsFlying();
+
     // Auto-transition to overview if GPS is filled and we are in init/waiting state
     if ((oldState.mapViewState == MapViewState.init ||
             oldState.mapViewState == MapViewState.waitingForGps) &&
@@ -33,6 +36,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
         (latitude != 0.0 && longitude != 0.0)) {
       state = state.copyWith(mapViewState: MapViewState.overview);
     }
+  }
+
+  void updateAirSpeed(double? ias) {
+    state = state.copyWith(indicatedAirSpeed: ias);
+    _updateIsFlying();
   }
 
   void updateEngineRPM(double rpm) {
@@ -56,5 +64,18 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
   void updateAll(TelemetryState newState) {
     state = newState;
+    _updateIsFlying();
+  }
+
+  void _updateIsFlying() {
+    final settings = ref.read(appSettingsProvider).value;
+    final threshold = settings?.flightMinSpeed ?? 15.0;
+
+    final currentSpeed = state.indicatedAirSpeed ?? state.speed;
+    final isFlying = currentSpeed > threshold;
+
+    if (state.isFlying != isFlying) {
+      state = state.copyWith(isFlying: isFlying);
+    }
   }
 }

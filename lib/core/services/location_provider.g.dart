@@ -54,11 +54,17 @@ final positionStreamProvider = PositionStreamProvider._();
 final class PositionStreamProvider
     extends
         $FunctionalProvider<
-          AsyncValue<Geographic>,
-          Geographic,
-          Stream<Geographic>
+          AsyncValue<({double heading, double lat, double lon, double speed})>,
+          ({double heading, double lat, double lon, double speed}),
+          Stream<({double heading, double lat, double lon, double speed})>
         >
-    with $FutureModifier<Geographic>, $StreamProvider<Geographic> {
+    with
+        $FutureModifier<
+          ({double heading, double lat, double lon, double speed})
+        >,
+        $StreamProvider<
+          ({double heading, double lat, double lon, double speed})
+        > {
   PositionStreamProvider._()
     : super(
         from: null,
@@ -75,13 +81,50 @@ final class PositionStreamProvider
 
   @$internal
   @override
-  $StreamProviderElement<Geographic> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+  $StreamProviderElement<
+    ({double heading, double lat, double lon, double speed})
+  >
+  $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
-  Stream<Geographic> create(Ref ref) {
+  Stream<({double heading, double lat, double lon, double speed})> create(
+    Ref ref,
+  ) {
     return positionStream(ref);
   }
 }
 
-String _$positionStreamHash() => r'7d8bff576e629d478d04b36c0e28bb93190b243c';
+String _$positionStreamHash() => r'e91bd88cc13b0d37f35bb8537cb994407ebbfcee';
+
+@ProviderFor(compassStream)
+final compassStreamProvider = CompassStreamProvider._();
+
+final class CompassStreamProvider
+    extends $FunctionalProvider<AsyncValue<double?>, double?, Stream<double?>>
+    with $FutureModifier<double?>, $StreamProvider<double?> {
+  CompassStreamProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'compassStreamProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$compassStreamHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<double?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<double?> create(Ref ref) {
+    return compassStream(ref);
+  }
+}
+
+String _$compassStreamHash() => r'47a4544f8c211893b6ced7ae16a1ce090c60ae2b';

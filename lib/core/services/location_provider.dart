@@ -1,3 +1,4 @@
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -14,9 +15,12 @@ Future<Geographic?> currentLocation(Ref ref) async {
 }
 
 @riverpod
-Stream<Geographic> positionStream(Ref ref) {
-  final mapViewState =
-      ref.watch(telemetryProvider.select((s) => s.mapViewState));
+Stream<({double lat, double lon, double heading, double speed})> positionStream(
+  Ref ref,
+) {
+  final mapViewState = ref.watch(
+    telemetryProvider.select((s) => s.mapViewState),
+  );
 
   // Don't start the stream (and trigger permission prompt) while in init mode
   if (mapViewState == MapViewState.init) {
@@ -28,5 +32,30 @@ Stream<Geographic> positionStream(Ref ref) {
       accuracy: geo.LocationAccuracy.high,
       distanceFilter: 1,
     ),
-  ).map((pos) => Geographic(lon: pos.longitude, lat: pos.latitude));
+  ).map(
+    (pos) => (
+      lat: pos.latitude,
+      lon: pos.longitude,
+      heading: pos.heading,
+      speed: pos.speed,
+    ),
+  );
+}
+
+@riverpod
+Stream<double?> compassStream(Ref ref) {
+  DateTime? lastUpdate;
+
+  return FlutterCompass.events
+          ?.where((event) {
+            final now = DateTime.now();
+            if (lastUpdate == null ||
+                now.difference(lastUpdate!) >= const Duration(seconds: 1)) {
+              lastUpdate = now;
+              return true;
+            }
+            return false;
+          })
+          .map((event) => event.heading) ??
+      const Stream.empty();
 }

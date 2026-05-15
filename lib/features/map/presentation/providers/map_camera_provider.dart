@@ -18,7 +18,7 @@ class MapCamera extends _$MapCamera {
   final _controllerCompleter = Completer<MapController>();
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
-  bool _isMovingProgrammatically = false;
+  int _programmaticMoveCount = 0;
   bool _isAircraftSymbolInitialized = false;
 
   @override
@@ -49,13 +49,15 @@ class MapCamera extends _$MapCamera {
       // Handle mode transitions and continuous updates
       if (next.mapViewState == MapViewState.follow) {
         if (next.latitude != 0 && next.longitude != 0 && !_isFollowPaused) {
-          unawaited(moveCamera(
-            center: center,
-            zoom: settings?.mapFollowZoom ?? 12.0,
-            pitch: 60,
-            bearing: next.heading,
-            animate: true,
-          ));
+          unawaited(
+            moveCamera(
+              center: center,
+              zoom: settings?.mapFollowZoom ?? 12.0,
+              pitch: 60,
+              bearing: next.heading,
+              animate: true,
+            ),
+          );
         }
       } else if (next.mapViewState == MapViewState.overview) {
         final stateChanged = previous?.mapViewState != next.mapViewState;
@@ -64,15 +66,17 @@ class MapCamera extends _$MapCamera {
             (next.latitude != 0 && next.longitude != 0);
 
         if (stateChanged || coordsBecameValid) {
-          unawaited(moveCamera(
-            center: center,
-            zoom: settings?.mapOverviewZoom ?? 10.0,
-            pitch: 0,
-            bearing: 0,
-            animate: kIsWeb && previous?.mapViewState != MapViewState.follow
-                ? false
-                : !coordsBecameValid,
-          ));
+          unawaited(
+            moveCamera(
+              center: center,
+              zoom: settings?.mapOverviewZoom ?? 10.0,
+              pitch: 0,
+              bearing: 0,
+              animate: kIsWeb && previous?.mapViewState != MapViewState.follow
+                  ? false
+                  : !coordsBecameValid,
+            ),
+          );
         }
       }
     });
@@ -84,11 +88,13 @@ class MapCamera extends _$MapCamera {
           final telemetry = ref.read(telemetryProvider);
           final settings = ref.read(appSettingsProvider).value;
           if (telemetry.mapViewState == MapViewState.init && settings != null) {
-            unawaited(moveCamera(
-              center: location,
-              zoom: settings.mapDefaultZoom,
-              animate: false,
-            ));
+            unawaited(
+              moveCamera(
+                center: location,
+                zoom: settings.mapDefaultZoom,
+                animate: false,
+              ),
+            );
           }
         }
       });
@@ -99,9 +105,34 @@ class MapCamera extends _$MapCamera {
       next.whenData((location) {
         final telemetry = ref.read(telemetryProvider);
         if (telemetry.mapViewState != MapViewState.init) {
+          // Update position and speed first to let telemetry update isFlying state
           ref
               .read(telemetryProvider.notifier)
-              .updateGPS(latitude: location.lat, longitude: location.lon);
+              .updateGPS(
+                latitude: location.lat,
+                longitude: location.lon,
+                speed: location.speed,
+              );
+
+          // Use GPS heading only if we are flying (according to telemetry logic)
+          if (ref.read(telemetryProvider).isFlying) {
+            ref
+                .read(telemetryProvider.notifier)
+                .updateGPS(heading: location.heading);
+          }
+        }
+      });
+    });
+
+    // Listen to device compass for low-speed heading
+    ref.listen(compassStreamProvider, (previous, next) {
+      next.whenData((heading) {
+        if (heading == null) return;
+
+        final telemetry = ref.read(telemetryProvider);
+        if (telemetry.mapViewState != MapViewState.init &&
+            !telemetry.isFlying) {
+          ref.read(telemetryProvider.notifier).updateGPS(heading: heading);
         }
       });
     });
@@ -133,11 +164,13 @@ class MapCamera extends _$MapCamera {
         zoom = settings.mapDefaultZoom;
       }
 
-      unawaited(moveCamera(
-        center: Geographic(lon: telemetry.longitude, lat: telemetry.latitude),
-        zoom: zoom,
-        animate: false,
-      ));
+      unawaited(
+        moveCamera(
+          center: Geographic(lon: telemetry.longitude, lat: telemetry.latitude),
+          zoom: zoom,
+          animate: false,
+        ),
+      );
     }
   }
 
@@ -149,7 +182,7 @@ class MapCamera extends _$MapCamera {
     bool animate = true,
   }) async {
     if (_mapController != null && center.lat != 0 && center.lon != 0) {
-      _isMovingProgrammatically = true;
+      _programmaticMoveCount++;
       try {
         if (animate) {
           await _mapController!.animateCamera(
@@ -167,15 +200,15 @@ class MapCamera extends _$MapCamera {
           );
         }
       } finally {
-        await Future.delayed(const Duration(milliseconds: 100));
-        _isMovingProgrammatically = false;
+        await Future.delayed(const Duration(milliseconds: 200));
+        _programmaticMoveCount--;
       }
     }
   }
 
   void handleUserInteraction({bool isExplicitInteraction = true}) {
     // Only proceed if it's not a programmatical movement
-    if (!isExplicitInteraction && _isMovingProgrammatically) return;
+    if (!isExplicitInteraction && _programmaticMoveCount > 0) return;
 
     final telemetry = ref.read(telemetryProvider);
     if (telemetry.mapViewState != MapViewState.follow) return;
@@ -203,13 +236,15 @@ class MapCamera extends _$MapCamera {
 
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
-    unawaited(moveCamera(
-      center: Geographic(lon: telemetry.longitude, lat: telemetry.latitude),
-      zoom: settings?.mapFollowZoom ?? 12.0,
-      pitch: 60,
-      bearing: telemetry.heading,
-      animate: true,
-    ));
+    unawaited(
+      moveCamera(
+        center: Geographic(lon: telemetry.longitude, lat: telemetry.latitude),
+        zoom: settings?.mapFollowZoom ?? 12.0,
+        pitch: 60,
+        bearing: telemetry.heading,
+        animate: true,
+      ),
+    );
   }
 
   Future<void> handleGpsToggle() async {
@@ -265,11 +300,13 @@ class MapCamera extends _$MapCamera {
       }
 
       if (initialLocation != null && _mapController != null) {
-        unawaited(moveCamera(
-          center: initialLocation,
-          zoom: settings?.mapDefaultZoom ?? 6.0,
-          animate: false,
-        ));
+        unawaited(
+          moveCamera(
+            center: initialLocation,
+            zoom: settings?.mapDefaultZoom ?? 6.0,
+            animate: false,
+          ),
+        );
       }
 
       final hasPermission = await LocationService.hasPermission();
@@ -373,5 +410,5 @@ class MapCamera extends _$MapCamera {
     });
   }
 
-  bool get isMovingProgrammatically => _isMovingProgrammatically;
+  bool get isMovingProgrammatically => _programmaticMoveCount > 0;
 }

@@ -12,10 +12,7 @@ class SettingsPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.settings),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(l10n.settings), centerTitle: true),
       body: settingsAsync.when(
         data: (settings) => ListView(
           children: [
@@ -39,7 +36,9 @@ class SettingsPage extends ConsumerWidget {
                   max: 14.0,
                   divisions: 14,
                   onChanged: (val) {
-                    ref.read(appSettingsProvider.notifier).updateDefaultZoom(val);
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateDefaultZoom(val);
                   },
                 ),
                 _SliderSetting(
@@ -49,7 +48,9 @@ class SettingsPage extends ConsumerWidget {
                   max: 14.0,
                   divisions: 14,
                   onChanged: (val) {
-                    ref.read(appSettingsProvider.notifier).updateOverviewZoom(val);
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateOverviewZoom(val);
                   },
                 ),
                 _SliderSetting(
@@ -59,7 +60,9 @@ class SettingsPage extends ConsumerWidget {
                   max: 18.0,
                   divisions: 18,
                   onChanged: (val) {
-                    ref.read(appSettingsProvider.notifier).updateFollowZoom(val);
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateFollowZoom(val);
                   },
                 ),
               ],
@@ -99,8 +102,12 @@ class _SettingsSection extends StatelessWidget {
         Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           elevation: 0,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(76),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withAlpha(76),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Column(children: children),
         ),
       ],

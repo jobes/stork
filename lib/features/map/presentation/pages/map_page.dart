@@ -2,15 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:maplibre/maplibre.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
-import '../../../settings/presentation/providers/settings_provider.dart';
+
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../components/map_drawer.dart';
 import '../components/map_controls.dart';
 import '../components/aircraft_map.dart';
+import '../components/compass_bar.dart';
 import '../providers/map_camera_provider.dart';
 
 class MapPage extends ConsumerStatefulWidget {
@@ -84,6 +84,14 @@ class _MapPageState extends ConsumerState<MapPage> {
                 return Center(child: Text('${l10n.mapLoadingError}: $error'));
               },
             ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: AbsorbPointer(
+                child: CompassBar(heading: telemetry.heading),
+              ),
+            ),
             Builder(
               builder: (context) => MapControls(
                 mapViewState: telemetry.mapViewState,
@@ -97,5 +105,3 @@ class _MapPageState extends ConsumerState<MapPage> {
     );
   }
 }
-
-

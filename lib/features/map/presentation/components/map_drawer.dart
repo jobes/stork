@@ -65,10 +65,9 @@ class MapDrawer extends StatelessWidget {
                             Text(
                               l10n.unknownAircraft,
                               style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimary
-                                    .withAlpha(204),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary.withAlpha(204),
                                 fontSize: 12,
                               ),
                             ),
