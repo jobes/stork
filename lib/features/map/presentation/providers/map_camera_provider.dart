@@ -42,7 +42,7 @@ class MapCamera extends _$MapCamera {
         final stateChanged = previous?.mapViewState != next.mapViewState;
         final coordsBecameValid =
             (previous?.latitude == 0 || previous?.longitude == 0) &&
-                (next.latitude != 0 && next.longitude != 0);
+            (next.latitude != 0 && next.longitude != 0);
 
         if (stateChanged || coordsBecameValid) {
           moveCamera(
@@ -99,13 +99,12 @@ class MapCamera extends _$MapCamera {
     // Initial move if telemetry is already valid
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
-    if (telemetry.latitude != 0 && telemetry.longitude != 0 && settings != null) {
+    if (telemetry.latitude != 0 &&
+        telemetry.longitude != 0 &&
+        settings != null) {
       final useOverviewZoom = telemetry.mapViewState == MapViewState.overview;
       moveCamera(
-        center: Geographic(
-          lon: telemetry.longitude,
-          lat: telemetry.latitude,
-        ),
+        center: Geographic(lon: telemetry.longitude, lat: telemetry.latitude),
         zoom: useOverviewZoom
             ? settings.mapOverviewZoom
             : settings.mapDefaultZoom,
@@ -149,7 +148,7 @@ class MapCamera extends _$MapCamera {
   void handleUserInteraction({bool isExplicitInteraction = true}) {
     // Only proceed if it's not a programmatical movement
     if (!isExplicitInteraction && _isMovingProgrammatically) return;
-    
+
     final telemetry = ref.read(telemetryProvider);
     if (telemetry.mapViewState != MapViewState.follow) return;
 
@@ -198,10 +197,9 @@ class MapCamera extends _$MapCamera {
       );
 
       if (location != null) {
-        ref.read(telemetryProvider.notifier).updateGPS(
-              latitude: location.lat,
-              longitude: location.lon,
-            );
+        ref
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: location.lat, longitude: location.lon);
       }
     } else {
       final nextState = mapViewState == MapViewState.follow
@@ -248,7 +246,9 @@ class MapCamera extends _$MapCamera {
         );
 
         if (realLocation != null) {
-          ref.read(telemetryProvider.notifier).updateGPS(
+          ref
+              .read(telemetryProvider.notifier)
+              .updateGPS(
                 latitude: realLocation.lat,
                 longitude: realLocation.lon,
               );

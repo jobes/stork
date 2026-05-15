@@ -130,4 +130,16 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get resetSettings => 'Resetovať nastavenia';
+
+  @override
+  String get gpsEnable => 'Zapnúť GPS';
+
+  @override
+  String get gpsWaiting => 'Čakám na GPS...';
+
+  @override
+  String get gpsFollow => 'Sledovať polohu';
+
+  @override
+  String get gpsStopFollow => 'Prestať sledovať polohu';
 }

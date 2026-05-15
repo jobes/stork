@@ -92,5 +92,9 @@
   "mapDefaultZoom": "Predvolený zoom mapy",
   "mapOverviewZoom": "Zoom prehľadu mapy",
   "mapFollowZoom": "Zoom sledovania mapy",
-  "resetSettings": "Resetovať nastavenia"
+  "resetSettings": "Resetovať nastavenia",
+  "gpsEnable": "Zapnúť GPS",
+  "gpsWaiting": "Čakám na GPS...",
+  "gpsFollow": "Sledovať polohu",
+  "gpsStopFollow": "Prestať sledovať polohu"
 }

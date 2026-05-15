@@ -130,4 +130,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetSettings => 'Reset Settings';
+
+  @override
+  String get gpsEnable => 'Enable GPS';
+
+  @override
+  String get gpsWaiting => 'Waiting for GPS...';
+
+  @override
+  String get gpsFollow => 'Follow location';
+
+  @override
+  String get gpsStopFollow => 'Stop following location';
 }

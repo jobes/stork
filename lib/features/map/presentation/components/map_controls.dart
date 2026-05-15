@@ -19,6 +19,14 @@ class MapControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    final gpsTooltip = mapViewState == MapViewState.waitingForGps
+        ? l10n.gpsWaiting
+        : mapViewState == MapViewState.init
+        ? l10n.gpsEnable
+        : mapViewState == MapViewState.follow
+        ? l10n.gpsStopFollow
+        : l10n.gpsFollow;
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -44,21 +52,22 @@ class MapControls extends StatelessWidget {
                   elevation: 4,
                   shadowColor: Colors.black.withAlpha(76),
                 ),
+                tooltip: gpsTooltip,
                 icon: mapViewState == MapViewState.waitingForGps
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onTertiary,
                         ),
                       )
                     : Icon(
                         mapViewState == MapViewState.init
                             ? Icons.gps_not_fixed
                             : mapViewState == MapViewState.follow
-                                ? Icons.navigation
-                                : Icons.gps_fixed,
+                            ? Icons.navigation
+                            : Icons.gps_fixed,
                       ),
                 onPressed: onGpsPressed,
               ),

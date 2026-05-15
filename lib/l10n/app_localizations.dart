@@ -313,6 +313,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset Settings'**
   String get resetSettings;
+
+  /// No description provided for @gpsEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable GPS'**
+  String get gpsEnable;
+
+  /// No description provided for @gpsWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for GPS...'**
+  String get gpsWaiting;
+
+  /// No description provided for @gpsFollow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow location'**
+  String get gpsFollow;
+
+  /// No description provided for @gpsStopFollow.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop following location'**
+  String get gpsStopFollow;
 }
 
 class _AppLocalizationsDelegate
