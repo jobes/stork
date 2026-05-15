@@ -30,7 +30,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
             oldState.mapViewState == MapViewState.waitingForGps) &&
         latitude != null &&
         longitude != null &&
-        (latitude != 0.0 || longitude != 0.0)) {
+        (latitude != 0.0 && longitude != 0.0)) {
       state = state.copyWith(mapViewState: MapViewState.overview);
     }
   }

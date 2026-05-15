@@ -32,16 +32,14 @@ class MapCamera extends _$MapCamera {
         if (next.latitude != previous?.latitude ||
             next.longitude != previous?.longitude ||
             next.heading != previous?.heading) {
-          if (next.latitude != 0 && next.longitude != 0) {
-            _mapController!.style!.updateGeoJsonSource(
-              id: 'aircraft-source',
-              data: _getAircraftGeoJson(
-                next.latitude,
-                next.longitude,
-                next.heading,
-              ),
-            );
-          }
+          _mapController!.style!.updateGeoJsonSource(
+            id: 'aircraft-source',
+            data: _getAircraftGeoJson(
+              next.latitude,
+              next.longitude,
+              next.heading,
+            ),
+          );
         }
       }
 
@@ -51,13 +49,13 @@ class MapCamera extends _$MapCamera {
       // Handle mode transitions and continuous updates
       if (next.mapViewState == MapViewState.follow) {
         if (next.latitude != 0 && next.longitude != 0 && !_isFollowPaused) {
-          moveCamera(
+          unawaited(moveCamera(
             center: center,
             zoom: settings?.mapFollowZoom ?? 12.0,
             pitch: 60,
             bearing: next.heading,
             animate: true,
-          );
+          ));
         }
       } else if (next.mapViewState == MapViewState.overview) {
         final stateChanged = previous?.mapViewState != next.mapViewState;
@@ -66,7 +64,7 @@ class MapCamera extends _$MapCamera {
             (next.latitude != 0 && next.longitude != 0);
 
         if (stateChanged || coordsBecameValid) {
-          moveCamera(
+          unawaited(moveCamera(
             center: center,
             zoom: settings?.mapOverviewZoom ?? 10.0,
             pitch: 0,
@@ -74,7 +72,7 @@ class MapCamera extends _$MapCamera {
             animate: kIsWeb && previous?.mapViewState != MapViewState.follow
                 ? false
                 : !coordsBecameValid,
-          );
+          ));
         }
       }
     });
@@ -86,11 +84,11 @@ class MapCamera extends _$MapCamera {
           final telemetry = ref.read(telemetryProvider);
           final settings = ref.read(appSettingsProvider).value;
           if (telemetry.mapViewState == MapViewState.init && settings != null) {
-            moveCamera(
+            unawaited(moveCamera(
               center: location,
               zoom: settings.mapDefaultZoom,
               animate: false,
-            );
+            ));
           }
         }
       });
@@ -126,14 +124,20 @@ class MapCamera extends _$MapCamera {
     if (telemetry.latitude != 0 &&
         telemetry.longitude != 0 &&
         settings != null) {
-      final useOverviewZoom = telemetry.mapViewState == MapViewState.overview;
-      moveCamera(
+      final double zoom;
+      if (telemetry.mapViewState == MapViewState.overview) {
+        zoom = settings.mapOverviewZoom;
+      } else if (telemetry.mapViewState == MapViewState.follow) {
+        zoom = settings.mapFollowZoom;
+      } else {
+        zoom = settings.mapDefaultZoom;
+      }
+
+      unawaited(moveCamera(
         center: Geographic(lon: telemetry.longitude, lat: telemetry.latitude),
-        zoom: useOverviewZoom
-            ? settings.mapOverviewZoom
-            : settings.mapDefaultZoom,
+        zoom: zoom,
         animate: false,
-      );
+      ));
     }
   }
 
@@ -197,13 +201,13 @@ class MapCamera extends _$MapCamera {
 
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
-    moveCamera(
+    unawaited(moveCamera(
       center: Geographic(lon: telemetry.longitude, lat: telemetry.latitude),
       zoom: settings?.mapFollowZoom ?? 12.0,
       pitch: 60,
       bearing: telemetry.heading,
       animate: true,
-    );
+    ));
   }
 
   Future<void> handleGpsToggle() async {
@@ -250,21 +254,24 @@ class MapCamera extends _$MapCamera {
       final initialLocation = await LocationService.getCurrentLocation(
         requestPermission: false,
       );
+      if (!ref.mounted) return;
 
       // Wait for controller to be ready
       if (_mapController == null) {
         await _controllerCompleter.future;
+        if (!ref.mounted) return;
       }
 
       if (initialLocation != null && _mapController != null) {
-        moveCamera(
+        unawaited(moveCamera(
           center: initialLocation,
           zoom: settings?.mapDefaultZoom ?? 6.0,
           animate: false,
-        );
+        ));
       }
 
       final hasPermission = await LocationService.hasPermission();
+      if (!ref.mounted) return;
 
       if (hasPermission) {
         ref
@@ -274,6 +281,7 @@ class MapCamera extends _$MapCamera {
         final realLocation = await LocationService.getGpsLocationOnly(
           requestPermission: false,
         );
+        if (!ref.mounted) return;
 
         if (realLocation != null) {
           ref
