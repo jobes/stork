@@ -96,5 +96,11 @@
   "settings": "Settings",
   "mapFontSize": "Map Font Size",
   "mapDefaultZoom": "Map Default Zoom",
-  "resetSettings": "Reset Settings"
+  "mapOverviewZoom": "Map Overview Zoom",
+  "mapFollowZoom": "Map Follow Zoom",
+  "resetSettings": "Reset Settings",
+  "gpsEnable": "Enable GPS",
+  "gpsWaiting": "Waiting for GPS...",
+  "gpsFollow": "Follow location",
+  "gpsStopFollow": "Stop following location"
 }

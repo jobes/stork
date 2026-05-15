@@ -123,5 +123,23 @@ class AppLocalizationsSk extends AppLocalizations {
   String get mapDefaultZoom => 'Predvolený zoom mapy';
 
   @override
+  String get mapOverviewZoom => 'Zoom prehľadu mapy';
+
+  @override
+  String get mapFollowZoom => 'Zoom sledovania mapy';
+
+  @override
   String get resetSettings => 'Resetovať nastavenia';
+
+  @override
+  String get gpsEnable => 'Zapnúť GPS';
+
+  @override
+  String get gpsWaiting => 'Čakám na GPS...';
+
+  @override
+  String get gpsFollow => 'Sledovať polohu';
+
+  @override
+  String get gpsStopFollow => 'Prestať sledovať polohu';
 }

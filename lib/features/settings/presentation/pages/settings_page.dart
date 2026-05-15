@@ -42,6 +42,26 @@ class SettingsPage extends ConsumerWidget {
                     ref.read(appSettingsProvider.notifier).updateDefaultZoom(val);
                   },
                 ),
+                _SliderSetting(
+                  label: l10n.mapOverviewZoom,
+                  value: settings.mapOverviewZoom,
+                  min: 0.0,
+                  max: 14.0,
+                  divisions: 14,
+                  onChanged: (val) {
+                    ref.read(appSettingsProvider.notifier).updateOverviewZoom(val);
+                  },
+                ),
+                _SliderSetting(
+                  label: l10n.mapFollowZoom,
+                  value: settings.mapFollowZoom,
+                  min: 0.0,
+                  max: 18.0,
+                  divisions: 18,
+                  onChanged: (val) {
+                    ref.read(appSettingsProvider.notifier).updateFollowZoom(val);
+                  },
+                ),
               ],
             ),
           ],
