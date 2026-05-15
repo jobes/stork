@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -18,12 +19,31 @@ class MapCamera extends _$MapCamera {
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
   bool _isMovingProgrammatically = false;
+  bool _isAircraftSymbolInitialized = false;
 
   @override
   void build() {
     // Listen to telemetry updates to move camera
     ref.listen(telemetryProvider, (previous, next) {
       if (_mapController == null) return;
+
+      // Update aircraft symbol if initialized
+      if (_isAircraftSymbolInitialized && _mapController?.style != null) {
+        if (next.latitude != previous?.latitude ||
+            next.longitude != previous?.longitude ||
+            next.heading != previous?.heading) {
+          if (next.latitude != 0 && next.longitude != 0) {
+            _mapController!.style!.updateGeoJsonSource(
+              id: 'aircraft-source',
+              data: _getAircraftGeoJson(
+                next.latitude,
+                next.longitude,
+                next.heading,
+              ),
+            );
+          }
+        }
+      }
 
       final settings = ref.read(appSettingsProvider).value;
       final center = Geographic(lon: next.longitude, lat: next.latitude);
@@ -265,6 +285,79 @@ class MapCamera extends _$MapCamera {
         }
       }
     }
+  }
+
+  bool get isAircraftSymbolInitialized => _isAircraftSymbolInitialized;
+  MapController? get mapController => _mapController;
+
+  void handleMapEvent(MapEvent event) {
+    if (event is MapEventMoveCamera) {
+      handleUserInteraction(isExplicitInteraction: false);
+    }
+    if (event is MapEventClick) {
+      debugPrint('Map clicked at ${event.point}');
+    }
+  }
+
+  Future<void> handleStyleLoaded(StyleController style) async {
+    try {
+      await style.addImageFromAssets(
+        id: 'aircraft-icon',
+        asset: 'assets/images/aircraft.png',
+      );
+
+      final telemetry = ref.read(telemetryProvider);
+      await style.addSource(
+        GeoJsonSource(
+          id: 'aircraft-source',
+          data: _getAircraftGeoJson(
+            telemetry.latitude,
+            telemetry.longitude,
+            telemetry.heading,
+          ),
+        ),
+      );
+
+      await style.addLayer(
+        SymbolStyleLayer(
+          id: 'aircraft-layer',
+          sourceId: 'aircraft-source',
+          layout: {
+            'icon-image': 'aircraft-icon',
+            'icon-rotate': ['get', 'heading'],
+            'icon-rotation-alignment': 'map',
+            'icon-pitch-alignment': 'viewport',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+            'icon-size': 1 / 4,
+          },
+        ),
+      );
+
+      _isAircraftSymbolInitialized = true;
+      debugPrint('Aircraft symbol initialized 😎');
+    } catch (e) {
+      debugPrint('Error initializing native aircraft symbol: $e');
+    }
+  }
+
+  String _getAircraftGeoJson(double lat, double lon, double heading) {
+    if (lat == 0 && lon == 0) {
+      return jsonEncode({'type': 'FeatureCollection', 'features': []});
+    }
+    return jsonEncode({
+      'type': 'FeatureCollection',
+      'features': [
+        {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [lon, lat],
+          },
+          'properties': {'heading': heading},
+        },
+      ],
+    });
   }
 
   bool get isMovingProgrammatically => _isMovingProgrammatically;

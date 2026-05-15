@@ -30,9 +30,7 @@ class LocationService {
     try {
       final geoIpLocation = await _getGeoIpLocation();
       if (geoIpLocation != null) {
-        debugPrint(
-          'Location found via GeoIP: ${geoIpLocation.lat}, ${geoIpLocation.lon}',
-        );
+        debugPrint('Location found via GeoIP');
         return geoIpLocation;
       }
     } catch (e) {
@@ -51,9 +49,7 @@ class LocationService {
         requestPermission: requestPermission,
       );
       if (gpsLocation != null) {
-        debugPrint(
-          'Location found via GPS: ${gpsLocation.lat}, ${gpsLocation.lon}',
-        );
+        debugPrint('Location found via GPS (gpsFix: true)');
         return gpsLocation;
       }
     } catch (e) {

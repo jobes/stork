@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,29 +68,14 @@ class _MapPageState extends ConsumerState<MapPage> {
               data: (style) {
                 return AircraftMap(
                   style: style,
-                  telemetry: telemetry,
                   onUserInteraction: cameraController.handleUserInteraction,
-                  onMapCreated: (controller) {
-                    cameraController.attachController(controller);
-                  },
+                  onMapCreated: cameraController.attachController,
                   onStyleLoaded: (style) {
-                    debugPrint('Map loaded 😎');
+                    unawaited(cameraController.handleStyleLoaded(style));
                   },
-                  onEvent: (event) async {
+                  onEvent: (event) {
                     if (_isDrawerOpen) return;
-
-                    // If camera is moving and it's not triggered by our code,
-                    // it must be the user interacting with the map.
-                    if (event is MapEventMoveCamera) {
-                      cameraController.handleUserInteraction(
-                        isExplicitInteraction: false,
-                      );
-                    }
-
-                    if (event is MapEventClick) {
-                      debugPrint('Map clicked at ${event.point}');
-                      // Optional: handle clicks in controller if needed
-                    }
+                    cameraController.handleMapEvent(event);
                   },
                 );
               },
