@@ -1,6 +1,22 @@
 import 'dart:ffi';
 import 'dart:io';
 
+enum CanardTransferType {
+  response(0),
+  request(1),
+  broadcast(2);
+
+  final int value;
+  const CanardTransferType(this.value);
+
+  static CanardTransferType fromInt(int value) {
+    return values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => CanardTransferType.broadcast,
+    );
+  }
+}
+
 typedef StorkCanardInitNative = Void Function(Uint8 nodeId);
 typedef StorkCanardInit = void Function(int nodeId);
 
@@ -55,6 +71,21 @@ typedef StorkCanardRegisterTransferCallback =
       Pointer<NativeFunction<StorkCanardTransferCallbackNative>> callback,
     );
 
+typedef StorkCanardShouldAcceptCallbackNative = Uint8 Function(
+  Uint16 dataTypeId,
+  Uint8 transferType,
+  Uint8 sourceNodeId,
+  Pointer<Uint64> outDataTypeSignature,
+);
+
+typedef StorkCanardRegisterAcceptCallbackNative = Void Function(
+  Pointer<NativeFunction<StorkCanardShouldAcceptCallbackNative>> callback,
+);
+
+typedef StorkCanardRegisterAcceptCallback = void Function(
+  Pointer<NativeFunction<StorkCanardShouldAcceptCallbackNative>> callback,
+);
+
 class CanardBindings {
   late DynamicLibrary _lib;
   late StorkCanardInit storkCanardInit;
@@ -63,6 +94,7 @@ class CanardBindings {
   late StorkCanardProcessPacket storkCanardProcessPacket;
   late StorkCanardRegisterLogCallback storkCanardRegisterLogCallback;
   late StorkCanardRegisterTransferCallback storkCanardRegisterTransferCallback;
+  late StorkCanardRegisterAcceptCallback storkCanardRegisterAcceptCallback;
 
   CanardBindings() {
     if (Platform.isLinux) {
@@ -99,6 +131,12 @@ class CanardBindings {
     storkCanardRegisterTransferCallback = _lib
         .lookup<NativeFunction<StorkCanardRegisterTransferCallbackNative>>(
           'stork_canard_register_transfer_callback',
+        )
+        .asFunction();
+
+    storkCanardRegisterAcceptCallback = _lib
+        .lookup<NativeFunction<StorkCanardRegisterAcceptCallbackNative>>(
+          'stork_canard_register_accept_callback',
         )
         .asFunction();
   }

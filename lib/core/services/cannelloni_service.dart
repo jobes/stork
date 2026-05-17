@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stork/core/native/canard_bindings.dart';
 import 'package:ffi/ffi.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
+import 'package:stork/core/native/dronecan_types.dart';
 
 part 'cannelloni_service.g.dart';
 
@@ -37,6 +38,14 @@ class CannelloniService extends _$CannelloniService {
           _storkCanardTransferCallback,
         );
     _canard?.storkCanardRegisterTransferCallback(transferCbPointer);
+
+    // Register accept callback for validating and assigning signatures
+    final acceptCbPointer =
+        Pointer.fromFunction<StorkCanardShouldAcceptCallbackNative>(
+          _storkCanardShouldAcceptCallback,
+          0,
+        );
+    _canard?.storkCanardRegisterAcceptCallback(acceptCbPointer);
 
     debugPrint('CannelloniService: Calling storkCanardInit(64)...');
     _canard?.storkCanardInit(64); // Default node ID, could be from settings
@@ -191,17 +200,46 @@ void _storkCanardTransferCallback(
     // 1. Create a view into the C memory and copy it to Dart memory
     final payloadView = payload.asTypedList(payloadLen);
     final payloadBytes = Uint8List.fromList(payloadView);
+    
+    final type = CanardTransferType.fromInt(transferType);
+    final droneDataType = DroneCanDataType.fromId(dataTypeId, type);
 
-    // 2. Extract Static Pressure (Data Type ID 1028)
-    if (dataTypeId == 1028 && payloadLen >= 4) {
-      // Message uavcan.equipment.air_data.StaticPressure starts with a 32-bit float
-      final byteData = ByteData.sublistView(payloadBytes);
-      final staticPressure = byteData.getFloat32(0, Endian.little);
+    if (droneDataType == DroneCanDataType.nodeStatus) {
+      final nodeStatus = NodeStatus.fromPayload(payloadBytes);
+      debugPrint('[DroneCAN] NodeStatus from Node $sourceNodeId: $nodeStatus');
+    } else if (droneDataType == DroneCanDataType.staticPressure) {
+      // 2. Extract Static Pressure (Data Type ID 1028)
+      final staticPressureMsg = StaticPressure.fromPayload(payloadBytes);
       debugPrint(
-        '[DroneCAN] StaticPressure (1028) from Node $sourceNodeId: $staticPressure Pa',
+        '[DroneCAN] StaticPressure (1028) from Node $sourceNodeId: ${staticPressureMsg.staticPressure} Pa',
       );
     }
   } catch (e) {
     debugPrint('Error in native transfer callback: $e');
   }
 }
+
+@pragma('vm:entry-point')
+int _storkCanardShouldAcceptCallback(
+  int dataTypeId,
+  int transferType,
+  int sourceNodeId,
+  Pointer<Uint64> outDataTypeSignature,
+) {
+  try {
+    final type = CanardTransferType.fromInt(transferType);
+    final droneDataType = DroneCanDataType.fromId(dataTypeId, type);
+    
+    if (droneDataType != DroneCanDataType.unknown) {
+      outDataTypeSignature.value = droneDataType.signature;
+    } else {
+      outDataTypeSignature.value = 0; // Default signature if unknown
+    }
+
+    return 1; // Accept the transfer
+  } catch (e) {
+    debugPrint('Error in native should accept callback: $e');
+    return 0; // Reject on error
+  }
+}
+

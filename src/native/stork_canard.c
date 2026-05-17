@@ -60,6 +60,19 @@ FFI_EXPORT void stork_canard_register_transfer_callback(StorkCanardTransferCallb
     g_transfer_cb = cb;
 }
 
+typedef uint8_t (*StorkCanardShouldAcceptCallback)(
+    uint16_t data_type_id,
+    uint8_t transfer_type,
+    uint8_t source_node_id,
+    uint64_t* out_data_type_signature
+);
+
+static StorkCanardShouldAcceptCallback g_accept_cb = NULL;
+
+FFI_EXPORT void stork_canard_register_accept_callback(StorkCanardShouldAcceptCallback cb) {
+    g_accept_cb = cb;
+}
+
 // Callback for transfer reception
 void onTransferReception(CanardInstance* ins, CanardRxTransfer* transfer) {
     if (g_transfer_cb == NULL) return;
@@ -92,8 +105,12 @@ void onTransferReception(CanardInstance* ins, CanardRxTransfer* transfer) {
 // Callback for transfer acceptance
 bool shouldAcceptTransfer(const CanardInstance* ins, uint64_t* out_data_type_signature,
                           uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id) {
-    // For now, accept everything. In a real app, you'd check against your DSDL.
-    *out_data_type_signature = 0; // Default signature if unknown
+    if (g_accept_cb != NULL) {
+        return g_accept_cb(data_type_id, transfer_type, source_node_id, out_data_type_signature) != 0;
+    }
+    
+    // Default signature if unknown
+    *out_data_type_signature = 0; 
     return true;
 }
 
