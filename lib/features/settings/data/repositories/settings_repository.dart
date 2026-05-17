@@ -5,7 +5,6 @@ import '../../domain/app_settings.dart';
 
 import '../../../../core/providers/shared_preferences_provider.dart';
 
-
 part 'settings_repository.g.dart';
 
 class SettingsRepository {
@@ -32,7 +31,6 @@ class SettingsRepository {
     await _prefs.setString(_keyAppSettings, json.encode(settings.toJson()));
   }
 }
-
 
 @riverpod
 Future<SettingsRepository> settingsRepository(Ref ref) async {

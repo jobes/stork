@@ -77,6 +77,6 @@ class MDnsService {
       client.stop();
     }
 
-    return results;
+    return results.toSet().toList();
   }
 }

@@ -18,21 +18,28 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       final devices = next.asData?.value ?? [];
       final currentSettings = state.asData?.value;
 
-      if (currentSettings != null &&
-          currentSettings.autoSelectDevice &&
-          devices.isNotEmpty) {
-        final currentDevice = currentSettings.selectedDevice;
-        final isCurrentStillAvailable =
-            currentDevice != null && devices.contains(currentDevice);
-
-        if (!isCurrentStillAvailable) {
-          // Only switch to the first device if the current one is gone or if none was selected
-          updateSelectedDevice(devices.first);
-        }
+      if (currentSettings != null && currentSettings.autoSelectDevice) {
+        _tryAutoSelectDevice(devices, currentSettings);
       }
     });
 
     return settings;
+  }
+
+  void _tryAutoSelectDevice(
+    List<CannelloniDevice> devices,
+    AppSettings currentSettings,
+  ) {
+    if (devices.isEmpty) return;
+
+    final currentDevice = currentSettings.selectedDevice;
+    final isCurrentStillAvailable =
+        currentDevice != null && devices.contains(currentDevice);
+
+    if (!isCurrentStillAvailable) {
+      // Only switch to the first device if the current one is gone or if none was selected
+      updateSelectedDevice(devices.first);
+    }
   }
 
   Future<void> _updateSettings(
@@ -67,11 +74,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     if (autoSelect) {
       final devices = ref.read(discoveredDevicesProvider).asData?.value ?? [];
       final currentSettings = state.asData?.value;
-      if (devices.isNotEmpty && currentSettings != null) {
-        final currentDevice = currentSettings.selectedDevice;
-        if (currentDevice == null || !devices.contains(currentDevice)) {
-          updateSelectedDevice(devices.first);
-        }
+      if (currentSettings != null) {
+        _tryAutoSelectDevice(devices, currentSettings);
       }
     }
   }
@@ -79,4 +83,3 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<void> updateSelectedDevice(CannelloniDevice? device) =>
       _updateSettings((s) => s.copyWith(selectedDevice: device));
 }
-

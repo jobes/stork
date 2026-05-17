@@ -15,4 +15,3 @@ abstract class CannelloniDevice with _$CannelloniDevice {
   factory CannelloniDevice.fromJson(Map<String, dynamic> json) =>
       _$CannelloniDeviceFromJson(json);
 }
-

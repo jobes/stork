@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ffi';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:stork/core/native/canard_bindings.dart';
+import 'package:ffi/ffi.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 
 part 'cannelloni_service.g.dart';
@@ -12,9 +15,37 @@ class CannelloniService extends _$CannelloniService {
   String? _lastIp;
   int? _lastPort;
   Timer? _heartbeatTimer;
+  CanardBindings? _canard;
+  Pointer<Uint8>? _packetDataBuffer;
+  int _txSeqNo = 0;
 
   @override
   void build() {
+    debugPrint('CannelloniService: Initializing CanardBindings...');
+    _canard = CanardBindings();
+
+    // Register the native log callback to route native logs to the Dart Debug Console
+    final logCallbackPointer =
+        Pointer.fromFunction<StorkCanardLogCallbackNative>(
+          _storkCanardLogCallback,
+        );
+    _canard?.storkCanardRegisterLogCallback(logCallbackPointer);
+
+    // Register transfer callback for incoming DroneCAN messages
+    final transferCbPointer =
+        Pointer.fromFunction<StorkCanardTransferCallbackNative>(
+          _storkCanardTransferCallback,
+        );
+    _canard?.storkCanardRegisterTransferCallback(transferCbPointer);
+
+    debugPrint('CannelloniService: Calling storkCanardInit(64)...');
+    _canard?.storkCanardInit(64); // Default node ID, could be from settings
+    debugPrint('CannelloniService: storkCanardInit executed successfully.');
+
+    _packetDataBuffer = malloc.allocate<Uint8>(
+      4096,
+    ); // Preallocated buffer for Cannelloni packets
+
     final settingsAsync = ref.watch(appSettingsProvider);
 
     settingsAsync.whenData((settings) {
@@ -35,12 +66,16 @@ class CannelloniService extends _$CannelloniService {
 
     ref.onDispose(() {
       _disconnect();
+      if (_packetDataBuffer != null) {
+        malloc.free(_packetDataBuffer!);
+      }
     });
   }
 
   void _disconnect() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
+    _txSeqNo = 0;
 
     if (_socket != null) {
       debugPrint('CannelloniService: Disconnecting from $_lastIp:$_lastPort');
@@ -82,66 +117,91 @@ class CannelloniService extends _$CannelloniService {
       );
 
       // Send an initial empty Cannelloni packet to let the remote server know where to send data.
-      // Header: Version(1), OpCode(0=DATA), SeqNo(0,0), Count(0)
-      final initPacket = Uint8List(5);
-      initPacket[0] = 1; // Version
-      initPacket[1] = 0; // OpCode DATA
-      initPacket[2] = 0; // SeqNo high
-      initPacket[3] = 0; // SeqNo low
-      initPacket[4] = 0; // Count 0
-
-      _socket?.send(initPacket, remoteAddress, port);
+      _sendEmptyPacket(remoteAddress, port);
       debugPrint(
-        'CannelloniService: Initial registration packet sent to $ip:$port',
+        'CannelloniService: Initial registration packet sent to $ip:$port (seq: ${_txSeqNo == 0 ? 255 : _txSeqNo - 1})',
       );
 
       // Start periodic heartbeats to keep the connection alive
       _heartbeatTimer?.cancel();
-      _heartbeatTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-        _sendHeartbeat(ip, port);
+      _heartbeatTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        _sendEmptyPacket(remoteAddress, port);
       });
     } catch (e) {
       debugPrint('CannelloniService: Failed to connect: $e');
     }
   }
 
-  void _sendHeartbeat(String ip, int port) {
+  void _sendEmptyPacket(InternetAddress remoteAddress, int port) {
     if (_socket == null) return;
 
-    final heartbeat = Uint8List(5);
-    heartbeat[0] = 2; // Version
-    heartbeat[1] = 0; // OpCode DATA
-    heartbeat[2] = 0; // SeqNo high
-    heartbeat[3] = 0; // SeqNo low
-    heartbeat[4] = 0; // Count 0
+    final packet = Uint8List(5);
+    packet[0] = 2; // Version
+    packet[1] = 0; // OpCode DATA
+    packet[2] = _txSeqNo; // SeqNo
+    packet[3] = 0; // Count 0
+    packet[4] = 0; // Count 0
 
     try {
-      final remoteAddress = InternetAddress(ip);
-      _socket?.send(heartbeat, remoteAddress, port);
-      // debugPrint('CannelloniService: Heartbeat sent to $ip:$port');
+      _socket?.send(packet, remoteAddress, port);
+      _txSeqNo = (_txSeqNo + 1) & 0xFF;
     } catch (e) {
-      debugPrint('CannelloniService: Failed to send heartbeat: $e');
+      debugPrint('CannelloniService: Failed to send empty packet: $e');
     }
   }
 
   void _processPacket(Uint8List data, InternetAddress address, int port) {
-    if (data.length < 5) {
-      debugPrint(
-        'CannelloniService: Received too short packet (${data.length} bytes) from $address:$port',
-      );
-      return;
+    if (data.isEmpty) return;
+
+    if (_canard != null && _packetDataBuffer != null) {
+      final len = data.length;
+      final copyLen = len > 4096 ? 4096 : len;
+
+      // Copy data into the native buffer efficiently
+      final bufferList = _packetDataBuffer!.asTypedList(4096);
+      bufferList.setRange(0, copyLen, data);
+
+      final timestamp = DateTime.now().microsecondsSinceEpoch;
+      _canard!.storkCanardProcessPacket(_packetDataBuffer!, copyLen, timestamp);
     }
+  }
+}
 
-    final version = data[0];
-    final opCode = data[1];
-    // SeqNo is at index 2, 3 (16-bit)
-    final count = data[4];
+@pragma('vm:entry-point')
+void _storkCanardLogCallback(Pointer<Char> messagePtr) {
+  try {
+    final message = messagePtr.cast<Utf8>().toDartString().trim();
+    debugPrint('[stork_canard] $message');
+  } catch (e) {
+    debugPrint('Error in native log callback: $e');
+  }
+}
 
-    debugPrint(
-      'Cannelloni Packet: v$version, op:$opCode, frames:$count, total_bytes:${data.length} from $address:$port',
-    );
+@pragma('vm:entry-point')
+void _storkCanardTransferCallback(
+  int timestampUsec,
+  int dataTypeId,
+  int transferType,
+  int sourceNodeId,
+  int transferId,
+  Pointer<Uint8> payload,
+  int payloadLen,
+) {
+  try {
+    // 1. Create a view into the C memory and copy it to Dart memory
+    final payloadView = payload.asTypedList(payloadLen);
+    final payloadBytes = Uint8List.fromList(payloadView);
 
-    // Log the first few bytes for debugging
-    // debugPrint('Data: ${data.sublist(0, data.length > 16 ? 16 : data.length)}');
+    // 2. Extract Static Pressure (Data Type ID 1028)
+    if (dataTypeId == 1028 && payloadLen >= 4) {
+      // Message uavcan.equipment.air_data.StaticPressure starts with a 32-bit float
+      final byteData = ByteData.sublistView(payloadBytes);
+      final staticPressure = byteData.getFloat32(0, Endian.little);
+      debugPrint(
+        '[DroneCAN] StaticPressure (1028) from Node $sourceNodeId: $staticPressure Pa',
+      );
+    }
+  } catch (e) {
+    debugPrint('Error in native transfer callback: $e');
   }
 }

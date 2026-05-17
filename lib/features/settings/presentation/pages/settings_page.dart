@@ -234,13 +234,12 @@ class _DeviceDropdownSetting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final uniqueDevices = devices.toSet().toList();
 
     // Check if the currently selected device is in the list
     CannelloniDevice? value;
     try {
-      value = devices.firstWhere(
-        (d) => d == selectedDevice,
-      );
+      value = uniqueDevices.firstWhere((d) => d == selectedDevice);
     } catch (_) {
       value = null;
     }
@@ -270,7 +269,7 @@ class _DeviceDropdownSetting extends StatelessWidget {
                 value: null,
                 child: Text(l10n.noneSelected),
               ),
-              ...devices.map(
+              ...uniqueDevices.map(
                 (device) => DropdownMenuItem(
                   value: device,
                   child: Column(
@@ -296,7 +295,7 @@ class _DeviceDropdownSetting extends StatelessWidget {
             selectedItemBuilder: (context) {
               return [
                 Text(l10n.noneSelected),
-                ...devices.map((device) => Text(device.hostname)),
+                ...uniqueDevices.map((device) => Text(device.hostname)),
               ];
             },
             onChanged: enabled ? onChanged : null,
