@@ -11,6 +11,7 @@ import 'package:stork/core/native/dronecan_types.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/core/utils/time_utils.dart';
 import 'package:stork/core/services/dna_allocation_service.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 
 part 'cannelloni_service.g.dart';
 
@@ -396,10 +397,10 @@ void _storkCanardTransferCallback(
       // final nodeStatus = NodeStatus.fromPayload(payloadBytes);
       // debugPrint('[DroneCAN] NodeStatus from Node $sourceNodeId: $nodeStatus');
     } else if (dataTypeId == StaticPressure.messageId) {
-      //final staticPressureMsg = StaticPressure.fromPayload(payloadBytes);
-      // debugPrint(
-      //   '[DroneCAN] StaticPressure (1028) from Node $sourceNodeId: ${staticPressureMsg.staticPressure} Pa',
-      // );
+      final staticPressureMsg = StaticPressure.fromPayload(payloadBytes);
+      _activeInstance!.ref
+          .read(telemetryProvider.notifier)
+          .updatePressure(staticPressureMsg.staticPressure);
     } else if (dataTypeId == GetNodeInfoResponse.messageId &&
         type == CanardTransferType.request) {
       _activeInstance!._handleGetNodeInfoRequest(
@@ -428,6 +429,10 @@ int _storkCanardShouldAcceptCallback(
       // Broadcast messages
       if (dataTypeId == DynamicNodeIdAllocation.messageId) {
         outDataTypeSignature.value = DynamicNodeIdAllocation.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == StaticPressure.messageId) {
+        outDataTypeSignature.value = StaticPressure.messageSignature;
         return 1;
       }
     } else {

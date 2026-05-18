@@ -225,7 +225,6 @@ FFI_EXPORT void stork_canard_process_packet(const uint8_t* data, uint32_t data_l
 
 FFI_EXPORT int16_t stork_canard_broadcast(uint64_t data_type_signature, uint16_t data_type_id, uint8_t* inout_transfer_id, uint8_t priority, const uint8_t* payload, uint16_t payload_len) {
     int16_t res = canardBroadcast(&g_canard, data_type_signature, data_type_id, inout_transfer_id, priority, payload, payload_len);
-    stork_log("stork_canard: Broadcast message type ID: %d, len: %d, priority: %d, res: %d\n", data_type_id, payload_len, priority, res);
     return res;
 }
 
