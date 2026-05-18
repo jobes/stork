@@ -10,6 +10,7 @@ import 'package:stork/features/settings/presentation/providers/settings_provider
 import 'package:stork/core/native/dronecan_types.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/core/utils/time_utils.dart';
+import 'package:stork/core/services/dna_allocation_service.dart';
 
 part 'cannelloni_service.g.dart';
 
@@ -24,11 +25,8 @@ class CannelloniService extends _$CannelloniService {
   CanardBindings? _canard;
   Pointer<Uint8>? _packetDataBuffer;
 
-  final Uint8List _uniqueId = Uint8List(16);
-
   int? _nodeId;
-  Timer? _dnaTimer;
-  int _dnaUniqueIdOffset = 0;
+  DnaAllocationHandler? _dnaHandler;
   Timer? _nodeStatusTimer;
   Timer? _txTimer;
 
@@ -100,14 +98,13 @@ class CannelloniService extends _$CannelloniService {
   void _disconnect() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
-    _dnaTimer?.cancel();
-    _dnaTimer = null;
+    _dnaHandler?.stop();
+    _dnaHandler = null;
     _nodeStatusTimer?.cancel();
     _nodeStatusTimer = null;
     _txTimer?.cancel();
     _txTimer = null;
     _nodeId = null;
-    _dnaUniqueIdOffset = 0;
 
     if (_socket != null) {
       debugPrint('CannelloniService: Disconnecting from $_lastIp:$_lastPort');
@@ -122,6 +119,62 @@ class CannelloniService extends _$CannelloniService {
     debugPrint('CannelloniService: DroneCAN cleared and Node ID removed.');
   }
 
+  void _listenToSocket() {
+    _socket?.listen(
+      (RawSocketEvent event) {
+        if (event == RawSocketEvent.read) {
+          final datagram = _socket?.receive();
+          if (datagram != null &&
+              datagram.data.isNotEmpty &&
+              _canard != null &&
+              _packetDataBuffer != null) {
+            final data = datagram.data;
+            final len = data.length;
+            final copyLen = len > 4096 ? 4096 : len;
+
+            // Copy data into the native buffer efficiently
+            final bufferList = _packetDataBuffer!.asTypedList(4096);
+            bufferList.setRange(0, copyLen, data);
+
+            final timestamp = DateTime.now().microsecondsSinceEpoch;
+            _canard!.storkCanardProcessPacket(
+              _packetDataBuffer!,
+              copyLen,
+              timestamp,
+            );
+          }
+        }
+      },
+      onError: (e) {
+        debugPrint('CannelloniService: Socket error: $e');
+      },
+    );
+  }
+
+  Future<Uint8List> _loadOrGenerateUniqueId() async {
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+    final savedUidHex = prefs.getString('dronecan_unique_id');
+    final uniqueId = Uint8List(16);
+    if (savedUidHex != null && savedUidHex.length == 32) {
+      for (int i = 0; i < 16; i++) {
+        uniqueId[i] = int.parse(
+          savedUidHex.substring(i * 2, i * 2 + 2),
+          radix: 16,
+        );
+      }
+    } else {
+      final rand = math.Random();
+      for (int i = 0; i < 16; i++) {
+        uniqueId[i] = rand.nextInt(256);
+      }
+      final hex = uniqueId
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join();
+      await prefs.setString('dronecan_unique_id', hex);
+    }
+    return uniqueId;
+  }
+
   Future<void> _connect(String ip, int port) async {
     _disconnect();
 
@@ -130,35 +183,10 @@ class CannelloniService extends _$CannelloniService {
       _lastPort = port;
 
       // Load or generate a persistent Unique ID for DroneCAN using SharedPreferences
-      final prefs = await ref.read(sharedPreferencesProvider.future);
-      final savedUidHex = prefs.getString('dronecan_unique_id');
-      if (savedUidHex != null && savedUidHex.length == 32) {
-        for (int i = 0; i < 16; i++) {
-          _uniqueId[i] = int.parse(
-            savedUidHex.substring(i * 2, i * 2 + 2),
-            radix: 16,
-          );
-        }
-      } else {
-        final rand = math.Random();
-        for (int i = 0; i < 16; i++) {
-          _uniqueId[i] = rand.nextInt(256);
-        }
-        final hex = _uniqueId
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join();
-        await prefs.setString('dronecan_unique_id', hex);
-      }
+      final uniqueId = await _loadOrGenerateUniqueId();
 
       _nodeId = 0;
       _canard?.storkCanardInit(0);
-
-      final currentUidHex = _uniqueId
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join();
-      debugPrint(
-        'CannelloniService: DroneCAN initialized as anonymous (0) with Unique ID: $currentUidHex',
-      );
 
       // Bind to any available local port
       _socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
@@ -167,22 +195,10 @@ class CannelloniService extends _$CannelloniService {
         'CannelloniService: Connected to $ip:$port (local port: ${_socket?.port})',
       );
 
-      _socket?.listen(
-        (RawSocketEvent event) {
-          if (event == RawSocketEvent.read) {
-            final datagram = _socket?.receive();
-            if (datagram != null) {
-              _processPacket(datagram.data, datagram.address, datagram.port);
-            }
-          }
-        },
-        onError: (e) {
-          debugPrint('CannelloniService: Socket error: $e');
-        },
-      );
+      _listenToSocket();
 
       // Start the DNA allocation process
-      _startDnaAllocation();
+      _startDnaAllocation(uniqueId);
 
       // Start processing the TX queue at 50Hz
       _startTxProcessing();
@@ -193,126 +209,67 @@ class CannelloniService extends _$CannelloniService {
 
   void _startTxProcessing() {
     _txTimer?.cancel();
-    _txTimer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
-      _processTxQueue();
-    });
-  }
-
-  void _processTxQueue() {
-    if (_socket == null ||
-        _canard == null ||
-        _lastIp == null ||
-        _lastPort == null) {
-      return;
-    }
-
-    final pointer = _packetDataBuffer!;
-    final len = _canard!.storkCanardGenerateTxPacket(pointer, 4096);
-    if (len > 0) {
-      final data = pointer.asTypedList(len);
-      final packet = Uint8List.fromList(data);
-      try {
-        _socket!.send(packet, InternetAddress(_lastIp!), _lastPort!);
-      } catch (e) {
-        debugPrint('CannelloniService: Failed to send TX packet: $e');
-      }
-    }
-  }
-
-  void _startDnaAllocation() {
-    _dnaTimer?.cancel();
-    _dnaTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_nodeId != null && _nodeId! > 0) {
-        _dnaTimer?.cancel();
+    _txTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (_socket == null ||
+          _canard == null ||
+          _lastIp == null ||
+          _lastPort == null) {
         return;
       }
-      _sendDnaRequest();
+
+      final pointer = _packetDataBuffer!;
+      final len = _canard!.storkCanardGenerateTxPacket(pointer, 4096);
+      if (len > 0) {
+        final data = pointer.asTypedList(len);
+        final packet = Uint8List.fromList(data);
+        try {
+          _socket!.send(packet, InternetAddress(_lastIp!), _lastPort!);
+        } catch (e) {
+          debugPrint('CannelloniService: Failed to send TX packet: $e');
+        }
+      }
     });
   }
 
-  void _sendDnaRequest() {
-    if (_canard == null) return;
-
-    final int remainingBytes = 16 - _dnaUniqueIdOffset;
-    final int chunkSize = remainingBytes > 6 ? 6 : remainingBytes;
-    if (chunkSize <= 0) {
-      _dnaUniqueIdOffset = 0;
-      return;
-    }
-    final chunk = _uniqueId.sublist(
-      _dnaUniqueIdOffset,
-      _dnaUniqueIdOffset + chunkSize,
-    );
-
-    final dnaMsg = DynamicNodeIdAllocation(
-      nodeId: 0,
-      firstPartOfUniqueId: _dnaUniqueIdOffset == 0,
-      uniqueId: chunk,
-    );
-
-    try {
-      broadcast(dnaMsg, priority: DroneCanPriority.highest);
-      debugPrint(
-        'CannelloniService: DNA request enqueued (offset: $_dnaUniqueIdOffset, chunk size: $chunkSize).',
-      );
-    } finally {
-      _dnaUniqueIdOffset = 0;
-    }
-  }
-
-  void _handleAllocationResponse(DynamicNodeIdAllocation allocation) {
-    if (_nodeId != null && _nodeId! > 0) return;
-
-    final receivedUid = allocation.uniqueId;
-    if (receivedUid.isEmpty) return;
-
-    bool matches = true;
-    for (int i = 0; i < receivedUid.length; i++) {
-      if (i >= _uniqueId.length || receivedUid[i] != _uniqueId[i]) {
-        matches = false;
-        break;
-      }
-    }
-
-    if (matches) {
-      if (allocation.nodeId > 0) {
-        _nodeId = allocation.nodeId;
-        debugPrint('CannelloniService: Dynamic Node ID Allocated: $_nodeId');
-
-        _dnaTimer?.cancel();
-        _dnaTimer = null;
-
+  void _startDnaAllocation(Uint8List uniqueId) {
+    _dnaHandler = DnaAllocationHandler(
+      uniqueId: uniqueId,
+      onBroadcast: (msg) => broadcast(msg, priority: DroneCanPriority.highest),
+      onAllocated: (allocatedNodeId) {
+        _nodeId = allocatedNodeId;
         _canard?.storkCanardInit(_nodeId!);
-
         _startNodeStatusBroadcasting();
-      } else {
-        debugPrint(
-          'CannelloniService: Received DNA matching prefix of length ${receivedUid.length}, but nodeId is 0. Sending next chunk...',
-        );
-        _dnaUniqueIdOffset = receivedUid.length;
-        _sendDnaRequest();
-      }
-    }
+      },
+    );
+    _dnaHandler?.start();
   }
 
   void _startNodeStatusBroadcasting() {
     _nodeStatusTimer?.cancel();
     _nodeStatusTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _sendNodeStatus();
+      if (_canard == null || _nodeId == null || _nodeId == 0) return;
+      broadcast(
+        NodeStatus(
+          uptimeSec: appStopwatch.elapsed.inSeconds,
+          health: NodeHealth.ok,
+          mode: NodeMode.operational,
+        ),
+        priority: DroneCanPriority.low,
+      );
     });
   }
 
-  void _sendNodeStatus() {
-    if (_canard == null || _nodeId == null || _nodeId == 0) {
-      return;
+  void _withNativePayload(
+    Uint8List payload,
+    void Function(Pointer<Uint8> pointer, int length) action,
+  ) {
+    final pointer = malloc.allocate<Uint8>(payload.length);
+    try {
+      pointer.asTypedList(payload.length).setAll(0, payload);
+      action(pointer, payload.length);
+    } finally {
+      malloc.free(pointer);
     }
-
-    final status = NodeStatus(
-      uptimeSec: appStopwatch.elapsed.inSeconds,
-      health: NodeHealth.ok,
-      mode: NodeMode.operational,
-    );
-    broadcast(status, priority: DroneCanPriority.low);
   }
 
   /// Sends a DroneCAN service response generically, handling native pointer allocation and cleanup.
@@ -324,32 +281,28 @@ class CannelloniService extends _$CannelloniService {
   }) {
     if (_canard == null) return;
 
-    final payload = response.toPayload();
-    final payloadPointer = malloc.allocate<Uint8>(payload.length);
-    payloadPointer.asTypedList(payload.length).setAll(0, payload);
-
-    try {
-      final res = _canard!.storkCanardRespond(
-        response.signature,
-        response.id,
-        transferId,
-        sourceNodeId,
-        priority,
-        payloadPointer,
-        payload.length,
-      );
-      if (res < 0) {
+    _withNativePayload(response.toPayload(), (pointer, len) {
+      try {
+        final res = _canard!.storkCanardRespond(
+          response.signature,
+          response.id,
+          transferId,
+          sourceNodeId,
+          priority,
+          pointer,
+          len,
+        );
+        if (res < 0) {
+          debugPrint(
+            'CannelloniService: Failed to send response (ID: ${response.id}, result: $res)',
+          );
+        }
+      } catch (e) {
         debugPrint(
-          'CannelloniService: Failed to send response (ID: ${response.id}, result: $res)',
+          'CannelloniService: Failed to send response (ID: ${response.id}): $e',
         );
       }
-    } catch (e) {
-      debugPrint(
-        'CannelloniService: Failed to send response (ID: ${response.id}): $e',
-      );
-    } finally {
-      malloc.free(payloadPointer);
-    }
+    });
   }
 
   /// Broadcasts a DroneCAN message generically, handling native pointer allocation and cleanup.
@@ -359,47 +312,49 @@ class CannelloniService extends _$CannelloniService {
   }) {
     if (_canard == null) return;
 
-    final payload = message.toPayload();
-    final payloadPointer = malloc.allocate<Uint8>(payload.length);
-    payloadPointer.asTypedList(payload.length).setAll(0, payload);
-
-    try {
-      final res = _canard!.storkCanardBroadcast(
-        message.signature,
-        message.id,
-        getTransferIdFor(message.runtimeType),
-        priority.value,
-        payloadPointer,
-        payload.length,
-      );
-      if (res < 0) {
+    _withNativePayload(message.toPayload(), (pointer, len) {
+      try {
+        final res = _canard!.storkCanardBroadcast(
+          message.signature,
+          message.id,
+          getTransferIdFor(message.runtimeType),
+          priority.value,
+          pointer,
+          len,
+        );
+        if (res < 0) {
+          debugPrint(
+            'CannelloniService: Failed to enqueue broadcast (ID: ${message.id}, result: $res)',
+          );
+        }
+      } catch (e) {
         debugPrint(
-          'CannelloniService: Failed to enqueue broadcast (ID: ${message.id}, result: $res)',
+          'CannelloniService: Failed to enqueue broadcast (ID: ${message.id}): $e',
         );
       }
-    } catch (e) {
-      debugPrint(
-        'CannelloniService: Failed to enqueue broadcast (ID: ${message.id}): $e',
-      );
-    } finally {
-      malloc.free(payloadPointer);
-    }
+    });
   }
 
-  void _processPacket(Uint8List data, InternetAddress address, int port) {
-    if (data.isEmpty) return;
-
-    if (_canard != null && _packetDataBuffer != null) {
-      final len = data.length;
-      final copyLen = len > 4096 ? 4096 : len;
-
-      // Copy data into the native buffer efficiently
-      final bufferList = _packetDataBuffer!.asTypedList(4096);
-      bufferList.setRange(0, copyLen, data);
-
-      final timestamp = DateTime.now().microsecondsSinceEpoch;
-      _canard!.storkCanardProcessPacket(_packetDataBuffer!, copyLen, timestamp);
-    }
+  void _handleGetNodeInfoRequest({
+    required int transferId,
+    required int sourceNodeId,
+    required int priority,
+  }) {
+    _loadOrGenerateUniqueId()
+        .then((uniqueId) => GetNodeInfoResponse.create(uniqueId))
+        .then((response) {
+          respond(
+            transferId: transferId,
+            sourceNodeId: sourceNodeId,
+            priority: priority,
+            response: response,
+          );
+        })
+        .catchError((e) {
+          debugPrint(
+            'CannelloniService: Failed to generate GET_NODE_INFO response: $e',
+          );
+        });
   }
 }
 
@@ -436,7 +391,7 @@ void _storkCanardTransferCallback(
     if (dataTypeId == DynamicNodeIdAllocation.messageId &&
         type == CanardTransferType.broadcast) {
       final allocation = DynamicNodeIdAllocation.fromPayload(payloadBytes);
-      _activeInstance!._handleAllocationResponse(allocation);
+      _activeInstance!._dnaHandler?.handleAllocationMessage(allocation);
     } else if (dataTypeId == NodeStatus.messageId) {
       // final nodeStatus = NodeStatus.fromPayload(payloadBytes);
       // debugPrint('[DroneCAN] NodeStatus from Node $sourceNodeId: $nodeStatus');
@@ -447,20 +402,11 @@ void _storkCanardTransferCallback(
       // );
     } else if (dataTypeId == GetNodeInfoResponse.messageId &&
         type == CanardTransferType.request) {
-      GetNodeInfoResponse.create(_activeInstance!._uniqueId)
-          .then((response) {
-            _activeInstance!.respond(
-              transferId: transferId,
-              sourceNodeId: sourceNodeId,
-              priority: priority,
-              response: response,
-            );
-          })
-          .catchError((e) {
-            debugPrint(
-              'CannelloniService: Failed to generate GET_NODE_INFO response: $e',
-            );
-          });
+      _activeInstance!._handleGetNodeInfoRequest(
+        transferId: transferId,
+        sourceNodeId: sourceNodeId,
+        priority: priority,
+      );
     }
   } catch (e) {
     debugPrint('Error in native transfer callback: $e');
