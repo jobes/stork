@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'cannelloni_service.dart';
+part of 'cannelloni_service_stub.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -41,7 +41,7 @@ final class CannelloniServiceProvider
   }
 }
 
-String _$cannelloniServiceHash() => r'0948c64e09e8fe9b322d89bf1ed6e2ea1c9bf143';
+String _$cannelloniServiceHash() => r'1627c01a506c9edf41ddbaf7cfcd57878e99e6ca';
 
 abstract class _$CannelloniService extends $Notifier<void> {
   void build();
