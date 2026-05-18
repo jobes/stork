@@ -50,6 +50,7 @@ typedef void (*StorkCanardTransferCallback)(
     uint8_t transfer_type,
     uint8_t source_node_id,
     uint8_t transfer_id,
+    uint8_t priority,
     const uint8_t* payload,
     uint16_t payload_len
 );
@@ -97,6 +98,7 @@ void onTransferReception(CanardInstance* ins, CanardRxTransfer* transfer) {
         transfer->transfer_type,
         transfer->source_node_id,
         transfer->transfer_id,
+        transfer->priority,
         flat_payload,
         transfer->payload_len
     );
@@ -217,7 +219,102 @@ FFI_EXPORT void stork_canard_process_packet(const uint8_t* data, uint32_t data_l
             frame.data_len = 0;
         }
 
-        int16_t res = canardHandleRxFrame(&g_canard, &frame, timestamp_usec);
+        (void)canardHandleRxFrame(&g_canard, &frame, timestamp_usec);
     }
 }
+
+FFI_EXPORT int16_t stork_canard_broadcast(uint64_t data_type_signature, uint16_t data_type_id, uint8_t* inout_transfer_id, uint8_t priority, const uint8_t* payload, uint16_t payload_len) {
+    int16_t res = canardBroadcast(&g_canard, data_type_signature, data_type_id, inout_transfer_id, priority, payload, payload_len);
+    stork_log("stork_canard: Broadcast message type ID: %d, len: %d, priority: %d, res: %d\n", data_type_id, payload_len, priority, res);
+    return res;
+}
+
+FFI_EXPORT int32_t stork_canard_generate_tx_packet(uint8_t* out_buffer, uint32_t max_len) {
+    static uint8_t g_tx_seq_no = 0;
+    if (max_len < 5) {
+        return 0;
+    }
+    
+    // We only send if there are frames in the TX queue
+    const CanardCANFrame* first_frame = canardPeekTxQueue(&g_canard);
+    if (first_frame == NULL) {
+        return 0; // Nothing to send
+    }
+
+    out_buffer[0] = 2; // Version
+    out_buffer[1] = 0; // DATA opcode
+    out_buffer[2] = g_tx_seq_no++;
+    
+    uint16_t count = 0;
+    uint32_t offset = 5;
+
+    while (1) {
+        const CanardCANFrame* frame = canardPeekTxQueue(&g_canard);
+        if (frame == NULL) {
+            break;
+        }
+
+        // Check if this frame fits in out_buffer
+        // Each frame takes 5 bytes header + data_len
+        uint32_t needed = 5 + frame->data_len;
+        if (offset + needed > max_len) {
+            break; // No more space in this packet
+        }
+
+        // Write CAN ID (big endian)
+        uint32_t can_id = frame->id;
+        out_buffer[offset]     = (can_id >> 24) & 0xFF;
+        out_buffer[offset + 1] = (can_id >> 16) & 0xFF;
+        out_buffer[offset + 2] = (can_id >> 8) & 0xFF;
+        out_buffer[offset + 3] = can_id & 0xFF;
+
+        // Write DLC (and clear CAN FD bit since we're using standard CAN)
+        out_buffer[offset + 4] = frame->data_len & 0x7F;
+
+        // Write Data
+        memcpy(&out_buffer[offset + 5], frame->data, frame->data_len);
+
+        offset += needed;
+        count++;
+
+        // Pop the frame from libcanard TX queue
+        canardPopTxQueue(&g_canard);
+    }
+
+    if (count == 0) {
+        return 0;
+    }
+
+    // Write final count (big endian uint16)
+    out_buffer[3] = (count >> 8) & 0xFF;
+    out_buffer[4] = count & 0xFF;
+
+    return offset;
+}
+
+FFI_EXPORT int16_t stork_canard_respond(
+    uint64_t data_type_signature,
+    uint16_t data_type_id,
+    uint8_t transfer_id,
+    uint8_t destination_node_id,
+    uint8_t priority,
+    const uint8_t* payload,
+    uint16_t payload_len
+) {
+    uint8_t tid = transfer_id;
+    int16_t res = canardRequestOrRespond(
+        &g_canard,
+        destination_node_id,
+        data_type_signature,
+        data_type_id,
+        &tid,
+        priority,
+        CanardResponse,
+        payload,
+        payload_len
+    );
+    stork_log("stork_canard: Respond message type ID: %d, len: %d, priority: %d, res: %d\n", data_type_id, payload_len, priority, res);
+    return res;
+}
+
 

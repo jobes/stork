@@ -9,8 +9,10 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'core/services/map_assets_server.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'package:stork/core/utils/time_utils.dart';
 
 Future<void> main() async {
+  appStopwatch.start();
   WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb) {
     await MapAssetsServer.start();

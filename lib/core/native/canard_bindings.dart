@@ -57,6 +57,7 @@ typedef StorkCanardTransferCallbackNative =
       Uint8 transferType,
       Uint8 sourceNodeId,
       Uint8 transferId,
+      Uint8 priority,
       Pointer<Uint8> payload,
       Uint16 payloadLen,
     );
@@ -71,20 +72,68 @@ typedef StorkCanardRegisterTransferCallback =
       Pointer<NativeFunction<StorkCanardTransferCallbackNative>> callback,
     );
 
-typedef StorkCanardShouldAcceptCallbackNative = Uint8 Function(
-  Uint16 dataTypeId,
-  Uint8 transferType,
-  Uint8 sourceNodeId,
-  Pointer<Uint64> outDataTypeSignature,
-);
+typedef StorkCanardShouldAcceptCallbackNative =
+    Uint8 Function(
+      Uint16 dataTypeId,
+      Uint8 transferType,
+      Uint8 sourceNodeId,
+      Pointer<Uint64> outDataTypeSignature,
+    );
 
-typedef StorkCanardRegisterAcceptCallbackNative = Void Function(
-  Pointer<NativeFunction<StorkCanardShouldAcceptCallbackNative>> callback,
-);
+typedef StorkCanardRegisterAcceptCallbackNative =
+    Void Function(
+      Pointer<NativeFunction<StorkCanardShouldAcceptCallbackNative>> callback,
+    );
 
-typedef StorkCanardRegisterAcceptCallback = void Function(
-  Pointer<NativeFunction<StorkCanardShouldAcceptCallbackNative>> callback,
-);
+typedef StorkCanardRegisterAcceptCallback =
+    void Function(
+      Pointer<NativeFunction<StorkCanardShouldAcceptCallbackNative>> callback,
+    );
+
+typedef StorkCanardBroadcastNative =
+    Int16 Function(
+      Uint64 dataTypeSignature,
+      Uint16 dataTypeId,
+      Pointer<Uint8> inoutTransferId,
+      Uint8 priority,
+      Pointer<Uint8> payload,
+      Uint16 payloadLen,
+    );
+typedef StorkCanardBroadcast =
+    int Function(
+      int dataTypeSignature,
+      int dataTypeId,
+      Pointer<Uint8> inoutTransferId,
+      int priority,
+      Pointer<Uint8> payload,
+      int payloadLen,
+    );
+
+typedef StorkCanardGenerateTxPacketNative =
+    Int32 Function(Pointer<Uint8> outBuffer, Uint32 maxLen);
+typedef StorkCanardGenerateTxPacket =
+    int Function(Pointer<Uint8> outBuffer, int maxLen);
+
+typedef StorkCanardRespondNative =
+    Int16 Function(
+      Uint64 dataTypeSignature,
+      Uint16 dataTypeId,
+      Uint8 transferId,
+      Uint8 destinationNodeId,
+      Uint8 priority,
+      Pointer<Uint8> payload,
+      Uint16 payloadLen,
+    );
+typedef StorkCanardRespond =
+    int Function(
+      int dataTypeSignature,
+      int dataTypeId,
+      int transferId,
+      int destinationNodeId,
+      int priority,
+      Pointer<Uint8> payload,
+      int payloadLen,
+    );
 
 class CanardBindings {
   late DynamicLibrary _lib;
@@ -95,6 +144,9 @@ class CanardBindings {
   late StorkCanardRegisterLogCallback storkCanardRegisterLogCallback;
   late StorkCanardRegisterTransferCallback storkCanardRegisterTransferCallback;
   late StorkCanardRegisterAcceptCallback storkCanardRegisterAcceptCallback;
+  late StorkCanardBroadcast storkCanardBroadcast;
+  late StorkCanardGenerateTxPacket storkCanardGenerateTxPacket;
+  late StorkCanardRespond storkCanardRespond;
 
   CanardBindings() {
     if (Platform.isLinux) {
@@ -137,6 +189,24 @@ class CanardBindings {
     storkCanardRegisterAcceptCallback = _lib
         .lookup<NativeFunction<StorkCanardRegisterAcceptCallbackNative>>(
           'stork_canard_register_accept_callback',
+        )
+        .asFunction();
+
+    storkCanardBroadcast = _lib
+        .lookup<NativeFunction<StorkCanardBroadcastNative>>(
+          'stork_canard_broadcast',
+        )
+        .asFunction();
+
+    storkCanardGenerateTxPacket = _lib
+        .lookup<NativeFunction<StorkCanardGenerateTxPacketNative>>(
+          'stork_canard_generate_tx_packet',
+        )
+        .asFunction();
+
+    storkCanardRespond = _lib
+        .lookup<NativeFunction<StorkCanardRespondNative>>(
+          'stork_canard_respond',
         )
         .asFunction();
   }
