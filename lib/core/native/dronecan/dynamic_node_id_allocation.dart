@@ -29,8 +29,8 @@ class DynamicNodeIdAllocation implements DroneCanRequestResponseMessage {
     if (payload.isEmpty) {
       throw FormatException('Payload too short for DynamicNodeIdAllocation');
     }
-    final firstPart = (payload[0] & 0x80) != 0;
-    final id = payload[0] & 0x7F;
+    final firstPart = (payload[0] & 0x01) != 0;
+    final id = (payload[0] >> 1) & 0x7F;
     final uniqueIdBytes = payload.sublist(1);
 
     return DynamicNodeIdAllocation(
@@ -43,7 +43,7 @@ class DynamicNodeIdAllocation implements DroneCanRequestResponseMessage {
   @override
   Uint8List toPayload() {
     final payload = Uint8List(1 + uniqueId.length);
-    payload[0] = (nodeId & 0xFE) | (firstPartOfUniqueId ? 0x01 : 0x00);
+    payload[0] = ((nodeId & 0x7F) << 1) | (firstPartOfUniqueId ? 0x01 : 0x00);
     payload.setRange(1, payload.length, uniqueId);
     return payload;
   }

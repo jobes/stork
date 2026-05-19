@@ -2,7 +2,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/telemetry_state.dart';
 import '../../domain/models/map_view_state.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
-import 'package:stork/core/services/cannelloni_service.dart';
 
 part 'telemetry_provider.g.dart';
 
@@ -10,9 +9,6 @@ part 'telemetry_provider.g.dart';
 class TelemetryNotifier extends _$TelemetryNotifier {
   @override
   TelemetryState build() {
-    // Ensure Cannelloni service is active
-    ref.watch(cannelloniServiceProvider);
-
     return const TelemetryState();
   }
 
