@@ -46,6 +46,9 @@ class DynamicNodeIdAllocation implements DroneCanRequestResponseMessage {
 
   @override
   Uint8List toPayload() {
+    if (nodeId < 0 || nodeId > 127) {
+      throw RangeError('nodeId must be between 0 and 127 (inclusive), got $nodeId');
+    }
     final payload = Uint8List(1 + uniqueId.length);
     payload[0] = (nodeId << 1) | (firstPartOfUniqueId ? 0x01 : 0x00);
     payload.setRange(1, payload.length, uniqueId);

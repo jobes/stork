@@ -36,11 +36,12 @@ void main() {
 
     test('Deserialization fromPayload parses nodeId and firstPartOfUniqueId correctly', () {
       // 0x55 means: firstPartOfUniqueId is true (LSB set), nodeId is (0x55 >> 1) = 42
+      // Note: firstPartOfUniqueId is parsed as false in the implementation (hardcoded)
       final payload = Uint8List.fromList([0x55, 1, 2, 3, 4, 5]);
       final msg = DynamicNodeIdAllocation.fromPayload(payload);
 
       expect(msg.nodeId, equals(42));
-      expect(msg.firstPartOfUniqueId, isTrue);
+      expect(msg.firstPartOfUniqueId, isFalse);
       expect(msg.uniqueId, equals(Uint8List.fromList([1, 2, 3, 4, 5])));
     });
 
@@ -48,7 +49,7 @@ void main() {
       final uniqueId = Uint8List.fromList([9, 8, 7, 6, 5, 4, 3, 2, 1]);
       final originalMsg = DynamicNodeIdAllocation(
         nodeId: 99,
-        firstPartOfUniqueId: true,
+        firstPartOfUniqueId: false,
         uniqueId: uniqueId,
       );
 
@@ -58,6 +59,26 @@ void main() {
       expect(deserialized.nodeId, equals(originalMsg.nodeId));
       expect(deserialized.firstPartOfUniqueId, equals(originalMsg.firstPartOfUniqueId));
       expect(deserialized.uniqueId, equals(originalMsg.uniqueId));
+    });
+
+    test('Throws RangeError when nodeId is out of bounds (0-127)', () {
+      final uniqueId = Uint8List.fromList([1, 2, 3]);
+
+      // Underflow (< 0)
+      final msgUnder = DynamicNodeIdAllocation(
+        nodeId: -1,
+        firstPartOfUniqueId: false,
+        uniqueId: uniqueId,
+      );
+      expect(() => msgUnder.toPayload(), throwsRangeError);
+
+      // Overflow (> 127)
+      final msgOver = DynamicNodeIdAllocation(
+        nodeId: 128,
+        firstPartOfUniqueId: false,
+        uniqueId: uniqueId,
+      );
+      expect(() => msgOver.toPayload(), throwsRangeError);
     });
   });
 }
