@@ -104,9 +104,11 @@ class DnaAllocationHandler {
     }
 
     if (matches) {
-      if (allocation.nodeId > 0) {
+      if (allocation.nodeId > 0 && receivedUid.length == uniqueId.length) {
         _isAllocated = true;
-        debugPrint('DnaAllocationHandler: Dynamic Node ID Allocated: ${allocation.nodeId}');
+        debugPrint(
+          'DnaAllocationHandler: Dynamic Node ID Allocated: ${allocation.nodeId}',
+        );
         stop();
         onAllocated(allocation.nodeId);
       } else {

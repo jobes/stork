@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+
 import 'dronecan_message.dart';
 
 class DynamicNodeIdAllocation implements DroneCanRequestResponseMessage {
@@ -29,9 +31,11 @@ class DynamicNodeIdAllocation implements DroneCanRequestResponseMessage {
     if (payload.isEmpty) {
       throw FormatException('Payload too short for DynamicNodeIdAllocation');
     }
-    final firstPart = (payload[0] & 0x01) != 0;
-    final id = (payload[0] >> 1) & 0x7F;
+    final firstPart = false;
+    final id = payload[0] >> 1;
     final uniqueIdBytes = payload.sublist(1);
+
+    debugPrint('nodeId : $id,  uniqueIdBytes : ${uniqueIdBytes.toString()}');
 
     return DynamicNodeIdAllocation(
       nodeId: id,
@@ -43,8 +47,11 @@ class DynamicNodeIdAllocation implements DroneCanRequestResponseMessage {
   @override
   Uint8List toPayload() {
     final payload = Uint8List(1 + uniqueId.length);
-    payload[0] = ((nodeId & 0x7F) << 1) | (firstPartOfUniqueId ? 0x01 : 0x00);
+    payload[0] = (nodeId << 1) | (firstPartOfUniqueId ? 0x01 : 0x00);
     payload.setRange(1, payload.length, uniqueId);
+    debugPrint(
+      'sendNodeId : $nodeId, firstPartOfUniqueId : $firstPartOfUniqueId, uniqueId : ${uniqueId.toString()}, payload: ${payload.toString()}',
+    );
     return payload;
   }
 }
