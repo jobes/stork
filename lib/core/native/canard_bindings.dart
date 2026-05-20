@@ -12,7 +12,8 @@ enum CanardTransferType {
   static CanardTransferType fromInt(int value) {
     return values.firstWhere(
       (e) => e.value == value,
-      orElse: () => CanardTransferType.broadcast,
+      orElse: () =>
+          throw ArgumentError('Invalid CanardTransferType value: $value'),
     );
   }
 }
