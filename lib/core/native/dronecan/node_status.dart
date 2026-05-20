@@ -81,11 +81,6 @@ class NodeStatus implements DroneCanRequestResponseMessage {
 
     final flags = (health.value & 0x03) | ((mode.value & 0x07) << 2);
     byteData.setUint8(4, flags);
-    byteData.setUint16(
-      5,
-      0,
-      Endian.little,
-    ); // vendor_specific_status_code (bytes 5-6)
     return payload;
   }
 
