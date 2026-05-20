@@ -30,7 +30,13 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
     required this.swMinor,
     required this.uniqueId,
     required this.name,
-  });
+  }) {
+    if (uniqueId.length != 16) {
+      throw ArgumentError(
+        'uniqueId must be exactly 16 bytes long, but was ${uniqueId.length} bytes.',
+      );
+    }
+  }
 
   /// Factory method to asynchronously construct the Response with all platform details loaded.
   static Future<GetNodeInfoResponse> create(Uint8List uniqueId) async {
@@ -62,6 +68,12 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
 
   @override
   Uint8List toPayload() {
+    if (uniqueId.length != 16) {
+      throw ArgumentError(
+        'uniqueId must be exactly 16 bytes long, but was ${uniqueId.length} bytes.',
+      );
+    }
+
     // 1. status: 7 bytes
     final statusBytes = status.toPayload();
 
