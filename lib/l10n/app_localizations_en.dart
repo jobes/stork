@@ -142,4 +142,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsStopFollow => 'Stop following location';
+
+  @override
+  String get cannelloniGateway => 'Cannelloni Gateway';
+
+  @override
+  String get autoSelectDevice => 'Auto-select device';
+
+  @override
+  String get selectedDevice => 'Selected device';
+
+  @override
+  String get noneSelected => 'None';
 }

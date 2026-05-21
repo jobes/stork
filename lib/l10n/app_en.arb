@@ -102,5 +102,9 @@
   "gpsEnable": "Enable GPS",
   "gpsWaiting": "Waiting for GPS...",
   "gpsFollow": "Follow location",
-  "gpsStopFollow": "Stop following location"
+  "gpsStopFollow": "Stop following location",
+  "cannelloniGateway": "Cannelloni Gateway",
+  "autoSelectDevice": "Auto-select device",
+  "selectedDevice": "Selected device",
+  "noneSelected": "None"
 }

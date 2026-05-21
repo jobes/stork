@@ -1,35 +1,21 @@
-class AppSettings {
-  final double mapFontSize;
-  final double mapDefaultZoom;
-  final double mapOverviewZoom;
-  final double mapFollowZoom;
-  final double flightMinSpeed;
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'cannelloni_device.dart';
 
-  const AppSettings({
-    this.mapFontSize = 1.0,
-    this.mapDefaultZoom = 6.0,
-    this.mapOverviewZoom = 10.0,
-    this.mapFollowZoom = 12.0,
-    this.flightMinSpeed = 15.0,
-  });
+part 'app_settings.freezed.dart';
+part 'app_settings.g.dart';
 
-  AppSettings copyWith({
-    double? mapFontSize,
-    double? mapDefaultZoom,
-    double? mapOverviewZoom,
-    double? mapFollowZoom,
-    double? flightMinSpeed,
-  }) {
-    return AppSettings(
-      mapFontSize: mapFontSize ?? this.mapFontSize,
-      mapDefaultZoom: mapDefaultZoom ?? this.mapDefaultZoom,
-      mapOverviewZoom: mapOverviewZoom ?? this.mapOverviewZoom,
-      mapFollowZoom: mapFollowZoom ?? this.mapFollowZoom,
-      flightMinSpeed: flightMinSpeed ?? this.flightMinSpeed,
-    );
-  }
+@freezed
+abstract class AppSettings with _$AppSettings {
+  const factory AppSettings({
+    @Default(1.0) double mapFontSize,
+    @Default(6.0) double mapDefaultZoom,
+    @Default(10.0) double mapOverviewZoom,
+    @Default(12.0) double mapFollowZoom,
+    @Default(15.0) double flightMinSpeed,
+    @Default(true) bool autoSelectDevice,
+    CannelloniDevice? selectedDevice,
+  }) = _AppSettings;
 
-  @override
-  String toString() =>
-      'AppSettings(mapFontSize: $mapFontSize, mapDefaultZoom: $mapDefaultZoom, mapOverviewZoom: $mapOverviewZoom, mapFollowZoom: $mapFollowZoom)';
+  factory AppSettings.fromJson(Map<String, dynamic> json) =>
+      _$AppSettingsFromJson(json);
 }

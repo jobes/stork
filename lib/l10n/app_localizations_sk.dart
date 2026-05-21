@@ -142,4 +142,16 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get gpsStopFollow => 'Prestať sledovať polohu';
+
+  @override
+  String get cannelloniGateway => 'Cannelloni brána';
+
+  @override
+  String get autoSelectDevice => 'Automaticky vybrať zariadenie';
+
+  @override
+  String get selectedDevice => 'Vybrané zariadenie';
+
+  @override
+  String get noneSelected => 'Žiadne';
 }

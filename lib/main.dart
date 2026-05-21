@@ -9,8 +9,11 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'core/services/map_assets_server.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'package:stork/core/services/cannelloni_service.dart';
+import 'package:stork/core/utils/time_utils.dart';
 
 Future<void> main() async {
+  appStopwatch.start();
   WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb) {
     await MapAssetsServer.start();
@@ -18,20 +21,22 @@ Future<void> main() async {
   runApp(const ProviderScope(child: StorkApp()));
 }
 
-class StorkApp extends StatefulWidget {
+class StorkApp extends ConsumerStatefulWidget {
   const StorkApp({super.key});
 
   @override
-  State<StorkApp> createState() => _StorkAppState();
+  ConsumerState<StorkApp> createState() => _StorkAppState();
 }
 
-class _StorkAppState extends State<StorkApp> with WidgetsBindingObserver {
+class _StorkAppState extends ConsumerState<StorkApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     // Initial enable of the wakelock
     WakelockPlus.enable();
+    // Warm up the Cannelloni service at startup so it runs in the background
+    ref.read(cannelloniServiceProvider);
   }
 
   @override

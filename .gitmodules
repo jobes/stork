@@ -1,0 +1,3 @@
+[submodule "src/native/libcanard"]
+	path = src/native/libcanard
+	url = https://github.com/DroneCAN/libcanard

@@ -41,6 +41,13 @@ Stork is a high-performance aeronautical navigation application built with Flutt
     OPENAIP_API_KEY=your_api_key_here
     ```
 
+### Native Dependencies
+
+This project uses `libcanard` as a Git submodule for handling CAN frames via the `cannelloni` bridge. When cloning the repository for the first time, you must initialize the submodules:
+```bash
+git submodule update --init --recursive
+```
+
 ### Installation & Running
 
 1.  **Fetch dependencies**:
