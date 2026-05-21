@@ -74,20 +74,54 @@ FFI_EXPORT void stork_canard_register_accept_callback(StorkCanardShouldAcceptCal
     g_accept_cb = cb;
 }
 
+#define MAX_PAYLOAD 128
+
 // Callback for transfer reception
 void onTransferReception(CanardInstance* ins, CanardRxTransfer* transfer) {
     if (g_transfer_cb == NULL) return;
 
-    // Create a flat buffer for the payload. DroneCAN messages are typically small, so a VLA on the stack is safe.
-    uint8_t flat_payload[transfer->payload_len];
-    
+    uint16_t payload_len = transfer->payload_len;
+    if (payload_len == 0) {
+        g_transfer_cb(
+            transfer->timestamp_usec,
+            transfer->data_type_id,
+            transfer->transfer_type,
+            transfer->source_node_id,
+            transfer->transfer_id,
+            transfer->priority,
+            NULL,
+            0
+        );
+        return;
+    }
+
+    uint8_t* payload_ptr = NULL;
+    uint8_t stack_payload[MAX_PAYLOAD];
+    bool is_heap_allocated = false;
+
+    if (payload_len <= MAX_PAYLOAD) {
+        payload_ptr = stack_payload;
+    } else {
+        // Drop payloads that are unreasonably large to prevent stack or heap overflow issues
+        if (payload_len > 8192) {
+            stork_log("stork_canard: Payload length %d exceeds safety limit, dropping transfer.\n", payload_len);
+            return;
+        }
+        payload_ptr = (uint8_t*)malloc(payload_len);
+        if (payload_ptr == NULL) {
+            stork_log("stork_canard: Failed to allocate %d bytes for payload on heap, dropping transfer.\n", payload_len);
+            return;
+        }
+        is_heap_allocated = true;
+    }
+
     // Optimization: Most messages (e.g. NodeStatus) are single-frame, where the buffer is already contiguous.
     if (transfer->payload_middle == NULL && transfer->payload_tail == NULL) {
-        memcpy(flat_payload, transfer->payload_head, transfer->payload_len);
+        memcpy(payload_ptr, transfer->payload_head, payload_len);
     } else {
         // For multi-frame messages (e.g. GetNodeInfo), extract byte by byte.
-        for (uint16_t i = 0; i < transfer->payload_len; i++) {
-            canardDecodeScalar(transfer, i * 8, 8, false, &flat_payload[i]);
+        for (uint16_t i = 0; i < payload_len; i++) {
+            canardDecodeScalar(transfer, i * 8, 8, false, &payload_ptr[i]);
         }
     }
 
@@ -99,9 +133,13 @@ void onTransferReception(CanardInstance* ins, CanardRxTransfer* transfer) {
         transfer->source_node_id,
         transfer->transfer_id,
         transfer->priority,
-        flat_payload,
-        transfer->payload_len
+        payload_ptr,
+        payload_len
     );
+
+    if (is_heap_allocated) {
+        free(payload_ptr);
+    }
 }
 
 // Callback for transfer acceptance
