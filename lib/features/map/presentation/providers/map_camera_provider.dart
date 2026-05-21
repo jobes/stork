@@ -44,17 +44,17 @@ class MapCamera extends _$MapCamera {
       }
 
       final settings = ref.read(appSettingsProvider).value;
-      final center = Geographic(lon: next.longitude, lat: next.latitude);
+      final center = Geographic(lon: next.longitude ?? 0.0, lat: next.latitude ?? 0.0);
 
       // Handle mode transitions and continuous updates
       if (next.mapViewState == MapViewState.follow) {
-        if (next.latitude != 0 && next.longitude != 0 && !_isFollowPaused) {
+        if (next.latitude != null && next.longitude != null && next.latitude != 0.0 && next.longitude != 0.0 && !_isFollowPaused) {
           unawaited(
             moveCamera(
               center: center,
               zoom: settings?.mapFollowZoom ?? 12.0,
               pitch: 60,
-              bearing: next.heading,
+              bearing: next.heading ?? 0.0,
               animate: true,
             ),
           );
@@ -62,8 +62,8 @@ class MapCamera extends _$MapCamera {
       } else if (next.mapViewState == MapViewState.overview) {
         final stateChanged = previous?.mapViewState != next.mapViewState;
         final coordsBecameValid =
-            (previous?.latitude == 0 || previous?.longitude == 0) &&
-            (next.latitude != 0 && next.longitude != 0);
+            (previous?.latitude == null || previous?.longitude == null || previous?.latitude == 0.0 || previous?.longitude == 0.0) &&
+            (next.latitude != null && next.longitude != null && next.latitude != 0.0 && next.longitude != 0.0);
 
         if (stateChanged || coordsBecameValid) {
           unawaited(
@@ -152,8 +152,10 @@ class MapCamera extends _$MapCamera {
     // Initial move if telemetry is already valid
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
-    if (telemetry.latitude != 0 &&
-        telemetry.longitude != 0 &&
+    if (telemetry.latitude != null &&
+        telemetry.longitude != null &&
+        telemetry.latitude != 0.0 &&
+        telemetry.longitude != 0.0 &&
         settings != null) {
       final double zoom;
       if (telemetry.mapViewState == MapViewState.overview) {
@@ -166,7 +168,7 @@ class MapCamera extends _$MapCamera {
 
       unawaited(
         moveCamera(
-          center: Geographic(lon: telemetry.longitude, lat: telemetry.latitude),
+          center: Geographic(lon: telemetry.longitude!, lat: telemetry.latitude!),
           zoom: zoom,
           animate: false,
         ),
@@ -236,15 +238,17 @@ class MapCamera extends _$MapCamera {
 
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
-    unawaited(
-      moveCamera(
-        center: Geographic(lon: telemetry.longitude, lat: telemetry.latitude),
-        zoom: settings?.mapFollowZoom ?? 12.0,
-        pitch: 60,
-        bearing: telemetry.heading,
-        animate: true,
-      ),
-    );
+    if (telemetry.longitude != null && telemetry.latitude != null) {
+      unawaited(
+        moveCamera(
+          center: Geographic(lon: telemetry.longitude!, lat: telemetry.latitude!),
+          zoom: settings?.mapFollowZoom ?? 12.0,
+          pitch: 60,
+          bearing: telemetry.heading ?? 0.0,
+          animate: true,
+        ),
+      );
+    }
   }
 
   Future<void> handleGpsToggle() async {
@@ -391,8 +395,8 @@ class MapCamera extends _$MapCamera {
     }
   }
 
-  String _getAircraftGeoJson(double lat, double lon, double heading) {
-    if (lat == 0 && lon == 0) {
+  String _getAircraftGeoJson(double? lat, double? lon, double? heading) {
+    if (lat == null || lon == null || (lat == 0.0 && lon == 0.0)) {
       return jsonEncode({'type': 'FeatureCollection', 'features': []});
     }
     return jsonEncode({
@@ -404,7 +408,7 @@ class MapCamera extends _$MapCamera {
             'type': 'Point',
             'coordinates': [lon, lat],
           },
-          'properties': {'heading': heading},
+          'properties': {'heading': heading ?? 0.0},
         },
       ],
     });

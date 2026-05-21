@@ -18,9 +18,9 @@ class _CompassLayout {
 }
 
 class CompassBar extends ConsumerWidget {
-  final double heading;
+  final double? heading;
 
-  const CompassBar({super.key, required this.heading});
+  const CompassBar({super.key, this.heading});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,7 +73,7 @@ class CompassBar extends ConsumerWidget {
                   blendMode: BlendMode.dstIn,
                   child: CustomPaint(
                     painter: CompassPainter(
-                      heading: heading,
+                      heading: heading ?? 0.0,
                       color: colorScheme.onSurface,
                       fontScale: fontScale,
                     ),
@@ -114,7 +114,9 @@ class CompassBar extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      '${(heading.round() % 360).toString().padLeft(3, '0')}°',
+                      heading != null
+                          ? '${(heading!.round() % 360).toString().padLeft(3, '0')}°'
+                          : '---°',
                       style: TextStyle(
                         color: colorScheme.onSurface,
                         fontSize:

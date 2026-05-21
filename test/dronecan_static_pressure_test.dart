@@ -35,7 +35,7 @@ void main() {
 
       // Verify default state pressure
       var state = container.read(telemetryProvider);
-      expect(state.airPressure, equals(1013.25));
+      expect(state.airPressure, isNull);
 
       // Update pressure
       container.read(telemetryProvider.notifier).updatePressure(101325.0);
