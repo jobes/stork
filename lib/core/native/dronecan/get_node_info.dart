@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stork/core/utils/time_utils.dart';
@@ -95,13 +96,9 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
     hwBytes[18] = 0; // certificate_of_authenticity length = 0
 
     // 4. name: variable length
-    int nameLen = name.length;
-    if (nameLen > 63) {
-      nameLen = 63;
-    }
-    final namePackedBytes = Uint8List.fromList(
-      name.substring(0, nameLen).codeUnits,
-    );
+    final encodedName = utf8.encode(name);
+    final nameLen = encodedName.length > 63 ? 63 : encodedName.length;
+    final namePackedBytes = Uint8List.fromList(encodedName.sublist(0, nameLen));
 
     // Combine all sections into a single payload
     final totalLen =

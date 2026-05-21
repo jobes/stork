@@ -121,7 +121,7 @@ void main() {
         );
         final response = await request.close();
 
-        expect(response.statusCode, HttpStatus.internalServerError);
+        expect(response.statusCode, HttpStatus.notFound);
       } finally {
         client.close(force: true);
       }

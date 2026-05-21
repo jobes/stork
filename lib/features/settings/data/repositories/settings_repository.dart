@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/app_settings.dart';
@@ -19,8 +20,12 @@ class SettingsRepository {
     if (jsonString != null) {
       try {
         return AppSettings.fromJson(json.decode(jsonString));
-      } catch (_) {
-        // Fallback to defaults
+      } on FormatException catch (e) {
+        debugPrint('SettingsRepository: Failed to parse settings JSON: $e');
+        _prefs.setString(_keyAppSettings, json.encode(const AppSettings().toJson()));
+      } on TypeError catch (e) {
+        debugPrint('SettingsRepository: Settings JSON shape mismatch: $e');
+        _prefs.setString(_keyAppSettings, json.encode(const AppSettings().toJson()));
       }
     }
 
@@ -28,7 +33,10 @@ class SettingsRepository {
   }
 
   Future<void> saveSettings(AppSettings settings) async {
-    await _prefs.setString(_keyAppSettings, json.encode(settings.toJson()));
+    final success = await _prefs.setString(_keyAppSettings, json.encode(settings.toJson()));
+    if (!success) {
+      throw StateError('Failed to save settings to SharedPreferences.');
+    }
   }
 }
 

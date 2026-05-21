@@ -98,6 +98,14 @@ class CannelloniService extends _$CannelloniService {
   }
 
   void _disconnect() {
+    if (_socket != null) {
+      debugPrint('CannelloniService: Disconnecting from $_lastIp:$_lastPort');
+    }
+    _resetConnectionState();
+    debugPrint('CannelloniService: DroneCAN cleared and Node ID removed.');
+  }
+
+  void _resetConnectionState() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
     _dnaHandler?.stop();
@@ -108,17 +116,13 @@ class CannelloniService extends _$CannelloniService {
     _txTimer = null;
     _nodeId = null;
 
-    if (_socket != null) {
-      debugPrint('CannelloniService: Disconnecting from $_lastIp:$_lastPort');
-      _socket?.close();
-      _socket = null;
-    }
+    _socket?.close();
+    _socket = null;
     _lastIp = null;
     _lastPort = null;
 
     // Clear DroneCAN and remove Node ID (0 is anonymous)
     _canard?.storkCanardInit(0);
-    debugPrint('CannelloniService: DroneCAN cleared and Node ID removed.');
   }
 
   void _listenToSocket() {
@@ -158,22 +162,27 @@ class CannelloniService extends _$CannelloniService {
     final savedUidHex = prefs.getString('dronecan_unique_id');
     final uniqueId = Uint8List(16);
     if (savedUidHex != null && savedUidHex.length == 32) {
-      for (int i = 0; i < 16; i++) {
-        uniqueId[i] = int.parse(
-          savedUidHex.substring(i * 2, i * 2 + 2),
-          radix: 16,
+      try {
+        for (int i = 0; i < 16; i++) {
+          uniqueId[i] = int.parse(
+            savedUidHex.substring(i * 2, i * 2 + 2),
+            radix: 16,
+          );
+        }
+        return uniqueId;
+      } catch (e) {
+        debugPrint(
+          'CannelloniService: Failed to parse unique ID hex "$savedUidHex", regenerating: $e',
         );
       }
-    } else {
-      final rand = math.Random();
-      for (int i = 0; i < 16; i++) {
-        uniqueId[i] = rand.nextInt(256);
-      }
-      final hex = uniqueId
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join();
-      await prefs.setString('dronecan_unique_id', hex);
     }
+
+    final rand = math.Random();
+    for (int i = 0; i < 16; i++) {
+      uniqueId[i] = rand.nextInt(256);
+    }
+    final hex = uniqueId.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    await prefs.setString('dronecan_unique_id', hex);
     return uniqueId;
   }
 
@@ -206,6 +215,7 @@ class CannelloniService extends _$CannelloniService {
       _startTxProcessing();
     } catch (e) {
       debugPrint('CannelloniService: Failed to connect: $e');
+      _resetConnectionState();
     }
   }
 
@@ -358,6 +368,10 @@ class CannelloniService extends _$CannelloniService {
           );
         });
   }
+
+  @visibleForTesting
+  Future<Uint8List> loadOrGenerateUniqueIdForTesting() =>
+      _loadOrGenerateUniqueId();
 }
 
 @pragma('vm:entry-point')

@@ -50,14 +50,20 @@ class MDnsService {
               ResourceRecordQuery.service(ptr.domainName),
             );
 
-        await for (final SrvResourceRecord srv in srvStream) {
+        await for (final SrvResourceRecord srv in srvStream.timeout(
+          const Duration(seconds: 2),
+          onTimeout: (sink) => sink.close(),
+        )) {
           // Find IPv4 addresses
           final Stream<IPAddressResourceRecord> ipv4Stream = client
               .lookup<IPAddressResourceRecord>(
                 ResourceRecordQuery.addressIPv4(srv.target),
               );
 
-          await for (final IPAddressResourceRecord ip in ipv4Stream) {
+          await for (final IPAddressResourceRecord ip in ipv4Stream.timeout(
+            const Duration(seconds: 2),
+            onTimeout: (sink) => sink.close(),
+          )) {
             results.add(
               CannelloniDevice(
                 name: ptr.domainName,

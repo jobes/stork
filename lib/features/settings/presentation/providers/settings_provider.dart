@@ -51,8 +51,13 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final newSettings = updater(currentState);
     state = AsyncData(newSettings);
 
-    final repository = await ref.read(settingsRepositoryProvider.future);
-    await repository.saveSettings(newSettings);
+    try {
+      final repository = await ref.read(settingsRepositoryProvider.future);
+      await repository.saveSettings(newSettings);
+    } catch (e) {
+      state = AsyncData(currentState);
+      rethrow;
+    }
   }
 
   Future<void> updateFontSize(double fontSize) =>
