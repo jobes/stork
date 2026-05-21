@@ -9,7 +9,7 @@ part 'telemetry_provider.g.dart';
 @Riverpod(keepAlive: true)
 class TelemetryNotifier extends _$TelemetryNotifier {
   late final DecayableField<double> _latitude = DecayableField<double>(
-    timeout: const Duration(seconds: 2),
+    timeout: Duration.zero,
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.latitude)
@@ -17,7 +17,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     },
   );
   late final DecayableField<double> _longitude = DecayableField<double>(
-    timeout: const Duration(seconds: 2),
+    timeout: Duration.zero,
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.longitude)
