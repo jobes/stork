@@ -14,18 +14,34 @@ class SettingsRepository {
   SettingsRepository(this._prefs);
 
   static const _keyAppSettings = 'app_settings';
+  static final _defaultSettingsJson = json.encode(const AppSettings().toJson());
 
-  AppSettings getSettings() {
+  Future<void> _resetToDefaults() async {
+    final success = await _prefs.setString(_keyAppSettings, _defaultSettingsJson);
+    if (!success) {
+      throw StateError('Failed to reset settings to defaults.');
+    }
+  }
+
+  Future<AppSettings> getSettings() async {
     final jsonString = _prefs.getString(_keyAppSettings);
     if (jsonString != null) {
       try {
         return AppSettings.fromJson(json.decode(jsonString));
       } on FormatException catch (e) {
         debugPrint('SettingsRepository: Failed to parse settings JSON: $e');
-        _prefs.setString(_keyAppSettings, json.encode(const AppSettings().toJson()));
+        try {
+          await _resetToDefaults();
+        } catch (resetError) {
+          debugPrint('SettingsRepository: Failed to reset settings to defaults: $resetError');
+        }
       } on TypeError catch (e) {
         debugPrint('SettingsRepository: Settings JSON shape mismatch: $e');
-        _prefs.setString(_keyAppSettings, json.encode(const AppSettings().toJson()));
+        try {
+          await _resetToDefaults();
+        } catch (resetError) {
+          debugPrint('SettingsRepository: Failed to reset settings to defaults: $resetError');
+        }
       }
     }
 

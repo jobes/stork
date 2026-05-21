@@ -32,7 +32,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   @override
   FutureOr<AppSettings> build() async {
     final repository = await ref.watch(settingsRepositoryProvider.future);
-    final settings = repository.getSettings();
+    final settings = await repository.getSettings();
 
     // Listen to discovered devices for auto-selection
     ref.listen(discoveredDevicesProvider, (previous, next) {
@@ -110,7 +110,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       }
 
       final repository = await ref.read(settingsRepositoryProvider.future);
-      final repoSettings = repository.getSettings();
+      final repoSettings = await repository.getSettings();
 
       if (state.asData?.value == newSettings) {
         state = AsyncData(repoSettings);

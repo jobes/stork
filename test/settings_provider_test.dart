@@ -19,7 +19,7 @@ class MockSettingsRepository implements SettingsRepository {
   });
 
   @override
-  AppSettings getSettings() => currentSettings;
+  Future<AppSettings> getSettings() async => currentSettings;
 
   @override
   Future<void> saveSettings(AppSettings settings) async {
