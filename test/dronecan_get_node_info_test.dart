@@ -64,8 +64,8 @@ void main() {
       final response = await GetNodeInfoResponse.create(validUniqueId);
       expect(response.uniqueId, equals(validUniqueId));
 
-      expect(
-        () => GetNodeInfoResponse.create(invalidUniqueIdTooShort),
+      await expectLater(
+        GetNodeInfoResponse.create(invalidUniqueIdTooShort),
         throwsArgumentError,
       );
     });
