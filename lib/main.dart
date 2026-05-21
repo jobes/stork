@@ -35,6 +35,8 @@ class _StorkAppState extends ConsumerState<StorkApp> with WidgetsBindingObserver
     WidgetsBinding.instance.addObserver(this);
     // Initial enable of the wakelock
     WakelockPlus.enable();
+    // Warm up the Cannelloni service at startup so it runs in the background
+    ref.read(cannelloniServiceProvider);
   }
 
   @override
@@ -53,9 +55,6 @@ class _StorkAppState extends ConsumerState<StorkApp> with WidgetsBindingObserver
 
   @override
   Widget build(BuildContext context) {
-    // Warm up the Cannelloni service at startup so it runs in the background
-    ref.watch(cannelloniServiceProvider);
-
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       localizationsDelegates: const [
