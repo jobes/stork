@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stork/core/services/mdns_service.dart';
+import 'package:stork/features/settings/domain/cannelloni_device.dart';
 import 'package:stork/features/settings/data/repositories/settings_repository.dart';
 import 'package:stork/features/settings/domain/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
@@ -181,6 +183,69 @@ void main() {
       expect(state, isA<AsyncData<AppSettings>>());
       expect(state.value?.mapFontSize, equals(2.0));
       expect(mockRepository.currentSettings.mapFontSize, equals(2.0));
+    });
+
+    test('updateAutoSelectDevice triggers auto-selection and handles failures', () async {
+      const device = CannelloniDevice(
+        name: 'device1',
+        hostname: 'host1',
+        ip: '127.0.0.1',
+        port: 1234,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
+          discoveredDevicesProvider.overrideWith((ref) => Stream.value([device])),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, __) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      // Trigger updateAutoSelectDevice(true).
+      // Since autoSelectDevice is turned on, it should immediately auto-select the discovered device.
+      final result = await notifier.updateAutoSelectDevice(true);
+
+      expect(result, isA<SettingsUpdateSuccess>());
+      expect(container.read(appSettingsProvider).value?.autoSelectDevice, isTrue);
+      expect(container.read(appSettingsProvider).value?.selectedDevice, equals(device));
+    });
+
+    test('updateAutoSelectDevice propagates inner failures from _tryAutoSelectDevice', () async {
+      const device = CannelloniDevice(
+        name: 'device1',
+        hostname: 'host1',
+        ip: '127.0.0.1',
+        port: 1234,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
+          discoveredDevicesProvider.overrideWith((ref) => Stream.value([device])),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, __) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      // Configure repository to fail when updating the selected device
+      // (which happens in the second repository save call during auto-selection)
+      mockRepository.shouldThrowFor = (settings) => settings.selectedDevice != null;
+
+      final result = await notifier.updateAutoSelectDevice(true);
+
+      // It should return SettingsUpdateFailure because of the failed auto-selection update
+      expect(result, isA<SettingsUpdateFailure>());
     });
   });
 }
