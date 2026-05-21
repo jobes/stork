@@ -23,7 +23,7 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
   final int swMajor;
   final int swMinor;
   final Uint8List uniqueId;
-  final String name;
+  final Uint8List name;
 
   GetNodeInfoResponse({
     required this.status,
@@ -37,7 +37,18 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
         'uniqueId must be exactly 16 bytes long, but was ${uniqueId.length} bytes.',
       );
     }
+    if (name.length > 80) {
+      throw ArgumentError(
+        'name must be at most 80 bytes long (standard DroneCAN limit), but was ${name.length} bytes.',
+      );
+    }
   }
+
+  /// Pre-encoded default node name to avoid runtime UTF-8 encoding.
+  /// Must be at most 80 characters (standard DroneCAN limit).
+  static final Uint8List defaultName = Uint8List.fromList(
+    utf8.encode('com.inskycore.dronecan_node.stork_map'),
+  );
 
   /// Factory method to asynchronously construct the Response with all platform details loaded.
   static Future<GetNodeInfoResponse> create(Uint8List uniqueId) async {
@@ -63,7 +74,7 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
       swMajor: swMajor,
       swMinor: swMinor,
       uniqueId: uniqueId,
-      name: 'com.inskycore.dronecan_node.stork_map',
+      name: defaultName,
     );
   }
 
@@ -96,9 +107,7 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
     hwBytes[18] = 0; // certificate_of_authenticity length = 0
 
     // 4. name: variable length
-    final encodedName = utf8.encode(name);
-    final nameLen = encodedName.length > 63 ? 63 : encodedName.length;
-    final namePackedBytes = Uint8List.fromList(encodedName.sublist(0, nameLen));
+    final nameLen = name.length;
 
     // Combine all sections into a single payload
     final totalLen =
@@ -106,7 +115,7 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
         swBytes.length +
         hwBytes.length +
         1 +
-        namePackedBytes.length;
+        nameLen;
     final payload = Uint8List(totalLen);
 
     int offset = 0;
@@ -120,7 +129,7 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
     offset += hwBytes.length;
     payload[offset] = nameLen;
     offset += 1;
-    payload.setRange(offset, offset + namePackedBytes.length, namePackedBytes);
+    payload.setRange(offset, offset + nameLen, name);
 
     return payload;
   }

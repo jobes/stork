@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/native/dronecan/get_node_info.dart';
@@ -19,7 +20,7 @@ void main() {
         swMajor: 1,
         swMinor: 2,
         uniqueId: validUniqueId,
-        name: 'test.node',
+        name: Uint8List.fromList(utf8.encode('test.node')),
       );
 
       expect(response.uniqueId.length, equals(16));
@@ -39,7 +40,7 @@ void main() {
           swMajor: 1,
           swMinor: 2,
           uniqueId: invalidUniqueIdTooShort,
-          name: 'test.node',
+          name: Uint8List.fromList(utf8.encode('test.node')),
         ),
         throwsArgumentError,
       );
@@ -54,7 +55,7 @@ void main() {
           swMajor: 1,
           swMinor: 2,
           uniqueId: invalidUniqueIdTooLong,
-          name: 'test.node',
+          name: Uint8List.fromList(utf8.encode('test.node')),
         ),
         throwsArgumentError,
       );
