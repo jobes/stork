@@ -69,23 +69,27 @@ class CannelloniService extends _$CannelloniService {
       4096,
     ); // Preallocated buffer for Cannelloni packets
 
-    final settingsAsync = ref.watch(appSettingsProvider);
+    ref.listen(
+      appSettingsProvider,
+      (previous, next) {
+        next.whenData((settings) {
+          final device = settings.selectedDevice;
 
-    settingsAsync.whenData((settings) {
-      final device = settings.selectedDevice;
+          if (device == null) {
+            _disconnect();
+            return;
+          }
 
-      if (device == null) {
-        _disconnect();
-        return;
-      }
-
-      if (device.ip != _lastIp || device.port != _lastPort) {
-        debugPrint(
-          'CannelloniService: Settings changed, reconnecting to ${device.ip}:${device.port}',
-        );
-        _connect(device.ip, device.port);
-      }
-    });
+          if (device.ip != _lastIp || device.port != _lastPort) {
+            debugPrint(
+              'CannelloniService: Settings changed, reconnecting to ${device.ip}:${device.port}',
+            );
+            _connect(device.ip, device.port);
+          }
+        });
+      },
+      fireImmediately: true,
+    );
 
     ref.onDispose(() {
       _activeInstance = null;
