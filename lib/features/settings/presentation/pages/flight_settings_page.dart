@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/settings_provider.dart';
+import '../widgets/max_range_input.dart';
 import '../widgets/thresholds_slider.dart';
 
 class FlightSettingsPage extends ConsumerWidget {
@@ -74,17 +76,19 @@ class FlightSettingsPage extends ConsumerWidget {
                   settings.flightSpeedThresholds.maxError ?? 125.0,
                 ],
                 onChanged: (newValues) {
-                  ref
-                      .read(appSettingsProvider.notifier)
-                      .updateFlightSpeedThresholds(
-                        settings.flightSpeedThresholds.copyWith(
-                          inactiveMax: newValues[0],
-                          minError: newValues[1],
-                          minWarning: newValues[2],
-                          maxWarning: newValues[3],
-                          maxError: newValues[4],
+                  unawaited(
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateFlightSpeedThresholds(
+                          settings.flightSpeedThresholds.copyWith(
+                            inactiveMax: newValues[0],
+                            minError: newValues[1],
+                            minWarning: newValues[2],
+                            maxWarning: newValues[3],
+                            maxError: newValues[4],
+                          ),
                         ),
-                      );
+                  );
                 },
               ),
             ),
@@ -99,12 +103,14 @@ class FlightSettingsPage extends ConsumerWidget {
                       style: const TextStyle(fontWeight: FontWeight.normal),
                     ),
                   ),
-                  _MaxRangeInput(
+                  _MaxRangeInputContainer(
                     initialValue: settings.flightSpeedMaxRange,
                     onSubmitted: (newValue) {
-                      ref
-                          .read(appSettingsProvider.notifier)
-                          .updateFlightSpeedMaxRange(newValue);
+                      unawaited(
+                        ref
+                            .read(appSettingsProvider.notifier)
+                            .updateFlightSpeedMaxRange(newValue),
+                      );
                     },
                   ),
                 ],
@@ -140,20 +146,20 @@ class _LegendItem extends StatelessWidget {
   }
 }
 
-class _MaxRangeInput extends StatefulWidget {
+class _MaxRangeInputContainer extends StatefulWidget {
   final double initialValue;
   final ValueChanged<double> onSubmitted;
 
-  const _MaxRangeInput({
+  const _MaxRangeInputContainer({
     required this.initialValue,
     required this.onSubmitted,
   });
 
   @override
-  State<_MaxRangeInput> createState() => _MaxRangeInputState();
+  State<_MaxRangeInputContainer> createState() => _MaxRangeInputContainerState();
 }
 
-class _MaxRangeInputState extends State<_MaxRangeInput> {
+class _MaxRangeInputContainerState extends State<_MaxRangeInputContainer> {
   late TextEditingController _controller;
   late FocusNode _focusNode;
 
@@ -166,7 +172,7 @@ class _MaxRangeInputState extends State<_MaxRangeInput> {
   }
 
   @override
-  void didUpdateWidget(_MaxRangeInput oldWidget) {
+  void didUpdateWidget(_MaxRangeInputContainer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialValue != oldWidget.initialValue && !_focusNode.hasFocus) {
       _controller.text = widget.initialValue.toStringAsFixed(0);
@@ -191,52 +197,36 @@ class _MaxRangeInputState extends State<_MaxRangeInput> {
     final text = _controller.text;
     final parsed = double.tryParse(text);
     if (parsed != null && parsed > 0) {
-      widget.onSubmitted(parsed.roundToDouble());
+      final rounded = parsed.roundToDouble();
+      final clamped = rounded.clamp(10.0, 1000.0);
+      _controller.text = clamped.toStringAsFixed(0);
+      widget.onSubmitted(clamped);
     } else {
       _controller.text = widget.initialValue.toStringAsFixed(0);
     }
   }
 
+  void _handleIncrement() {
+    final newValue = (widget.initialValue + 10.0).clamp(10.0, 1000.0).roundToDouble();
+    _controller.text = newValue.toStringAsFixed(0);
+    widget.onSubmitted(newValue);
+  }
+
+  void _handleDecrement() {
+    final newValue = (widget.initialValue - 10.0).clamp(10.0, 1000.0).roundToDouble();
+    _controller.text = newValue.toStringAsFixed(0);
+    widget.onSubmitted(newValue);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.remove_circle_outline),
-          onPressed: widget.initialValue > 10.0
-              ? () {
-                  final newValue = (widget.initialValue - 10.0).clamp(10.0, 1000.0).roundToDouble();
-                  _controller.text = newValue.toStringAsFixed(0);
-                  widget.onSubmitted(newValue);
-                }
-              : null,
-        ),
-        SizedBox(
-          width: 90,
-          child: TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              suffixText: ' km/h',
-              suffixStyle: TextStyle(fontSize: 12),
-              contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
-              border: OutlineInputBorder(),
-            ),
-            onSubmitted: (_) => _submit(),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.add_circle_outline),
-          onPressed: () {
-            final newValue = (widget.initialValue + 10.0).clamp(10.0, 1000.0).roundToDouble();
-            _controller.text = newValue.toStringAsFixed(0);
-            widget.onSubmitted(newValue);
-          },
-        ),
-      ],
+    return MaxRangeInput(
+      currentValue: widget.initialValue,
+      controller: _controller,
+      focusNode: _focusNode,
+      onSubmitted: _submit,
+      onIncrement: _handleIncrement,
+      onDecrement: widget.initialValue > 10.0 ? _handleDecrement : null,
     );
   }
 }
