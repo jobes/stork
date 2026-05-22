@@ -66,7 +66,7 @@ This hybrid approach ensures that users always have access to the best available
 ### Dynamic Style Rewriting (`StyleService`)
 
 For the transparent tile serving proxy to work, the map style definitions must be dynamically rewired before they are loaded by the MapLibre engine. This is handled by `StyleService`:
-- **Asset Domain Mapping**: It loads the style description sheet (`assets/openaip/styles.json`) at runtime and swaps all `asset://` prefixes with the local server's URL (`MapAssetsServer.baseUrl`).
+- **Asset Domain Mapping**: It loads the style definition (`assets/openaip/styles.json`) at runtime and swaps all `asset://` prefixes with the local server's URL (`MapAssetsServer.baseUrl`).
 - **Vector & Raster Source Interception**: It modifies the JSON structure to strip standard remote API endpoints from vector sources (`protomaps`, `openaip-data`) and raster terrain sources (`terrain`), replacing them with tile template arrays pointing to the local proxy server (e.g., `http://localhost:<port>/pmtiles/protomaps/{z}/{x}/{y}.pbf`).
 - **Offline Consistency**: This ensures that all map layers are requested solely through the local caching proxy, enabling transparent offline fallback for all vector data, aircraft layers, and hillshade terrain.
 
