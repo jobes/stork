@@ -191,4 +191,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetWidgetLayout => 'Reset widget positions';
+
+  @override
+  String get speedUnitKmH => 'kph';
+
+  @override
+  String gsSpeedLabel(String value) {
+    return 'GS $value kph';
+  }
+
+  @override
+  String get gpsOnly => 'GPS ONLY';
+
+  @override
+  String get noGps => 'NO GPS';
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/cannelloni_service_io.dart'
     if (dart.library.html) '../../../../core/services/cannelloni_service_stub.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/range_thresholds.dart';
@@ -69,7 +70,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     }
   }
 
-  Widget _buildSpeedRow(String value, Color valueColor, Color unitColor) {
+  Widget _buildSpeedRow(String value, String unit, Color valueColor, Color unitColor) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
@@ -84,7 +85,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Text('KM/H', style: TextStyle(fontSize: 12, color: unitColor)),
+        Text(unit, style: TextStyle(fontSize: 12, color: unitColor)),
       ],
     );
   }
@@ -96,6 +97,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider).value;
     final thresholds =
         settings?.flightSpeedThresholds ?? const RangeThresholds();
+    final l10n = AppLocalizations.of(context)!;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultTextColor = isDark
@@ -126,7 +128,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
       // Offline mode: Show only GS or ---
       final speedText = gs != null ? gs.toStringAsFixed(0).padLeft(3) : '---';
       columnChildren.add(
-        _buildSpeedRow(speedText, speedValueColor, defaultTextColor),
+        _buildSpeedRow(speedText, l10n.speedUnitKmH, speedValueColor, defaultTextColor),
       );
     } else {
       // Connected mode
@@ -134,13 +136,14 @@ class SpeedTelemetryWidget extends ConsumerWidget {
         columnChildren.add(
           _buildSpeedRow(
             ias.toStringAsFixed(0).padLeft(3),
+            l10n.speedUnitKmH,
             speedValueColor,
             defaultTextColor,
           ),
         );
         columnChildren.add(
           Text(
-            'GS ${gs.toStringAsFixed(0).padLeft(3)} KM/H',
+            l10n.gsSpeedLabel(gs.toStringAsFixed(0).padLeft(3)),
             style: TextStyle(
               fontSize: 12,
               color: defaultTextColor,
@@ -152,6 +155,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
         columnChildren.add(
           _buildSpeedRow(
             gs.toStringAsFixed(0).padLeft(3),
+            l10n.speedUnitKmH,
             speedValueColor,
             defaultTextColor,
           ),
@@ -163,9 +167,9 @@ class SpeedTelemetryWidget extends ConsumerWidget {
               color: Colors.orange.withAlpha(51),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: const Text(
-              'GPS ONLY',
-              style: TextStyle(
+            child: Text(
+              l10n.gpsOnly,
+              style: const TextStyle(
                 fontSize: 10,
                 color: Colors.orange,
                 fontWeight: FontWeight.bold,
@@ -177,6 +181,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
         columnChildren.add(
           _buildSpeedRow(
             ias.toStringAsFixed(0).padLeft(3),
+            l10n.speedUnitKmH,
             speedValueColor,
             defaultTextColor,
           ),
@@ -186,9 +191,9 @@ class SpeedTelemetryWidget extends ConsumerWidget {
             children: [
               const Icon(Icons.satellite_alt, size: 12, color: Colors.red),
               const SizedBox(width: 4),
-              const Text(
-                'NO GPS',
-                style: TextStyle(
+              Text(
+                l10n.noGps,
+                style: const TextStyle(
                   fontSize: 10,
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
@@ -200,7 +205,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
       } else {
         // Neither available
         columnChildren.add(
-          _buildSpeedRow('---', speedValueColor, defaultTextColor),
+          _buildSpeedRow('---', l10n.speedUnitKmH, speedValueColor, defaultTextColor),
         );
       }
     }

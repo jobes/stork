@@ -433,6 +433,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset widget positions'**
   String get resetWidgetLayout;
+
+  /// Speed unit in kilometers per hour
+  ///
+  /// In en, this message translates to:
+  /// **'kph'**
+  String get speedUnitKmH;
+
+  /// Ground speed label with speed value
+  ///
+  /// In en, this message translates to:
+  /// **'GS {value} kph'**
+  String gsSpeedLabel(String value);
+
+  /// Indicator when only GPS speed is available
+  ///
+  /// In en, this message translates to:
+  /// **'GPS ONLY'**
+  String get gpsOnly;
+
+  /// Indicator when GPS is not available
+  ///
+  /// In en, this message translates to:
+  /// **'NO GPS'**
+  String get noGps;
 }
 
 class _AppLocalizationsDelegate

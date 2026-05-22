@@ -118,5 +118,26 @@
   "flightSpeed": "Flight Speed",
   "flightSpeedMaxRange": "Maximum slider range (km/h)",
   "moveWidgets": "Move widgets",
-  "resetWidgetLayout": "Reset widget positions"
+  "resetWidgetLayout": "Reset widget positions",
+  "speedUnitKmH": "kph",
+  "@speedUnitKmH": {
+    "description": "Speed unit in kilometers per hour"
+  },
+  "gsSpeedLabel": "GS {value} kph",
+  "@gsSpeedLabel": {
+    "description": "Ground speed label with speed value",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "gpsOnly": "GPS ONLY",
+  "@gpsOnly": {
+    "description": "Indicator when only GPS speed is available"
+  },
+  "noGps": "NO GPS",
+  "@noGps": {
+    "description": "Indicator when GPS is not available"
+  }
 }

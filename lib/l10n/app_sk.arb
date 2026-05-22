@@ -112,5 +112,9 @@
   "flightSpeed": "Rýchlosť letu",
   "flightSpeedMaxRange": "Maximálny rozsah slidera (km/h)",
   "moveWidgets": "Presúvať widgety",
-  "resetWidgetLayout": "Obnoviť polohu widgetov"
+  "resetWidgetLayout": "Obnoviť polohu widgetov",
+  "speedUnitKmH": "km/h",
+  "gsSpeedLabel": "GS {value} km/h",
+  "gpsOnly": "IBA GPS",
+  "noGps": "BEZ GPS"
 }

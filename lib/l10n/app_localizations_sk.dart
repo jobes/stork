@@ -191,4 +191,18 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get resetWidgetLayout => 'Obnoviť polohu widgetov';
+
+  @override
+  String get speedUnitKmH => 'km/h';
+
+  @override
+  String gsSpeedLabel(String value) {
+    return 'GS $value km/h';
+  }
+
+  @override
+  String get gpsOnly => 'IBA GPS';
+
+  @override
+  String get noGps => 'BEZ GPS';
 }
