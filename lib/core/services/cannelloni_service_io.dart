@@ -71,11 +71,19 @@ class CannelloniService extends _$CannelloniService {
     ); // Preallocated buffer for Cannelloni packets
 
     ref.listen(appSettingsProvider, (previous, next) {
-      _updateConnection();
+      final prevDevice = previous?.asData?.value.selectedDevice;
+      final nextDevice = next.asData?.value.selectedDevice;
+      if (prevDevice != nextDevice) {
+        _updateConnection();
+      }
     }, fireImmediately: true);
 
     ref.listen(discoveredDevicesProvider, (previous, next) {
-      _updateConnection();
+      final prevList = previous?.asData?.value;
+      final nextList = next.asData?.value;
+      if (!listEquals(prevList, nextList)) {
+        _updateConnection();
+      }
     }, fireImmediately: true);
 
     ref.onDispose(() {
@@ -95,7 +103,6 @@ class CannelloniService extends _$CannelloniService {
     final devicesAsync = ref.read(discoveredDevicesProvider);
 
     settingsAsync.whenData((settings) {
-      if (_socket == null) return;
       final device = settings.selectedDevice;
 
       if (device == null) {
@@ -378,6 +385,10 @@ class CannelloniService extends _$CannelloniService {
     });
   }
 
+  void _updateTelemetryPressure(double pressure) {
+    ref.read(telemetryProvider.notifier).updatePressure(pressure);
+  }
+
   void _handleGetNodeInfoRequest({
     required int transferId,
     required int sourceNodeId,
@@ -444,9 +455,9 @@ void _storkCanardTransferCallback(
       // debugPrint('[DroneCAN] NodeStatus from Node $sourceNodeId: $nodeStatus');
     } else if (dataTypeId == StaticPressure.messageId) {
       final staticPressureMsg = StaticPressure.fromPayload(payloadBytes);
-      _activeInstance!.ref
-          .read(telemetryProvider.notifier)
-          .updatePressure(staticPressureMsg.staticPressure);
+      _activeInstance!._updateTelemetryPressure(
+        staticPressureMsg.staticPressure,
+      );
     } else if (dataTypeId == GetNodeInfoResponse.messageId &&
         type == CanardTransferType.request) {
       _activeInstance!._handleGetNodeInfoRequest(

@@ -60,13 +60,15 @@ void main() {
     test('Saves settings successfully and updates state', () async {
       final container = ProviderContainer(
         overrides: [
-          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
         ],
       );
       addTearDown(container.dispose);
 
       // Keep the provider alive by listening to it
-      final sub = container.listen(appSettingsProvider, (_, __) {});
+      final sub = container.listen(appSettingsProvider, (_, _) {});
       addTearDown(sub.close);
 
       // Wait for provider to build/load
@@ -77,22 +79,27 @@ void main() {
       final result = await notifier.updateFontSize(1.5);
 
       expect(result, isA<SettingsUpdateSuccess>());
-      expect(container.read(appSettingsProvider).value?.mapFontSize, equals(1.5));
+      expect(
+        container.read(appSettingsProvider).value?.mapFontSize,
+        equals(1.5),
+      );
       expect(mockRepository.currentSettings.mapFontSize, equals(1.5));
     });
 
     test('Serializes sequential writes to the repository', () async {
       mockRepository.delay = const Duration(milliseconds: 20);
-      
+
       final container = ProviderContainer(
         overrides: [
-          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
         ],
       );
       addTearDown(container.dispose);
 
       // Keep the provider alive by listening to it
-      final sub = container.listen(appSettingsProvider, (_, __) {});
+      final sub = container.listen(appSettingsProvider, (_, _) {});
       addTearDown(sub.close);
 
       await container.read(appSettingsProvider.future);
@@ -103,208 +110,255 @@ void main() {
       final secondFuture = notifier.updateFontSize(2.0);
 
       // Immediately, state should be updated to the latest optimistic value (2.0)
-      expect(container.read(appSettingsProvider).value?.mapFontSize, equals(2.0));
+      expect(
+        container.read(appSettingsProvider).value?.mapFontSize,
+        equals(2.0),
+      );
 
       await Future.wait([firstFuture, secondFuture]);
 
       // Assert that repository calls were strictly serialized
       expect(
         mockRepository.logs,
-        equals([
-          'start_1.5',
-          'success_1.5',
-          'start_2.0',
-          'success_2.0',
-        ]),
+        equals(['start_1.5', 'success_1.5', 'start_2.0', 'success_2.0']),
       );
     });
 
-    test('Handles failure by rolling back to repository settings on a single update', () async {
-      final container = ProviderContainer(
-        overrides: [
-          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'Handles failure by rolling back to repository settings on a single update',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      // Keep the provider alive by listening to it
-      final sub = container.listen(appSettingsProvider, (_, __) {});
-      addTearDown(sub.close);
+        // Keep the provider alive by listening to it
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      // Set repository to fail
-      mockRepository.shouldThrow = true;
+        // Set repository to fail
+        mockRepository.shouldThrow = true;
 
-      final result = await notifier.updateFontSize(1.5);
+        final result = await notifier.updateFontSize(1.5);
 
-      expect(result, isA<SettingsUpdateFailure>());
-      
-      // State should be AsyncError containing the last known repoSettings (1.0)
-      final state = container.read(appSettingsProvider);
-      expect(state, isA<AsyncError<AppSettings>>());
-      expect(state.value?.mapFontSize, equals(1.0));
-      expect(mockRepository.currentSettings.mapFontSize, equals(1.0));
-    });
+        expect(result, isA<SettingsUpdateFailure>());
 
-    test('Reconciles state on concurrent updates to prevent silent overwriting of newer updates', () async {
-      mockRepository.delay = const Duration(milliseconds: 20);
+        // State should be AsyncError containing the last known repoSettings (1.0)
+        final state = container.read(appSettingsProvider);
+        expect(state, isA<AsyncError<AppSettings>>());
+        expect(state.value?.mapFontSize, equals(1.0));
+        expect(mockRepository.currentSettings.mapFontSize, equals(1.0));
+      },
+    );
 
-      final container = ProviderContainer(
-        overrides: [
-          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'Reconciles state on concurrent updates to prevent silent overwriting of newer updates',
+      () async {
+        mockRepository.delay = const Duration(milliseconds: 20);
 
-      // Keep the provider alive by listening to it
-      final sub = container.listen(appSettingsProvider, (_, __) {});
-      addTearDown(sub.close);
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        // Keep the provider alive by listening to it
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
 
-      // Configure mock to only fail for 1.5 update, but succeed for 2.0
-      mockRepository.shouldThrowFor = (s) => s.mapFontSize == 1.5;
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      final firstFuture = notifier.updateFontSize(1.5);
-      final secondFuture = notifier.updateFontSize(2.0);
+        // Configure mock to only fail for 1.5 update, but succeed for 2.0
+        mockRepository.shouldThrowFor = (s) => s.mapFontSize == 1.5;
 
-      // Optimistic state is 2.0
-      expect(container.read(appSettingsProvider).value?.mapFontSize, equals(2.0));
+        final firstFuture = notifier.updateFontSize(1.5);
+        final secondFuture = notifier.updateFontSize(2.0);
 
-      final firstResult = await firstFuture;
-      final secondResult = await secondFuture;
+        // Optimistic state is 2.0
+        expect(
+          container.read(appSettingsProvider).value?.mapFontSize,
+          equals(2.0),
+        );
 
-      expect(firstResult, isA<SettingsUpdateFailure>());
-      expect(secondResult, isA<SettingsUpdateSuccess>());
+        final firstResult = await firstFuture;
+        final secondResult = await secondFuture;
 
-      // Final state should be successfully set to 2.0 (not silently overwritten with 1.0)
-      final state = container.read(appSettingsProvider);
-      expect(state, isA<AsyncData<AppSettings>>());
-      expect(state.value?.mapFontSize, equals(2.0));
-      expect(mockRepository.currentSettings.mapFontSize, equals(2.0));
-    });
+        expect(firstResult, isA<SettingsUpdateFailure>());
+        expect(secondResult, isA<SettingsUpdateSuccess>());
 
-    test('updateAutoSelectDevice triggers auto-selection and handles failures', () async {
-      const device = CannelloniDevice(
-        name: 'device1',
-        hostname: 'host1',
-        ip: '127.0.0.1',
-        port: 1234,
-      );
+        // Final state should be successfully set to 2.0 (not silently overwritten with 1.0)
+        final state = container.read(appSettingsProvider);
+        expect(state, isA<AsyncData<AppSettings>>());
+        expect(state.value?.mapFontSize, equals(2.0));
+        expect(mockRepository.currentSettings.mapFontSize, equals(2.0));
+      },
+    );
 
-      final container = ProviderContainer(
-        overrides: [
-          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
-          discoveredDevicesProvider.overrideWith((ref) => Stream.value([device])),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'updateAutoSelectDevice triggers auto-selection and handles failures',
+      () async {
+        const device = CannelloniDevice(
+          name: 'device1',
+          hostname: 'host1',
+          ip: '127.0.0.1',
+          port: 1234,
+        );
 
-      final sub = container.listen(appSettingsProvider, (_, __) {});
-      addTearDown(sub.close);
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+            discoveredDevicesProvider.overrideWith(
+              (ref) => Stream.value([device]),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
 
-      // Trigger updateAutoSelectDevice(true).
-      // Since autoSelectDevice is turned on, it should immediately auto-select the discovered device.
-      final result = await notifier.updateAutoSelectDevice(true);
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      expect(result, isA<SettingsUpdateSuccess>());
-      expect(container.read(appSettingsProvider).value?.autoSelectDevice, isTrue);
-      expect(container.read(appSettingsProvider).value?.selectedDevice, equals(device));
-    });
+        // Trigger updateAutoSelectDevice(true).
+        // Since autoSelectDevice is turned on, it should immediately auto-select the discovered device.
+        final result = await notifier.updateAutoSelectDevice(true);
 
-    test('updateAutoSelectDevice propagates inner failures from _tryAutoSelectDevice', () async {
-      const device = CannelloniDevice(
-        name: 'device1',
-        hostname: 'host1',
-        ip: '127.0.0.1',
-        port: 1234,
-      );
+        expect(result, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.autoSelectDevice,
+          isTrue,
+        );
+        expect(
+          container.read(appSettingsProvider).value?.selectedDevice,
+          equals(device),
+        );
+      },
+    );
 
-      final container = ProviderContainer(
-        overrides: [
-          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
-          discoveredDevicesProvider.overrideWith((ref) => Stream.value([device])),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'updateAutoSelectDevice propagates inner failures from _tryAutoSelectDevice',
+      () async {
+        const device = CannelloniDevice(
+          name: 'device1',
+          hostname: 'host1',
+          ip: '127.0.0.1',
+          port: 1234,
+        );
 
-      final sub = container.listen(appSettingsProvider, (_, __) {});
-      addTearDown(sub.close);
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+            discoveredDevicesProvider.overrideWith(
+              (ref) => Stream.value([device]),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
 
-      // Configure repository to fail when updating the selected device
-      // (which happens in the second repository save call during auto-selection)
-      mockRepository.shouldThrowFor = (settings) => settings.selectedDevice != null;
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      final result = await notifier.updateAutoSelectDevice(true);
+        // Configure repository to fail when updating the selected device
+        // (which happens in the second repository save call during auto-selection)
+        mockRepository.shouldThrowFor = (settings) =>
+            settings.selectedDevice != null;
 
-      // It should return SettingsUpdateFailure because of the failed auto-selection update
-      expect(result, isA<SettingsUpdateFailure>());
-    });
+        final result = await notifier.updateAutoSelectDevice(true);
 
-    test('updateFlightSpeedMaxRange updates max range and clamps thresholds if necessary', () async {
-      mockRepository.currentSettings = const AppSettings(
-        flightSpeedMaxRange: 200.0,
-        flightSpeedThresholds: RangeThresholds(
-          inactiveMax: 10.0,
-          minError: 60.0,
-          minWarning: 75.0,
-          maxWarning: 110.0,
-          maxError: 125.0,
-        ),
-      );
+        // It should return SettingsUpdateFailure because of the failed auto-selection update
+        expect(result, isA<SettingsUpdateFailure>());
+      },
+    );
 
-      final container = ProviderContainer(
-        overrides: [
-          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'updateFlightSpeedMaxRange updates max range and clamps thresholds if necessary',
+      () async {
+        mockRepository.currentSettings = const AppSettings(
+          flightSpeedMaxRange: 200.0,
+          flightSpeedThresholds: RangeThresholds(
+            inactiveMax: 10.0,
+            minError: 60.0,
+            minWarning: 75.0,
+            maxWarning: 110.0,
+            maxError: 125.0,
+          ),
+        );
 
-      final sub = container.listen(appSettingsProvider, (_, __) {});
-      addTearDown(sub.close);
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
 
-      // 1. Update to 150.0 (no clamping needed as all are <= 150)
-      final result1 = await notifier.updateFlightSpeedMaxRange(150.0);
-      expect(result1, isA<SettingsUpdateSuccess>());
-      expect(container.read(appSettingsProvider).value?.flightSpeedMaxRange, equals(150.0));
-      expect(container.read(appSettingsProvider).value?.flightSpeedThresholds.maxError, equals(125.0));
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      // 2. Update to 100.0 (requires clamping maxError and maxWarning to 100.0)
-      final result2 = await notifier.updateFlightSpeedMaxRange(100.0);
-      expect(result2, isA<SettingsUpdateSuccess>());
+        // 1. Update to 150.0 (no clamping needed as all are <= 150)
+        final result1 = await notifier.updateFlightSpeedMaxRange(150.0);
+        expect(result1, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.flightSpeedMaxRange,
+          equals(150.0),
+        );
+        expect(
+          container
+              .read(appSettingsProvider)
+              .value
+              ?.flightSpeedThresholds
+              .maxError,
+          equals(125.0),
+        );
 
-      final currentSettings = container.read(appSettingsProvider).value!;
-      expect(currentSettings.flightSpeedMaxRange, equals(100.0));
-      expect(currentSettings.flightSpeedThresholds.maxError, equals(100.0));
-      expect(currentSettings.flightSpeedThresholds.maxWarning, equals(100.0));
-      expect(currentSettings.flightSpeedThresholds.minWarning, equals(75.0));
-      expect(currentSettings.flightSpeedThresholds.minError, equals(60.0));
-      expect(currentSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
+        // 2. Update to 100.0 (requires clamping maxError and maxWarning to 100.0)
+        final result2 = await notifier.updateFlightSpeedMaxRange(100.0);
+        expect(result2, isA<SettingsUpdateSuccess>());
 
-      // 3. Update to 50.0 (clamps everything except inactiveMax to 50.0)
-      final result3 = await notifier.updateFlightSpeedMaxRange(50.0);
-      expect(result3, isA<SettingsUpdateSuccess>());
+        final currentSettings = container.read(appSettingsProvider).value!;
+        expect(currentSettings.flightSpeedMaxRange, equals(100.0));
+        expect(currentSettings.flightSpeedThresholds.maxError, equals(100.0));
+        expect(currentSettings.flightSpeedThresholds.maxWarning, equals(100.0));
+        expect(currentSettings.flightSpeedThresholds.minWarning, equals(75.0));
+        expect(currentSettings.flightSpeedThresholds.minError, equals(60.0));
+        expect(currentSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
 
-      final finalSettings = container.read(appSettingsProvider).value!;
-      expect(finalSettings.flightSpeedMaxRange, equals(50.0));
-      expect(finalSettings.flightSpeedThresholds.maxError, equals(50.0));
-      expect(finalSettings.flightSpeedThresholds.maxWarning, equals(50.0));
-      expect(finalSettings.flightSpeedThresholds.minWarning, equals(50.0));
-      expect(finalSettings.flightSpeedThresholds.minError, equals(50.0));
-      expect(finalSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
-    });
+        // 3. Update to 50.0 (clamps everything except inactiveMax to 50.0)
+        final result3 = await notifier.updateFlightSpeedMaxRange(50.0);
+        expect(result3, isA<SettingsUpdateSuccess>());
+
+        final finalSettings = container.read(appSettingsProvider).value!;
+        expect(finalSettings.flightSpeedMaxRange, equals(50.0));
+        expect(finalSettings.flightSpeedThresholds.maxError, equals(50.0));
+        expect(finalSettings.flightSpeedThresholds.maxWarning, equals(50.0));
+        expect(finalSettings.flightSpeedThresholds.minWarning, equals(50.0));
+        expect(finalSettings.flightSpeedThresholds.minError, equals(50.0));
+        expect(finalSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
+      },
+    );
 
     test('resetWidgetPositions clears all saved widget positions', () async {
       mockRepository.currentSettings = const AppSettings(
@@ -315,22 +369,30 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
         ],
       );
       addTearDown(container.dispose);
 
-      final sub = container.listen(appSettingsProvider, (_, __) {});
+      final sub = container.listen(appSettingsProvider, (_, _) {});
       addTearDown(sub.close);
 
       await container.read(appSettingsProvider.future);
       final notifier = container.read(appSettingsProvider.notifier);
 
-      expect(container.read(appSettingsProvider).value?.widgetPositions, isNotEmpty);
+      expect(
+        container.read(appSettingsProvider).value?.widgetPositions,
+        isNotEmpty,
+      );
 
       final result = await notifier.resetWidgetPositions();
       expect(result, isA<SettingsUpdateSuccess>());
-      expect(container.read(appSettingsProvider).value?.widgetPositions, isEmpty);
+      expect(
+        container.read(appSettingsProvider).value?.widgetPositions,
+        isEmpty,
+      );
       expect(mockRepository.currentSettings.widgetPositions, isEmpty);
     });
   });
