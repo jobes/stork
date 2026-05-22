@@ -100,5 +100,15 @@
   "cannelloniGateway": "Cannelloni brána",
   "autoSelectDevice": "Automaticky vybrať zariadenie",
   "selectedDevice": "Vybrané zariadenie",
-  "noneSelected": "Žiadne"
+  "noneSelected": "Žiadne",
+  "flightSettings": "Nastavenia letu",
+  "inactiveSpeedThreshold": "Maximálna rýchlosť považovaná za státie (km/h)",
+  "minErrorSpeedThreshold": "Kriticky nízka rýchlosť (km/h)",
+  "minWarningSpeedThreshold": "Nebezpečne nízka rýchlosť (km/h)",
+  "maxWarningSpeedThreshold": "Nebezpečne vysoká rýchlosť (km/h)",
+  "maxErrorSpeedThreshold": "Kriticky vysoká rýchlosť (km/h)",
+  "mapSettings": "Nastavenia mapy",
+  "operationalSpeedThreshold": "Prevádzková rýchlosť (km/h)",
+  "flightSpeed": "Rýchlosť letu",
+  "flightSpeedMaxRange": "Maximálny rozsah slidera (km/h)"
 }

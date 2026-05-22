@@ -361,6 +361,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get noneSelected;
+
+  /// No description provided for @flightSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Settings'**
+  String get flightSettings;
+
+  /// No description provided for @inactiveSpeedThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum speed considered as stationary (km/h)'**
+  String get inactiveSpeedThreshold;
+
+  /// No description provided for @minErrorSpeedThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Critically low speed (km/h)'**
+  String get minErrorSpeedThreshold;
+
+  /// No description provided for @minWarningSpeedThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Dangerously low speed (km/h)'**
+  String get minWarningSpeedThreshold;
+
+  /// No description provided for @maxWarningSpeedThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Dangerously high speed (km/h)'**
+  String get maxWarningSpeedThreshold;
+
+  /// No description provided for @maxErrorSpeedThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Critically high speed (km/h)'**
+  String get maxErrorSpeedThreshold;
+
+  /// No description provided for @mapSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Map Settings'**
+  String get mapSettings;
+
+  /// No description provided for @operationalSpeedThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Operational speed (km/h)'**
+  String get operationalSpeedThreshold;
+
+  /// No description provided for @flightSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Speed'**
+  String get flightSpeed;
+
+  /// No description provided for @flightSpeedMaxRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum slider range (km/h)'**
+  String get flightSpeedMaxRange;
 }
 
 class _AppLocalizationsDelegate

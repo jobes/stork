@@ -13,6 +13,7 @@ import 'package:stork/core/utils/time_utils.dart';
 import 'package:stork/core/services/dna_allocation_service.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/core/native/dronecan/dronecan_transfer_ids.dart';
+import 'package:stork/core/services/mdns_service.dart';
 
 part 'cannelloni_service_io.g.dart';
 
@@ -33,7 +34,7 @@ class CannelloniService extends _$CannelloniService {
   Timer? _txTimer;
 
   @override
-  void build() {
+  bool build() {
     _activeInstance = this;
 
     debugPrint('CannelloniService: Initializing CanardBindings...');
@@ -69,27 +70,13 @@ class CannelloniService extends _$CannelloniService {
       4096,
     ); // Preallocated buffer for Cannelloni packets
 
-    ref.listen(
-      appSettingsProvider,
-      (previous, next) {
-        next.whenData((settings) {
-          final device = settings.selectedDevice;
+    ref.listen(appSettingsProvider, (previous, next) {
+      _updateConnection();
+    }, fireImmediately: true);
 
-          if (device == null) {
-            _disconnect();
-            return;
-          }
-
-          if (device.ip != _lastIp || device.port != _lastPort) {
-            debugPrint(
-              'CannelloniService: Settings changed, reconnecting to ${device.ip}:${device.port}',
-            );
-            _connect(device.ip, device.port);
-          }
-        });
-      },
-      fireImmediately: true,
-    );
+    ref.listen(discoveredDevicesProvider, (previous, next) {
+      _updateConnection();
+    }, fireImmediately: true);
 
     ref.onDispose(() {
       _activeInstance = null;
@@ -98,6 +85,43 @@ class CannelloniService extends _$CannelloniService {
         malloc.free(_packetDataBuffer!);
       }
       disposeAllTransferIds();
+    });
+
+    return false;
+  }
+
+  void _updateConnection() {
+    final settingsAsync = ref.read(appSettingsProvider);
+    final devicesAsync = ref.read(discoveredDevicesProvider);
+
+    settingsAsync.whenData((settings) {
+      if (_socket == null) return;
+      final device = settings.selectedDevice;
+
+      if (device == null) {
+        _disconnect();
+        return;
+      }
+
+      // If the discovered devices list hasn't loaded yet, wait until the first scan completes.
+      if (!devicesAsync.hasValue) {
+        return;
+      }
+
+      final discoveredDevices = devicesAsync.value ?? [];
+      final isDiscovered = discoveredDevices.any((d) => d == device);
+
+      if (!isDiscovered) {
+        _disconnect();
+        return;
+      }
+
+      if (device.ip != _lastIp || device.port != _lastPort) {
+        debugPrint(
+          'CannelloniService: Settings changed, reconnecting to ${device.ip}:${device.port}',
+        );
+        _connect(device.ip, device.port);
+      }
     });
   }
 
@@ -127,6 +151,7 @@ class CannelloniService extends _$CannelloniService {
 
     // Clear DroneCAN and remove Node ID (0 is anonymous)
     _canard?.storkCanardInit(0);
+    state = false;
   }
 
   void _listenToSocket() {
@@ -211,6 +236,8 @@ class CannelloniService extends _$CannelloniService {
       );
 
       _listenToSocket();
+
+      state = true;
 
       // Start the DNA allocation process
       _startDnaAllocation(uniqueId);

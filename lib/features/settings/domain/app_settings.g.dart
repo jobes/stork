@@ -11,7 +11,19 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   mapDefaultZoom: (json['mapDefaultZoom'] as num?)?.toDouble() ?? 6.0,
   mapOverviewZoom: (json['mapOverviewZoom'] as num?)?.toDouble() ?? 10.0,
   mapFollowZoom: (json['mapFollowZoom'] as num?)?.toDouble() ?? 12.0,
-  flightMinSpeed: (json['flightMinSpeed'] as num?)?.toDouble() ?? 15.0,
+  flightSpeedThresholds: json['flightSpeedThresholds'] == null
+      ? const RangeThresholds(
+          inactiveMax: 10.0,
+          minError: 60.0,
+          minWarning: 75.0,
+          maxWarning: 110.0,
+          maxError: 125.0,
+        )
+      : RangeThresholds.fromJson(
+          json['flightSpeedThresholds'] as Map<String, dynamic>,
+        ),
+  flightSpeedMaxRange:
+      (json['flightSpeedMaxRange'] as num?)?.toDouble() ?? 140.0,
   autoSelectDevice: json['autoSelectDevice'] as bool? ?? true,
   selectedDevice: json['selectedDevice'] == null
       ? null
@@ -26,7 +38,8 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'mapDefaultZoom': instance.mapDefaultZoom,
       'mapOverviewZoom': instance.mapOverviewZoom,
       'mapFollowZoom': instance.mapFollowZoom,
-      'flightMinSpeed': instance.flightMinSpeed,
+      'flightSpeedThresholds': instance.flightSpeedThresholds,
+      'flightSpeedMaxRange': instance.flightSpeedMaxRange,
       'autoSelectDevice': instance.autoSelectDevice,
       'selectedDevice': instance.selectedDevice,
     };

@@ -154,4 +154,35 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get noneSelected => 'Žiadne';
+
+  @override
+  String get flightSettings => 'Nastavenia letu';
+
+  @override
+  String get inactiveSpeedThreshold =>
+      'Maximálna rýchlosť považovaná za státie (km/h)';
+
+  @override
+  String get minErrorSpeedThreshold => 'Kriticky nízka rýchlosť (km/h)';
+
+  @override
+  String get minWarningSpeedThreshold => 'Nebezpečne nízka rýchlosť (km/h)';
+
+  @override
+  String get maxWarningSpeedThreshold => 'Nebezpečne vysoká rýchlosť (km/h)';
+
+  @override
+  String get maxErrorSpeedThreshold => 'Kriticky vysoká rýchlosť (km/h)';
+
+  @override
+  String get mapSettings => 'Nastavenia mapy';
+
+  @override
+  String get operationalSpeedThreshold => 'Prevádzková rýchlosť (km/h)';
+
+  @override
+  String get flightSpeed => 'Rýchlosť letu';
+
+  @override
+  String get flightSpeedMaxRange => 'Maximálny rozsah slidera (km/h)';
 }

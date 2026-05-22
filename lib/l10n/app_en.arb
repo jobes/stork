@@ -106,5 +106,15 @@
   "cannelloniGateway": "Cannelloni Gateway",
   "autoSelectDevice": "Auto-select device",
   "selectedDevice": "Selected device",
-  "noneSelected": "None"
+  "noneSelected": "None",
+  "flightSettings": "Flight Settings",
+  "inactiveSpeedThreshold": "Maximum speed considered as stationary (km/h)",
+  "minErrorSpeedThreshold": "Critically low speed (km/h)",
+  "minWarningSpeedThreshold": "Dangerously low speed (km/h)",
+  "maxWarningSpeedThreshold": "Dangerously high speed (km/h)",
+  "maxErrorSpeedThreshold": "Critically high speed (km/h)",
+  "mapSettings": "Map Settings",
+  "operationalSpeedThreshold": "Operational speed (km/h)",
+  "flightSpeed": "Flight Speed",
+  "flightSpeedMaxRange": "Maximum slider range (km/h)"
 }

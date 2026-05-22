@@ -7,10 +7,12 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
 
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
+import '../../../telemetry/domain/models/map_view_state.dart';
 import '../components/map_drawer.dart';
 import '../components/map_controls.dart';
 import '../components/aircraft_map.dart';
 import '../components/compass_bar.dart';
+import '../components/speed_telemetry_widget.dart';
 import '../providers/map_camera_provider.dart';
 
 class MapPage extends ConsumerStatefulWidget {
@@ -92,6 +94,12 @@ class _MapPageState extends ConsumerState<MapPage> {
                 child: CompassBar(heading: telemetry.heading),
               ),
             ),
+            if (telemetry.mapViewState != MapViewState.init)
+              const Positioned(
+                top: 50, // Odsadenie pod kompas (záleží od výšky kompasu, treba otestovať)
+                left: 16,
+                child: SpeedTelemetryWidget(),
+              ),
             Builder(
               builder: (context) => MapControls(
                 mapViewState: telemetry.mapViewState,

@@ -7,7 +7,8 @@ import 'package:stork/core/services/cannelloni_service.dart';
 
 class MockCannelloniService extends CannelloniService {
   @override
-  void build() {
+  bool build() {
+    return false;
     // Bypass C initialization and socket binding during unit tests
   }
 }

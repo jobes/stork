@@ -5,6 +5,7 @@ import 'package:stork/core/services/mdns_service.dart';
 import 'package:stork/features/settings/domain/cannelloni_device.dart';
 import 'package:stork/features/settings/data/repositories/settings_repository.dart';
 import 'package:stork/features/settings/domain/app_settings.dart';
+import 'package:stork/features/settings/domain/range_thresholds.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 
 class MockSettingsRepository implements SettingsRepository {
@@ -246,6 +247,62 @@ void main() {
 
       // It should return SettingsUpdateFailure because of the failed auto-selection update
       expect(result, isA<SettingsUpdateFailure>());
+    });
+
+    test('updateFlightSpeedMaxRange updates max range and clamps thresholds if necessary', () async {
+      mockRepository.currentSettings = const AppSettings(
+        flightSpeedMaxRange: 200.0,
+        flightSpeedThresholds: RangeThresholds(
+          inactiveMax: 10.0,
+          minError: 60.0,
+          minWarning: 75.0,
+          maxWarning: 110.0,
+          maxError: 125.0,
+        ),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, __) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      // 1. Update to 150.0 (no clamping needed as all are <= 150)
+      final result1 = await notifier.updateFlightSpeedMaxRange(150.0);
+      expect(result1, isA<SettingsUpdateSuccess>());
+      expect(container.read(appSettingsProvider).value?.flightSpeedMaxRange, equals(150.0));
+      expect(container.read(appSettingsProvider).value?.flightSpeedThresholds.maxError, equals(125.0));
+
+      // 2. Update to 100.0 (requires clamping maxError and maxWarning to 100.0)
+      final result2 = await notifier.updateFlightSpeedMaxRange(100.0);
+      expect(result2, isA<SettingsUpdateSuccess>());
+
+      final currentSettings = container.read(appSettingsProvider).value!;
+      expect(currentSettings.flightSpeedMaxRange, equals(100.0));
+      expect(currentSettings.flightSpeedThresholds.maxError, equals(100.0));
+      expect(currentSettings.flightSpeedThresholds.maxWarning, equals(100.0));
+      expect(currentSettings.flightSpeedThresholds.minWarning, equals(75.0));
+      expect(currentSettings.flightSpeedThresholds.minError, equals(60.0));
+      expect(currentSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
+
+      // 3. Update to 50.0 (clamps everything except inactiveMax to 50.0)
+      final result3 = await notifier.updateFlightSpeedMaxRange(50.0);
+      expect(result3, isA<SettingsUpdateSuccess>());
+
+      final finalSettings = container.read(appSettingsProvider).value!;
+      expect(finalSettings.flightSpeedMaxRange, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.maxError, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.maxWarning, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.minWarning, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.minError, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
     });
   });
 }
