@@ -86,7 +86,9 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
           behavior: HitTestBehavior.opaque,
           onPanStart: (details) => _handlePanStart(details, constraints),
           onPanUpdate: (details) => _handlePanUpdate(details, constraints),
-          onPanEnd: (_) => _activeThumbIndex = null,
+          onPanEnd: (_) => setState(() {
+            _activeThumbIndex = null;
+          }),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 24.0),
             child: CustomPaint(
