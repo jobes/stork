@@ -213,7 +213,7 @@ return $default(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarni
 @JsonSerializable()
 
 class _RangeThresholds extends RangeThresholds {
-  const _RangeThresholds({this.inactiveMax, this.minError, this.minWarning, this.maxWarning, this.maxError}): super._();
+  const _RangeThresholds({this.inactiveMax, this.minError, this.minWarning, this.maxWarning, this.maxError}): assert(minError == null || minWarning == null || minError <= minWarning, 'minWarning cannot be less than minError'),assert(maxWarning == null || maxError == null || maxWarning <= maxError, 'maxWarning cannot be greater than maxError'),assert(minError == null || maxError == null || minError <= maxError, 'minError cannot be greater than maxError'),assert(inactiveMax == null || minError == null || inactiveMax <= minError, 'inactiveMax cannot be greater than minError'),assert(inactiveMax == null || minWarning == null || inactiveMax <= minWarning, 'inactiveMax cannot be greater than minWarning'),assert(inactiveMax == null || maxWarning == null || inactiveMax <= maxWarning, 'inactiveMax cannot be greater than maxWarning'),assert(inactiveMax == null || maxError == null || inactiveMax <= maxError, 'inactiveMax cannot be greater than maxError'),assert(minError == null || maxWarning == null || minError <= maxWarning, 'minError cannot be greater than maxWarning'),assert(minWarning == null || maxWarning == null || minWarning <= maxWarning, 'minWarning cannot be greater than maxWarning'),assert(minWarning == null || maxError == null || minWarning <= maxError, 'minWarning cannot be greater than maxError'),super._();
   factory _RangeThresholds.fromJson(Map<String, dynamic> json) => _$RangeThresholdsFromJson(json);
 
 @override final  double? inactiveMax;
