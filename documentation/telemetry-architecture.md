@@ -34,7 +34,7 @@ The system is managed by `CannelloniService` (a Riverpod provider):
 
 ### TX Processing Queue (50Hz)
 To ensure reliable frame delivery and prevent network congestion, outbound messages are processed in a periodic loop:
-- A `Timer` runs at **50Hz** (every 100ms on IO platforms).
+- A `Timer` runs at **10Hz** (every 100ms on IO platforms).
 - In each tick, the service invokes the native `storkCanardGenerateTxPacket` to check if any outbound DroneCAN frames are queued in the native heap.
 - If frames are ready, they are packaged into a UDP payload and transmitted to the remote bridge.
 
