@@ -110,5 +110,7 @@
   "mapSettings": "Nastavenia mapy",
   "operationalSpeedThreshold": "Prevádzková rýchlosť (km/h)",
   "flightSpeed": "Rýchlosť letu",
-  "flightSpeedMaxRange": "Maximálny rozsah slidera (km/h)"
+  "flightSpeedMaxRange": "Maximálny rozsah slidera (km/h)",
+  "moveWidgets": "Presúvať widgety",
+  "resetWidgetLayout": "Obnoviť polohu widgetov"
 }

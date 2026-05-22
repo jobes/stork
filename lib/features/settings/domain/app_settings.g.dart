@@ -30,6 +30,13 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
       : CannelloniDevice.fromJson(
           json['selectedDevice'] as Map<String, dynamic>,
         ),
+  areWidgetsDraggable: json['areWidgetsDraggable'] as bool? ?? false,
+  widgetPositions:
+      (json['widgetPositions'] as Map<String, dynamic>?)?.map(
+        (k, e) =>
+            MapEntry(k, WidgetPosition.fromJson(e as Map<String, dynamic>)),
+      ) ??
+      const {},
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -42,4 +49,6 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'flightSpeedMaxRange': instance.flightSpeedMaxRange,
       'autoSelectDevice': instance.autoSelectDevice,
       'selectedDevice': instance.selectedDevice,
+      'areWidgetsDraggable': instance.areWidgetsDraggable,
+      'widgetPositions': instance.widgetPositions,
     };

@@ -185,4 +185,10 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get flightSpeedMaxRange => 'Maximálny rozsah slidera (km/h)';
+
+  @override
+  String get moveWidgets => 'Presúvať widgety';
+
+  @override
+  String get resetWidgetLayout => 'Obnoviť polohu widgetov';
 }

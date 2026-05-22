@@ -116,5 +116,7 @@
   "mapSettings": "Map Settings",
   "operationalSpeedThreshold": "Operational speed (km/h)",
   "flightSpeed": "Flight Speed",
-  "flightSpeedMaxRange": "Maximum slider range (km/h)"
+  "flightSpeedMaxRange": "Maximum slider range (km/h)",
+  "moveWidgets": "Move widgets",
+  "resetWidgetLayout": "Reset widget positions"
 }

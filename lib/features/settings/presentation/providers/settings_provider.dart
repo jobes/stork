@@ -5,6 +5,7 @@ import '../../data/repositories/settings_repository.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/cannelloni_device.dart';
 import '../../domain/range_thresholds.dart';
+import '../../domain/widget_position.dart';
 
 part 'settings_provider.g.dart';
 
@@ -196,6 +197,20 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     }
     return result;
   }
+
+  Future<SettingsUpdateResult> updateAreWidgetsDraggable(bool areDraggable) =>
+      _updateSettings((s) => s.copyWith(areWidgetsDraggable: areDraggable));
+
+  Future<SettingsUpdateResult> updateWidgetPosition(String widgetId, double top, double left) {
+    return _updateSettings((s) {
+      final newPositions = Map<String, WidgetPosition>.from(s.widgetPositions);
+      newPositions[widgetId] = WidgetPosition(top: top, left: left);
+      return s.copyWith(widgetPositions: newPositions);
+    });
+  }
+
+  Future<SettingsUpdateResult> resetWidgetPositions() =>
+      _updateSettings((s) => s.copyWith(widgetPositions: {}));
 
   Future<SettingsUpdateResult> updateSelectedDevice(CannelloniDevice? device) =>
       _updateSettings((s) => s.copyWith(selectedDevice: device));

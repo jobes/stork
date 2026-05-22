@@ -421,6 +421,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maximum slider range (km/h)'**
   String get flightSpeedMaxRange;
+
+  /// No description provided for @moveWidgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Move widgets'**
+  String get moveWidgets;
+
+  /// No description provided for @resetWidgetLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset widget positions'**
+  String get resetWidgetLayout;
 }
 
 class _AppLocalizationsDelegate

@@ -57,6 +57,24 @@ class MapSettingsPage extends ConsumerWidget {
                 ref.read(appSettingsProvider.notifier).updateFollowZoom(val);
               },
             ),
+            SwitchListTile(
+              title: Text(l10n.moveWidgets),
+              value: settings.areWidgetsDraggable,
+              onChanged: (val) {
+                ref.read(appSettingsProvider.notifier).updateAreWidgetsDraggable(val);
+              },
+            ),
+            if (settings.widgetPositions.isNotEmpty)
+              ListTile(
+                title: Text(
+                  l10n.resetWidgetLayout,
+                  style: const TextStyle(color: Colors.redAccent),
+                ),
+                leading: const Icon(Icons.restore, color: Colors.redAccent),
+                onTap: () {
+                  ref.read(appSettingsProvider.notifier).resetWidgetPositions();
+                },
+              ),
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),

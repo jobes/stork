@@ -185,4 +185,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get flightSpeedMaxRange => 'Maximum slider range (km/h)';
+
+  @override
+  String get moveWidgets => 'Move widgets';
+
+  @override
+  String get resetWidgetLayout => 'Reset widget positions';
 }

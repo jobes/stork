@@ -6,6 +6,7 @@ import 'package:stork/features/settings/domain/cannelloni_device.dart';
 import 'package:stork/features/settings/data/repositories/settings_repository.dart';
 import 'package:stork/features/settings/domain/app_settings.dart';
 import 'package:stork/features/settings/domain/range_thresholds.dart';
+import 'package:stork/features/settings/domain/widget_position.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 
 class MockSettingsRepository implements SettingsRepository {
@@ -303,6 +304,34 @@ void main() {
       expect(finalSettings.flightSpeedThresholds.minWarning, equals(50.0));
       expect(finalSettings.flightSpeedThresholds.minError, equals(50.0));
       expect(finalSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
+    });
+
+    test('resetWidgetPositions clears all saved widget positions', () async {
+      mockRepository.currentSettings = const AppSettings(
+        widgetPositions: {
+          'speed_widget': WidgetPosition(top: 100.0, left: 200.0),
+        },
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith((ref) async => mockRepository),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, __) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      expect(container.read(appSettingsProvider).value?.widgetPositions, isNotEmpty);
+
+      final result = await notifier.resetWidgetPositions();
+      expect(result, isA<SettingsUpdateSuccess>());
+      expect(container.read(appSettingsProvider).value?.widgetPositions, isEmpty);
+      expect(mockRepository.currentSettings.widgetPositions, isEmpty);
     });
   });
 }
