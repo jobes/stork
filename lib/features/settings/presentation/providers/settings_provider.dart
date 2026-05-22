@@ -151,16 +151,23 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       _updateSettings((s) => s.copyWith(flightSpeedThresholds: thresholds));
 
   Future<SettingsUpdateResult> updateFlightSpeedMaxRange(double maxRange) {
+    double normalizedMaxRange = maxRange;
+    if (!normalizedMaxRange.isFinite || normalizedMaxRange <= 0.0) {
+      normalizedMaxRange = 140.0;
+    } else {
+      normalizedMaxRange = normalizedMaxRange.clamp(10.0, 1000.0);
+    }
+
     return _updateSettings((s) {
       final thresholds = s.flightSpeedThresholds;
-      final newMaxError = (thresholds.maxError ?? 125.0).clamp(0.0, maxRange).roundToDouble();
+      final newMaxError = (thresholds.maxError ?? 125.0).clamp(0.0, normalizedMaxRange).roundToDouble();
       final newMaxWarning = (thresholds.maxWarning ?? 110.0).clamp(0.0, newMaxError).roundToDouble();
       final newMinWarning = (thresholds.minWarning ?? 75.0).clamp(0.0, newMaxWarning).roundToDouble();
       final newMinError = (thresholds.minError ?? 60.0).clamp(0.0, newMinWarning).roundToDouble();
       final newInactiveMax = (thresholds.inactiveMax ?? 10.0).clamp(0.0, newMinError).roundToDouble();
 
       return s.copyWith(
-        flightSpeedMaxRange: maxRange,
+        flightSpeedMaxRange: normalizedMaxRange,
         flightSpeedThresholds: thresholds.copyWith(
            inactiveMax: newInactiveMax,
            minError: newMinError,
