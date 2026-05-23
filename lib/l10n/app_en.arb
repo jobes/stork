@@ -140,7 +140,7 @@
   "@noGps": {
     "description": "Indicator when GPS is not available"
   },
-  "speedSuffix": " km/h",
+  "speedSuffix": " kph",
   "@speedSuffix": {
     "description": "Suffix for speed values with a leading space"
   }

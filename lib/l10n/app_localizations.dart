@@ -461,7 +461,7 @@ abstract class AppLocalizations {
   /// Suffix for speed values with a leading space
   ///
   /// In en, this message translates to:
-  /// **' km/h'**
+  /// **' kph'**
   String get speedSuffix;
 }
 

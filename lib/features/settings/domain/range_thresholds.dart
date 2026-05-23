@@ -71,8 +71,16 @@ abstract class RangeThresholds with _$RangeThresholds {
     );
   }
 
-  factory RangeThresholds.fromJson(Map<String, dynamic> json) =>
-      _$RangeThresholdsFromJson(json);
+  factory RangeThresholds.fromJson(Map<String, dynamic> json) {
+    final _RangeThresholds raw = _$RangeThresholdsFromJson(json);
+    return RangeThresholds(
+      inactiveMax: raw.inactiveMax,
+      minError: raw.minError,
+      minWarning: raw.minWarning,
+      maxWarning: raw.maxWarning,
+      maxError: raw.maxError,
+    );
+  }
 
   ThresholdState evaluate(double value) => switch (value) {
         _ when inactiveMax != null && value <= inactiveMax! =>

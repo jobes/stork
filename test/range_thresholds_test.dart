@@ -172,4 +172,48 @@ void main() {
       expect(partial.evaluate(50.0), ThresholdState.maxWarning);
     });
   });
+
+  group('RangeThresholds.fromJson validation Tests', () {
+    test('Valid JSON deserializes normally', () {
+      final json = {
+        'inactiveMax': 10.0,
+        'minError': 20.0,
+        'minWarning': 30.0,
+        'maxWarning': 40.0,
+        'maxError': 50.0,
+      };
+      expect(
+        () => RangeThresholds.fromJson(json),
+        returnsNormally,
+      );
+      final thresholds = RangeThresholds.fromJson(json);
+      expect(thresholds.inactiveMax, 10.0);
+      expect(thresholds.minError, 20.0);
+      expect(thresholds.minWarning, 30.0);
+      expect(thresholds.maxWarning, 40.0);
+      expect(thresholds.maxError, 50.0);
+    });
+
+    test('Invalid JSON (minWarning < minError) throws ArgumentError', () {
+      final json = {
+        'minError': 20.0,
+        'minWarning': 10.0,
+      };
+      expect(
+        () => RangeThresholds.fromJson(json),
+        throwsArgumentError,
+      );
+    });
+
+    test('Invalid JSON (inactiveMax > minError) throws ArgumentError', () {
+      final json = {
+        'inactiveMax': 30.0,
+        'minError': 20.0,
+      };
+      expect(
+        () => RangeThresholds.fromJson(json),
+        throwsArgumentError,
+      );
+    });
+  });
 }

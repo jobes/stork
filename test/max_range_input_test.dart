@@ -40,7 +40,7 @@ void main() {
     // Verify it renders the TextField with localized suffixText
     expect(find.byType(TextField), findsOneWidget);
     final textField = tester.widget<TextField>(find.byType(TextField));
-    expect(textField.decoration?.suffixText, equals(' km/h'));
+    expect(textField.decoration?.suffixText, equals(' kph'));
 
     // Test increment callback
     await tester.tap(find.byIcon(Icons.add_circle_outline));

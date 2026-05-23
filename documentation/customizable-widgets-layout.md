@@ -131,16 +131,28 @@ To notify pilots without cluttering the screen, state changes animate smoothly (
 
 ## 4. Range Thresholds Safety & Boundary Assertions
 
-To guarantee mathematical consistency in safety settings (e.g., warning levels cannot be set higher than error levels), the `RangeThresholds` domain model incorporates strict compile-time and runtime assertions.
+To guarantee mathematical consistency in safety settings (e.g., warning levels cannot be set higher than error levels), the `RangeThresholds` domain model enforces strict invariants at runtime.
 
 ### Boundary Constraints
-In `RangeThresholds`, Freezed assertions ensure that thresholds are sequential:
+Instead of relying on compile-time Freezed `@Assert` annotations, `RangeThresholds` validation is performed in the custom factory constructor `RangeThresholds(...)`. If the provided thresholds are out of order, the factory throws an `ArgumentError`.
+
+Specifically, the validation ensures that safety thresholds are logically sorted:
+- `minError` <= `minWarning` (minError vs minWarning)
+- `maxWarning` <= `maxError` (maxWarning vs maxError)
+- `minError` <= `maxError` (minError vs maxError)
+- `inactiveMax` <= `minError` (inactiveMax vs minError)
+
+Example validation checks within the factory constructor:
 ```dart
-@Assert('minError == null || minWarning == null || minError <= minWarning', 'minWarning cannot be less than minError')
-@Assert('maxWarning == null || maxError == null || maxWarning <= maxError', 'maxWarning cannot be greater than maxError')
-@Assert('minError == null || maxError == null || minError <= maxError', 'minError cannot be greater than maxError')
-@Assert('inactiveMax == null || minError == null || inactiveMax <= minError', 'inactiveMax cannot be greater than minError')
+if (minError != null && minWarning != null && minError > minWarning) {
+  throw ArgumentError('minWarning cannot be less than minError');
+}
+if (inactiveMax != null && minError != null && inactiveMax > minError) {
+  throw ArgumentError('inactiveMax cannot be greater than minError');
+}
 ```
+
+For the complete list of validation conditions and exact error messages, please refer directly to the factory implementation in [range_thresholds.dart](file:///home/vjoba/Develop/stork/lib/features/settings/domain/range_thresholds.dart).
 
 ### Settings Clamping and Cascading Sanitization
 When the maximum slider scale (`flightSpeedMaxRange`) is updated, the `AppSettingsNotifier` performs a cascading clamping routine to sanitize all warning boundaries automatically. This prevents any out-of-bounds assertions from throwing runtime exceptions:
