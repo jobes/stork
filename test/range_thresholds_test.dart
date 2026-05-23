@@ -5,12 +5,12 @@ void main() {
   group('RangeThresholds Boundary Invariant Tests', () {
     test('Valid combinations do not throw assertions', () {
       expect(
-        () => const RangeThresholds(),
+        () => RangeThresholds(),
         returnsNormally,
       );
 
       expect(
-        () => const RangeThresholds(
+        () => RangeThresholds(
           inactiveMax: 10.0,
           minError: 20.0,
           minWarning: 30.0,
@@ -21,109 +21,109 @@ void main() {
       );
 
       expect(
-        () => const RangeThresholds(inactiveMax: 10.0),
+        () => RangeThresholds(inactiveMax: 10.0),
         returnsNormally,
       );
 
       expect(
-        () => const RangeThresholds(minError: 20.0),
+        () => RangeThresholds(minError: 20.0),
         returnsNormally,
       );
 
       expect(
-        () => const RangeThresholds(minWarning: 30.0),
+        () => RangeThresholds(minWarning: 30.0),
         returnsNormally,
       );
 
       expect(
-        () => const RangeThresholds(maxWarning: 40.0),
+        () => RangeThresholds(maxWarning: 40.0),
         returnsNormally,
       );
 
       expect(
-        () => const RangeThresholds(maxError: 50.0),
+        () => RangeThresholds(maxError: 50.0),
         returnsNormally,
       );
 
       expect(
-        () => const RangeThresholds(inactiveMax: 10.0, maxError: 50.0),
+        () => RangeThresholds(inactiveMax: 10.0, maxError: 50.0),
         returnsNormally,
       );
     });
 
-    test('minWarning < minError throws AssertionError', () {
+    test('minWarning < minError throws ArgumentError', () {
       expect(
         () => RangeThresholds(minError: 20.0, minWarning: 10.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('maxWarning > maxError throws AssertionError', () {
+    test('maxWarning > maxError throws ArgumentError', () {
       expect(
         () => RangeThresholds(maxWarning: 50.0, maxError: 40.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('minError > maxError throws AssertionError', () {
+    test('minError > maxError throws ArgumentError', () {
       expect(
         () => RangeThresholds(minError: 50.0, maxError: 40.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('inactiveMax > minError throws AssertionError', () {
+    test('inactiveMax > minError throws ArgumentError', () {
       expect(
         () => RangeThresholds(inactiveMax: 30.0, minError: 20.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('inactiveMax > minWarning throws AssertionError', () {
+    test('inactiveMax > minWarning throws ArgumentError', () {
       expect(
         () => RangeThresholds(inactiveMax: 30.0, minWarning: 20.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('inactiveMax > maxWarning throws AssertionError', () {
+    test('inactiveMax > maxWarning throws ArgumentError', () {
       expect(
         () => RangeThresholds(inactiveMax: 50.0, maxWarning: 40.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('inactiveMax > maxError throws AssertionError', () {
+    test('inactiveMax > maxError throws ArgumentError', () {
       expect(
         () => RangeThresholds(inactiveMax: 60.0, maxError: 50.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('minError > maxWarning throws AssertionError', () {
+    test('minError > maxWarning throws ArgumentError', () {
       expect(
         () => RangeThresholds(minError: 40.0, maxWarning: 30.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('minWarning > maxWarning throws AssertionError', () {
+    test('minWarning > maxWarning throws ArgumentError', () {
       expect(
         () => RangeThresholds(minWarning: 40.0, maxWarning: 30.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('minWarning > maxError throws AssertionError', () {
+    test('minWarning > maxError throws ArgumentError', () {
       expect(
         () => RangeThresholds(minWarning: 50.0, maxError: 40.0),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
   });
 
   group('RangeThresholds evaluate Tests', () {
-    const thresholds = RangeThresholds(
+    const thresholds = RangeThresholds.raw(
       inactiveMax: 10.0,
       minError: 20.0,
       minWarning: 30.0,
@@ -161,7 +161,7 @@ void main() {
     });
 
     test('with null thresholds returns operational or correct subset', () {
-      const partial = RangeThresholds(
+      const partial = RangeThresholds.raw(
         minWarning: 30.0,
         maxWarning: 40.0,
       );

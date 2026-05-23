@@ -239,7 +239,7 @@ return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_th
 @JsonSerializable()
 
 class _AppSettings implements AppSettings {
-  const _AppSettings({this.mapFontSize = 1.0, this.mapDefaultZoom = 6.0, this.mapOverviewZoom = 10.0, this.mapFollowZoom = 12.0, this.flightSpeedThresholds = const RangeThresholds(inactiveMax: 10.0, minError: 60.0, minWarning: 75.0, maxWarning: 110.0, maxError: 125.0), this.flightSpeedMaxRange = 140.0, this.autoSelectDevice = true, this.selectedDevice, this.areWidgetsDraggable = false, final  Map<String, WidgetPosition> widgetPositions = const {}}): _widgetPositions = widgetPositions;
+  const _AppSettings({this.mapFontSize = 1.0, this.mapDefaultZoom = 6.0, this.mapOverviewZoom = 10.0, this.mapFollowZoom = 12.0, this.flightSpeedThresholds = const RangeThresholds.raw(inactiveMax: 10.0, minError: 60.0, minWarning: 75.0, maxWarning: 110.0, maxError: 125.0), this.flightSpeedMaxRange = 140.0, this.autoSelectDevice = true, this.selectedDevice, this.areWidgetsDraggable = false, final  Map<String, WidgetPosition> widgetPositions = const {}}): _widgetPositions = widgetPositions;
   factory _AppSettings.fromJson(Map<String, dynamic> json) => _$AppSettingsFromJson(json);
 
 @override@JsonKey() final  double mapFontSize;

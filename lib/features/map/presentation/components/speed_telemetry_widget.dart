@@ -96,7 +96,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     final isConnected = ref.watch(cannelloniServiceProvider);
     final settings = ref.watch(appSettingsProvider).value;
     final thresholds =
-        settings?.flightSpeedThresholds ?? const RangeThresholds();
+        settings?.flightSpeedThresholds ?? const RangeThresholds.raw();
     final l10n = AppLocalizations.of(context)!;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;

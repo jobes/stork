@@ -294,7 +294,7 @@ void main() {
       () async {
         mockRepository.currentSettings = const AppSettings(
           flightSpeedMaxRange: 200.0,
-          flightSpeedThresholds: RangeThresholds(
+          flightSpeedThresholds: RangeThresholds.raw(
             inactiveMax: 10.0,
             minError: 60.0,
             minWarning: 75.0,
@@ -365,7 +365,7 @@ void main() {
       () async {
         mockRepository.currentSettings = const AppSettings(
           flightSpeedMaxRange: 200.0,
-          flightSpeedThresholds: RangeThresholds(
+          flightSpeedThresholds: RangeThresholds.raw(
             inactiveMax: 10.0,
             minError: 60.0,
             minWarning: 75.0,

@@ -93,11 +93,11 @@ extension RangeThresholdsPatterns on RangeThresholds {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RangeThresholds value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _RangeThresholds value)?  raw,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _RangeThresholds() when $default != null:
-return $default(_that);case _:
+case _RangeThresholds() when raw != null:
+return raw(_that);case _:
   return orElse();
 
 }
@@ -115,11 +115,11 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RangeThresholds value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _RangeThresholds value)  raw,}){
 final _that = this;
 switch (_that) {
 case _RangeThresholds():
-return $default(_that);case _:
+return raw(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -136,11 +136,11 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RangeThresholds value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _RangeThresholds value)?  raw,}){
 final _that = this;
 switch (_that) {
-case _RangeThresholds() when $default != null:
-return $default(_that);case _:
+case _RangeThresholds() when raw != null:
+return raw(_that);case _:
   return null;
 
 }
@@ -157,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double? inactiveMax,  double? minError,  double? minWarning,  double? maxWarning,  double? maxError)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( double? inactiveMax,  double? minError,  double? minWarning,  double? maxWarning,  double? maxError)?  raw,required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _RangeThresholds() when $default != null:
-return $default(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarning,_that.maxError);case _:
+case _RangeThresholds() when raw != null:
+return raw(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarning,_that.maxError);case _:
   return orElse();
 
 }
@@ -178,10 +178,10 @@ return $default(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarni
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double? inactiveMax,  double? minError,  double? minWarning,  double? maxWarning,  double? maxError)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( double? inactiveMax,  double? minError,  double? minWarning,  double? maxWarning,  double? maxError)  raw,}) {final _that = this;
 switch (_that) {
 case _RangeThresholds():
-return $default(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarning,_that.maxError);case _:
+return raw(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarning,_that.maxError);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +198,10 @@ return $default(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarni
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double? inactiveMax,  double? minError,  double? minWarning,  double? maxWarning,  double? maxError)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( double? inactiveMax,  double? minError,  double? minWarning,  double? maxWarning,  double? maxError)?  raw,}) {final _that = this;
 switch (_that) {
-case _RangeThresholds() when $default != null:
-return $default(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarning,_that.maxError);case _:
+case _RangeThresholds() when raw != null:
+return raw(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarning,_that.maxError);case _:
   return null;
 
 }
@@ -213,7 +213,7 @@ return $default(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarni
 @JsonSerializable()
 
 class _RangeThresholds extends RangeThresholds {
-  const _RangeThresholds({this.inactiveMax, this.minError, this.minWarning, this.maxWarning, this.maxError}): assert(minError == null || minWarning == null || minError <= minWarning, 'minWarning cannot be less than minError'),assert(maxWarning == null || maxError == null || maxWarning <= maxError, 'maxWarning cannot be greater than maxError'),assert(minError == null || maxError == null || minError <= maxError, 'minError cannot be greater than maxError'),assert(inactiveMax == null || minError == null || inactiveMax <= minError, 'inactiveMax cannot be greater than minError'),assert(inactiveMax == null || minWarning == null || inactiveMax <= minWarning, 'inactiveMax cannot be greater than minWarning'),assert(inactiveMax == null || maxWarning == null || inactiveMax <= maxWarning, 'inactiveMax cannot be greater than maxWarning'),assert(inactiveMax == null || maxError == null || inactiveMax <= maxError, 'inactiveMax cannot be greater than maxError'),assert(minError == null || maxWarning == null || minError <= maxWarning, 'minError cannot be greater than maxWarning'),assert(minWarning == null || maxWarning == null || minWarning <= maxWarning, 'minWarning cannot be greater than maxWarning'),assert(minWarning == null || maxError == null || minWarning <= maxError, 'minWarning cannot be greater than maxError'),super._();
+  const _RangeThresholds({this.inactiveMax, this.minError, this.minWarning, this.maxWarning, this.maxError}): super._();
   factory _RangeThresholds.fromJson(Map<String, dynamic> json) => _$RangeThresholdsFromJson(json);
 
 @override final  double? inactiveMax;
@@ -244,7 +244,7 @@ int get hashCode => Object.hash(runtimeType,inactiveMax,minError,minWarning,maxW
 
 @override
 String toString() {
-  return 'RangeThresholds(inactiveMax: $inactiveMax, minError: $minError, minWarning: $minWarning, maxWarning: $maxWarning, maxError: $maxError)';
+  return 'RangeThresholds.raw(inactiveMax: $inactiveMax, minError: $minError, minWarning: $minWarning, maxWarning: $maxWarning, maxError: $maxError)';
 }
 
 

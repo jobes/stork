@@ -12,7 +12,7 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   mapOverviewZoom: (json['mapOverviewZoom'] as num?)?.toDouble() ?? 10.0,
   mapFollowZoom: (json['mapFollowZoom'] as num?)?.toDouble() ?? 12.0,
   flightSpeedThresholds: json['flightSpeedThresholds'] == null
-      ? const RangeThresholds(
+      ? const RangeThresholds.raw(
           inactiveMax: 10.0,
           minError: 60.0,
           minWarning: 75.0,
