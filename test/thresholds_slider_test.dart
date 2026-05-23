@@ -75,4 +75,102 @@ void main() {
     painter = customPaint.painter as dynamic;
     expect(painter.activeThumbIndex, isNull);
   });
+
+  testWidgets('_MultiThumbPainter shouldRepaint responds correctly to localeTag changes', (WidgetTester tester) async {
+    // 1. Pump in 'en' locale
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 300,
+              child: ThresholdsSlider(
+                values: const [20.0, 40.0, 60.0],
+                min: 0.0,
+                max: 100.0,
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final customPaintEn = tester.widget<CustomPaint>(
+      find.descendant(
+        of: find.byType(ThresholdsSlider),
+        matching: find.byType(CustomPaint),
+      ),
+    );
+    final painterEn = customPaintEn.painter as dynamic;
+    expect(painterEn.localeTag, equals('en'));
+
+    // 2. Pump again with the same locale ('en') to get a second painter with identical state
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 300,
+              child: ThresholdsSlider(
+                values: const [20.0, 40.0, 60.0],
+                min: 0.0,
+                max: 100.0,
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final customPaintEn2 = tester.widget<CustomPaint>(
+      find.descendant(
+        of: find.byType(ThresholdsSlider),
+        matching: find.byType(CustomPaint),
+      ),
+    );
+    final painterEn2 = customPaintEn2.painter as dynamic;
+    expect(painterEn.shouldRepaint(painterEn), isFalse);
+
+    // 3. Pump with a different locale ('sk')
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('sk'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 300,
+              child: ThresholdsSlider(
+                values: const [20.0, 40.0, 60.0],
+                min: 0.0,
+                max: 100.0,
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final customPaintSk = tester.widget<CustomPaint>(
+      find.descendant(
+        of: find.byType(ThresholdsSlider),
+        matching: find.byType(CustomPaint),
+      ),
+    );
+    final painterSk = customPaintSk.painter as dynamic;
+    expect(painterSk.localeTag, equals('sk'));
+
+    // 4. Verify that shouldRepaint returns true when compared against the 'en' painter
+    expect(painterSk.shouldRepaint(painterEn), isTrue);
+  });
 }

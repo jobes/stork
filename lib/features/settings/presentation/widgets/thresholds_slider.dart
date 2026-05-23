@@ -102,6 +102,7 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
                 activeThumbIndex: _activeThumbIndex,
                 textColor: Theme.of(context).colorScheme.onSurface,
                 context: context,
+                localeTag: Localizations.localeOf(context).toLanguageTag(),
               ),
             ),
           ),
@@ -118,6 +119,7 @@ class _MultiThumbPainter extends CustomPainter {
   final int? activeThumbIndex;
   final Color textColor;
   final BuildContext context;
+  final String localeTag;
 
   _MultiThumbPainter({
     required this.values,
@@ -126,6 +128,7 @@ class _MultiThumbPainter extends CustomPainter {
     required this.activeThumbIndex,
     required this.textColor,
     required this.context,
+    required this.localeTag,
   });
 
   @override
@@ -244,6 +247,6 @@ class _MultiThumbPainter extends CustomPainter {
         oldDelegate.max != max ||
         oldDelegate.activeThumbIndex != activeThumbIndex ||
         oldDelegate.textColor != textColor ||
-        oldDelegate.context != context;
+        oldDelegate.localeTag != localeTag;
   }
 }
