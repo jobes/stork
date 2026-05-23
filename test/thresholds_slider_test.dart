@@ -40,8 +40,9 @@ void main() {
     var painter = customPaint.painter as dynamic;
     expect(painter.activeThumbIndex, isNull);
 
-    // Start gesture at the center of the slider (corresponding to 50.0 value, near the 40.0 thumb at index 1)
-    final gesture = await tester.startGesture(tester.getCenter(find.byType(ThresholdsSlider)));
+    // Start gesture near the 40.0 thumb by getting the center of ThresholdsSlider and offsetting left
+    final sliderCenter = tester.getCenter(find.byType(ThresholdsSlider));
+    final gesture = await tester.startGesture(sliderCenter + const Offset(-30.0, 0.0));
     await tester.pump();
 
     // Update gesture (move slightly to trigger onPanUpdate which calls setState and repaints)
