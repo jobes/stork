@@ -24,6 +24,10 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
         ),
   flightSpeedMaxRange:
       (json['flightSpeedMaxRange'] as num?)?.toDouble() ?? 140.0,
+  courseLineSegmentsCount:
+      (json['courseLineSegmentsCount'] as num?)?.toInt() ?? 5,
+  courseLineSegmentDuration:
+      (json['courseLineSegmentDuration'] as num?)?.toInt() ?? 60,
   autoSelectDevice: json['autoSelectDevice'] as bool? ?? true,
   selectedDevice: json['selectedDevice'] == null
       ? null
@@ -47,6 +51,8 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'mapFollowZoom': instance.mapFollowZoom,
       'flightSpeedThresholds': instance.flightSpeedThresholds,
       'flightSpeedMaxRange': instance.flightSpeedMaxRange,
+      'courseLineSegmentsCount': instance.courseLineSegmentsCount,
+      'courseLineSegmentDuration': instance.courseLineSegmentDuration,
       'autoSelectDevice': instance.autoSelectDevice,
       'selectedDevice': instance.selectedDevice,
       'areWidgetsDraggable': instance.areWidgetsDraggable,

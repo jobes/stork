@@ -21,6 +21,8 @@ abstract class AppSettings with _$AppSettings {
       maxError: 125.0,
     )) RangeThresholds flightSpeedThresholds,
     @Default(140.0) double flightSpeedMaxRange,
+    @Default(5) int courseLineSegmentsCount,
+    @Default(60) int courseLineSegmentDuration,
     @Default(true) bool autoSelectDevice,
     CannelloniDevice? selectedDevice,
     @Default(false) bool areWidgetsDraggable,

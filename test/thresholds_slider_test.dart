@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stork/features/settings/domain/range_thresholds.dart';
 import 'package:stork/features/settings/presentation/widgets/thresholds_slider.dart';
 import 'package:stork/l10n/app_localizations.dart';
 
+
+ThresholdState mockEvaluate(double value) => ThresholdState.operational;
 
 void main() {
   testWidgets('ThresholdsSlider changes activeThumbIndex during panning and clears it on pan end', (WidgetTester tester) async {
@@ -20,6 +23,7 @@ void main() {
                 values: const [20.0, 40.0, 60.0],
                 min: 0.0,
                 max: 100.0,
+                evaluate: mockEvaluate,
                 onChanged: (values) {
                   updatedValues = values;
                 },
@@ -91,6 +95,7 @@ void main() {
                 values: const [20.0, 40.0, 60.0],
                 min: 0.0,
                 max: 100.0,
+                evaluate: mockEvaluate,
                 onChanged: (_) {},
               ),
             ),
@@ -122,6 +127,7 @@ void main() {
                 values: const [20.0, 40.0, 60.0],
                 min: 0.0,
                 max: 100.0,
+                evaluate: mockEvaluate,
                 onChanged: (_) {},
               ),
             ),
@@ -137,7 +143,7 @@ void main() {
       ),
     );
     final painterEn2 = customPaintEn2.painter as dynamic;
-    expect(painterEn.shouldRepaint(painterEn), isFalse);
+    expect(painterEn.shouldRepaint(painterEn2), isFalse);
 
     // 3. Pump with a different locale ('sk')
     await tester.pumpWidget(
@@ -153,6 +159,7 @@ void main() {
                 values: const [20.0, 40.0, 60.0],
                 min: 0.0,
                 max: 100.0,
+                evaluate: mockEvaluate,
                 onChanged: (_) {},
               ),
             ),

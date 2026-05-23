@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../../l10n/app_localizations.dart';
 
 part 'range_thresholds.freezed.dart';
 part 'range_thresholds.g.dart';
@@ -10,6 +13,26 @@ enum ThresholdState {
   operational,
   maxWarning,
   maxError,
+}
+
+extension ThresholdStateExtension on ThresholdState {
+  Color get color => switch (this) {
+        ThresholdState.inactive => Colors.grey,
+        ThresholdState.minError => Colors.red,
+        ThresholdState.minWarning => Colors.orange,
+        ThresholdState.operational => Colors.green,
+        ThresholdState.maxWarning => Colors.orange,
+        ThresholdState.maxError => Colors.red,
+      };
+
+  String getLabel(AppLocalizations l10n) => switch (this) {
+        ThresholdState.inactive => l10n.inactiveThreshold,
+        ThresholdState.minError => l10n.minErrorThreshold,
+        ThresholdState.minWarning => l10n.minWarningThreshold,
+        ThresholdState.operational => l10n.operationalThreshold,
+        ThresholdState.maxWarning => l10n.maxWarningThreshold,
+        ThresholdState.maxError => l10n.maxErrorThreshold,
+      };
 }
 
 @freezed

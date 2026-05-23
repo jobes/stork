@@ -159,26 +159,25 @@ class AppLocalizationsSk extends AppLocalizations {
   String get flightSettings => 'Nastavenia letu';
 
   @override
-  String get inactiveSpeedThreshold =>
-      'Maximálna rýchlosť považovaná za státie (km/h)';
+  String get inactiveThreshold => 'Neaktívne (Pod minimom)';
 
   @override
-  String get minErrorSpeedThreshold => 'Kriticky nízka rýchlosť (km/h)';
+  String get minErrorThreshold => 'Kriticky nízka hodnota';
 
   @override
-  String get minWarningSpeedThreshold => 'Nebezpečne nízka rýchlosť (km/h)';
+  String get minWarningThreshold => 'Nebezpečne nízka hodnota';
 
   @override
-  String get maxWarningSpeedThreshold => 'Nebezpečne vysoká rýchlosť (km/h)';
+  String get maxWarningThreshold => 'Nebezpečne vysoká hodnota';
 
   @override
-  String get maxErrorSpeedThreshold => 'Kriticky vysoká rýchlosť (km/h)';
+  String get maxErrorThreshold => 'Kriticky vysoká hodnota';
 
   @override
   String get mapSettings => 'Nastavenia mapy';
 
   @override
-  String get operationalSpeedThreshold => 'Prevádzková rýchlosť (km/h)';
+  String get operationalThreshold => 'Prevádzková hodnota (V norme)';
 
   @override
   String get flightSpeed => 'Rýchlosť letu';
@@ -208,4 +207,13 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get speedSuffix => ' km/h';
+
+  @override
+  String get courseLineSettings => 'Smerová čiara letu';
+
+  @override
+  String get courseLineSegmentsCount => 'Počet segmentov';
+
+  @override
+  String get courseLineSegmentDuration => 'Dĺžka segmentu (sekundy)';
 }

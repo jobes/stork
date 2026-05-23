@@ -81,9 +81,9 @@ Since rendering sizes might not be fully initialized or may change dynamically, 
 
 ---
 
-## 3. Built-in Implementation: Speed Telemetry & Alert States
+## 3. Built-in Implementation: Telemetry & Alert States
 
-The primary built-in implementation of this customizable system is the `SpeedTelemetryWidget`. It combines real-time data ingestion with high-visibility, color-coded threshold alerts and glassmorphic designs.
+The primary built-in implementation of this customizable system is the `SpeedTelemetryWidget`. However, the underlying domain logic (`ThresholdState` and `RangeThresholds`) is completely generic and designed to be reused for any scalar telemetry metric (e.g., engine temperature, battery voltage).
 
 ### Dynamic Connection States
 The widget automatically adapts its interface depending on network status (`isConnected` from `cannelloniServiceProvider`) and GPS availability:
@@ -97,7 +97,7 @@ The widget automatically adapts its interface depending on network status (`isCo
 | **Neither Available** | `"---"` | `"---"` | *None* |
 
 ### Alert Evaluation Logic
-Avionics parameters need highly visible alerts when crossing critical boundaries. Speed telemetry is evaluated into one of six `ThresholdState` alert regions:
+Avionics parameters need highly visible alerts when crossing critical boundaries. Telemetry metrics are evaluated into up to six generic `ThresholdState` alert regions. Because the boundaries are optional, states that don't apply to a specific metric (e.g. `inactive` for engine temperature) are simply omitted.
 
 ```dart
 enum ThresholdState {
@@ -124,8 +124,8 @@ grid-chart
 ### Alert Aesthetics & Micro-Animations
 To notify pilots without cluttering the screen, state changes animate smoothly (300ms transitions):
 - **Glassmorphism**: Built using a nested `BackdropFilter` with `sigmaX: 10, sigmaY: 10` and light/dark variable translucent alphas.
-- **Dynamic Shadows & Glows**: Active warnings or errors render intense glowing backlights using soft `BoxShadow` color mixes (e.g., orange glow for warnings, red glow for errors).
-- **Constant Borders**: The border changes color between warning stages, but maintains a **constant width (2.0px)**. This prevents layout shifting and screen jittering when moving between thresholds.
+- **Dynamic Shadows & Glows**: Active warnings or errors render intense glowing backlights based on the `ThresholdStateExtension` color mapping (e.g., orange glow for warnings, red glow for errors).
+- **Constant Borders**: The border changes color between warning stages based on `ThresholdStateExtension`, but maintains a **constant width (2.0px)**. This prevents layout shifting and screen jittering when moving between thresholds.
 
 ---
 
@@ -171,25 +171,20 @@ final newInactiveMax = (thresholds.inactiveMax ?? 10.0).clamp(0.0, newMinError).
 
 The boundaries are configured in settings using a custom-engineered **`ThresholdsSlider`** component. Because native Flutter sliders only support single or double-range inputs, Stork utilizes a custom multi-thumb paint widget.
 
-### Touch Interception Logic
-The slider receives a `List<double>` representing the 5 thumbs. It determines which thumb is being adjusted by listening to touch inputs inside a `GestureDetector`:
-1. **Pan Start (`onPanStart`)**: Translates the touch point `dx` into a fraction of the slider's track width. It compares the touched coordinate against the values of all 5 thumbs and binds active interaction to the closest thumb.
-2. **Pan Update (`onPanUpdate`)**: Modifies the value of the active thumb. To ensure sequential integrity, the active thumb's movement is clamped strictly between its direct neighbors:
-   ```dart
-   final double minVal = _activeThumbIndex! > 0
-       ? _currentValues[_activeThumbIndex! - 1]
-       : widget.min;
-   final double maxVal = _activeThumbIndex! < _currentValues.length - 1
-       ? _currentValues[_activeThumbIndex! + 1]
-       : widget.max;
-   value = value.clamp(minVal, maxVal).roundToDouble();
-   ```
+### Touch Interception & Stacked Dragging Logic
+The slider receives a `List<double>` representing the thumbs and an `evaluate` function to dynamically determine the track colors. It manages user interactions using a `GestureDetector`:
+1. **Pan Start (`onPanStart`)**: Translates the touch point `dx` into a fraction of the slider's track width. It finds the closest thumb to the touch event.
+2. **Pan Update (`onPanUpdate` & Dynamic Transfer)**: Modifies the value of the active thumb. A critical UX challenge with range sliders is when multiple thumbs overlap (stack). Stork solves this seamlessly:
+   - Instead of strictly clamping the thumb and trapping it, Stork analyzes the drag direction.
+   - If dragging right while stacked, it dynamically transfers the `_activeThumbIndex` to the rightmost thumb in the overlapping group.
+   - If dragging left, it transfers control to the leftmost thumb.
+   - This allows users to intuitively "push" neighboring thumbs or separate overlapping thumbs without getting stuck.
 3. **Pan End (`onPanEnd`)**: Releases the active thumb selection and updates persistent settings.
 
 ### Visual Representation (`_MultiThumbPainter`)
-The custom painter renders the track as six separate color blocks representing the safety regions:
+The custom painter dynamically renders the track as variable-sized color blocks representing the safety regions:
 
-- **Segment Track Painting**: Uses standard `Rect` canvases combined with round-corner clips (`RRect.fromRectAndCorners`) at both absolute limits.
+- **Dynamic Region Colors**: Instead of a hardcoded color array, the painter samples the midpoint of each segment and calls the provided `evaluate()` function to determine the correct color using `ThresholdStateExtension`. This allows the slider to support 4 thumbs, 5 thumbs, or any generic number.
 - **Overlapping Prevention**: Text labels for the 5 thumbs alternate above and below the slider bar (even index thumbs draw text above the track, odd index thumbs draw text below). This keeps values readable even when thresholds are closely configured.
 - **Active Glow Paint**: The active thumb increases in radius (from `10.0px` to `14.0px`) and switches text to bold to provide micro-interaction feedback.
 
@@ -217,7 +212,7 @@ graph TD
 
     D --> D1[ThresholdsSlider limit editor]
     D --> D2[Help modal legend overlay]
-    D --> D3[Max range input & sanitization]
+    D --> D3[NumberInput max range editor]
 ```
 
 ---
@@ -233,8 +228,8 @@ graph TD
   ```dart
   @override
   bool shouldRepaint(covariant _MultiThumbPainter oldDelegate) {
-    return oldDelegate.values != values ||
-        oldDelegate.textColor != textColor ||
+    return !listEquals(oldDelegate.values, values) ||
+        oldDelegate.evaluate != evaluate ||
         oldDelegate.activeThumbIndex != activeThumbIndex;
   }
   ```

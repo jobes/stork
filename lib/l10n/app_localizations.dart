@@ -368,35 +368,35 @@ abstract class AppLocalizations {
   /// **'Flight Settings'**
   String get flightSettings;
 
-  /// No description provided for @inactiveSpeedThreshold.
+  /// No description provided for @inactiveThreshold.
   ///
   /// In en, this message translates to:
-  /// **'Maximum speed considered as stationary (km/h)'**
-  String get inactiveSpeedThreshold;
+  /// **'Inactive (Below minimum)'**
+  String get inactiveThreshold;
 
-  /// No description provided for @minErrorSpeedThreshold.
+  /// No description provided for @minErrorThreshold.
   ///
   /// In en, this message translates to:
-  /// **'Critically low speed (km/h)'**
-  String get minErrorSpeedThreshold;
+  /// **'Critically low'**
+  String get minErrorThreshold;
 
-  /// No description provided for @minWarningSpeedThreshold.
+  /// No description provided for @minWarningThreshold.
   ///
   /// In en, this message translates to:
-  /// **'Dangerously low speed (km/h)'**
-  String get minWarningSpeedThreshold;
+  /// **'Dangerously low'**
+  String get minWarningThreshold;
 
-  /// No description provided for @maxWarningSpeedThreshold.
+  /// No description provided for @maxWarningThreshold.
   ///
   /// In en, this message translates to:
-  /// **'Dangerously high speed (km/h)'**
-  String get maxWarningSpeedThreshold;
+  /// **'Dangerously high'**
+  String get maxWarningThreshold;
 
-  /// No description provided for @maxErrorSpeedThreshold.
+  /// No description provided for @maxErrorThreshold.
   ///
   /// In en, this message translates to:
-  /// **'Critically high speed (km/h)'**
-  String get maxErrorSpeedThreshold;
+  /// **'Critically high'**
+  String get maxErrorThreshold;
 
   /// No description provided for @mapSettings.
   ///
@@ -404,11 +404,11 @@ abstract class AppLocalizations {
   /// **'Map Settings'**
   String get mapSettings;
 
-  /// No description provided for @operationalSpeedThreshold.
+  /// No description provided for @operationalThreshold.
   ///
   /// In en, this message translates to:
-  /// **'Operational speed (km/h)'**
-  String get operationalSpeedThreshold;
+  /// **'Operational (Normal)'**
+  String get operationalThreshold;
 
   /// No description provided for @flightSpeed.
   ///
@@ -463,6 +463,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **' kph'**
   String get speedSuffix;
+
+  /// No description provided for @courseLineSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Course Line'**
+  String get courseLineSettings;
+
+  /// No description provided for @courseLineSegmentsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Segments Count'**
+  String get courseLineSegmentsCount;
+
+  /// No description provided for @courseLineSegmentDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Segment Duration (seconds)'**
+  String get courseLineSegmentDuration;
 }
 
 class _AppLocalizationsDelegate
