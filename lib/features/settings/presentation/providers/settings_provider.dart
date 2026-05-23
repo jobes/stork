@@ -4,6 +4,8 @@ import '../../../../core/services/mdns_service.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/cannelloni_device.dart';
+import '../../domain/range_thresholds.dart';
+import '../../domain/widget_position.dart';
 
 part 'settings_provider.g.dart';
 
@@ -144,6 +146,39 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<SettingsUpdateResult> updateFollowZoom(double zoom) =>
       _updateSettings((s) => s.copyWith(mapFollowZoom: zoom));
 
+  Future<SettingsUpdateResult> updateFlightSpeedThresholds(
+          RangeThresholds thresholds) =>
+      _updateSettings((s) => s.copyWith(flightSpeedThresholds: thresholds));
+
+  Future<SettingsUpdateResult> updateFlightSpeedMaxRange(double maxRange) {
+    double normalizedMaxRange = maxRange;
+    if (!normalizedMaxRange.isFinite || normalizedMaxRange <= 0.0) {
+      normalizedMaxRange = 140.0;
+    } else {
+      normalizedMaxRange = normalizedMaxRange.clamp(10.0, 1000.0);
+    }
+
+    return _updateSettings((s) {
+      final thresholds = s.flightSpeedThresholds;
+      final newMaxError = (thresholds.maxError ?? 125.0).clamp(0.0, normalizedMaxRange).roundToDouble();
+      final newMaxWarning = (thresholds.maxWarning ?? 110.0).clamp(0.0, newMaxError).roundToDouble();
+      final newMinWarning = (thresholds.minWarning ?? 75.0).clamp(0.0, newMaxWarning).roundToDouble();
+      final newMinError = (thresholds.minError ?? 60.0).clamp(0.0, newMinWarning).roundToDouble();
+      final newInactiveMax = (thresholds.inactiveMax ?? 10.0).clamp(0.0, newMinError).roundToDouble();
+
+      return s.copyWith(
+        flightSpeedMaxRange: normalizedMaxRange,
+        flightSpeedThresholds: thresholds.copyWith(
+           inactiveMax: newInactiveMax,
+           minError: newMinError,
+           minWarning: newMinWarning,
+           maxWarning: newMaxWarning,
+           maxError: newMaxError,
+        ),
+      );
+    });
+  }
+
   /// Updates the auto-select device setting and, if enabled, performs auto-selection immediately.
   ///
   /// Invokes [_updateSettings] to update the setting, then awaits [_tryAutoSelectDevice] which
@@ -169,6 +204,20 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     }
     return result;
   }
+
+  Future<SettingsUpdateResult> updateAreWidgetsDraggable(bool areDraggable) =>
+      _updateSettings((s) => s.copyWith(areWidgetsDraggable: areDraggable));
+
+  Future<SettingsUpdateResult> updateWidgetPosition(String widgetId, double top, double left) {
+    return _updateSettings((s) {
+      final newPositions = Map<String, WidgetPosition>.from(s.widgetPositions);
+      newPositions[widgetId] = WidgetPosition(top: top, left: left);
+      return s.copyWith(widgetPositions: newPositions);
+    });
+  }
+
+  Future<SettingsUpdateResult> resetWidgetPositions() =>
+      _updateSettings((s) => s.copyWith(widgetPositions: {}));
 
   Future<SettingsUpdateResult> updateSelectedDevice(CannelloniDevice? device) =>
       _updateSettings((s) => s.copyWith(selectedDevice: device));

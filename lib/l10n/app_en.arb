@@ -106,5 +106,42 @@
   "cannelloniGateway": "Cannelloni Gateway",
   "autoSelectDevice": "Auto-select device",
   "selectedDevice": "Selected device",
-  "noneSelected": "None"
+  "noneSelected": "None",
+  "flightSettings": "Flight Settings",
+  "inactiveSpeedThreshold": "Maximum speed considered as stationary (km/h)",
+  "minErrorSpeedThreshold": "Critically low speed (km/h)",
+  "minWarningSpeedThreshold": "Dangerously low speed (km/h)",
+  "maxWarningSpeedThreshold": "Dangerously high speed (km/h)",
+  "maxErrorSpeedThreshold": "Critically high speed (km/h)",
+  "mapSettings": "Map Settings",
+  "operationalSpeedThreshold": "Operational speed (km/h)",
+  "flightSpeed": "Flight Speed",
+  "flightSpeedMaxRange": "Maximum slider range (km/h)",
+  "moveWidgets": "Move widgets",
+  "resetWidgetLayout": "Reset widget positions",
+  "speedUnitKmH": "kph",
+  "@speedUnitKmH": {
+    "description": "Speed unit in kilometers per hour"
+  },
+  "gsSpeedLabel": "GS {value} kph",
+  "@gsSpeedLabel": {
+    "description": "Ground speed label with speed value",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "gpsOnly": "GPS ONLY",
+  "@gpsOnly": {
+    "description": "Indicator when only GPS speed is available"
+  },
+  "noGps": "NO GPS",
+  "@noGps": {
+    "description": "Indicator when GPS is not available"
+  },
+  "speedSuffix": " kph",
+  "@speedSuffix": {
+    "description": "Suffix for speed values with a leading space"
+  }
 }

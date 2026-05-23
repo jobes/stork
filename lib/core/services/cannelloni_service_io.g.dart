@@ -13,7 +13,7 @@ part of 'cannelloni_service_io.dart';
 final cannelloniServiceProvider = CannelloniServiceProvider._();
 
 final class CannelloniServiceProvider
-    extends $NotifierProvider<CannelloniService, void> {
+    extends $NotifierProvider<CannelloniService, bool> {
   CannelloniServiceProvider._()
     : super(
         from: null,
@@ -33,27 +33,27 @@ final class CannelloniServiceProvider
   CannelloniService create() => CannelloniService();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(void value) {
+  Override overrideWithValue(bool value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<void>(value),
+      providerOverride: $SyncValueProvider<bool>(value),
     );
   }
 }
 
-String _$cannelloniServiceHash() => r'5083c1dddd04bac5e405f112ce4d19d56a4bd4ef';
+String _$cannelloniServiceHash() => r'32237ecdd0f35fd6d8a081b0f39e1ee2a3f958f0';
 
-abstract class _$CannelloniService extends $Notifier<void> {
-  void build();
+abstract class _$CannelloniService extends $Notifier<bool> {
+  bool build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<void, void>;
+    final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<void, void>,
-              void,
+              AnyNotifier<bool, bool>,
+              bool,
               Object?,
               Object?
             >;

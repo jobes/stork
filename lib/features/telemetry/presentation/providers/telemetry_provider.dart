@@ -158,7 +158,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
   void _updateIsFlying() {
     final settings = ref.read(appSettingsProvider).value;
-    final threshold = settings?.flightMinSpeed ?? 15.0;
+    final threshold = settings?.flightSpeedThresholds.inactiveMax ?? 15.0;
 
     final currentSpeed = state.indicatedAirSpeed ?? state.speed;
     final isFlying = currentSpeed != null && currentSpeed > threshold;

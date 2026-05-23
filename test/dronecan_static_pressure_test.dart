@@ -1,16 +1,12 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:stork/core/native/dronecan/static_pressure.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/core/services/cannelloni_service.dart';
 
-class MockCannelloniService extends CannelloniService {
-  @override
-  void build() {
-    // Bypass C initialization and socket binding during unit tests
-  }
-}
+class MockCannelloniService extends Mock implements CannelloniService {}
 
 void main() {
   group('DroneCAN StaticPressure', () {
@@ -26,9 +22,12 @@ void main() {
     });
 
     test('TelemetryNotifier updatePressure updates state correctly', () {
+      final mockCannelloniService = MockCannelloniService();
+      when(() => mockCannelloniService.build()).thenReturn(false);
+
       final container = ProviderContainer(
         overrides: [
-          cannelloniServiceProvider.overrideWith(() => MockCannelloniService()),
+          cannelloniServiceProvider.overrideWith(() => mockCannelloniService),
         ],
       );
       addTearDown(container.dispose);

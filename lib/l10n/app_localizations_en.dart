@@ -154,4 +154,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noneSelected => 'None';
+
+  @override
+  String get flightSettings => 'Flight Settings';
+
+  @override
+  String get inactiveSpeedThreshold =>
+      'Maximum speed considered as stationary (km/h)';
+
+  @override
+  String get minErrorSpeedThreshold => 'Critically low speed (km/h)';
+
+  @override
+  String get minWarningSpeedThreshold => 'Dangerously low speed (km/h)';
+
+  @override
+  String get maxWarningSpeedThreshold => 'Dangerously high speed (km/h)';
+
+  @override
+  String get maxErrorSpeedThreshold => 'Critically high speed (km/h)';
+
+  @override
+  String get mapSettings => 'Map Settings';
+
+  @override
+  String get operationalSpeedThreshold => 'Operational speed (km/h)';
+
+  @override
+  String get flightSpeed => 'Flight Speed';
+
+  @override
+  String get flightSpeedMaxRange => 'Maximum slider range (km/h)';
+
+  @override
+  String get moveWidgets => 'Move widgets';
+
+  @override
+  String get resetWidgetLayout => 'Reset widget positions';
+
+  @override
+  String get speedUnitKmH => 'kph';
+
+  @override
+  String gsSpeedLabel(String value) {
+    return 'GS $value kph';
+  }
+
+  @override
+  String get gpsOnly => 'GPS ONLY';
+
+  @override
+  String get noGps => 'NO GPS';
+
+  @override
+  String get speedSuffix => ' kph';
 }
