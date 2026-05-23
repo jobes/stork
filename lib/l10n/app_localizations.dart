@@ -457,6 +457,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'NO GPS'**
   String get noGps;
+
+  /// Suffix for speed values with a leading space
+  ///
+  /// In en, this message translates to:
+  /// **' km/h'**
+  String get speedSuffix;
 }
 
 class _AppLocalizationsDelegate

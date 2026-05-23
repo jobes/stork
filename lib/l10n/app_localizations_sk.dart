@@ -205,4 +205,7 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get noGps => 'BEZ GPS';
+
+  @override
+  String get speedSuffix => ' km/h';
 }

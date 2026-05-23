@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class MaxRangeInput extends StatelessWidget {
   final double currentValue;
@@ -20,6 +21,7 @@ class MaxRangeInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -34,11 +36,11 @@ class MaxRangeInput extends StatelessWidget {
             focusNode: focusNode,
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              suffixText: ' km/h',
-              suffixStyle: TextStyle(fontSize: 12),
-              contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              suffixText: l10n.speedSuffix,
+              suffixStyle: const TextStyle(fontSize: 12),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+              border: const OutlineInputBorder(),
             ),
             onSubmitted: (_) => onSubmitted(),
           ),

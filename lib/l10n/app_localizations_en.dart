@@ -205,4 +205,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noGps => 'NO GPS';
+
+  @override
+  String get speedSuffix => ' km/h';
 }

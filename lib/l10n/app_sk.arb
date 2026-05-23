@@ -116,5 +116,6 @@
   "speedUnitKmH": "km/h",
   "gsSpeedLabel": "GS {value} km/h",
   "gpsOnly": "IBA GPS",
-  "noGps": "BEZ GPS"
+  "noGps": "BEZ GPS",
+  "speedSuffix": " km/h"
 }
