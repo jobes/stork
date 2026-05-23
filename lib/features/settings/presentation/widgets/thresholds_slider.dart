@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
+
 
 class ThresholdsSlider extends StatefulWidget {
   final List<double> values;
@@ -99,6 +101,7 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
                 max: widget.max,
                 activeThumbIndex: _activeThumbIndex,
                 textColor: Theme.of(context).colorScheme.onSurface,
+                context: context,
               ),
             ),
           ),
@@ -114,6 +117,7 @@ class _MultiThumbPainter extends CustomPainter {
   final double max;
   final int? activeThumbIndex;
   final Color textColor;
+  final BuildContext context;
 
   _MultiThumbPainter({
     required this.values,
@@ -121,6 +125,7 @@ class _MultiThumbPainter extends CustomPainter {
     required this.max,
     required this.activeThumbIndex,
     required this.textColor,
+    required this.context,
   });
 
   @override
@@ -204,7 +209,8 @@ class _MultiThumbPainter extends CustomPainter {
       canvas.drawCircle(center, radius, borderPaint);
 
       // Text
-      final String text = '${values[i].toStringAsFixed(0)}\nkm/h';
+      final String text =
+          '${values[i].toStringAsFixed(0)}\n${AppLocalizations.of(context)!.speedUnitKmH}';
       final textSpan = TextSpan(
         text: text,
         style: TextStyle(
@@ -237,6 +243,7 @@ class _MultiThumbPainter extends CustomPainter {
         oldDelegate.min != min ||
         oldDelegate.max != max ||
         oldDelegate.activeThumbIndex != activeThumbIndex ||
-        oldDelegate.textColor != textColor;
+        oldDelegate.textColor != textColor ||
+        oldDelegate.context != context;
   }
 }

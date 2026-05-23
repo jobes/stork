@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/settings/presentation/widgets/thresholds_slider.dart';
+import 'package:stork/l10n/app_localizations.dart';
+
 
 void main() {
   testWidgets('ThresholdsSlider changes activeThumbIndex during panning and clears it on pan end', (WidgetTester tester) async {
@@ -8,6 +10,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Center(
             child: SizedBox(
