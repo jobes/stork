@@ -11,6 +11,7 @@ class ThresholdsSlider extends StatefulWidget {
   final double max;
   final ThresholdState Function(double) evaluate;
   final ValueChanged<List<double>> onChanged;
+  final String unitLabel;
 
   const ThresholdsSlider({
     super.key,
@@ -19,6 +20,7 @@ class ThresholdsSlider extends StatefulWidget {
     required this.max,
     required this.evaluate,
     required this.onChanged,
+    required this.unitLabel,
   });
 
   @override
@@ -143,6 +145,7 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
                 textColor: Theme.of(context).colorScheme.onSurface,
                 context: context,
                 localeTag: Localizations.localeOf(context).toLanguageTag(),
+                unitLabel: widget.unitLabel,
               ),
             ),
           ),
@@ -161,6 +164,7 @@ class _MultiThumbPainter extends CustomPainter {
   final Color textColor;
   final BuildContext context;
   final String localeTag;
+  final String unitLabel;
 
   _MultiThumbPainter({
     required this.values,
@@ -171,6 +175,7 @@ class _MultiThumbPainter extends CustomPainter {
     required this.textColor,
     required this.context,
     required this.localeTag,
+    required this.unitLabel,
   });
 
   @override
@@ -249,7 +254,7 @@ class _MultiThumbPainter extends CustomPainter {
 
       // Text
       final String text =
-          '${values[i].toStringAsFixed(0)}\n${AppLocalizations.of(context)!.speedUnitKmH}';
+          '${values[i].toStringAsFixed(0)}\n$unitLabel';
       final textSpan = TextSpan(
         text: text,
         style: TextStyle(
@@ -284,6 +289,7 @@ class _MultiThumbPainter extends CustomPainter {
         oldDelegate.evaluate != evaluate ||
         oldDelegate.activeThumbIndex != activeThumbIndex ||
         oldDelegate.textColor != textColor ||
-        oldDelegate.localeTag != localeTag;
+        oldDelegate.localeTag != localeTag ||
+        oldDelegate.unitLabel != unitLabel;
   }
 }

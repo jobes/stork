@@ -5,6 +5,7 @@ import '../../data/repositories/settings_repository.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/cannelloni_device.dart';
 import '../../domain/range_thresholds.dart';
+import '../../domain/speed_unit.dart';
 import '../../domain/widget_position.dart';
 
 part 'settings_provider.g.dart';
@@ -156,34 +157,84 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<SettingsUpdateResult> updateFollowZoom(double zoom) =>
       _updateSettings((s) => s.copyWith(mapFollowZoom: zoom));
 
+  Future<SettingsUpdateResult> updateSpeedUnit(SpeedUnit newUnit) {
+    return _updateSettings((s) => s.copyWith(speedUnit: newUnit));
+  }
+
   Future<SettingsUpdateResult> updateFlightSpeedThresholds(
-          RangeThresholds thresholds) =>
-      _updateSettings((s) => s.copyWith(flightSpeedThresholds: thresholds));
+      RangeThresholds thresholds) {
+    return _updateSettings((s) {
+      final speedUnit = s.speedUnit;
+      final thresholdsInMs = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? speedUnit.convertToMs(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? speedUnit.convertToMs(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? speedUnit.convertToMs(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? speedUnit.convertToMs(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? speedUnit.convertToMs(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(flightSpeedThresholds: thresholdsInMs);
+    });
+  }
 
   Future<SettingsUpdateResult> updateFlightSpeedMaxRange(double maxRange) {
-    double normalizedMaxRange = maxRange;
-    if (!normalizedMaxRange.isFinite || normalizedMaxRange <= 0.0) {
-      normalizedMaxRange = 140.0;
-    } else {
-      normalizedMaxRange = normalizedMaxRange.clamp(10.0, 1000.0);
-    }
-
     return _updateSettings((s) {
+      final speedUnit = s.speedUnit;
+
+      double clampedMaxRangeActive = maxRange;
+      if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
+        clampedMaxRangeActive = 140.0;
+      } else {
+        clampedMaxRangeActive = clampedMaxRangeActive.clamp(10.0, 1000.0);
+      }
+
+      final normalizedMaxRangeMs = speedUnit.convertToMs(clampedMaxRangeActive);
+
       final thresholds = s.flightSpeedThresholds;
-      final newMaxError = (thresholds.maxError ?? 125.0).clamp(0.0, normalizedMaxRange).roundToDouble();
-      final newMaxWarning = (thresholds.maxWarning ?? 110.0).clamp(0.0, newMaxError).roundToDouble();
-      final newMinWarning = (thresholds.minWarning ?? 75.0).clamp(0.0, newMaxWarning).roundToDouble();
-      final newMinError = (thresholds.minError ?? 60.0).clamp(0.0, newMinWarning).roundToDouble();
-      final newInactiveMax = (thresholds.inactiveMax ?? 10.0).clamp(0.0, newMinError).roundToDouble();
+      final inactiveMaxActive = speedUnit.convertFromMs(
+          thresholds.inactiveMax ?? speedUnit.convertToMs(10.0));
+      final minErrorActive = speedUnit.convertFromMs(
+          thresholds.minError ?? speedUnit.convertToMs(60.0));
+      final minWarningActive = speedUnit.convertFromMs(
+          thresholds.minWarning ?? speedUnit.convertToMs(75.0));
+      final maxWarningActive = speedUnit.convertFromMs(
+          thresholds.maxWarning ?? speedUnit.convertToMs(110.0));
+      final maxErrorActive = speedUnit.convertFromMs(
+          thresholds.maxError ?? speedUnit.convertToMs(125.0));
+
+      final newMaxErrorActive = maxErrorActive
+          .clamp(0.0, clampedMaxRangeActive)
+          .roundToDouble();
+      final newMaxWarningActive = maxWarningActive
+          .clamp(0.0, newMaxErrorActive)
+          .roundToDouble();
+      final newMinWarningActive = minWarningActive
+          .clamp(0.0, newMaxWarningActive)
+          .roundToDouble();
+      final newMinErrorActive = minErrorActive
+          .clamp(0.0, newMinWarningActive)
+          .roundToDouble();
+      final newInactiveMaxActive = inactiveMaxActive
+          .clamp(0.0, newMinErrorActive)
+          .roundToDouble();
 
       return s.copyWith(
-        flightSpeedMaxRange: normalizedMaxRange,
+        flightSpeedMaxRange: normalizedMaxRangeMs,
         flightSpeedThresholds: thresholds.copyWith(
-           inactiveMax: newInactiveMax,
-           minError: newMinError,
-           minWarning: newMinWarning,
-           maxWarning: newMaxWarning,
-           maxError: newMaxError,
+          inactiveMax: speedUnit.convertToMs(newInactiveMaxActive),
+          minError: speedUnit.convertToMs(newMinErrorActive),
+          minWarning: speedUnit.convertToMs(newMinWarningActive),
+          maxWarning: speedUnit.convertToMs(newMaxWarningActive),
+          maxError: speedUnit.convertToMs(newMaxErrorActive),
         ),
       );
     });

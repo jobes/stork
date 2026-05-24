@@ -83,6 +83,8 @@ abstract class RangeThresholds with _$RangeThresholds {
     );
   }
 
+  Map<String, dynamic> toJson() => _$RangeThresholdsToJson(this as _RangeThresholds);
+
   ThresholdState evaluate(double value) => switch (value) {
         _ when inactiveMax != null && value <= inactiveMax! =>
           ThresholdState.inactive,

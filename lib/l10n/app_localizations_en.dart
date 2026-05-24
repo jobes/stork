@@ -183,7 +183,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get flightSpeed => 'Flight Speed';
 
   @override
-  String get flightSpeedMaxRange => 'Maximum slider range (km/h)';
+  String get flightSpeedMaxRange => 'Maximum slider range';
 
   @override
   String get moveWidgets => 'Move widgets';
@@ -195,8 +195,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get speedUnitKmH => 'kph';
 
   @override
-  String gsSpeedLabel(String value) {
-    return 'GS $value kph';
+  String gsSpeedLabel(String value, String unit) {
+    return 'GS $value $unit';
   }
 
   @override
@@ -206,7 +206,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noGps => 'NO GPS';
 
   @override
-  String get speedSuffix => ' kph';
+  String get speedUnitSettings => 'Speed Unit';
+
+  @override
+  String get speedUnitMs => 'm/s';
+
+  @override
+  String get speedUnitMph => 'mph';
+
+  @override
+  String get speedUnitKnots => 'knots';
+
+  @override
+  String get speedUnitKnotsAbbreviation => 'kt';
 
   @override
   String get courseLineSettings => 'Course Line';

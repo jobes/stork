@@ -6,6 +6,7 @@ import 'package:stork/features/settings/domain/cannelloni_device.dart';
 import 'package:stork/features/settings/data/repositories/settings_repository.dart';
 import 'package:stork/features/settings/domain/app_settings.dart';
 import 'package:stork/features/settings/domain/range_thresholds.dart';
+import 'package:stork/features/settings/domain/speed_unit.dart';
 import 'package:stork/features/settings/domain/widget_position.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 
@@ -294,6 +295,7 @@ void main() {
       () async {
         mockRepository.currentSettings = const AppSettings(
           flightSpeedMaxRange: 200.0,
+          speedUnit: SpeedUnit.ms,
           flightSpeedThresholds: RangeThresholds.raw(
             inactiveMax: 10.0,
             minError: 60.0,
@@ -365,6 +367,7 @@ void main() {
       () async {
         mockRepository.currentSettings = const AppSettings(
           flightSpeedMaxRange: 200.0,
+          speedUnit: SpeedUnit.ms,
           flightSpeedThresholds: RangeThresholds.raw(
             inactiveMax: 10.0,
             minError: 60.0,

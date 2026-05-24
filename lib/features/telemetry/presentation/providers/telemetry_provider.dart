@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/telemetry_state.dart';
 import '../../domain/models/map_view_state.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
+import 'package:stork/features/settings/domain/speed_unit.dart';
 import 'decayable_field.dart';
 
 part 'telemetry_provider.g.dart';
@@ -158,10 +159,10 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
   void _updateIsFlying() {
     final settings = ref.read(appSettingsProvider).value;
-    final threshold = settings?.flightSpeedThresholds.inactiveMax ?? 15.0;
+    final threshold = settings?.flightSpeedThresholds.inactiveMax ?? 2.77;
 
-    final currentSpeed = state.indicatedAirSpeed ?? state.speed;
-    final isFlying = currentSpeed != null && currentSpeed > threshold;
+    final currentSpeedMS = state.indicatedAirSpeed ?? state.speed;
+    final isFlying = currentSpeedMS != null && currentSpeedMS > threshold;
 
     if (state.isFlying != isFlying) {
       state = state.copyWith(isFlying: isFlying);

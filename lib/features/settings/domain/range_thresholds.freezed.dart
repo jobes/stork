@@ -11,7 +11,6 @@ part of 'range_thresholds.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
-
 /// @nodoc
 mixin _$RangeThresholds {
 
@@ -22,8 +21,6 @@ mixin _$RangeThresholds {
 @pragma('vm:prefer-inline')
 $RangeThresholdsCopyWith<RangeThresholds> get copyWith => _$RangeThresholdsCopyWithImpl<RangeThresholds>(this as RangeThresholds, _$identity);
 
-  /// Serializes this RangeThresholds to a JSON map.
-  Map<String, dynamic> toJson();
 
 
 @override
@@ -31,7 +28,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is RangeThresholds&&(identical(other.inactiveMax, inactiveMax) || other.inactiveMax == inactiveMax)&&(identical(other.minError, minError) || other.minError == minError)&&(identical(other.minWarning, minWarning) || other.minWarning == minWarning)&&(identical(other.maxWarning, maxWarning) || other.maxWarning == maxWarning)&&(identical(other.maxError, maxError) || other.maxError == maxError));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,inactiveMax,minError,minWarning,maxWarning,maxError);
 
@@ -210,11 +207,11 @@ return raw(_that.inactiveMax,_that.minError,_that.minWarning,_that.maxWarning,_t
 }
 
 /// @nodoc
-@JsonSerializable()
+
 
 class _RangeThresholds extends RangeThresholds {
   const _RangeThresholds({this.inactiveMax, this.minError, this.minWarning, this.maxWarning, this.maxError}): super._();
-  factory _RangeThresholds.fromJson(Map<String, dynamic> json) => _$RangeThresholdsFromJson(json);
+  
 
 @override final  double? inactiveMax;
 @override final  double? minError;
@@ -228,17 +225,14 @@ class _RangeThresholds extends RangeThresholds {
 @pragma('vm:prefer-inline')
 _$RangeThresholdsCopyWith<_RangeThresholds> get copyWith => __$RangeThresholdsCopyWithImpl<_RangeThresholds>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson() {
-  return _$RangeThresholdsToJson(this, );
-}
+
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _RangeThresholds&&(identical(other.inactiveMax, inactiveMax) || other.inactiveMax == inactiveMax)&&(identical(other.minError, minError) || other.minError == minError)&&(identical(other.minWarning, minWarning) || other.minWarning == minWarning)&&(identical(other.maxWarning, maxWarning) || other.maxWarning == maxWarning)&&(identical(other.maxError, maxError) || other.maxError == maxError));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,inactiveMax,minError,minWarning,maxWarning,maxError);
 

@@ -183,7 +183,7 @@ class AppLocalizationsSk extends AppLocalizations {
   String get flightSpeed => 'Rýchlosť letu';
 
   @override
-  String get flightSpeedMaxRange => 'Maximálny rozsah slidera (km/h)';
+  String get flightSpeedMaxRange => 'Maximálny rozsah slidera';
 
   @override
   String get moveWidgets => 'Presúvať widgety';
@@ -195,8 +195,8 @@ class AppLocalizationsSk extends AppLocalizations {
   String get speedUnitKmH => 'km/h';
 
   @override
-  String gsSpeedLabel(String value) {
-    return 'GS $value km/h';
+  String gsSpeedLabel(String value, String unit) {
+    return 'GS $value $unit';
   }
 
   @override
@@ -206,7 +206,19 @@ class AppLocalizationsSk extends AppLocalizations {
   String get noGps => 'BEZ GPS';
 
   @override
-  String get speedSuffix => ' km/h';
+  String get speedUnitSettings => 'Jednotka rýchlosti';
+
+  @override
+  String get speedUnitMs => 'm/s';
+
+  @override
+  String get speedUnitMph => 'mph';
+
+  @override
+  String get speedUnitKnots => 'knots';
+
+  @override
+  String get speedUnitKnotsAbbreviation => 'kt';
 
   @override
   String get courseLineSettings => 'Smerová čiara letu';
