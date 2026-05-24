@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/range_thresholds.dart';
+import '../threshold_state_extension.dart';
 
 
 class ThresholdsSlider extends StatefulWidget {

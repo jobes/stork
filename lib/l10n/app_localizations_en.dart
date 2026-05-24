@@ -212,8 +212,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courseLineSettings => 'Course Line';
 
   @override
-  String get courseLineSegmentsCount => 'Segments Count';
+  String get courseLineSegmentsCount => 'Segment Count';
 
   @override
   String get courseLineSegmentDuration => 'Segment Duration (seconds)';
+
+  @override
+  String get durationSuffix => ' s';
 }

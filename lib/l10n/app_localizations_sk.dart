@@ -216,4 +216,7 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get courseLineSegmentDuration => 'Dĺžka segmentu (sekundy)';
+
+  @override
+  String get durationSuffix => ' s';
 }

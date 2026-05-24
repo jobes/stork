@@ -5,6 +5,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/range_thresholds.dart';
 import '../providers/settings_provider.dart';
+import '../threshold_state_extension.dart';
 import '../widgets/number_input.dart';
 import '../widgets/thresholds_slider.dart';
 
@@ -202,7 +203,7 @@ class CourseLineSettingsSection extends ConsumerWidget {
                     min: 1,
                     max: 3600,
                     step: 10,
-                    suffix: ' s',
+                    suffix: l10n.durationSuffix,
                     onChanged: (value) {
                       unawaited(
                         ref

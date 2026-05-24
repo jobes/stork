@@ -145,6 +145,10 @@
     "description": "Suffix for speed values with a leading space"
   },
   "courseLineSettings": "Course Line",
-  "courseLineSegmentsCount": "Segments Count",
-  "courseLineSegmentDuration": "Segment Duration (seconds)"
+  "courseLineSegmentsCount": "Segment Count",
+  "courseLineSegmentDuration": "Segment Duration (seconds)",
+  "durationSuffix": " s",
+  "@durationSuffix": {
+    "description": "Suffix for duration values with a leading space"
+  }
 }

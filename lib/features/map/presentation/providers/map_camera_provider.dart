@@ -94,6 +94,19 @@ class MapCamera extends _$MapCamera {
       }
     });
 
+    // Listen to settings updates to update course line
+    ref.listen(appSettingsProvider, (previous, next) {
+      if (_mapController == null || !_isAircraftSymbolInitialized || _mapController?.style == null) return;
+      
+      final telemetry = ref.read(telemetryProvider);
+      final settings = next.value;
+      
+      _mapController!.style!.updateGeoJsonSource(
+        id: 'course-line-source',
+        data: GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
+      );
+    });
+
     // Listen to system location for initial positioning
     ref.listen(currentLocationProvider, (previous, next) {
       next.whenData((location) {

@@ -473,7 +473,7 @@ abstract class AppLocalizations {
   /// No description provided for @courseLineSegmentsCount.
   ///
   /// In en, this message translates to:
-  /// **'Segments Count'**
+  /// **'Segment Count'**
   String get courseLineSegmentsCount;
 
   /// No description provided for @courseLineSegmentDuration.
@@ -481,6 +481,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Segment Duration (seconds)'**
   String get courseLineSegmentDuration;
+
+  /// Suffix for duration values with a leading space
+  ///
+  /// In en, this message translates to:
+  /// **' s'**
+  String get durationSuffix;
 }
 
 class _AppLocalizationsDelegate

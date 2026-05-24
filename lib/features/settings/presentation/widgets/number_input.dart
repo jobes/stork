@@ -6,6 +6,7 @@ class NumberInput extends StatefulWidget {
   final double max;
   final double step;
   final String suffix;
+  final int decimalPlaces;
   final ValueChanged<double> onChanged;
 
   const NumberInput({
@@ -15,6 +16,7 @@ class NumberInput extends StatefulWidget {
     required this.max,
     required this.step,
     this.suffix = '',
+    this.decimalPlaces = 0,
     required this.onChanged,
   });
 
@@ -31,7 +33,7 @@ class _NumberInputState extends State<NumberInput> {
   void initState() {
     super.initState();
     _currentValue = widget.initialValue;
-    _controller = TextEditingController(text: _currentValue.toStringAsFixed(0));
+    _controller = TextEditingController(text: _currentValue.toStringAsFixed(widget.decimalPlaces));
     _focusNode = FocusNode();
     _focusNode.addListener(_onFocusChange);
   }
@@ -40,8 +42,10 @@ class _NumberInputState extends State<NumberInput> {
   void didUpdateWidget(NumberInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialValue != oldWidget.initialValue && !_focusNode.hasFocus) {
-      _currentValue = widget.initialValue;
-      _controller.text = _currentValue.toStringAsFixed(0);
+      setState(() {
+        _currentValue = widget.initialValue;
+        _controller.text = _currentValue.toStringAsFixed(widget.decimalPlaces);
+      });
     }
   }
 
@@ -64,25 +68,33 @@ class _NumberInputState extends State<NumberInput> {
     final parsed = double.tryParse(text);
     if (parsed != null) {
       final clamped = parsed.clamp(widget.min, widget.max);
-      _currentValue = clamped;
-      _controller.text = clamped.toStringAsFixed(0);
+      setState(() {
+        _currentValue = clamped;
+        _controller.text = clamped.toStringAsFixed(widget.decimalPlaces);
+      });
       widget.onChanged(clamped);
     } else {
-      _controller.text = _currentValue.toStringAsFixed(0);
+      setState(() {
+        _controller.text = _currentValue.toStringAsFixed(widget.decimalPlaces);
+      });
     }
   }
 
   void _handleIncrement() {
     final newValue = (_currentValue + widget.step).clamp(widget.min, widget.max);
-    _currentValue = newValue;
-    _controller.text = newValue.toStringAsFixed(0);
+    setState(() {
+      _currentValue = newValue;
+      _controller.text = newValue.toStringAsFixed(widget.decimalPlaces);
+    });
     widget.onChanged(newValue);
   }
 
   void _handleDecrement() {
     final newValue = (_currentValue - widget.step).clamp(widget.min, widget.max);
-    _currentValue = newValue;
-    _controller.text = newValue.toStringAsFixed(0);
+    setState(() {
+      _currentValue = newValue;
+      _controller.text = newValue.toStringAsFixed(widget.decimalPlaces);
+    });
     widget.onChanged(newValue);
   }
 
