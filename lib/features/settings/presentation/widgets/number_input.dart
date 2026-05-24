@@ -66,9 +66,13 @@ class _NumberInputState extends State<NumberInput> {
 
   void _submit() {
     final text = _controller.text;
+    if (text == _currentValue.toStringAsFixed(widget.decimalPlaces)) {
+      return;
+    }
     double? parsed;
+    final localeStr = Localizations.localeOf(context).toString();
     try {
-      parsed = NumberFormat.decimalPattern().parse(text).toDouble();
+      parsed = NumberFormat.decimalPattern(localeStr).parse(text).toDouble();
     } catch (_) {
       parsed = double.tryParse(text.replaceAll(',', '.'));
     }
