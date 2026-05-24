@@ -108,13 +108,13 @@
   "selectedDevice": "Selected device",
   "noneSelected": "None",
   "flightSettings": "Flight Settings",
-  "inactiveSpeedThreshold": "Maximum speed considered as stationary (km/h)",
-  "minErrorSpeedThreshold": "Critically low speed (km/h)",
-  "minWarningSpeedThreshold": "Dangerously low speed (km/h)",
-  "maxWarningSpeedThreshold": "Dangerously high speed (km/h)",
-  "maxErrorSpeedThreshold": "Critically high speed (km/h)",
+  "inactiveThreshold": "Inactive (Below minimum)",
+  "minErrorThreshold": "Critically low",
+  "minWarningThreshold": "Dangerously low",
+  "maxWarningThreshold": "Dangerously high",
+  "maxErrorThreshold": "Critically high",
   "mapSettings": "Map Settings",
-  "operationalSpeedThreshold": "Operational speed (km/h)",
+  "operationalThreshold": "Operational (Normal)",
   "flightSpeed": "Flight Speed",
   "flightSpeedMaxRange": "Maximum slider range (km/h)",
   "moveWidgets": "Move widgets",
@@ -143,5 +143,12 @@
   "speedSuffix": " kph",
   "@speedSuffix": {
     "description": "Suffix for speed values with a leading space"
+  },
+  "courseLineSettings": "Course Line",
+  "courseLineSegmentsCount": "Segment Count",
+  "courseLineSegmentDuration": "Segment Duration (seconds)",
+  "durationSuffix": " s",
+  "@durationSuffix": {
+    "description": "Suffix for duration values with a leading space"
   }
 }

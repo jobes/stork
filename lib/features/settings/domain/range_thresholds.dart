@@ -12,6 +12,7 @@ enum ThresholdState {
   maxError,
 }
 
+
 @freezed
 abstract class RangeThresholds with _$RangeThresholds {
   const RangeThresholds._();

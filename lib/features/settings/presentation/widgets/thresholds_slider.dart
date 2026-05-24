@@ -1,11 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/range_thresholds.dart';
+import '../threshold_state_extension.dart';
 
 
 class ThresholdsSlider extends StatefulWidget {
   final List<double> values;
   final double min;
   final double max;
+  final ThresholdState Function(double) evaluate;
   final ValueChanged<List<double>> onChanged;
 
   const ThresholdsSlider({
@@ -13,6 +17,7 @@ class ThresholdsSlider extends StatefulWidget {
     required this.values,
     required this.min,
     required this.max,
+    required this.evaluate,
     required this.onChanged,
   });
 
@@ -37,9 +42,16 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
   }
 
   void _handlePanStart(DragStartDetails details, BoxConstraints constraints) {
-    final double fraction = (details.localPosition.dx / constraints.maxWidth)
-        .clamp(0.0, 1.0);
-    final double value = widget.min + fraction * (widget.max - widget.min);
+    final double fraction;
+    final double value;
+    if (constraints.maxWidth <= 0 || widget.max <= widget.min) {
+      fraction = 0.0;
+      value = widget.min;
+    } else {
+      fraction = (details.localPosition.dx / constraints.maxWidth)
+          .clamp(0.0, 1.0);
+      value = widget.min + fraction * (widget.max - widget.min);
+    }
 
     double minDistance = double.infinity;
     int closestIndex = -1;
@@ -59,9 +71,32 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
   void _handlePanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
     if (_activeThumbIndex == null) return;
 
-    final double fraction = (details.localPosition.dx / constraints.maxWidth)
-        .clamp(0.0, 1.0);
-    double value = widget.min + fraction * (widget.max - widget.min);
+    final double fraction;
+    final double rawValue;
+    if (constraints.maxWidth <= 0 || widget.max <= widget.min) {
+      fraction = 0.0;
+      rawValue = widget.min;
+    } else {
+      fraction = (details.localPosition.dx / constraints.maxWidth)
+          .clamp(0.0, 1.0);
+      rawValue = widget.min + fraction * (widget.max - widget.min);
+    }
+
+    // Dynamically transfer active thumb if we are trying to drag an overlapping stack
+    double diff = rawValue - _currentValues[_activeThumbIndex!];
+    if (diff > 0) {
+      // Dragging right: pick the rightmost thumb in the overlapping group
+      while (_activeThumbIndex! < _currentValues.length - 1 &&
+          _currentValues[_activeThumbIndex! + 1] == _currentValues[_activeThumbIndex!]) {
+        _activeThumbIndex = _activeThumbIndex! + 1;
+      }
+    } else if (diff < 0) {
+      // Dragging left: pick the leftmost thumb in the overlapping group
+      while (_activeThumbIndex! > 0 &&
+          _currentValues[_activeThumbIndex! - 1] == _currentValues[_activeThumbIndex!]) {
+        _activeThumbIndex = _activeThumbIndex! - 1;
+      }
+    }
 
     // Enforce limits from neighbors (they can touch but not overlap/cross)
     final double minVal = _activeThumbIndex! > 0
@@ -71,13 +106,14 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
         ? _currentValues[_activeThumbIndex! + 1]
         : widget.max;
 
-    value = value.clamp(minVal, maxVal).roundToDouble();
+    final double clampedValue = rawValue.clamp(minVal, maxVal).roundToDouble();
 
-    setState(() {
-      _currentValues[_activeThumbIndex!] = value;
-    });
-
-    widget.onChanged(List.from(_currentValues));
+    if (_currentValues[_activeThumbIndex!] != clampedValue) {
+      setState(() {
+        _currentValues[_activeThumbIndex!] = clampedValue;
+      });
+      widget.onChanged(List.from(_currentValues));
+    }
   }
 
   @override
@@ -91,6 +127,9 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
           onPanEnd: (_) => setState(() {
             _activeThumbIndex = null;
           }),
+          onPanCancel: () => setState(() {
+            _activeThumbIndex = null;
+          }),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 24.0),
             child: CustomPaint(
@@ -99,6 +138,7 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
                 values: _currentValues,
                 min: widget.min,
                 max: widget.max,
+                evaluate: widget.evaluate,
                 activeThumbIndex: _activeThumbIndex,
                 textColor: Theme.of(context).colorScheme.onSurface,
                 context: context,
@@ -116,6 +156,7 @@ class _MultiThumbPainter extends CustomPainter {
   final List<double> values;
   final double min;
   final double max;
+  final ThresholdState Function(double) evaluate;
   final int? activeThumbIndex;
   final Color textColor;
   final BuildContext context;
@@ -125,6 +166,7 @@ class _MultiThumbPainter extends CustomPainter {
     required this.values,
     required this.min,
     required this.max,
+    required this.evaluate,
     required this.activeThumbIndex,
     required this.textColor,
     required this.context,
@@ -133,24 +175,18 @@ class _MultiThumbPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 6 regions for 5 thumbs
-    final colors = [
-      Colors.grey, // Inactive
-      Colors.red, // Min Error
-      Colors.orange, // Min Warning
-      Colors.green, // Operational
-      Colors.orange, // Max Warning
-      Colors.red, // Max Error
-    ];
-
+    if (size.width <= 0 || max <= min) return;
     double previousDx = 0;
     for (int i = 0; i <= values.length; i++) {
       final double nextDx = i < values.length
           ? ((values[i] - min) / (max - min)) * size.width
           : size.width;
 
+      final double midVal = min + ((previousDx + nextDx) / 2 / size.width) * (max - min);
+      final Color regionColor = evaluate(midVal).color;
+
       final trackPaint = Paint()
-        ..color = colors[i % colors.length]
+        ..color = regionColor
         ..style = PaintingStyle.fill;
 
       // Draw segment of the track
@@ -242,9 +278,10 @@ class _MultiThumbPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _MultiThumbPainter oldDelegate) {
-    return oldDelegate.values != values ||
+    return !listEquals(oldDelegate.values, values) ||
         oldDelegate.min != min ||
         oldDelegate.max != max ||
+        oldDelegate.evaluate != evaluate ||
         oldDelegate.activeThumbIndex != activeThumbIndex ||
         oldDelegate.textColor != textColor ||
         oldDelegate.localeTag != localeTag;

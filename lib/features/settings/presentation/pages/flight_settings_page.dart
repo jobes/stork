@@ -2,8 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/app_settings.dart';
+import '../../domain/range_thresholds.dart';
 import '../providers/settings_provider.dart';
-import '../widgets/max_range_input.dart';
+import '../threshold_state_extension.dart';
+import '../widgets/number_input.dart';
 import '../widgets/thresholds_slider.dart';
 
 class FlightSettingsPage extends ConsumerWidget {
@@ -17,14 +20,23 @@ class FlightSettingsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.flightSettings)),
       body: settingsAsync.when(
-        data: (settings) => ListView(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
+        data: (settings) {
+          final currentThresholds = RangeThresholds(
+            inactiveMax: settings.flightSpeedThresholds.inactiveMax ?? 10.0,
+            minError: settings.flightSpeedThresholds.minError ?? 60.0,
+            minWarning: settings.flightSpeedThresholds.minWarning ?? 75.0,
+            maxWarning: settings.flightSpeedThresholds.maxWarning ?? 110.0,
+            maxError: settings.flightSpeedThresholds.maxError ?? 125.0,
+          );
+          
+          return ListView(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
                     l10n.flightSettings,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
@@ -39,14 +51,12 @@ class FlightSettingsPage extends ConsumerWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _LegendItem(color: Colors.grey, label: l10n.inactiveSpeedThreshold),
-                                _LegendItem(color: Colors.red, label: l10n.minErrorSpeedThreshold),
-                                _LegendItem(color: Colors.orange, label: l10n.minWarningSpeedThreshold),
-                                _LegendItem(color: Colors.green, label: l10n.operationalSpeedThreshold),
-                                _LegendItem(color: Colors.orange, label: l10n.maxWarningSpeedThreshold),
-                                _LegendItem(color: Colors.red, label: l10n.maxErrorSpeedThreshold),
-                              ],
+                              children: ThresholdState.values
+                                  .map((state) => _LegendItem(
+                                        color: state.color,
+                                        label: state.getLabel(l10n),
+                                      ))
+                                  .toList(),
                             ),
                           ),
                         ),
@@ -68,19 +78,20 @@ class FlightSettingsPage extends ConsumerWidget {
               child: ThresholdsSlider(
                 min: 0.0,
                 max: settings.flightSpeedMaxRange,
+                evaluate: currentThresholds.evaluate,
                 values: [
-                  settings.flightSpeedThresholds.inactiveMax ?? 10.0,
-                  settings.flightSpeedThresholds.minError ?? 60.0,
-                  settings.flightSpeedThresholds.minWarning ?? 75.0,
-                  settings.flightSpeedThresholds.maxWarning ?? 110.0,
-                  settings.flightSpeedThresholds.maxError ?? 125.0,
+                  currentThresholds.inactiveMax!,
+                  currentThresholds.minError!,
+                  currentThresholds.minWarning!,
+                  currentThresholds.maxWarning!,
+                  currentThresholds.maxError!,
                 ],
                 onChanged: (newValues) {
                   unawaited(
                     ref
                         .read(appSettingsProvider.notifier)
                         .updateFlightSpeedThresholds(
-                          settings.flightSpeedThresholds.copyWith(
+                          currentThresholds.copyWith(
                             inactiveMax: newValues[0],
                             minError: newValues[1],
                             minWarning: newValues[2],
@@ -103,9 +114,13 @@ class FlightSettingsPage extends ConsumerWidget {
                       style: const TextStyle(fontWeight: FontWeight.normal),
                     ),
                   ),
-                  _MaxRangeInputContainer(
+                  NumberInput(
                     initialValue: settings.flightSpeedMaxRange,
-                    onSubmitted: (newValue) {
+                    min: 10,
+                    max: 1000,
+                    step: 10,
+                    suffix: ' ${l10n.speedSuffix}',
+                    onChanged: (newValue) {
                       unawaited(
                         ref
                             .read(appSettingsProvider.notifier)
@@ -116,11 +131,93 @@ class FlightSettingsPage extends ConsumerWidget {
                 ],
               ),
             ),
+            CourseLineSettingsSection(settings: settings, l10n: l10n),
           ],
-        ),
+        );
+        },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text(e.toString())),
       ),
+    );
+  }
+}
+
+class CourseLineSettingsSection extends ConsumerWidget {
+  final AppSettings settings;
+  final AppLocalizations l10n;
+
+  const CourseLineSettingsSection({
+    super.key,
+    required this.settings,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
+          child: Text(
+            l10n.courseLineSettings,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(l10n.courseLineSegmentsCount),
+                  ),
+                  NumberInput(
+                    initialValue: settings.courseLineSegmentsCount.toDouble(),
+                    min: 1,
+                    max: 30,
+                    step: 1,
+                    onChanged: (value) {
+                      unawaited(
+                        ref
+                            .read(appSettingsProvider.notifier)
+                            .updateCourseLineSegmentsCount(value.toInt()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(l10n.courseLineSegmentDuration),
+                  ),
+                  NumberInput(
+                    initialValue: settings.courseLineSegmentDuration.toDouble(),
+                    min: 1,
+                    max: 3600,
+                    step: 10,
+                    suffix: l10n.durationSuffix,
+                    onChanged: (value) {
+                      unawaited(
+                        ref
+                            .read(appSettingsProvider.notifier)
+                            .updateCourseLineSegmentDuration(value.toInt()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -146,87 +243,4 @@ class _LegendItem extends StatelessWidget {
   }
 }
 
-class _MaxRangeInputContainer extends StatefulWidget {
-  final double initialValue;
-  final ValueChanged<double> onSubmitted;
 
-  const _MaxRangeInputContainer({
-    required this.initialValue,
-    required this.onSubmitted,
-  });
-
-  @override
-  State<_MaxRangeInputContainer> createState() => _MaxRangeInputContainerState();
-}
-
-class _MaxRangeInputContainerState extends State<_MaxRangeInputContainer> {
-  late TextEditingController _controller;
-  late FocusNode _focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialValue.toStringAsFixed(0));
-    _focusNode = FocusNode();
-    _focusNode.addListener(_onFocusChange);
-  }
-
-  @override
-  void didUpdateWidget(_MaxRangeInputContainer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.initialValue != oldWidget.initialValue && !_focusNode.hasFocus) {
-      _controller.text = widget.initialValue.toStringAsFixed(0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _onFocusChange() {
-    if (!_focusNode.hasFocus) {
-      _submit();
-    }
-  }
-
-  void _submit() {
-    final text = _controller.text;
-    final parsed = double.tryParse(text);
-    if (parsed != null && parsed > 0) {
-      final rounded = parsed.roundToDouble();
-      final clamped = rounded.clamp(10.0, 1000.0);
-      _controller.text = clamped.toStringAsFixed(0);
-      widget.onSubmitted(clamped);
-    } else {
-      _controller.text = widget.initialValue.toStringAsFixed(0);
-    }
-  }
-
-  void _handleIncrement() {
-    final newValue = (widget.initialValue + 10.0).clamp(10.0, 1000.0).roundToDouble();
-    _controller.text = newValue.toStringAsFixed(0);
-    widget.onSubmitted(newValue);
-  }
-
-  void _handleDecrement() {
-    final newValue = (widget.initialValue - 10.0).clamp(10.0, 1000.0).roundToDouble();
-    _controller.text = newValue.toStringAsFixed(0);
-    widget.onSubmitted(newValue);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaxRangeInput(
-      currentValue: widget.initialValue,
-      controller: _controller,
-      focusNode: _focusNode,
-      onSubmitted: _submit,
-      onIncrement: _handleIncrement,
-      onDecrement: widget.initialValue > 10.0 ? _handleDecrement : null,
-    );
-  }
-}

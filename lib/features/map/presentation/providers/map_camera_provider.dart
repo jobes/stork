@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -9,6 +8,7 @@ import '../../../../core/services/location_service.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
+import '../../utils/geojson_builder.dart';
 
 part 'map_camera_provider.g.dart';
 
@@ -34,11 +34,24 @@ class MapCamera extends _$MapCamera {
             next.heading != previous?.heading) {
           _mapController!.style!.updateGeoJsonSource(
             id: 'aircraft-source',
-            data: _getAircraftGeoJson(
+            data: GeoJsonBuilder.buildAircraftGeoJson(
               next.latitude,
               next.longitude,
               next.heading,
             ),
+          );
+        }
+
+        final settings = ref.read(appSettingsProvider).value;
+        if (next.latitude != previous?.latitude ||
+            next.longitude != previous?.longitude ||
+            next.heading != previous?.heading ||
+            next.speed != previous?.speed ||
+            next.indicatedAirSpeed != previous?.indicatedAirSpeed ||
+            next.isFlying != previous?.isFlying) {
+          _mapController!.style!.updateGeoJsonSource(
+            id: 'course-line-source',
+            data: GeoJsonBuilder.buildCourseLineGeoJson(next, settings),
           );
         }
       }
@@ -79,6 +92,19 @@ class MapCamera extends _$MapCamera {
           );
         }
       }
+    });
+
+    // Listen to settings updates to update course line
+    ref.listen(appSettingsProvider, (previous, next) {
+      if (_mapController == null || !_isAircraftSymbolInitialized || _mapController?.style == null) return;
+      
+      final telemetry = ref.read(telemetryProvider);
+      final settings = next.value;
+      
+      _mapController!.style!.updateGeoJsonSource(
+        id: 'course-line-source',
+        data: GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
+      );
     });
 
     // Listen to system location for initial positioning
@@ -359,10 +385,45 @@ class MapCamera extends _$MapCamera {
       if (!ref.mounted) return;
 
       final telemetry = ref.read(telemetryProvider);
+      final settings = ref.read(appSettingsProvider).value;
+
+      await style.addSource(
+        GeoJsonSource(
+          id: 'course-line-source',
+          data: GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
+        ),
+      );
+      if (!ref.mounted) return;
+
+      await style.addLayer(
+        LineStyleLayer(
+          id: 'course-line-border',
+          sourceId: 'course-line-source',
+          paint: {
+            'line-color': '#000000',
+            'line-width': 5.0,
+          },
+        ),
+      );
+      if (!ref.mounted) return;
+
+      await style.addLayer(
+        LineStyleLayer(
+          id: 'course-line-white',
+          sourceId: 'course-line-source',
+          filter: ['==', 'isEven', false],
+          paint: {
+            'line-color': '#FFFFFF',
+            'line-width': 3.0,
+          },
+        ),
+      );
+      if (!ref.mounted) return;
+
       await style.addSource(
         GeoJsonSource(
           id: 'aircraft-source',
-          data: _getAircraftGeoJson(
+          data: GeoJsonBuilder.buildAircraftGeoJson(
             telemetry.latitude,
             telemetry.longitude,
             telemetry.heading,
@@ -393,25 +454,6 @@ class MapCamera extends _$MapCamera {
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');
     }
-  }
-
-  String _getAircraftGeoJson(double? lat, double? lon, double? heading) {
-    if (lat == null || lon == null || (lat == 0.0 && lon == 0.0)) {
-      return jsonEncode({'type': 'FeatureCollection', 'features': []});
-    }
-    return jsonEncode({
-      'type': 'FeatureCollection',
-      'features': [
-        {
-          'type': 'Feature',
-          'geometry': {
-            'type': 'Point',
-            'coordinates': [lon, lat],
-          },
-          'properties': {'heading': heading ?? 0.0},
-        },
-      ],
-    });
   }
 
   bool get isMovingProgrammatically => _programmaticMoveCount > 0;

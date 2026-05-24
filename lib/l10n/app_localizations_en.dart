@@ -159,26 +159,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get flightSettings => 'Flight Settings';
 
   @override
-  String get inactiveSpeedThreshold =>
-      'Maximum speed considered as stationary (km/h)';
+  String get inactiveThreshold => 'Inactive (Below minimum)';
 
   @override
-  String get minErrorSpeedThreshold => 'Critically low speed (km/h)';
+  String get minErrorThreshold => 'Critically low';
 
   @override
-  String get minWarningSpeedThreshold => 'Dangerously low speed (km/h)';
+  String get minWarningThreshold => 'Dangerously low';
 
   @override
-  String get maxWarningSpeedThreshold => 'Dangerously high speed (km/h)';
+  String get maxWarningThreshold => 'Dangerously high';
 
   @override
-  String get maxErrorSpeedThreshold => 'Critically high speed (km/h)';
+  String get maxErrorThreshold => 'Critically high';
 
   @override
   String get mapSettings => 'Map Settings';
 
   @override
-  String get operationalSpeedThreshold => 'Operational speed (km/h)';
+  String get operationalThreshold => 'Operational (Normal)';
 
   @override
   String get flightSpeed => 'Flight Speed';
@@ -208,4 +207,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get speedSuffix => ' kph';
+
+  @override
+  String get courseLineSettings => 'Course Line';
+
+  @override
+  String get courseLineSegmentsCount => 'Segment Count';
+
+  @override
+  String get courseLineSegmentDuration => 'Segment Duration (seconds)';
+
+  @override
+  String get durationSuffix => ' s';
 }
