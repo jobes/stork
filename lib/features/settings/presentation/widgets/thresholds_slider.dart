@@ -42,9 +42,16 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
   }
 
   void _handlePanStart(DragStartDetails details, BoxConstraints constraints) {
-    final double fraction = (details.localPosition.dx / constraints.maxWidth)
-        .clamp(0.0, 1.0);
-    final double value = widget.min + fraction * (widget.max - widget.min);
+    final double fraction;
+    final double value;
+    if (constraints.maxWidth <= 0 || widget.max <= widget.min) {
+      fraction = 0.0;
+      value = widget.min;
+    } else {
+      fraction = (details.localPosition.dx / constraints.maxWidth)
+          .clamp(0.0, 1.0);
+      value = widget.min + fraction * (widget.max - widget.min);
+    }
 
     double minDistance = double.infinity;
     int closestIndex = -1;
@@ -64,9 +71,16 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
   void _handlePanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
     if (_activeThumbIndex == null) return;
 
-    final double fraction = (details.localPosition.dx / constraints.maxWidth)
-        .clamp(0.0, 1.0);
-    double rawValue = widget.min + fraction * (widget.max - widget.min);
+    final double fraction;
+    final double rawValue;
+    if (constraints.maxWidth <= 0 || widget.max <= widget.min) {
+      fraction = 0.0;
+      rawValue = widget.min;
+    } else {
+      fraction = (details.localPosition.dx / constraints.maxWidth)
+          .clamp(0.0, 1.0);
+      rawValue = widget.min + fraction * (widget.max - widget.min);
+    }
 
     // Dynamically transfer active thumb if we are trying to drag an overlapping stack
     double diff = rawValue - _currentValues[_activeThumbIndex!];
@@ -111,6 +125,9 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
           onPanStart: (details) => _handlePanStart(details, constraints),
           onPanUpdate: (details) => _handlePanUpdate(details, constraints),
           onPanEnd: (_) => setState(() {
+            _activeThumbIndex = null;
+          }),
+          onPanCancel: () => setState(() {
             _activeThumbIndex = null;
           }),
           child: Padding(
@@ -158,6 +175,7 @@ class _MultiThumbPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (size.width <= 0 || max <= min) return;
     double previousDx = 0;
     for (int i = 0; i <= values.length; i++) {
       final double nextDx = i < values.length
