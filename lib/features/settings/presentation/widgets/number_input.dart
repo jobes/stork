@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class NumberInput extends StatefulWidget {
   final double initialValue;
@@ -65,7 +66,12 @@ class _NumberInputState extends State<NumberInput> {
 
   void _submit() {
     final text = _controller.text;
-    final parsed = double.tryParse(text);
+    double? parsed;
+    try {
+      parsed = NumberFormat.decimalPattern().parse(text).toDouble();
+    } catch (_) {
+      parsed = double.tryParse(text.replaceAll(',', '.'));
+    }
     if (parsed != null) {
       final clamped = parsed.clamp(widget.min, widget.max);
       setState(() {
@@ -112,7 +118,7 @@ class _NumberInputState extends State<NumberInput> {
           child: TextField(
             controller: _controller,
             focusNode: _focusNode,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.numberWithOptions(decimal: widget.decimalPlaces > 0),
             textAlign: TextAlign.center,
             decoration: InputDecoration(
               suffixText: widget.suffix,
