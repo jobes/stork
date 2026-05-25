@@ -13,17 +13,17 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   mapFollowZoom: (json['mapFollowZoom'] as num?)?.toDouble() ?? 12.0,
   flightSpeedThresholds: json['flightSpeedThresholds'] == null
       ? const RangeThresholds.raw(
-          inactiveMax: 10.0,
-          minError: 60.0,
-          minWarning: 75.0,
-          maxWarning: 110.0,
-          maxError: 125.0,
+          inactiveMax: 2.77,
+          minError: 16.67,
+          minWarning: 20.83,
+          maxWarning: 30.56,
+          maxError: 34.72,
         )
       : RangeThresholds.fromJson(
           json['flightSpeedThresholds'] as Map<String, dynamic>,
         ),
   flightSpeedMaxRange:
-      (json['flightSpeedMaxRange'] as num?)?.toDouble() ?? 140.0,
+      (json['flightSpeedMaxRange'] as num?)?.toDouble() ?? 38.89,
   courseLineSegmentsCount:
       (json['courseLineSegmentsCount'] as num?)?.toInt() ?? 5,
   courseLineSegmentDuration:
@@ -41,6 +41,9 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
             MapEntry(k, WidgetPosition.fromJson(e as Map<String, dynamic>)),
       ) ??
       const {},
+  speedUnit:
+      $enumDecodeNullable(_$SpeedUnitEnumMap, json['speedUnit']) ??
+      SpeedUnit.kmh,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -57,4 +60,12 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'selectedDevice': instance.selectedDevice,
       'areWidgetsDraggable': instance.areWidgetsDraggable,
       'widgetPositions': instance.widgetPositions,
+      'speedUnit': _$SpeedUnitEnumMap[instance.speedUnit]!,
     };
+
+const _$SpeedUnitEnumMap = {
+  SpeedUnit.ms: 'ms',
+  SpeedUnit.kmh: 'kmh',
+  SpeedUnit.mph: 'mph',
+  SpeedUnit.knots: 'knots',
+};

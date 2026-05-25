@@ -419,7 +419,7 @@ abstract class AppLocalizations {
   /// No description provided for @flightSpeedMaxRange.
   ///
   /// In en, this message translates to:
-  /// **'Maximum slider range (km/h)'**
+  /// **'Maximum slider range'**
   String get flightSpeedMaxRange;
 
   /// No description provided for @moveWidgets.
@@ -440,11 +440,11 @@ abstract class AppLocalizations {
   /// **'kph'**
   String get speedUnitKmH;
 
-  /// Ground speed label with speed value
+  /// Ground speed label with speed value and unit
   ///
   /// In en, this message translates to:
-  /// **'GS {value} kph'**
-  String gsSpeedLabel(String value);
+  /// **'GS {value} {unit}'**
+  String gsSpeedLabel(String value, String unit);
 
   /// Indicator when only GPS speed is available
   ///
@@ -458,11 +458,35 @@ abstract class AppLocalizations {
   /// **'NO GPS'**
   String get noGps;
 
-  /// Suffix for speed values with a leading space
+  /// No description provided for @speedUnitSettings.
   ///
   /// In en, this message translates to:
-  /// **' kph'**
-  String get speedSuffix;
+  /// **'Speed Unit'**
+  String get speedUnitSettings;
+
+  /// No description provided for @speedUnitMs.
+  ///
+  /// In en, this message translates to:
+  /// **'m/s'**
+  String get speedUnitMs;
+
+  /// No description provided for @speedUnitMph.
+  ///
+  /// In en, this message translates to:
+  /// **'mph'**
+  String get speedUnitMph;
+
+  /// No description provided for @speedUnitKnots.
+  ///
+  /// In en, this message translates to:
+  /// **'knots'**
+  String get speedUnitKnots;
+
+  /// Speed unit abbreviation for knots
+  ///
+  /// In en, this message translates to:
+  /// **'kt'**
+  String get speedUnitKnotsAbbreviation;
 
   /// No description provided for @courseLineSettings.
   ///

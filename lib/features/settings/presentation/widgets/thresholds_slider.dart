@@ -1,9 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../../domain/range_thresholds.dart';
 import '../threshold_state_extension.dart';
-
 
 class ThresholdsSlider extends StatefulWidget {
   final List<double> values;
@@ -11,6 +9,7 @@ class ThresholdsSlider extends StatefulWidget {
   final double max;
   final ThresholdState Function(double) evaluate;
   final ValueChanged<List<double>> onChanged;
+  final String unitLabel;
 
   const ThresholdsSlider({
     super.key,
@@ -19,6 +18,7 @@ class ThresholdsSlider extends StatefulWidget {
     required this.max,
     required this.evaluate,
     required this.onChanged,
+    required this.unitLabel,
   });
 
   @override
@@ -48,8 +48,10 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
       fraction = 0.0;
       value = widget.min;
     } else {
-      fraction = (details.localPosition.dx / constraints.maxWidth)
-          .clamp(0.0, 1.0);
+      fraction = (details.localPosition.dx / constraints.maxWidth).clamp(
+        0.0,
+        1.0,
+      );
       value = widget.min + fraction * (widget.max - widget.min);
     }
 
@@ -77,8 +79,10 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
       fraction = 0.0;
       rawValue = widget.min;
     } else {
-      fraction = (details.localPosition.dx / constraints.maxWidth)
-          .clamp(0.0, 1.0);
+      fraction = (details.localPosition.dx / constraints.maxWidth).clamp(
+        0.0,
+        1.0,
+      );
       rawValue = widget.min + fraction * (widget.max - widget.min);
     }
 
@@ -87,13 +91,15 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
     if (diff > 0) {
       // Dragging right: pick the rightmost thumb in the overlapping group
       while (_activeThumbIndex! < _currentValues.length - 1 &&
-          _currentValues[_activeThumbIndex! + 1] == _currentValues[_activeThumbIndex!]) {
+          _currentValues[_activeThumbIndex! + 1] ==
+              _currentValues[_activeThumbIndex!]) {
         _activeThumbIndex = _activeThumbIndex! + 1;
       }
     } else if (diff < 0) {
       // Dragging left: pick the leftmost thumb in the overlapping group
       while (_activeThumbIndex! > 0 &&
-          _currentValues[_activeThumbIndex! - 1] == _currentValues[_activeThumbIndex!]) {
+          _currentValues[_activeThumbIndex! - 1] ==
+              _currentValues[_activeThumbIndex!]) {
         _activeThumbIndex = _activeThumbIndex! - 1;
       }
     }
@@ -143,6 +149,7 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
                 textColor: Theme.of(context).colorScheme.onSurface,
                 context: context,
                 localeTag: Localizations.localeOf(context).toLanguageTag(),
+                unitLabel: widget.unitLabel,
               ),
             ),
           ),
@@ -161,6 +168,7 @@ class _MultiThumbPainter extends CustomPainter {
   final Color textColor;
   final BuildContext context;
   final String localeTag;
+  final String unitLabel;
 
   _MultiThumbPainter({
     required this.values,
@@ -171,6 +179,7 @@ class _MultiThumbPainter extends CustomPainter {
     required this.textColor,
     required this.context,
     required this.localeTag,
+    required this.unitLabel,
   });
 
   @override
@@ -182,7 +191,8 @@ class _MultiThumbPainter extends CustomPainter {
           ? ((values[i] - min) / (max - min)) * size.width
           : size.width;
 
-      final double midVal = min + ((previousDx + nextDx) / 2 / size.width) * (max - min);
+      final double midVal =
+          min + ((previousDx + nextDx) / 2 / size.width) * (max - min);
       final Color regionColor = evaluate(midVal).color;
 
       final trackPaint = Paint()
@@ -248,8 +258,7 @@ class _MultiThumbPainter extends CustomPainter {
       canvas.drawCircle(center, radius, borderPaint);
 
       // Text
-      final String text =
-          '${values[i].toStringAsFixed(0)}\n${AppLocalizations.of(context)!.speedUnitKmH}';
+      final String text = '${values[i].toStringAsFixed(0)}\n$unitLabel';
       final textSpan = TextSpan(
         text: text,
         style: TextStyle(
@@ -284,6 +293,7 @@ class _MultiThumbPainter extends CustomPainter {
         oldDelegate.evaluate != evaluate ||
         oldDelegate.activeThumbIndex != activeThumbIndex ||
         oldDelegate.textColor != textColor ||
-        oldDelegate.localeTag != localeTag;
+        oldDelegate.localeTag != localeTag ||
+        oldDelegate.unitLabel != unitLabel;
   }
 }

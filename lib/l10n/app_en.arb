@@ -116,18 +116,21 @@
   "mapSettings": "Map Settings",
   "operationalThreshold": "Operational (Normal)",
   "flightSpeed": "Flight Speed",
-  "flightSpeedMaxRange": "Maximum slider range (km/h)",
+  "flightSpeedMaxRange": "Maximum slider range",
   "moveWidgets": "Move widgets",
   "resetWidgetLayout": "Reset widget positions",
   "speedUnitKmH": "kph",
   "@speedUnitKmH": {
     "description": "Speed unit in kilometers per hour"
   },
-  "gsSpeedLabel": "GS {value} kph",
+  "gsSpeedLabel": "GS {value} {unit}",
   "@gsSpeedLabel": {
-    "description": "Ground speed label with speed value",
+    "description": "Ground speed label with speed value and unit",
     "placeholders": {
       "value": {
+        "type": "String"
+      },
+      "unit": {
         "type": "String"
       }
     }
@@ -140,9 +143,13 @@
   "@noGps": {
     "description": "Indicator when GPS is not available"
   },
-  "speedSuffix": " kph",
-  "@speedSuffix": {
-    "description": "Suffix for speed values with a leading space"
+  "speedUnitSettings": "Speed Unit",
+  "speedUnitMs": "m/s",
+  "speedUnitMph": "mph",
+  "speedUnitKnots": "knots",
+  "speedUnitKnotsAbbreviation": "kt",
+  "@speedUnitKnotsAbbreviation": {
+    "description": "Speed unit abbreviation for knots"
   },
   "courseLineSettings": "Course Line",
   "courseLineSegmentsCount": "Segment Count",

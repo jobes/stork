@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/range_thresholds.dart';
+import '../../../settings/domain/speed_unit.dart';
 
 class SpeedTelemetryWidget extends ConsumerWidget {
   const SpeedTelemetryWidget({super.key});
@@ -106,19 +107,21 @@ class SpeedTelemetryWidget extends ConsumerWidget {
 
     final speedValueColor = isDark ? Colors.white : Colors.black;
 
-    final double? ias = telemetry.indicatedAirSpeed;
-    final double? gs = telemetry.speed;
+    final speedUnit = settings?.speedUnit ?? SpeedUnit.kmh;
+    final double? ias = telemetry.indicatedAirSpeed != null ? speedUnit.convertFromMs(telemetry.indicatedAirSpeed!) : null;
+    final double? gs = telemetry.speed != null ? speedUnit.convertFromMs(telemetry.speed!) : null;
+    final String unitLabel = speedUnit.getAbbreviation(l10n);
 
     ThresholdState speedState = ThresholdState.inactive;
     if (!isConnected) {
-      if (gs != null) {
-        speedState = thresholds.evaluate(gs);
+      if (telemetry.speed != null) {
+        speedState = thresholds.evaluate(telemetry.speed!);
       }
     } else {
-      if (ias != null) {
-        speedState = thresholds.evaluate(ias);
-      } else if (gs != null) {
-        speedState = thresholds.evaluate(gs);
+      if (telemetry.indicatedAirSpeed != null) {
+        speedState = thresholds.evaluate(telemetry.indicatedAirSpeed!);
+      } else if (telemetry.speed != null) {
+        speedState = thresholds.evaluate(telemetry.speed!);
       }
     }
 
@@ -128,7 +131,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
       // Offline mode: Show only GS or ---
       final speedText = gs != null ? gs.toStringAsFixed(0).padLeft(3) : '---';
       columnChildren.add(
-        _buildSpeedRow(speedText, l10n.speedUnitKmH, speedValueColor, defaultTextColor),
+        _buildSpeedRow(speedText, unitLabel, speedValueColor, defaultTextColor),
       );
     } else {
       // Connected mode
@@ -136,14 +139,14 @@ class SpeedTelemetryWidget extends ConsumerWidget {
         columnChildren.add(
           _buildSpeedRow(
             ias.toStringAsFixed(0).padLeft(3),
-            l10n.speedUnitKmH,
+            unitLabel,
             speedValueColor,
             defaultTextColor,
           ),
         );
         columnChildren.add(
           Text(
-            l10n.gsSpeedLabel(gs.toStringAsFixed(0).padLeft(3)),
+            l10n.gsSpeedLabel(gs.toStringAsFixed(0).padLeft(3), unitLabel),
             style: TextStyle(
               fontSize: 12,
               color: defaultTextColor,
@@ -155,7 +158,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
         columnChildren.add(
           _buildSpeedRow(
             gs.toStringAsFixed(0).padLeft(3),
-            l10n.speedUnitKmH,
+            unitLabel,
             speedValueColor,
             defaultTextColor,
           ),
@@ -181,7 +184,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
         columnChildren.add(
           _buildSpeedRow(
             ias.toStringAsFixed(0).padLeft(3),
-            l10n.speedUnitKmH,
+            unitLabel,
             speedValueColor,
             defaultTextColor,
           ),
@@ -205,7 +208,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
       } else {
         // Neither available
         columnChildren.add(
-          _buildSpeedRow('---', l10n.speedUnitKmH, speedValueColor, defaultTextColor),
+          _buildSpeedRow('---', unitLabel, speedValueColor, defaultTextColor),
         );
       }
     }

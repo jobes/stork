@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/range_thresholds.dart';
+import '../../domain/speed_unit.dart';
 import '../providers/settings_provider.dart';
 import '../threshold_state_extension.dart';
 import '../widgets/number_input.dart';
@@ -21,119 +22,185 @@ class FlightSettingsPage extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.flightSettings)),
       body: settingsAsync.when(
         data: (settings) {
+          final speedUnit = settings.speedUnit;
           final currentThresholds = RangeThresholds(
-            inactiveMax: settings.flightSpeedThresholds.inactiveMax ?? 10.0,
-            minError: settings.flightSpeedThresholds.minError ?? 60.0,
-            minWarning: settings.flightSpeedThresholds.minWarning ?? 75.0,
-            maxWarning: settings.flightSpeedThresholds.maxWarning ?? 110.0,
-            maxError: settings.flightSpeedThresholds.maxError ?? 125.0,
+            inactiveMax: speedUnit.convertFromMs(
+              settings.flightSpeedThresholds.inactiveMax ?? 2.77,
+            ),
+            minError: speedUnit.convertFromMs(
+              settings.flightSpeedThresholds.minError ?? 16.67,
+            ),
+            minWarning: speedUnit.convertFromMs(
+              settings.flightSpeedThresholds.minWarning ?? 20.83,
+            ),
+            maxWarning: speedUnit.convertFromMs(
+              settings.flightSpeedThresholds.maxWarning ?? 30.56,
+            ),
+            maxError: speedUnit.convertFromMs(
+              settings.flightSpeedThresholds.maxError ?? 34.72,
+            ),
           );
-          
+
           return ListView(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                    l10n.flightSettings,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.help_outline),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) => SafeArea(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: ThresholdState.values
-                                  .map((state) => _LegendItem(
+                      l10n.flightSettings,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.help_outline),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) => SafeArea(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: ThresholdState.values
+                                    .map(
+                                      (state) => _LegendItem(
                                         color: state.color,
                                         label: state.getLabel(l10n),
-                                      ))
-                                  .toList(),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
-              child: Text(
-                l10n.flightSpeed,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ThresholdsSlider(
-                min: 0.0,
-                max: settings.flightSpeedMaxRange,
-                evaluate: currentThresholds.evaluate,
-                values: [
-                  currentThresholds.inactiveMax!,
-                  currentThresholds.minError!,
-                  currentThresholds.minWarning!,
-                  currentThresholds.maxWarning!,
-                  currentThresholds.maxError!,
-                ],
-                onChanged: (newValues) {
-                  unawaited(
-                    ref
-                        .read(appSettingsProvider.notifier)
-                        .updateFlightSpeedThresholds(
-                          currentThresholds.copyWith(
-                            inactiveMax: newValues[0],
-                            minError: newValues[1],
-                            minWarning: newValues[2],
-                            maxWarning: newValues[3],
-                            maxError: newValues[4],
-                          ),
-                        ),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.flightSpeedMaxRange,
-                      style: const TextStyle(fontWeight: FontWeight.normal),
+                        );
+                      },
                     ),
-                  ),
-                  NumberInput(
-                    initialValue: settings.flightSpeedMaxRange,
-                    min: 10,
-                    max: 1000,
-                    step: 10,
-                    suffix: ' ${l10n.speedSuffix}',
-                    onChanged: (newValue) {
-                      unawaited(
-                        ref
-                            .read(appSettingsProvider.notifier)
-                            .updateFlightSpeedMaxRange(newValue),
-                      );
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            CourseLineSettingsSection(settings: settings, l10n: l10n),
-          ],
-        );
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.speedUnitSettings,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    DropdownButton<SpeedUnit>(
+                      value: settings.speedUnit,
+                      onChanged: (SpeedUnit? newValue) {
+                        if (newValue != null) {
+                          unawaited(
+                            ref
+                                .read(appSettingsProvider.notifier)
+                                .updateSpeedUnit(newValue),
+                          );
+                        }
+                      },
+                      items: SpeedUnit.values.map<DropdownMenuItem<SpeedUnit>>((
+                        SpeedUnit value,
+                      ) {
+                        return DropdownMenuItem<SpeedUnit>(
+                          value: value,
+                          child: Text(value.getLabel(l10n)),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
+                child: Text(
+                  l10n.flightSpeed,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: 0.0,
+                  max: speedUnit.convertFromMs(settings.flightSpeedMaxRange),
+                  evaluate: currentThresholds.evaluate,
+                  unitLabel: settings.speedUnit.getAbbreviation(l10n),
+                  values: [
+                    currentThresholds.inactiveMax!,
+                    currentThresholds.minError!,
+                    currentThresholds.minWarning!,
+                    currentThresholds.maxWarning!,
+                    currentThresholds.maxError!,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateFlightSpeedThresholds(
+                            currentThresholds.copyWith(
+                              inactiveMax: newValues[0],
+                              minError: newValues[1],
+                              minWarning: newValues[2],
+                              maxWarning: newValues[3],
+                              maxError: newValues[4],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.flightSpeedMaxRange,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: speedUnit
+                          .convertFromMs(settings.flightSpeedMaxRange)
+                          .roundToDouble(),
+                      min: 10,
+                      max: 1000,
+                      step: 10,
+                      suffix: settings.speedUnit.getAbbreviation(l10n),
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateFlightSpeedMaxRange(newValue),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              CourseLineSettingsSection(settings: settings, l10n: l10n),
+            ],
+          );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text(e.toString())),
@@ -173,9 +240,7 @@ class CourseLineSettingsSection extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(l10n.courseLineSegmentsCount),
-                  ),
+                  Expanded(child: Text(l10n.courseLineSegmentsCount)),
                   NumberInput(
                     initialValue: settings.courseLineSegmentsCount.toDouble(),
                     min: 1,
@@ -195,9 +260,7 @@ class CourseLineSettingsSection extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(l10n.courseLineSegmentDuration),
-                  ),
+                  Expanded(child: Text(l10n.courseLineSegmentDuration)),
                   NumberInput(
                     initialValue: settings.courseLineSegmentDuration.toDouble(),
                     min: 1,
@@ -242,5 +305,3 @@ class _LegendItem extends StatelessWidget {
     );
   }
 }
-
-

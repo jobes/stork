@@ -40,13 +40,10 @@ class GeoJsonBuilder {
       return jsonEncode({'type': 'FeatureCollection', 'features': []});
     }
 
-    final speedKmH = telemetry.speed ?? telemetry.indicatedAirSpeed ?? 0.0;
-    if (speedKmH <= 0.0) {
+    final speedMS = telemetry.speed ?? telemetry.indicatedAirSpeed ?? 0.0;
+    if (speedMS <= 0.0) {
       return jsonEncode({'type': 'FeatureCollection', 'features': []});
     }
-
-    // Convert km/h to m/s for calculation
-    final speedMS = speedKmH * 1000 / 3600;
 
     final segmentDuration = settings?.courseLineSegmentDuration ?? 60;
     final segmentsCount = settings?.courseLineSegmentsCount ?? 5;

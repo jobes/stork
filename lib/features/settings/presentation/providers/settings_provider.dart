@@ -5,6 +5,7 @@ import '../../data/repositories/settings_repository.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/cannelloni_device.dart';
 import '../../domain/range_thresholds.dart';
+import '../../domain/speed_unit.dart';
 import '../../domain/widget_position.dart';
 
 part 'settings_provider.g.dart';
@@ -29,6 +30,15 @@ class SettingsUpdateFailure extends SettingsUpdateResult {
 
 @riverpod
 class AppSettingsNotifier extends _$AppSettingsNotifier {
+  static const double _defaultMaxRangeMs = 38.89;
+  static const double _defaultInactiveMaxMs = 2.77;
+  static const double _defaultMinErrorMs = 16.67;
+  static const double _defaultMinWarningMs = 20.83;
+  static const double _defaultMaxWarningMs = 30.56;
+  static const double _defaultMaxErrorMs = 34.72;
+  static const double _minRangeLimit = 10.0;
+  static const double _maxRangeLimit = 1000.0;
+
   Future<void> _persistenceQueue = Future.value();
 
   @override
@@ -144,46 +154,121 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       _updateSettings((s) => s.copyWith(mapOverviewZoom: zoom));
 
   Future<SettingsUpdateResult> updateCourseLineSegmentsCount(int count) {
-    if (count <= 0) return Future.value(SettingsUpdateFailure(ArgumentError('Count must be positive'), StackTrace.current));
+    if (count <= 0) {
+      return Future.value(
+        SettingsUpdateFailure(
+          ArgumentError('Count must be positive'),
+          StackTrace.current,
+        ),
+      );
+    }
     return _updateSettings((s) => s.copyWith(courseLineSegmentsCount: count));
   }
 
   Future<SettingsUpdateResult> updateCourseLineSegmentDuration(int duration) {
-    if (duration <= 0) return Future.value(SettingsUpdateFailure(ArgumentError('Duration must be positive'), StackTrace.current));
-    return _updateSettings((s) => s.copyWith(courseLineSegmentDuration: duration));
+    if (duration <= 0) {
+      return Future.value(
+        SettingsUpdateFailure(
+          ArgumentError('Duration must be positive'),
+          StackTrace.current,
+        ),
+      );
+    }
+    return _updateSettings(
+      (s) => s.copyWith(courseLineSegmentDuration: duration),
+    );
   }
 
   Future<SettingsUpdateResult> updateFollowZoom(double zoom) =>
       _updateSettings((s) => s.copyWith(mapFollowZoom: zoom));
 
+  Future<SettingsUpdateResult> updateSpeedUnit(SpeedUnit newUnit) {
+    return _updateSettings((s) => s.copyWith(speedUnit: newUnit));
+  }
+
   Future<SettingsUpdateResult> updateFlightSpeedThresholds(
-          RangeThresholds thresholds) =>
-      _updateSettings((s) => s.copyWith(flightSpeedThresholds: thresholds));
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      final speedUnit = s.speedUnit;
+      final thresholdsInMs = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? speedUnit.convertToMs(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? speedUnit.convertToMs(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? speedUnit.convertToMs(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? speedUnit.convertToMs(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? speedUnit.convertToMs(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(flightSpeedThresholds: thresholdsInMs);
+    });
+  }
 
   Future<SettingsUpdateResult> updateFlightSpeedMaxRange(double maxRange) {
-    double normalizedMaxRange = maxRange;
-    if (!normalizedMaxRange.isFinite || normalizedMaxRange <= 0.0) {
-      normalizedMaxRange = 140.0;
-    } else {
-      normalizedMaxRange = normalizedMaxRange.clamp(10.0, 1000.0);
-    }
-
     return _updateSettings((s) {
+      final speedUnit = s.speedUnit;
+
+      double clampedMaxRangeActive = maxRange;
+      if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
+        clampedMaxRangeActive = speedUnit.convertFromMs(_defaultMaxRangeMs);
+      } else {
+        clampedMaxRangeActive = clampedMaxRangeActive.clamp(
+          _minRangeLimit,
+          _maxRangeLimit,
+        );
+      }
+
+      final normalizedMaxRangeMs = speedUnit.convertToMs(clampedMaxRangeActive);
+
       final thresholds = s.flightSpeedThresholds;
-      final newMaxError = (thresholds.maxError ?? 125.0).clamp(0.0, normalizedMaxRange).roundToDouble();
-      final newMaxWarning = (thresholds.maxWarning ?? 110.0).clamp(0.0, newMaxError).roundToDouble();
-      final newMinWarning = (thresholds.minWarning ?? 75.0).clamp(0.0, newMaxWarning).roundToDouble();
-      final newMinError = (thresholds.minError ?? 60.0).clamp(0.0, newMinWarning).roundToDouble();
-      final newInactiveMax = (thresholds.inactiveMax ?? 10.0).clamp(0.0, newMinError).roundToDouble();
+      final inactiveMaxActive = speedUnit.convertFromMs(
+        thresholds.inactiveMax ?? _defaultInactiveMaxMs,
+      );
+      final minErrorActive = speedUnit.convertFromMs(
+        thresholds.minError ?? _defaultMinErrorMs,
+      );
+      final minWarningActive = speedUnit.convertFromMs(
+        thresholds.minWarning ?? _defaultMinWarningMs,
+      );
+      final maxWarningActive = speedUnit.convertFromMs(
+        thresholds.maxWarning ?? _defaultMaxWarningMs,
+      );
+      final maxErrorActive = speedUnit.convertFromMs(
+        thresholds.maxError ?? _defaultMaxErrorMs,
+      );
+
+      final newMaxErrorActive = maxErrorActive
+          .clamp(0.0, clampedMaxRangeActive)
+          .roundToDouble();
+      final newMaxWarningActive = maxWarningActive
+          .clamp(0.0, newMaxErrorActive)
+          .roundToDouble();
+      final newMinWarningActive = minWarningActive
+          .clamp(0.0, newMaxWarningActive)
+          .roundToDouble();
+      final newMinErrorActive = minErrorActive
+          .clamp(0.0, newMinWarningActive)
+          .roundToDouble();
+      final newInactiveMaxActive = inactiveMaxActive
+          .clamp(0.0, newMinErrorActive)
+          .roundToDouble();
 
       return s.copyWith(
-        flightSpeedMaxRange: normalizedMaxRange,
+        flightSpeedMaxRange: normalizedMaxRangeMs,
         flightSpeedThresholds: thresholds.copyWith(
-           inactiveMax: newInactiveMax,
-           minError: newMinError,
-           minWarning: newMinWarning,
-           maxWarning: newMaxWarning,
-           maxError: newMaxError,
+          inactiveMax: speedUnit.convertToMs(newInactiveMaxActive),
+          minError: speedUnit.convertToMs(newMinErrorActive),
+          minWarning: speedUnit.convertToMs(newMinWarningActive),
+          maxWarning: speedUnit.convertToMs(newMaxWarningActive),
+          maxError: speedUnit.convertToMs(newMaxErrorActive),
         ),
       );
     });
@@ -195,7 +280,9 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   /// may in turn invoke [updateSelectedDevice] (which also uses [_updateSettings]).
   /// If the auto-selection step fails, that failure is surfaced as the result.
   Future<SettingsUpdateResult> updateAutoSelectDevice(bool autoSelect) async {
-    final result = await _updateSettings((s) => s.copyWith(autoSelectDevice: autoSelect));
+    final result = await _updateSettings(
+      (s) => s.copyWith(autoSelectDevice: autoSelect),
+    );
 
     if (result is SettingsUpdateFailure) {
       return result;
@@ -204,9 +291,14 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     // If turned on, try to auto-select immediately
     if (autoSelect) {
       final devices = ref.read(discoveredDevicesProvider).asData?.value ?? [];
-      final currentSettings = state.hasValue ? state.value : state.asData?.value;
+      final currentSettings = state.hasValue
+          ? state.value
+          : state.asData?.value;
       if (currentSettings != null) {
-        final autoSelectResult = await _tryAutoSelectDevice(devices, currentSettings);
+        final autoSelectResult = await _tryAutoSelectDevice(
+          devices,
+          currentSettings,
+        );
         if (autoSelectResult is SettingsUpdateFailure) {
           return autoSelectResult;
         }
@@ -218,7 +310,11 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<SettingsUpdateResult> updateAreWidgetsDraggable(bool areDraggable) =>
       _updateSettings((s) => s.copyWith(areWidgetsDraggable: areDraggable));
 
-  Future<SettingsUpdateResult> updateWidgetPosition(String widgetId, double top, double left) {
+  Future<SettingsUpdateResult> updateWidgetPosition(
+    String widgetId,
+    double top,
+    double left,
+  ) {
     return _updateSettings((s) {
       final newPositions = Map<String, WidgetPosition>.from(s.widgetPositions);
       newPositions[widgetId] = WidgetPosition(top: top, left: left);
