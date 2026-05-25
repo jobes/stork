@@ -215,7 +215,7 @@ class AppLocalizationsSk extends AppLocalizations {
   String get speedUnitMph => 'mph';
 
   @override
-  String get speedUnitKnots => 'knots';
+  String get speedUnitKnots => 'uzly';
 
   @override
   String get speedUnitKnotsAbbreviation => 'kt';

@@ -392,36 +392,36 @@ void main() {
         await container.read(appSettingsProvider.future);
         final notifier = container.read(appSettingsProvider.notifier);
 
-        // NaN should fallback to default (140.0)
+        // NaN should fallback to default (38.89)
         final resNaN = await notifier.updateFlightSpeedMaxRange(double.nan);
         expect(resNaN, isA<SettingsUpdateSuccess>());
         expect(
           container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(140.0),
+          equals(38.89),
         );
 
-        // Infinite should fallback to default (140.0)
+        // Infinite should fallback to default (38.89)
         final resInf = await notifier.updateFlightSpeedMaxRange(double.infinity);
         expect(resInf, isA<SettingsUpdateSuccess>());
         expect(
           container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(140.0),
+          equals(38.89),
         );
 
-        // Zero should fallback to default (140.0)
+        // Zero should fallback to default (38.89)
         final resZero = await notifier.updateFlightSpeedMaxRange(0.0);
         expect(resZero, isA<SettingsUpdateSuccess>());
         expect(
           container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(140.0),
+          equals(38.89),
         );
 
-        // Negative should fallback to default (140.0)
+        // Negative should fallback to default (38.89)
         final resNeg = await notifier.updateFlightSpeedMaxRange(-50.0);
         expect(resNeg, isA<SettingsUpdateSuccess>());
         expect(
           container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(140.0),
+          equals(38.89),
         );
 
         // Values below 10.0 should clamp to 10.0

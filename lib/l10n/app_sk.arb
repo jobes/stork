@@ -120,7 +120,7 @@
   "speedUnitSettings": "Jednotka rýchlosti",
   "speedUnitMs": "m/s",
   "speedUnitMph": "mph",
-  "speedUnitKnots": "knots",
+  "speedUnitKnots": "uzly",
   "speedUnitKnotsAbbreviation": "kt",
   "courseLineSettings": "Smerová čiara letu",
   "courseLineSegmentsCount": "Počet segmentov",
