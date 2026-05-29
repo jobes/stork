@@ -29,6 +29,7 @@ extension MapCameraInterpolation on MapCamera {
     _interpolationTimer = Timer.periodic(interval, (timer) {
       if (!refAccess.mounted || _mapController == null) {
         timer.cancel();
+        _interpolationTimer = null;
         return;
       }
 
@@ -37,6 +38,7 @@ extension MapCameraInterpolation on MapCamera {
       if (t >= 1.0) {
         t = 1.0;
         timer.cancel();
+        _interpolationTimer = null;
       }
 
       // Linear interpolation for camera

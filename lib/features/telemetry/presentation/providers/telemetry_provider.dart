@@ -142,7 +142,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _lastDroneCanFixTime = DateTime.now();
     } else if (_lastDroneCanFixTime != null &&
         DateTime.now().difference(_lastDroneCanFixTime!) <=
-            const Duration(seconds: 3)) {
+            const Duration(seconds: 2)) {
       // Discard/ignore phone's GPS data to avoid conflict with active DroneCAN Fix2 data
       return;
     }
@@ -155,9 +155,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     if (heading != null) _heading.update(heading);
     if (groundSpeed != null) _groundSpeed.update(groundSpeed);
 
-    // Satellites will be explicitly set to null from phone's GPS (as requested).
-    // If it is explicitly passed, update it, otherwise it will decay.
-    _gpsSatelliteCount.update(gpsSatelliteCount);
+    if (gpsSatelliteCount != null) _gpsSatelliteCount.update(gpsSatelliteCount);
 
     if (gpsHorizontalAccuracy != null) {
       _gpsHorizontalAccuracy.update(gpsHorizontalAccuracy);
