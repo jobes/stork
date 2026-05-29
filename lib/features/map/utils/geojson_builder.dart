@@ -40,7 +40,7 @@ class GeoJsonBuilder {
       return jsonEncode({'type': 'FeatureCollection', 'features': []});
     }
 
-    final speedMS = telemetry.speed ?? telemetry.indicatedAirSpeed ?? 0.0;
+    final speedMS = telemetry.groundSpeed ?? telemetry.indicatedAirSpeed ?? 0.0;
     if (speedMS <= 0.0) {
       return jsonEncode({'type': 'FeatureCollection', 'features': []});
     }

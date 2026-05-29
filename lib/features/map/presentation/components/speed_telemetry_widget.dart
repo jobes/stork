@@ -71,7 +71,12 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     }
   }
 
-  Widget _buildSpeedRow(String value, String unit, Color valueColor, Color unitColor) {
+  Widget _buildSpeedRow(
+    String value,
+    String unit,
+    Color valueColor,
+    Color unitColor,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
@@ -108,20 +113,24 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     final speedValueColor = isDark ? Colors.white : Colors.black;
 
     final speedUnit = settings?.speedUnit ?? SpeedUnit.kmh;
-    final double? ias = telemetry.indicatedAirSpeed != null ? speedUnit.convertFromMs(telemetry.indicatedAirSpeed!) : null;
-    final double? gs = telemetry.speed != null ? speedUnit.convertFromMs(telemetry.speed!) : null;
+    final double? ias = telemetry.indicatedAirSpeed != null
+        ? speedUnit.convertFromMs(telemetry.indicatedAirSpeed!)
+        : null;
+    final double? gs = telemetry.groundSpeed != null
+        ? speedUnit.convertFromMs(telemetry.groundSpeed!)
+        : null;
     final String unitLabel = speedUnit.getAbbreviation(l10n);
 
     ThresholdState speedState = ThresholdState.inactive;
     if (!isConnected) {
-      if (telemetry.speed != null) {
-        speedState = thresholds.evaluate(telemetry.speed!);
+      if (telemetry.groundSpeed != null) {
+        speedState = thresholds.evaluate(telemetry.groundSpeed!);
       }
     } else {
       if (telemetry.indicatedAirSpeed != null) {
         speedState = thresholds.evaluate(telemetry.indicatedAirSpeed!);
-      } else if (telemetry.speed != null) {
-        speedState = thresholds.evaluate(telemetry.speed!);
+      } else if (telemetry.groundSpeed != null) {
+        speedState = thresholds.evaluate(telemetry.groundSpeed!);
       }
     }
 
@@ -211,6 +220,35 @@ class SpeedTelemetryWidget extends ConsumerWidget {
           _buildSpeedRow('---', unitLabel, speedValueColor, defaultTextColor),
         );
       }
+    }
+
+    if (telemetry.gpsSatelliteCount != null) {
+      columnChildren.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 6.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.satellite_alt,
+                size: 12,
+                color: isConnected
+                    ? Colors.greenAccent.shade400
+                    : Colors.blueAccent,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Sats: ${telemetry.gpsSatelliteCount}',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: defaultTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return AnimatedContainer(

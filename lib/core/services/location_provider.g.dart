@@ -54,16 +54,55 @@ final positionStreamProvider = PositionStreamProvider._();
 final class PositionStreamProvider
     extends
         $FunctionalProvider<
-          AsyncValue<({double heading, double lat, double lon, double speed})>,
-          ({double heading, double lat, double lon, double speed}),
-          Stream<({double heading, double lat, double lon, double speed})>
+          AsyncValue<
+            ({
+              double groundSpeed,
+              double heading,
+              double horizontalAccuracy,
+              double lat,
+              double lon,
+              double verticalAccuracy,
+            })
+          >,
+          ({
+            double groundSpeed,
+            double heading,
+            double horizontalAccuracy,
+            double lat,
+            double lon,
+            double verticalAccuracy,
+          }),
+          Stream<
+            ({
+              double groundSpeed,
+              double heading,
+              double horizontalAccuracy,
+              double lat,
+              double lon,
+              double verticalAccuracy,
+            })
+          >
         >
     with
         $FutureModifier<
-          ({double heading, double lat, double lon, double speed})
+          ({
+            double groundSpeed,
+            double heading,
+            double horizontalAccuracy,
+            double lat,
+            double lon,
+            double verticalAccuracy,
+          })
         >,
         $StreamProvider<
-          ({double heading, double lat, double lon, double speed})
+          ({
+            double groundSpeed,
+            double heading,
+            double horizontalAccuracy,
+            double lat,
+            double lon,
+            double verticalAccuracy,
+          })
         > {
   PositionStreamProvider._()
     : super(
@@ -82,19 +121,34 @@ final class PositionStreamProvider
   @$internal
   @override
   $StreamProviderElement<
-    ({double heading, double lat, double lon, double speed})
+    ({
+      double groundSpeed,
+      double heading,
+      double horizontalAccuracy,
+      double lat,
+      double lon,
+      double verticalAccuracy,
+    })
   >
   $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
-  Stream<({double heading, double lat, double lon, double speed})> create(
-    Ref ref,
-  ) {
+  Stream<
+    ({
+      double groundSpeed,
+      double heading,
+      double horizontalAccuracy,
+      double lat,
+      double lon,
+      double verticalAccuracy,
+    })
+  >
+  create(Ref ref) {
     return positionStream(ref);
   }
 }
 
-String _$positionStreamHash() => r'e91bd88cc13b0d37f35bb8537cb994407ebbfcee';
+String _$positionStreamHash() => r'4265ccaf800f4786f7c92f2a4adf8bb5c0b68c7b';
 
 @ProviderFor(compassStream)
 final compassStreamProvider = CompassStreamProvider._();

@@ -32,12 +32,12 @@ class TelemetryNotifier extends _$TelemetryNotifier {
           : state.copyWith(heading: val);
     },
   );
-  late final DecayableField<double> _speed = DecayableField<double>(
+  late final DecayableField<double> _groundSpeed = DecayableField<double>(
     timeout: const Duration(seconds: 2),
     onChanged: (val) {
       state = val == null
-          ? state.resetField(TelemetryField.speed)
-          : state.copyWith(speed: val);
+          ? state.resetField(TelemetryField.groundSpeed)
+          : state.copyWith(groundSpeed: val);
       _updateIsFlying();
     },
   );
@@ -63,12 +63,12 @@ class TelemetryNotifier extends _$TelemetryNotifier {
           : state.copyWith(airPressure: val);
     },
   );
-  late final DecayableField<double> _altitude = DecayableField<double>(
+  late final DecayableField<double> _gpsAltitude = DecayableField<double>(
     timeout: const Duration(seconds: 2),
     onChanged: (val) {
       state = val == null
-          ? state.resetField(TelemetryField.altitude)
-          : state.copyWith(altitude: val);
+          ? state.resetField(TelemetryField.gpsAltitude)
+          : state.copyWith(gpsAltitude: val);
     },
   );
   late final DecayableField<double> _heightAboveGround = DecayableField<double>(
@@ -79,6 +79,34 @@ class TelemetryNotifier extends _$TelemetryNotifier {
           : state.copyWith(heightAboveGround: val);
     },
   );
+  late final DecayableField<int> _gpsSatelliteCount = DecayableField<int>(
+    timeout: const Duration(seconds: 1),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.gpsSatelliteCount)
+          : state.copyWith(gpsSatelliteCount: val);
+    },
+  );
+  late final DecayableField<double> _gpsHorizontalAccuracy =
+      DecayableField<double>(
+        timeout: const Duration(seconds: 2),
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.gpsHorizontalAccuracy)
+              : state.copyWith(gpsHorizontalAccuracy: val);
+        },
+      );
+  late final DecayableField<double> _gpsVerticalAccuracy =
+      DecayableField<double>(
+        timeout: const Duration(seconds: 2),
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.gpsVerticalAccuracy)
+              : state.copyWith(gpsVerticalAccuracy: val);
+        },
+      );
+
+  DateTime? _lastDroneCanFixTime;
 
   @override
   TelemetryState build() {
@@ -86,12 +114,15 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _latitude.cancel();
       _longitude.cancel();
       _heading.cancel();
-      _speed.cancel();
+      _groundSpeed.cancel();
       _indicatedAirSpeed.cancel();
       _engineRPM.cancel();
       _airPressure.cancel();
-      _altitude.cancel();
+      _gpsAltitude.cancel();
       _heightAboveGround.cancel();
+      _gpsSatelliteCount.cancel();
+      _gpsHorizontalAccuracy.cancel();
+      _gpsVerticalAccuracy.cancel();
     });
     return const TelemetryState();
   }
@@ -100,14 +131,41 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     double? latitude,
     double? longitude,
     double? heading,
-    double? speed,
+    double? groundSpeed,
+    int? gpsSatelliteCount,
+    double? gpsHorizontalAccuracy,
+    double? gpsVerticalAccuracy,
+    double? gpsAltitude,
+    bool isDroneCan = false,
   }) {
+    if (isDroneCan) {
+      _lastDroneCanFixTime = DateTime.now();
+    } else if (_lastDroneCanFixTime != null &&
+        DateTime.now().difference(_lastDroneCanFixTime!) <=
+            const Duration(seconds: 3)) {
+      // Discard/ignore phone's GPS data to avoid conflict with active DroneCAN Fix2 data
+      return;
+    }
+
     final oldState = state;
 
     if (latitude != null) _latitude.update(latitude);
     if (longitude != null) _longitude.update(longitude);
     if (heading != null) _heading.update(heading);
-    if (speed != null) _speed.update(speed);
+    if (groundSpeed != null) _groundSpeed.update(groundSpeed);
+
+    // Satellites will be explicitly set to null from phone's GPS (as requested).
+    // If it is explicitly passed, update it, otherwise it will decay.
+    _gpsSatelliteCount.update(gpsSatelliteCount);
+
+    if (gpsHorizontalAccuracy != null) {
+      _gpsHorizontalAccuracy.update(gpsHorizontalAccuracy);
+    }
+    if (gpsVerticalAccuracy != null) {
+      _gpsVerticalAccuracy.update(gpsVerticalAccuracy);
+    }
+
+    if (gpsAltitude != null) _gpsAltitude.update(gpsAltitude);
 
     // Auto-transition to overview if GPS is filled and we are in init/waiting state
     if ((oldState.mapViewState == MapViewState.init ||
@@ -131,8 +189,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _airPressure.update(pressure);
   }
 
-  void updateAltitude({double? altitude, double? heightAboveGround}) {
-    if (altitude != null) _altitude.update(altitude);
+  void updateHeightAboveGround(double? heightAboveGround) {
     if (heightAboveGround != null) _heightAboveGround.update(heightAboveGround);
   }
 
@@ -146,12 +203,15 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _latitude.sync(newState.latitude);
     _longitude.sync(newState.longitude);
     _heading.sync(newState.heading);
-    _speed.sync(newState.speed);
+    _groundSpeed.sync(newState.groundSpeed);
     _indicatedAirSpeed.sync(newState.indicatedAirSpeed);
     _engineRPM.sync(newState.engineRPM);
     _airPressure.sync(newState.airPressure);
-    _altitude.sync(newState.altitude);
+    _gpsAltitude.sync(newState.gpsAltitude);
     _heightAboveGround.sync(newState.heightAboveGround);
+    _gpsSatelliteCount.sync(newState.gpsSatelliteCount);
+    _gpsHorizontalAccuracy.sync(newState.gpsHorizontalAccuracy);
+    _gpsVerticalAccuracy.sync(newState.gpsVerticalAccuracy);
 
     _updateIsFlying();
   }
@@ -160,7 +220,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     final settings = ref.read(appSettingsProvider).value;
     final threshold = settings?.flightSpeedThresholds.inactiveMax ?? 2.77;
 
-    final currentSpeedMS = state.indicatedAirSpeed ?? state.speed;
+    final currentSpeedMS = state.indicatedAirSpeed ?? state.groundSpeed;
     final isFlying = currentSpeedMS != null && currentSpeedMS > threshold;
 
     if (state.isFlying != isFlying) {

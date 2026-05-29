@@ -16,13 +16,16 @@ void main() {
       expect(state.latitude, isNull);
       expect(state.longitude, isNull);
       expect(state.heading, isNull);
-      expect(state.speed, isNull);
+      expect(state.groundSpeed, isNull);
       expect(state.indicatedAirSpeed, isNull);
       expect(state.isFlying, isFalse);
       expect(state.engineRPM, isNull);
       expect(state.airPressure, isNull);
-      expect(state.altitude, isNull);
+      expect(state.gpsAltitude, isNull);
       expect(state.heightAboveGround, isNull);
+      expect(state.gpsSatelliteCount, isNull);
+      expect(state.gpsHorizontalAccuracy, isNull);
+      expect(state.gpsVerticalAccuracy, isNull);
       expect(state.mapViewState, equals(MapViewState.init));
     });
 
@@ -34,13 +37,13 @@ void main() {
         final notifier = container.read(telemetryProvider.notifier);
 
         // Update GPS fields
-        notifier.updateGPS(latitude: 45.0, longitude: 12.0, heading: 90.0, speed: 10.0);
+        notifier.updateGPS(latitude: 45.0, longitude: 12.0, heading: 90.0, groundSpeed: 10.0);
 
         var state = container.read(telemetryProvider);
         expect(state.latitude, equals(45.0));
         expect(state.longitude, equals(12.0));
         expect(state.heading, equals(90.0));
-        expect(state.speed, equals(10.0));
+        expect(state.groundSpeed, equals(10.0));
 
         // Advance 1.9 seconds, should still be there
         async.elapse(const Duration(milliseconds: 1900));
@@ -48,15 +51,15 @@ void main() {
         expect(state.latitude, equals(45.0));
         expect(state.longitude, equals(12.0));
         expect(state.heading, equals(90.0));
-        expect(state.speed, equals(10.0));
+        expect(state.groundSpeed, equals(10.0));
 
         // Advance another 0.11 seconds (over 2 seconds), should be null again
         async.elapse(const Duration(milliseconds: 110));
         state = container.read(telemetryProvider);
-        expect(state.latitude, isNull);
-        expect(state.longitude, isNull);
+        expect(state.latitude, equals(45.0)); // Latitude never decays (timeout: Duration.zero)
+        expect(state.longitude, equals(12.0)); // Longitude never decays (timeout: Duration.zero)
         expect(state.heading, isNull);
-        expect(state.speed, isNull);
+        expect(state.groundSpeed, isNull);
       });
     });
 
@@ -72,20 +75,20 @@ void main() {
         var state = container.read(telemetryProvider);
         expect(state.engineRPM, equals(2500.0));
 
-        // Advance 1.5 seconds
-        async.elapse(const Duration(milliseconds: 1500));
+        // Advance 0.5 seconds
+        async.elapse(const Duration(milliseconds: 500));
         state = container.read(telemetryProvider);
         expect(state.engineRPM, equals(2500.0));
 
         // Update to same value
         notifier.updateEngineRPM(2500.0);
 
-        // Advance 1.5 seconds (total 3s since start, but only 1.5s since update)
-        async.elapse(const Duration(milliseconds: 1500));
+        // Advance 0.5 seconds (total 1s since start, but only 0.5s since update)
+        async.elapse(const Duration(milliseconds: 500));
         state = container.read(telemetryProvider);
         expect(state.engineRPM, equals(2500.0));
 
-        // Advance 0.6 seconds (over 2s since update), should be null again
+        // Advance 0.6 seconds (over 1s since update), should be null again
         async.elapse(const Duration(milliseconds: 600));
         state = container.read(telemetryProvider);
         expect(state.engineRPM, isNull);
@@ -99,11 +102,11 @@ void main() {
 
         final notifier = container.read(telemetryProvider.notifier);
 
-        notifier.updateGPS(speed: 20.0); // Above default flight threshold (15.0)
+        notifier.updateGPS(groundSpeed: 20.0); // Above default flight threshold (2.77)
         notifier.setMapViewState(MapViewState.follow);
 
         var state = container.read(telemetryProvider);
-        expect(state.speed, equals(20.0));
+        expect(state.groundSpeed, equals(20.0));
         expect(state.isFlying, isTrue);
         expect(state.mapViewState, equals(MapViewState.follow));
 
@@ -111,8 +114,8 @@ void main() {
         async.elapse(const Duration(seconds: 3));
 
         state = container.read(telemetryProvider);
-        expect(state.speed, isNull); // decayed
-        expect(state.isFlying, isTrue); // maintained (excluded from timeout)
+        expect(state.groundSpeed, isNull); // decayed
+        expect(state.isFlying, isFalse); // decayed as groundSpeed decayed and is null
         expect(state.mapViewState, equals(MapViewState.follow)); // maintained (excluded from timeout)
       });
     });

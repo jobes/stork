@@ -15,7 +15,7 @@ Future<Geographic?> currentLocation(Ref ref) async {
 }
 
 @riverpod
-Stream<({double lat, double lon, double heading, double speed})> positionStream(
+Stream<({double lat, double lon, double heading, double groundSpeed, double horizontalAccuracy, double verticalAccuracy})> positionStream(
   Ref ref,
 ) {
   final mapViewState = ref.watch(
@@ -37,7 +37,9 @@ Stream<({double lat, double lon, double heading, double speed})> positionStream(
       lat: pos.latitude,
       lon: pos.longitude,
       heading: pos.heading,
-      speed: pos.speed,
+      groundSpeed: pos.speed,
+      horizontalAccuracy: pos.accuracy,
+      verticalAccuracy: pos.altitudeAccuracy,
     ),
   );
 }

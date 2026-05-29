@@ -11,15 +11,28 @@ import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../utils/geojson_builder.dart';
 
 part 'map_camera_provider.g.dart';
+part 'map_camera_interpolation.dart';
+part 'map_camera_style.dart';
 
 @riverpod
 class MapCamera extends _$MapCamera {
+  // Helper to access ref from part-files without protected member warnings
+  dynamic get refAccess => ref;
+
   MapController? _mapController;
   final _controllerCompleter = Completer<MapController>();
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
   int _programmaticMoveCount = 0;
   bool _isAircraftSymbolInitialized = false;
+
+  Timer? _interpolationTimer;
+  Geographic? _currentInterpolatedCenter;
+  double? _currentInterpolatedZoom;
+  double? _currentInterpolatedPitch;
+  double? _currentInterpolatedBearing;
+  DateTime? _lastUpdateTimestamp;
+  Duration _lastUpdateInterval = const Duration(seconds: 1);
 
   @override
   void build() {
@@ -28,7 +41,7 @@ class MapCamera extends _$MapCamera {
       if (_mapController == null) return;
 
       // Update aircraft symbol if initialized
-      if (_isAircraftSymbolInitialized && _mapController?.style != null) {
+      if (_isAircraftSymbolInitialized && _mapController?.style != null && _interpolationTimer == null) {
         if (next.latitude != previous?.latitude ||
             next.longitude != previous?.longitude ||
             next.heading != previous?.heading) {
@@ -46,7 +59,7 @@ class MapCamera extends _$MapCamera {
         if (next.latitude != previous?.latitude ||
             next.longitude != previous?.longitude ||
             next.heading != previous?.heading ||
-            next.speed != previous?.speed ||
+            next.groundSpeed != previous?.groundSpeed ||
             next.indicatedAirSpeed != previous?.indicatedAirSpeed ||
             next.isFlying != previous?.isFlying) {
           _mapController!.style!.updateGeoJsonSource(
@@ -62,34 +75,59 @@ class MapCamera extends _$MapCamera {
       // Handle mode transitions and continuous updates
       if (next.mapViewState == MapViewState.follow) {
         if (next.latitude != null && next.longitude != null && next.latitude != 0.0 && next.longitude != 0.0 && !_isFollowPaused) {
-          unawaited(
-            moveCamera(
-              center: center,
-              zoom: settings?.mapFollowZoom ?? 12.0,
-              pitch: 60,
-              bearing: next.heading ?? 0.0,
-              animate: true,
-            ),
-          );
-        }
-      } else if (next.mapViewState == MapViewState.overview) {
-        final stateChanged = previous?.mapViewState != next.mapViewState;
-        final coordsBecameValid =
-            (previous?.latitude == null || previous?.longitude == null || previous?.latitude == 0.0 || previous?.longitude == 0.0) &&
-            (next.latitude != null && next.longitude != null && next.latitude != 0.0 && next.longitude != 0.0);
+          final isContinuousFollow = previous?.mapViewState == MapViewState.follow;
+          if (isContinuousFollow) {
+            final now = DateTime.now();
+            if (_lastUpdateTimestamp != null) {
+              final interval = now.difference(_lastUpdateTimestamp!);
+              if (interval >= const Duration(milliseconds: 100) && interval <= const Duration(seconds: 5)) {
+                _lastUpdateInterval = interval;
+              }
+            }
+            _lastUpdateTimestamp = now;
 
-        if (stateChanged || coordsBecameValid) {
-          unawaited(
-            moveCamera(
-              center: center,
-              zoom: settings?.mapOverviewZoom ?? 10.0,
-              pitch: 0,
-              bearing: 0,
-              animate: kIsWeb && previous?.mapViewState != MapViewState.follow
-                  ? false
-                  : !coordsBecameValid,
-            ),
-          );
+            _startLinearInterpolation(
+              targetCenter: center,
+              targetZoom: settings?.mapFollowZoom ?? 12.0,
+              targetPitch: 60,
+              targetBearing: next.heading ?? 0.0,
+              duration: _lastUpdateInterval,
+            );
+          } else {
+            _lastUpdateTimestamp = DateTime.now();
+            _lastUpdateInterval = const Duration(seconds: 1);
+            unawaited(
+              moveCamera(
+                center: center,
+                zoom: settings?.mapFollowZoom ?? 12.0,
+                pitch: 60,
+                bearing: next.heading ?? 0.0,
+                animate: true,
+              ),
+            );
+          }
+        }
+      } else {
+        _cancelInterpolation();
+        if (next.mapViewState == MapViewState.overview) {
+          final stateChanged = previous?.mapViewState != next.mapViewState;
+          final coordsBecameValid =
+              (previous?.latitude == null || previous?.longitude == null || previous?.latitude == 0.0 || previous?.longitude == 0.0) &&
+              (next.latitude != null && next.longitude != null && next.latitude != 0.0 && next.longitude != 0.0);
+
+          if (stateChanged || coordsBecameValid) {
+            unawaited(
+              moveCamera(
+                center: center,
+                zoom: settings?.mapOverviewZoom ?? 10.0,
+                pitch: 0,
+                bearing: 0,
+                animate: kIsWeb && previous?.mapViewState != MapViewState.follow
+                    ? false
+                    : !coordsBecameValid,
+              ),
+            );
+          }
         }
       }
     });
@@ -131,13 +169,16 @@ class MapCamera extends _$MapCamera {
       next.whenData((location) {
         final telemetry = ref.read(telemetryProvider);
         if (telemetry.mapViewState != MapViewState.init) {
-          // Update position and speed first to let telemetry update isFlying state
+          // Update position and groundSpeed first to let telemetry update isFlying state
           ref
               .read(telemetryProvider.notifier)
               .updateGPS(
                 latitude: location.lat,
                 longitude: location.lon,
-                speed: location.speed,
+                groundSpeed: location.groundSpeed,
+                gpsSatelliteCount: null, // Phone GPS satellites set to null as per requirement
+                gpsHorizontalAccuracy: location.horizontalAccuracy,
+                gpsVerticalAccuracy: location.verticalAccuracy,
               );
 
           // Use GPS heading only if we are flying (according to telemetry logic)
@@ -166,6 +207,7 @@ class MapCamera extends _$MapCamera {
     // Clean up timer on dispose
     ref.onDispose(() {
       _followResumeTimer?.cancel();
+      _cancelInterpolation();
     });
   }
 
@@ -208,7 +250,9 @@ class MapCamera extends _$MapCamera {
     double pitch = 0,
     double bearing = 0,
     bool animate = true,
+    Duration? duration,
   }) async {
+    _cancelInterpolation();
     if (_mapController != null && center.lat != 0 && center.lon != 0) {
       _programmaticMoveCount++;
       try {
@@ -218,6 +262,8 @@ class MapCamera extends _$MapCamera {
             zoom: zoom,
             pitch: pitch,
             bearing: bearing,
+            nativeDuration: duration ?? const Duration(seconds: 2),
+            webMaxDuration: duration,
           );
         } else {
           _mapController!.moveCamera(
@@ -236,7 +282,7 @@ class MapCamera extends _$MapCamera {
 
   void handleUserInteraction({bool isExplicitInteraction = true}) {
     // Only proceed if it's not a programmatical movement
-    if (!isExplicitInteraction && _programmaticMoveCount > 0) return;
+    if (!isExplicitInteraction && (_programmaticMoveCount > 0 || _interpolationTimer != null)) return;
 
     final telemetry = ref.read(telemetryProvider);
     if (telemetry.mapViewState != MapViewState.follow) return;
@@ -244,6 +290,7 @@ class MapCamera extends _$MapCamera {
     _followResumeTimer?.cancel();
     if (!_isFollowPaused) {
       _isFollowPaused = true;
+      _cancelInterpolation();
     }
 
     _followResumeTimer = Timer(const Duration(seconds: 5), () {
@@ -376,85 +423,5 @@ class MapCamera extends _$MapCamera {
     }
   }
 
-  Future<void> handleStyleLoaded(StyleController style) async {
-    try {
-      await style.addImageFromAssets(
-        id: 'aircraft-icon',
-        asset: 'assets/images/aircraft.png',
-      );
-      if (!ref.mounted) return;
-
-      final telemetry = ref.read(telemetryProvider);
-      final settings = ref.read(appSettingsProvider).value;
-
-      await style.addSource(
-        GeoJsonSource(
-          id: 'course-line-source',
-          data: GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
-        ),
-      );
-      if (!ref.mounted) return;
-
-      await style.addLayer(
-        LineStyleLayer(
-          id: 'course-line-border',
-          sourceId: 'course-line-source',
-          paint: {
-            'line-color': '#000000',
-            'line-width': 5.0,
-          },
-        ),
-      );
-      if (!ref.mounted) return;
-
-      await style.addLayer(
-        LineStyleLayer(
-          id: 'course-line-white',
-          sourceId: 'course-line-source',
-          filter: ['==', 'isEven', false],
-          paint: {
-            'line-color': '#FFFFFF',
-            'line-width': 3.0,
-          },
-        ),
-      );
-      if (!ref.mounted) return;
-
-      await style.addSource(
-        GeoJsonSource(
-          id: 'aircraft-source',
-          data: GeoJsonBuilder.buildAircraftGeoJson(
-            telemetry.latitude,
-            telemetry.longitude,
-            telemetry.heading,
-          ),
-        ),
-      );
-      if (!ref.mounted) return;
-
-      await style.addLayer(
-        SymbolStyleLayer(
-          id: 'aircraft-layer',
-          sourceId: 'aircraft-source',
-          layout: {
-            'icon-image': 'aircraft-icon',
-            'icon-rotate': ['get', 'heading'],
-            'icon-rotation-alignment': 'map',
-            'icon-pitch-alignment': 'viewport',
-            'icon-allow-overlap': true,
-            'icon-ignore-placement': true,
-            'icon-size': 1 / 4,
-          },
-        ),
-      );
-      if (!ref.mounted) return;
-
-      _isAircraftSymbolInitialized = true;
-      debugPrint('Aircraft symbol initialized 😎');
-    } catch (e) {
-      debugPrint('Error initializing native aircraft symbol: $e');
-    }
-  }
-
-  bool get isMovingProgrammatically => _programmaticMoveCount > 0;
+  bool get isMovingProgrammatically => _programmaticMoveCount > 0 || _interpolationTimer != null;
 }
