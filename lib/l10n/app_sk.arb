@@ -125,5 +125,22 @@
   "courseLineSettings": "Smerová čiara letu",
   "courseLineSegmentsCount": "Počet segmentov",
   "courseLineSegmentDuration": "Dĺžka segmentu (sekundy)",
-  "durationSuffix": " s"
+  "durationSuffix": " s",
+  "speedDetailsTitle": "Detaily rýchlosti",
+  "iasAvailable": "IAS dostupná",
+  "gpsSpeedAvailable": "GPS rýchlosť dostupná",
+  "gpsAccuracy": "Presnosť GPS",
+  "horizontalAccuracy": "Horizontálna presnosť",
+  "verticalAccuracy": "Vertikálna presnosť",
+  "satelliteCount": "Počet satelitov",
+  "gpsAltitude": "GPS nadmorská výška",
+  "valueYes": "Áno",
+  "valueNo": "Nie",
+  "valueNotAvailable": "Nedostupné",
+  "indicatedAirSpeedShort": "Indikovaná vzdušná rýchlosť (IAS)",
+  "groundSpeedShort": "Rýchlosť voči zemi (GS)",
+  "speedSource": "Zdroj rýchlosti",
+  "activeThreshold": "Aktívny limit rýchlosti",
+  "gpsSourceInternal": "Interné GPS (Telefón)",
+  "gpsSourceDroneCan": "DroneCAN (Prijímač)"
 }

@@ -231,4 +231,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get durationSuffix => ' s';
+
+  @override
+  String get speedDetailsTitle => 'Speed Details';
+
+  @override
+  String get iasAvailable => 'IAS Available';
+
+  @override
+  String get gpsSpeedAvailable => 'GPS Speed Available';
+
+  @override
+  String get gpsAccuracy => 'GPS Accuracy';
+
+  @override
+  String get horizontalAccuracy => 'Horizontal Accuracy';
+
+  @override
+  String get verticalAccuracy => 'Vertical Accuracy';
+
+  @override
+  String get satelliteCount => 'Satellite Count';
+
+  @override
+  String get gpsAltitude => 'GPS Altitude';
+
+  @override
+  String get valueYes => 'Yes';
+
+  @override
+  String get valueNo => 'No';
+
+  @override
+  String get valueNotAvailable => 'N/A';
+
+  @override
+  String get indicatedAirSpeedShort => 'Indicated Airspeed (IAS)';
+
+  @override
+  String get groundSpeedShort => 'Ground Speed (GS)';
+
+  @override
+  String get speedSource => 'Speed Source';
+
+  @override
+  String get activeThreshold => 'Active Speed Threshold';
+
+  @override
+  String get gpsSourceInternal => 'Internal GPS (Phone)';
+
+  @override
+  String get gpsSourceDroneCan => 'DroneCAN (Receiver)';
 }

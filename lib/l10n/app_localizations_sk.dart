@@ -231,4 +231,55 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get durationSuffix => ' s';
+
+  @override
+  String get speedDetailsTitle => 'Detaily rýchlosti';
+
+  @override
+  String get iasAvailable => 'IAS dostupná';
+
+  @override
+  String get gpsSpeedAvailable => 'GPS rýchlosť dostupná';
+
+  @override
+  String get gpsAccuracy => 'Presnosť GPS';
+
+  @override
+  String get horizontalAccuracy => 'Horizontálna presnosť';
+
+  @override
+  String get verticalAccuracy => 'Vertikálna presnosť';
+
+  @override
+  String get satelliteCount => 'Počet satelitov';
+
+  @override
+  String get gpsAltitude => 'GPS nadmorská výška';
+
+  @override
+  String get valueYes => 'Áno';
+
+  @override
+  String get valueNo => 'Nie';
+
+  @override
+  String get valueNotAvailable => 'Nedostupné';
+
+  @override
+  String get indicatedAirSpeedShort => 'Indikovaná vzdušná rýchlosť (IAS)';
+
+  @override
+  String get groundSpeedShort => 'Rýchlosť voči zemi (GS)';
+
+  @override
+  String get speedSource => 'Zdroj rýchlosti';
+
+  @override
+  String get activeThreshold => 'Aktívny limit rýchlosti';
+
+  @override
+  String get gpsSourceInternal => 'Interné GPS (Telefón)';
+
+  @override
+  String get gpsSourceDroneCan => 'DroneCAN (Prijímač)';
 }

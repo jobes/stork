@@ -27,6 +27,14 @@ Stream<({double lat, double lon, double heading, double groundSpeed, double hori
     return const Stream.empty();
   }
 
+  // Turn off internal GPS when DroneCAN GPS is active to save battery
+  final isGpsDroneCan = ref.watch(
+    telemetryProvider.select((s) => s.isGpsDroneCan),
+  );
+  if (isGpsDroneCan) {
+    return const Stream.empty();
+  }
+
   return geo.Geolocator.getPositionStream(
     locationSettings: const geo.LocationSettings(
       accuracy: geo.LocationAccuracy.high,

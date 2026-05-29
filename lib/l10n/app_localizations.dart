@@ -511,6 +511,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **' s'**
   String get durationSuffix;
+
+  /// No description provided for @speedDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed Details'**
+  String get speedDetailsTitle;
+
+  /// No description provided for @iasAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'IAS Available'**
+  String get iasAvailable;
+
+  /// No description provided for @gpsSpeedAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Speed Available'**
+  String get gpsSpeedAvailable;
+
+  /// No description provided for @gpsAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Accuracy'**
+  String get gpsAccuracy;
+
+  /// No description provided for @horizontalAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal Accuracy'**
+  String get horizontalAccuracy;
+
+  /// No description provided for @verticalAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical Accuracy'**
+  String get verticalAccuracy;
+
+  /// No description provided for @satelliteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Satellite Count'**
+  String get satelliteCount;
+
+  /// No description provided for @gpsAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Altitude'**
+  String get gpsAltitude;
+
+  /// No description provided for @valueYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get valueYes;
+
+  /// No description provided for @valueNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get valueNo;
+
+  /// No description provided for @valueNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get valueNotAvailable;
+
+  /// No description provided for @indicatedAirSpeedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Indicated Airspeed (IAS)'**
+  String get indicatedAirSpeedShort;
+
+  /// No description provided for @groundSpeedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Ground Speed (GS)'**
+  String get groundSpeedShort;
+
+  /// No description provided for @speedSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed Source'**
+  String get speedSource;
+
+  /// No description provided for @activeThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Speed Threshold'**
+  String get activeThreshold;
+
+  /// No description provided for @gpsSourceInternal.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal GPS (Phone)'**
+  String get gpsSourceInternal;
+
+  /// No description provided for @gpsSourceDroneCan.
+  ///
+  /// In en, this message translates to:
+  /// **'DroneCAN (Receiver)'**
+  String get gpsSourceDroneCan;
 }
 
 class _AppLocalizationsDelegate

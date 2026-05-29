@@ -148,6 +148,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     }
 
     final oldState = state;
+    state = state.copyWith(isGpsDroneCan: isDroneCan);
 
     if (latitude != null) _latitude.update(latitude);
     if (longitude != null) _longitude.update(longitude);
