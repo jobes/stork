@@ -174,5 +174,7 @@
   "speedSource": "Speed Source",
   "activeThreshold": "Active Speed Threshold",
   "gpsSourceInternal": "Internal GPS (Phone)",
-  "gpsSourceDroneCan": "DroneCAN (Receiver)"
+  "gpsSourceDroneCan": "DroneCAN (Receiver)",
+  "gpsNotificationTitle": "Stork GPS Service",
+  "gpsNotificationText": "Tracking location in background"
 }

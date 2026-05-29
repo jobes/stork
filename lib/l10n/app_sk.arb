@@ -142,5 +142,7 @@
   "speedSource": "Zdroj rýchlosti",
   "activeThreshold": "Aktívny limit rýchlosti",
   "gpsSourceInternal": "Interné GPS (Telefón)",
-  "gpsSourceDroneCan": "DroneCAN (Prijímač)"
+  "gpsSourceDroneCan": "DroneCAN (Prijímač)",
+  "gpsNotificationTitle": "GPS Služba Stork",
+  "gpsNotificationText": "Sledovanie polohy na pozadí"
 }

@@ -613,6 +613,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DroneCAN (Receiver)'**
   String get gpsSourceDroneCan;
+
+  /// No description provided for @gpsNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork GPS Service'**
+  String get gpsNotificationTitle;
+
+  /// No description provided for @gpsNotificationText.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking location in background'**
+  String get gpsNotificationText;
 }
 
 class _AppLocalizationsDelegate

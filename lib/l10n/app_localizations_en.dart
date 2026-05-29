@@ -282,4 +282,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsSourceDroneCan => 'DroneCAN (Receiver)';
+
+  @override
+  String get gpsNotificationTitle => 'Stork GPS Service';
+
+  @override
+  String get gpsNotificationText => 'Tracking location in background';
 }

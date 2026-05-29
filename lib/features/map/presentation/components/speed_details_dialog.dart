@@ -2,8 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/cannelloni_service_io.dart'
-    if (dart.library.html) '../../../../core/services/cannelloni_service_stub.dart';
+
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/domain/range_thresholds.dart';
 import '../../../settings/domain/speed_unit.dart';
@@ -16,7 +15,6 @@ class SpeedDetailsDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final telemetry = ref.watch(telemetryProvider);
-    final isConnected = ref.watch(cannelloniServiceProvider);
     final settings = ref.watch(appSettingsProvider).value;
     final thresholds = settings?.flightSpeedThresholds ?? const RangeThresholds.raw();
     final l10n = AppLocalizations.of(context)!;
@@ -253,41 +251,6 @@ class SpeedDetailsDialog extends ConsumerWidget {
                             ? '± ${telemetry.gpsVerticalAccuracy!.toStringAsFixed(1)} m'
                             : l10n.valueNotAvailable,
                         isDark: isDark,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Connected status summary
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isConnected
-                        ? Colors.green.withAlpha(30)
-                        : Colors.orange.withAlpha(30),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isConnected ? Colors.green.withAlpha(60) : Colors.orange.withAlpha(60),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isConnected ? Icons.cloud_done : Icons.cloud_off,
-                        color: isConnected ? Colors.green : Colors.orange,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          isConnected ? "Connected to Cannelloni Telemetry Gateway" : "Offline Device GPS Mode",
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isConnected ? Colors.green : Colors.orange,
-                          ),
-                        ),
                       ),
                     ],
                   ),

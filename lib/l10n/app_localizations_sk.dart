@@ -282,4 +282,10 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get gpsSourceDroneCan => 'DroneCAN (Prijímač)';
+
+  @override
+  String get gpsNotificationTitle => 'GPS Služba Stork';
+
+  @override
+  String get gpsNotificationText => 'Sledovanie polohy na pozadí';
 }

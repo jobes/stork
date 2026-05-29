@@ -29,6 +29,8 @@ class Fix2 implements DroneCanMessage {
   final int satellites;
   final int status;
   final double pdop;
+  final int mode;
+  final int subMode;
   final List<double> positionCovariance;
   final List<double> velocityCovariance;
 
@@ -48,6 +50,8 @@ class Fix2 implements DroneCanMessage {
     required this.satellites,
     required this.status,
     required this.pdop,
+    required this.mode,
+    required this.subMode,
     required this.positionCovariance,
     required this.velocityCovariance,
     required this.horizontalAccuracy,
@@ -55,9 +59,9 @@ class Fix2 implements DroneCanMessage {
   });
 
   factory Fix2.fromPayload(Uint8List payload) {
-    if (payload.length < 47) {
+    if (payload.length < 50) {
       throw FormatException(
-        'Payload too short for Fix2 GNSS message (got ${payload.length} bytes, expected at least 47)',
+        'Payload too short for Fix2 GNSS message (got ${payload.length} bytes, expected at least 50)',
       );
     }
 
@@ -98,21 +102,24 @@ class Fix2 implements DroneCanMessage {
 
     final satsUsed = reader.readUint(6);
     final statusVal = reader.readUint(2);
+
+    final modeVal = reader.readUint(4);
+    final subModeVal = reader.readUint(6);
+
+    // covariance: float16[<=36]
+    final covLen = reader.readUint(6);
+    final cov = <double>[];
+    for (var i = 0; i < covLen; i++) {
+      cov.add(reader.readFloat16());
+    }
+
     final pdopVal = reader.readFloat16();
 
-    // position_covariance: float16[<=9]
-    final posCovLen = reader.readUint(4);
-    final posCov = <double>[];
-    for (var i = 0; i < posCovLen; i++) {
-      posCov.add(reader.readFloat16());
-    }
-
-    // velocity_covariance: float16[<=9]
-    final velCovLen = reader.readUint(4);
-    final velCov = <double>[];
-    for (var i = 0; i < velCovLen; i++) {
-      velCov.add(reader.readFloat16());
-    }
+    // Split covariance into position and velocity portions
+    final posCov = cov.sublist(0, math.min(9, cov.length));
+    final velCov = cov.length > 9
+        ? cov.sublist(9, math.min(18, cov.length))
+        : <double>[];
 
     // Calculate horizontal accuracy (EPH) and vertical accuracy (EPV)
     double? horAcc;
@@ -129,10 +136,16 @@ class Fix2 implements DroneCanMessage {
         final varD = posCov[2];
         horAcc = math.sqrt(varN + varE);
         vertAcc = math.sqrt(varD);
-      } else if (posCov.length >= 6) {
+      } else if (posCov.length == 6) {
         final varN = posCov[0];
         final varE = posCov[3];
         final varD = posCov[5];
+        horAcc = math.sqrt(varN + varE);
+        vertAcc = math.sqrt(varD);
+      } else if (posCov.length >= 9) {
+        final varN = posCov[0];
+        final varE = posCov[4];
+        final varD = posCov[8];
         horAcc = math.sqrt(varN + varE);
         vertAcc = math.sqrt(varD);
       }
@@ -151,6 +164,8 @@ class Fix2 implements DroneCanMessage {
       satellites: satsUsed,
       status: statusVal,
       pdop: pdopVal,
+      mode: modeVal,
+      subMode: subModeVal,
       positionCovariance: posCov,
       velocityCovariance: velCov,
       horizontalAccuracy: horAcc,
@@ -160,6 +175,6 @@ class Fix2 implements DroneCanMessage {
 
   @override
   String toString() {
-    return 'Fix2(lat: ${latitude.toStringAsFixed(6)}, lon: ${longitude.toStringAsFixed(6)}, alt: ${altitude.toStringAsFixed(2)}m, sats: $satellites, gSpeed: ${groundSpeed?.toStringAsFixed(1)} m/s, heading: ${heading?.toStringAsFixed(0)}°, hAcc: ${horizontalAccuracy?.toStringAsFixed(2)}m, vAcc: ${verticalAccuracy?.toStringAsFixed(2)}m)';
+    return 'Fix2(lat: ${latitude.toStringAsFixed(6)}, lon: ${longitude.toStringAsFixed(6)}, alt: ${altitude.toStringAsFixed(2)}m, sats: $satellites, gSpeed: ${groundSpeed?.toStringAsFixed(1)} m/s, heading: ${heading?.toStringAsFixed(0)}°, hAcc: ${horizontalAccuracy?.toStringAsFixed(2)}m, vAcc: ${verticalAccuracy?.toStringAsFixed(2)}m, mode: $mode, subMode: $subMode)';
   }
 }
