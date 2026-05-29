@@ -266,6 +266,12 @@ class AppLocalizationsSk extends AppLocalizations {
   String get valueNotAvailable => 'Nedostupné';
 
   @override
+  String get iasShortTitle => 'IAS';
+
+  @override
+  String get gsShortTitle => 'GS';
+
+  @override
   String get indicatedAirSpeedShort => 'Indikovaná vzdušná rýchlosť (IAS)';
 
   @override

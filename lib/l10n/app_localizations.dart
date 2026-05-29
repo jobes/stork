@@ -578,6 +578,18 @@ abstract class AppLocalizations {
   /// **'N/A'**
   String get valueNotAvailable;
 
+  /// No description provided for @iasShortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'IAS'**
+  String get iasShortTitle;
+
+  /// No description provided for @gsShortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GS'**
+  String get gsShortTitle;
+
   /// No description provided for @indicatedAirSpeedShort.
   ///
   /// In en, this message translates to:

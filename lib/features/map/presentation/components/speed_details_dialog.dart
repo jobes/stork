@@ -151,7 +151,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                     Expanded(
                       child: _buildSpeedCard(
                         context: context,
-                        title: "IAS",
+                        title: l10n.iasShortTitle,
                         subTitle: l10n.indicatedAirSpeedShort,
                         value: ias != null ? ias.toStringAsFixed(0) : '---',
                         unit: unitLabel,
@@ -168,7 +168,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                     Expanded(
                       child: _buildSpeedCard(
                         context: context,
-                        title: "GS",
+                        title: l10n.gsShortTitle,
                         subTitle: l10n.groundSpeedShort,
                         value: gs != null ? gs.toStringAsFixed(0) : '---',
                         unit: unitLabel,

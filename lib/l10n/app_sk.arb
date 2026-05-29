@@ -137,6 +137,8 @@
   "valueYes": "Áno",
   "valueNo": "Nie",
   "valueNotAvailable": "Nedostupné",
+  "iasShortTitle": "IAS",
+  "gsShortTitle": "GS",
   "indicatedAirSpeedShort": "Indikovaná vzdušná rýchlosť (IAS)",
   "groundSpeedShort": "Rýchlosť voči zemi (GS)",
   "speedSource": "Zdroj rýchlosti",

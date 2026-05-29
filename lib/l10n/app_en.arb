@@ -169,6 +169,8 @@
   "valueYes": "Yes",
   "valueNo": "No",
   "valueNotAvailable": "N/A",
+  "iasShortTitle": "IAS",
+  "gsShortTitle": "GS",
   "indicatedAirSpeedShort": "Indicated Airspeed (IAS)",
   "groundSpeedShort": "Ground Speed (GS)",
   "speedSource": "Speed Source",

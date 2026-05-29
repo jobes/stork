@@ -266,6 +266,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get valueNotAvailable => 'N/A';
 
   @override
+  String get iasShortTitle => 'IAS';
+
+  @override
+  String get gsShortTitle => 'GS';
+
+  @override
   String get indicatedAirSpeedShort => 'Indicated Airspeed (IAS)';
 
   @override
