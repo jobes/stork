@@ -41,7 +41,7 @@ final class CannelloniServiceProvider
   }
 }
 
-String _$cannelloniServiceHash() => r'32237ecdd0f35fd6d8a081b0f39e1ee2a3f958f0';
+String _$cannelloniServiceHash() => r'ddc144f47604eeeeb97e546b9b494b9aa6f71113';
 
 abstract class _$CannelloniService extends $Notifier<bool> {
   bool build();

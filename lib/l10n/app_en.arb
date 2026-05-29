@@ -157,5 +157,26 @@
   "durationSuffix": " s",
   "@durationSuffix": {
     "description": "Suffix for duration values with a leading space"
-  }
+  },
+  "speedDetailsTitle": "Speed Details",
+  "iasAvailable": "IAS Available",
+  "gpsSpeedAvailable": "GPS Speed Available",
+  "gpsAccuracy": "GPS Accuracy",
+  "horizontalAccuracy": "Horizontal Accuracy",
+  "verticalAccuracy": "Vertical Accuracy",
+  "satelliteCount": "Satellite Count",
+  "gpsAltitude": "GPS Altitude",
+  "valueYes": "Yes",
+  "valueNo": "No",
+  "valueNotAvailable": "N/A",
+  "iasShortTitle": "IAS",
+  "gsShortTitle": "GS",
+  "indicatedAirSpeedShort": "Indicated Airspeed (IAS)",
+  "groundSpeedShort": "Ground Speed (GS)",
+  "speedSource": "Speed Source",
+  "activeThreshold": "Active Speed Threshold",
+  "gpsSourceInternal": "Internal GPS (Phone)",
+  "gpsSourceDroneCan": "DroneCAN (Receiver)",
+  "gpsNotificationTitle": "Stork GPS Service",
+  "gpsNotificationText": "Tracking location in background"
 }

@@ -389,6 +389,20 @@ class CannelloniService extends _$CannelloniService {
     ref.read(telemetryProvider.notifier).updatePressure(pressure);
   }
 
+  void _updateTelemetryGPS(Fix2 fix2) {
+    ref.read(telemetryProvider.notifier).updateGPS(
+      latitude: fix2.latitude,
+      longitude: fix2.longitude,
+      heading: fix2.heading,
+      groundSpeed: fix2.groundSpeed,
+      gpsSatelliteCount: fix2.satellites,
+      gpsHorizontalAccuracy: fix2.horizontalAccuracy,
+      gpsVerticalAccuracy: fix2.verticalAccuracy,
+      gpsAltitude: fix2.altitude,
+      isDroneCan: true,
+    );
+  }
+
   void _handleGetNodeInfoRequest({
     required int transferId,
     required int sourceNodeId,
@@ -465,6 +479,9 @@ void _storkCanardTransferCallback(
         sourceNodeId: sourceNodeId,
         priority: priority,
       );
+    } else if (dataTypeId == Fix2.messageId) {
+      final fix2Msg = Fix2.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryGPS(fix2Msg);
     }
   } catch (e) {
     debugPrint('Error in native transfer callback: $e');
@@ -490,6 +507,10 @@ int _storkCanardShouldAcceptCallback(
       }
       if (dataTypeId == StaticPressure.messageId) {
         outDataTypeSignature.value = StaticPressure.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == Fix2.messageId) {
+        outDataTypeSignature.value = Fix2.messageSignature;
         return 1;
       }
     } else {

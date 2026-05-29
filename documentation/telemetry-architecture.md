@@ -126,9 +126,12 @@ late final DecayableField<double> _heading = DecayableField<double>(
 | :--- | :--- | :--- |
 | **`latitude` / `longitude`** | `Duration.zero` (No decay) | Managed by higher-level GPS providers. |
 | **`heading`** | `2 seconds` | Safe rotation updates; prevents heading drift displays. |
-| **`speed`** | `2 seconds` | Ensures sudden deceleration or dropouts are shown instantly. |
+| **`groundSpeed`** | `2 seconds` | Ensures sudden deceleration or dropouts are shown instantly. |
 | **`indicatedAirSpeed`** | `1 second` (Default) | Critical flight dynamic data; must expire immediately if lost. |
-| **`altitude`** | `2 seconds` | Avoids presenting outdated altitude during rapid descents. |
+| **`gpsAltitude`** | `2 seconds` | Avoids presenting outdated altitude during rapid descents. |
 | **`heightAboveGround`** | `2 seconds` | Critical terrain clearance parameter. |
+| **`gpsSatelliteCount`** | `1 second` | Standard GPS quality check parameter. |
+| **`gpsHorizontalAccuracy`**| `2 seconds` | Used to evaluate position precision. |
+| **`gpsVerticalAccuracy`**  | `2 seconds` | Used to evaluate altitude precision. |
 | **`engineRPM`** | `1 second` (Default) | Immediate notification if motor/engine telemetry is interrupted. |
 | **`airPressure`** | `1 second` (Default) | Essential sensor input. |

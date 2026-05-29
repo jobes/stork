@@ -1,9 +1,13 @@
+import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:maplibre/maplibre.dart';
 import 'location_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../../features/telemetry/domain/models/map_view_state.dart';
 import '../../../features/telemetry/presentation/providers/telemetry_provider.dart';
 
@@ -15,9 +19,17 @@ Future<Geographic?> currentLocation(Ref ref) async {
 }
 
 @riverpod
-Stream<({double lat, double lon, double heading, double speed})> positionStream(
-  Ref ref,
-) {
+Stream<
+  ({
+    double lat,
+    double lon,
+    double heading,
+    double groundSpeed,
+    double horizontalAccuracy,
+    double verticalAccuracy,
+  })
+>
+positionStream(Ref ref) {
   final mapViewState = ref.watch(
     telemetryProvider.select((s) => s.mapViewState),
   );
@@ -27,17 +39,47 @@ Stream<({double lat, double lon, double heading, double speed})> positionStream(
     return const Stream.empty();
   }
 
+  // Turn off internal GPS when DroneCAN GPS is active to save battery
+  final isGpsDroneCan = ref.watch(
+    telemetryProvider.select((s) => s.isGpsDroneCan),
+  );
+  if (isGpsDroneCan) {
+    return const Stream.empty();
+  }
+
+  final geo.LocationSettings locationSettings;
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    final locale = ui.PlatformDispatcher.instance.locale;
+    final isSupported = AppLocalizations.supportedLocales
+        .any((l) => l.languageCode == locale.languageCode);
+    final supportedLocale = isSupported ? locale : const Locale('en');
+    final l10n = lookupAppLocalizations(supportedLocale);
+
+    locationSettings = geo.AndroidSettings(
+      accuracy: geo.LocationAccuracy.bestForNavigation,
+      intervalDuration: const Duration(seconds: 1),
+      foregroundNotificationConfig: geo.ForegroundNotificationConfig(
+        notificationTitle: l10n.gpsNotificationTitle,
+        notificationText: l10n.gpsNotificationText,
+        enableWakeLock: true,
+      ),
+    );
+  } else {
+    locationSettings = const geo.LocationSettings(
+      accuracy: geo.LocationAccuracy.bestForNavigation,
+    );
+  }
+
   return geo.Geolocator.getPositionStream(
-    locationSettings: const geo.LocationSettings(
-      accuracy: geo.LocationAccuracy.high,
-      distanceFilter: 1,
-    ),
+    locationSettings: locationSettings,
   ).map(
     (pos) => (
       lat: pos.latitude,
       lon: pos.longitude,
       heading: pos.heading,
-      speed: pos.speed,
+      groundSpeed: pos.speed,
+      horizontalAccuracy: pos.accuracy,
+      verticalAccuracy: pos.altitudeAccuracy,
     ),
   );
 }

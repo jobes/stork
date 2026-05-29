@@ -9,6 +9,7 @@ import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/range_thresholds.dart';
 import '../../../settings/domain/speed_unit.dart';
+import 'speed_details_dialog.dart';
 
 class SpeedTelemetryWidget extends ConsumerWidget {
   const SpeedTelemetryWidget({super.key});
@@ -71,7 +72,12 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     }
   }
 
-  Widget _buildSpeedRow(String value, String unit, Color valueColor, Color unitColor) {
+  Widget _buildSpeedRow(
+    String value,
+    String unit,
+    Color valueColor,
+    Color unitColor,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
@@ -108,112 +114,75 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     final speedValueColor = isDark ? Colors.white : Colors.black;
 
     final speedUnit = settings?.speedUnit ?? SpeedUnit.kmh;
-    final double? ias = telemetry.indicatedAirSpeed != null ? speedUnit.convertFromMs(telemetry.indicatedAirSpeed!) : null;
-    final double? gs = telemetry.speed != null ? speedUnit.convertFromMs(telemetry.speed!) : null;
+    final double? ias = telemetry.indicatedAirSpeed != null
+        ? speedUnit.convertFromMs(telemetry.indicatedAirSpeed!)
+        : null;
+    final double? gs = telemetry.groundSpeed != null
+        ? speedUnit.convertFromMs(telemetry.groundSpeed!)
+        : null;
     final String unitLabel = speedUnit.getAbbreviation(l10n);
 
     ThresholdState speedState = ThresholdState.inactive;
     if (!isConnected) {
-      if (telemetry.speed != null) {
-        speedState = thresholds.evaluate(telemetry.speed!);
+      if (telemetry.groundSpeed != null) {
+        speedState = thresholds.evaluate(telemetry.groundSpeed!);
       }
     } else {
       if (telemetry.indicatedAirSpeed != null) {
         speedState = thresholds.evaluate(telemetry.indicatedAirSpeed!);
-      } else if (telemetry.speed != null) {
-        speedState = thresholds.evaluate(telemetry.speed!);
+      } else if (telemetry.groundSpeed != null) {
+        speedState = thresholds.evaluate(telemetry.groundSpeed!);
       }
     }
 
-    List<Widget> columnChildren = [];
+    final List<Widget> columnChildren = [];
 
-    if (!isConnected) {
-      // Offline mode: Show only GS or ---
-      final speedText = gs != null ? gs.toStringAsFixed(0).padLeft(3) : '---';
+    if (ias != null && gs != null) {
       columnChildren.add(
-        _buildSpeedRow(speedText, unitLabel, speedValueColor, defaultTextColor),
+        _buildSpeedRow(
+          ias.toStringAsFixed(0).padLeft(3),
+          unitLabel,
+          speedValueColor,
+          defaultTextColor,
+        ),
+      );
+      columnChildren.add(
+        Text(
+          l10n.gsSpeedLabel(gs.toStringAsFixed(0).padLeft(3), unitLabel),
+          style: TextStyle(
+            fontSize: 12,
+            color: defaultTextColor,
+            fontFamily: 'monospace',
+          ),
+        ),
+      );
+    } else if (ias != null) {
+      columnChildren.add(
+        _buildSpeedRow(
+          ias.toStringAsFixed(0).padLeft(3),
+          unitLabel,
+          speedValueColor,
+          defaultTextColor,
+        ),
+      );
+    } else if (gs != null) {
+      columnChildren.add(
+        _buildSpeedRow(
+          gs.toStringAsFixed(0).padLeft(3),
+          unitLabel,
+          speedValueColor,
+          defaultTextColor,
+        ),
       );
     } else {
-      // Connected mode
-      if (ias != null && gs != null) {
-        columnChildren.add(
-          _buildSpeedRow(
-            ias.toStringAsFixed(0).padLeft(3),
-            unitLabel,
-            speedValueColor,
-            defaultTextColor,
-          ),
-        );
-        columnChildren.add(
-          Text(
-            l10n.gsSpeedLabel(gs.toStringAsFixed(0).padLeft(3), unitLabel),
-            style: TextStyle(
-              fontSize: 12,
-              color: defaultTextColor,
-              fontFamily: 'monospace',
-            ),
-          ),
-        );
-      } else if (ias == null && gs != null) {
-        columnChildren.add(
-          _buildSpeedRow(
-            gs.toStringAsFixed(0).padLeft(3),
-            unitLabel,
-            speedValueColor,
-            defaultTextColor,
-          ),
-        );
-        columnChildren.add(
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.orange.withAlpha(51),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              l10n.gpsOnly,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Colors.orange,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        );
-      } else if (ias != null && gs == null) {
-        columnChildren.add(
-          _buildSpeedRow(
-            ias.toStringAsFixed(0).padLeft(3),
-            unitLabel,
-            speedValueColor,
-            defaultTextColor,
-          ),
-        );
-        columnChildren.add(
-          Row(
-            children: [
-              const Icon(Icons.satellite_alt, size: 12, color: Colors.red),
-              const SizedBox(width: 4),
-              Text(
-                l10n.noGps,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        );
-      } else {
-        // Neither available
-        columnChildren.add(
-          _buildSpeedRow('---', unitLabel, speedValueColor, defaultTextColor),
-        );
-      }
+      columnChildren.add(
+        _buildSpeedRow('---', unitLabel, speedValueColor, defaultTextColor),
+      );
     }
 
-    return AnimatedContainer(
+    final areWidgetsDraggable = settings?.areWidgetsDraggable ?? false;
+
+    final widgetContent = AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       decoration: BoxDecoration(
@@ -247,5 +216,22 @@ class SpeedTelemetryWidget extends ConsumerWidget {
         ),
       ),
     );
+
+    if (!areWidgetsDraggable) {
+      return GestureDetector(
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (context) => const SpeedDetailsDialog(),
+          );
+        },
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: widgetContent,
+        ),
+      );
+    }
+
+    return widgetContent;
   }
 }
