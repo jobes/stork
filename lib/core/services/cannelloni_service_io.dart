@@ -390,17 +390,19 @@ class CannelloniService extends _$CannelloniService {
   }
 
   void _updateTelemetryGPS(Fix2 fix2) {
-    ref.read(telemetryProvider.notifier).updateGPS(
-      latitude: fix2.latitude,
-      longitude: fix2.longitude,
-      heading: fix2.heading,
-      groundSpeed: fix2.groundSpeed,
-      gpsSatelliteCount: fix2.satellites,
-      gpsHorizontalAccuracy: fix2.horizontalAccuracy,
-      gpsVerticalAccuracy: fix2.verticalAccuracy,
-      gpsAltitude: fix2.altitude,
-      isDroneCan: true,
-    );
+    ref
+        .read(telemetryProvider.notifier)
+        .updateGPS(
+          latitude: fix2.latitude,
+          longitude: fix2.longitude,
+          heading: fix2.heading,
+          groundSpeed: fix2.groundSpeed,
+          gpsSatelliteCount: fix2.satellites,
+          gpsHorizontalAccuracy: fix2.horizontalAccuracy,
+          gpsVerticalAccuracy: fix2.verticalAccuracy,
+          gpsAltitude: fix2.altitude,
+          isDroneCan: true,
+        );
   }
 
   void _handleGetNodeInfoRequest({

@@ -30,6 +30,7 @@ class DynamicNodeIdAllocation implements DroneCanRequestResponseMessage {
     if (payload.isEmpty) {
       throw FormatException('Payload too short for DynamicNodeIdAllocation');
     }
+    // dronecane answer should send firstPart always as false as first part is request, therefore no need to read it
     final firstPart = false;
     final id = payload[0] >> 1;
     final uniqueIdBytes = payload.sublist(1);

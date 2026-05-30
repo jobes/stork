@@ -23,7 +23,10 @@ class MapCamera extends _$MapCamera {
   final _controllerCompleter = Completer<MapController>();
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
+  Object? _activeTransitionToken;
+  bool get _isTransitionAnimating => _activeTransitionToken != null;
   int _programmaticMoveCount = 0;
+  DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
 
   Timer? _interpolationTimer;
@@ -41,7 +44,9 @@ class MapCamera extends _$MapCamera {
       if (_mapController == null) return;
 
       // Update aircraft symbol if initialized
-      if (_isAircraftSymbolInitialized && _mapController?.style != null && _interpolationTimer == null) {
+      if (_isAircraftSymbolInitialized &&
+          _mapController?.style != null &&
+          _interpolationTimer == null) {
         if (next.latitude != previous?.latitude ||
             next.longitude != previous?.longitude ||
             next.heading != previous?.heading) {
@@ -70,17 +75,27 @@ class MapCamera extends _$MapCamera {
       }
 
       final settings = ref.read(appSettingsProvider).value;
-      final center = Geographic(lon: next.longitude ?? 0.0, lat: next.latitude ?? 0.0);
+      final center = Geographic(
+        lon: next.longitude ?? 0.0,
+        lat: next.latitude ?? 0.0,
+      );
 
       // Handle mode transitions and continuous updates
       if (next.mapViewState == MapViewState.follow) {
-        if (next.latitude != null && next.longitude != null && next.latitude != 0.0 && next.longitude != 0.0 && !_isFollowPaused) {
-          final isContinuousFollow = previous?.mapViewState == MapViewState.follow;
+        if (next.latitude != null &&
+            next.longitude != null &&
+            next.latitude != 0.0 &&
+            next.longitude != 0.0 &&
+            !_isFollowPaused &&
+            !_isTransitionAnimating) {
+          final isContinuousFollow =
+              previous?.mapViewState == MapViewState.follow;
           if (isContinuousFollow) {
             final now = DateTime.now();
             if (_lastUpdateTimestamp != null) {
               final interval = now.difference(_lastUpdateTimestamp!);
-              if (interval >= const Duration(milliseconds: 100) && interval <= const Duration(seconds: 5)) {
+              if (interval >= const Duration(milliseconds: 100) &&
+                  interval <= const Duration(seconds: 5)) {
                 _lastUpdateInterval = interval;
               }
             }
@@ -112,8 +127,14 @@ class MapCamera extends _$MapCamera {
         if (next.mapViewState == MapViewState.overview) {
           final stateChanged = previous?.mapViewState != next.mapViewState;
           final coordsBecameValid =
-              (previous?.latitude == null || previous?.longitude == null || previous?.latitude == 0.0 || previous?.longitude == 0.0) &&
-              (next.latitude != null && next.longitude != null && next.latitude != 0.0 && next.longitude != 0.0);
+              (previous?.latitude == null ||
+                  previous?.longitude == null ||
+                  previous?.latitude == 0.0 ||
+                  previous?.longitude == 0.0) &&
+              (next.latitude != null &&
+                  next.longitude != null &&
+                  next.latitude != 0.0 &&
+                  next.longitude != 0.0);
 
           if (stateChanged || coordsBecameValid) {
             unawaited(
@@ -134,11 +155,15 @@ class MapCamera extends _$MapCamera {
 
     // Listen to settings updates to update course line
     ref.listen(appSettingsProvider, (previous, next) {
-      if (_mapController == null || !_isAircraftSymbolInitialized || _mapController?.style == null) return;
-      
+      if (_mapController == null ||
+          !_isAircraftSymbolInitialized ||
+          _mapController?.style == null) {
+        return;
+      }
+
       final telemetry = ref.read(telemetryProvider);
       final settings = next.value;
-      
+
       _mapController!.style!.updateGeoJsonSource(
         id: 'course-line-source',
         data: GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
@@ -176,7 +201,8 @@ class MapCamera extends _$MapCamera {
                 latitude: location.lat,
                 longitude: location.lon,
                 groundSpeed: location.groundSpeed,
-                gpsSatelliteCount: null, // Phone GPS satellites set to null as per requirement
+                gpsSatelliteCount:
+                    null, // Phone GPS satellites set to null as per requirement
                 gpsHorizontalAccuracy: location.horizontalAccuracy,
                 gpsVerticalAccuracy: location.verticalAccuracy,
               );
@@ -236,7 +262,10 @@ class MapCamera extends _$MapCamera {
 
       unawaited(
         moveCamera(
-          center: Geographic(lon: telemetry.longitude!, lat: telemetry.latitude!),
+          center: Geographic(
+            lon: telemetry.longitude!,
+            lat: telemetry.latitude!,
+          ),
           zoom: zoom,
           animate: false,
         ),
@@ -255,6 +284,12 @@ class MapCamera extends _$MapCamera {
     _cancelInterpolation();
     if (_mapController != null && center.lat != 0 && center.lon != 0) {
       _programmaticMoveCount++;
+      _lastProgrammaticMoveTime = DateTime.now();
+      Object? token;
+      if (animate) {
+        token = Object();
+        _activeTransitionToken = token;
+      }
       try {
         if (animate) {
           await _mapController!.animateCamera(
@@ -274,15 +309,21 @@ class MapCamera extends _$MapCamera {
           );
         }
       } finally {
+        _lastProgrammaticMoveTime = DateTime.now();
         await Future.delayed(const Duration(milliseconds: 200));
         _programmaticMoveCount--;
+        if (token != null && _activeTransitionToken == token) {
+          _activeTransitionToken = null;
+        }
       }
     }
   }
 
   void handleUserInteraction({bool isExplicitInteraction = true}) {
     // Only proceed if it's not a programmatical movement
-    if (!isExplicitInteraction && (_programmaticMoveCount > 0 || _interpolationTimer != null)) return;
+    if (!isExplicitInteraction && isMovingProgrammatically) {
+      return;
+    }
 
     final telemetry = ref.read(telemetryProvider);
     if (telemetry.mapViewState != MapViewState.follow) return;
@@ -292,6 +333,7 @@ class MapCamera extends _$MapCamera {
       _isFollowPaused = true;
       _cancelInterpolation();
     }
+    _activeTransitionToken = null;
 
     _followResumeTimer = Timer(const Duration(seconds: 5), () {
       if (!ref.mounted) return;
@@ -314,7 +356,10 @@ class MapCamera extends _$MapCamera {
     if (telemetry.longitude != null && telemetry.latitude != null) {
       unawaited(
         moveCamera(
-          center: Geographic(lon: telemetry.longitude!, lat: telemetry.latitude!),
+          center: Geographic(
+            lon: telemetry.longitude!,
+            lat: telemetry.latitude!,
+          ),
           zoom: settings?.mapFollowZoom ?? 12.0,
           pitch: 60,
           bearing: telemetry.heading ?? 0.0,
@@ -423,5 +468,17 @@ class MapCamera extends _$MapCamera {
     }
   }
 
-  bool get isMovingProgrammatically => _programmaticMoveCount > 0 || _interpolationTimer != null;
+  bool get isMovingProgrammatically {
+    if (_programmaticMoveCount > 0 || _interpolationTimer != null || _isTransitionAnimating) {
+      return true;
+    }
+    final lastMove = _lastProgrammaticMoveTime;
+    if (lastMove != null) {
+      final elapsed = DateTime.now().difference(lastMove);
+      if (elapsed < const Duration(milliseconds: 300)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

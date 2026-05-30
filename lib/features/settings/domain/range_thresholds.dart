@@ -12,7 +12,6 @@ enum ThresholdState {
   maxError,
 }
 
-
 @freezed
 abstract class RangeThresholds with _$RangeThresholds {
   const RangeThresholds._();
@@ -83,19 +82,18 @@ abstract class RangeThresholds with _$RangeThresholds {
     );
   }
 
-  Map<String, dynamic> toJson() => _$RangeThresholdsToJson(this as _RangeThresholds);
+  Map<String, dynamic> toJson() =>
+      _$RangeThresholdsToJson(this as _RangeThresholds);
 
   ThresholdState evaluate(double value) => switch (value) {
-        _ when inactiveMax != null && value <= inactiveMax! =>
-          ThresholdState.inactive,
-        _ when minError != null && value <= minError! =>
-          ThresholdState.minError,
-        _ when minWarning != null && value <= minWarning! =>
-          ThresholdState.minWarning,
-        _ when maxError != null && value >= maxError! =>
-          ThresholdState.maxError,
-        _ when maxWarning != null && value >= maxWarning! =>
-          ThresholdState.maxWarning,
-        _ => ThresholdState.operational,
-      };
+    _ when inactiveMax != null && value <= inactiveMax! =>
+      ThresholdState.inactive,
+    _ when minError != null && value <= minError! => ThresholdState.minError,
+    _ when minWarning != null && value <= minWarning! =>
+      ThresholdState.minWarning,
+    _ when maxError != null && value >= maxError! => ThresholdState.maxError,
+    _ when maxWarning != null && value >= maxWarning! =>
+      ThresholdState.maxWarning,
+    _ => ThresholdState.operational,
+  };
 }

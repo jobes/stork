@@ -7,8 +7,12 @@ import 'package:stork/core/native/dronecan/node_status.dart';
 void main() {
   group('GetNodeInfoResponse', () {
     final validUniqueId = Uint8List.fromList(List.generate(16, (i) => i + 1));
-    final invalidUniqueIdTooShort = Uint8List.fromList(List.generate(15, (i) => i + 1));
-    final invalidUniqueIdTooLong = Uint8List.fromList(List.generate(17, (i) => i + 1));
+    final invalidUniqueIdTooShort = Uint8List.fromList(
+      List.generate(15, (i) => i + 1),
+    );
+    final invalidUniqueIdTooLong = Uint8List.fromList(
+      List.generate(17, (i) => i + 1),
+    );
 
     test('Constructing and serializing with valid 16-byte uniqueId works', () {
       final response = GetNodeInfoResponse(
@@ -61,14 +65,17 @@ void main() {
       );
     });
 
-    test('Async factory create works with valid uniqueId and fails with invalid length', () async {
-      final response = await GetNodeInfoResponse.create(validUniqueId);
-      expect(response.uniqueId, equals(validUniqueId));
+    test(
+      'Async factory create works with valid uniqueId and fails with invalid length',
+      () async {
+        final response = await GetNodeInfoResponse.create(validUniqueId);
+        expect(response.uniqueId, equals(validUniqueId));
 
-      await expectLater(
-        GetNodeInfoResponse.create(invalidUniqueIdTooShort),
-        throwsArgumentError,
-      );
-    });
+        await expectLater(
+          GetNodeInfoResponse.create(invalidUniqueIdTooShort),
+          throwsArgumentError,
+        );
+      },
+    );
   });
 }

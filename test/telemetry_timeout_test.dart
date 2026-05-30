@@ -37,7 +37,12 @@ void main() {
         final notifier = container.read(telemetryProvider.notifier);
 
         // Update GPS fields
-        notifier.updateGPS(latitude: 45.0, longitude: 12.0, heading: 90.0, groundSpeed: 10.0);
+        notifier.updateGPS(
+          latitude: 45.0,
+          longitude: 12.0,
+          heading: 90.0,
+          groundSpeed: 10.0,
+        );
 
         var state = container.read(telemetryProvider);
         expect(state.latitude, equals(45.0));
@@ -56,8 +61,14 @@ void main() {
         // Advance another 0.11 seconds (over 2 seconds), should be null again
         async.elapse(const Duration(milliseconds: 110));
         state = container.read(telemetryProvider);
-        expect(state.latitude, equals(45.0)); // Latitude never decays (timeout: Duration.zero)
-        expect(state.longitude, equals(12.0)); // Longitude never decays (timeout: Duration.zero)
+        expect(
+          state.latitude,
+          equals(45.0),
+        ); // Latitude never decays (timeout: Duration.zero)
+        expect(
+          state.longitude,
+          equals(12.0),
+        ); // Longitude never decays (timeout: Duration.zero)
         expect(state.heading, isNull);
         expect(state.groundSpeed, isNull);
       });
@@ -102,7 +113,9 @@ void main() {
 
         final notifier = container.read(telemetryProvider.notifier);
 
-        notifier.updateGPS(groundSpeed: 20.0); // Above default flight threshold (2.77)
+        notifier.updateGPS(
+          groundSpeed: 20.0,
+        ); // Above default flight threshold (2.77)
         notifier.setMapViewState(MapViewState.follow);
 
         var state = container.read(telemetryProvider);
@@ -115,8 +128,14 @@ void main() {
 
         state = container.read(telemetryProvider);
         expect(state.groundSpeed, isNull); // decayed
-        expect(state.isFlying, isFalse); // decayed as groundSpeed decayed and is null
-        expect(state.mapViewState, equals(MapViewState.follow)); // maintained (excluded from timeout)
+        expect(
+          state.isFlying,
+          isFalse,
+        ); // decayed as groundSpeed decayed and is null
+        expect(
+          state.mapViewState,
+          equals(MapViewState.follow),
+        ); // maintained (excluded from timeout)
       });
     });
 

@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/domain/range_thresholds.dart';
 import '../../../settings/domain/speed_unit.dart';
@@ -16,7 +15,8 @@ class SpeedDetailsDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final telemetry = ref.watch(telemetryProvider);
     final settings = ref.watch(appSettingsProvider).value;
-    final thresholds = settings?.flightSpeedThresholds ?? const RangeThresholds.raw();
+    final thresholds =
+        settings?.flightSpeedThresholds ?? const RangeThresholds.raw();
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -180,8 +180,8 @@ class SpeedDetailsDialog extends ConsumerWidget {
                         l10n: l10n,
                         sourceLabel: isGsAvailable
                             ? (telemetry.isGpsDroneCan
-                                ? l10n.gpsSourceDroneCan
-                                : l10n.gpsSourceInternal)
+                                  ? l10n.gpsSourceDroneCan
+                                  : l10n.gpsSourceInternal)
                             : null,
                       ),
                     ),
@@ -219,11 +219,14 @@ class SpeedDetailsDialog extends ConsumerWidget {
                       // Satellite Count Row
                       _buildDetailRow(
                         icon: Icons.satellite_alt,
-                        iconColor: telemetry.gpsSatelliteCount != null && telemetry.gpsSatelliteCount! >= 6
+                        iconColor:
+                            telemetry.gpsSatelliteCount != null &&
+                                telemetry.gpsSatelliteCount! >= 6
                             ? Colors.green
-                            : (telemetry.gpsSatelliteCount != null && telemetry.gpsSatelliteCount! > 0
-                                ? Colors.orange
-                                : Colors.red),
+                            : (telemetry.gpsSatelliteCount != null &&
+                                      telemetry.gpsSatelliteCount! > 0
+                                  ? Colors.orange
+                                  : Colors.red),
                         label: l10n.satelliteCount,
                         value: telemetry.gpsSatelliteCount != null
                             ? '${telemetry.gpsSatelliteCount}'
@@ -280,12 +283,12 @@ class SpeedDetailsDialog extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withAlpha(20)
-            : Colors.black.withAlpha(12),
+        color: isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(12),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isAvailable ? thresholdColor.withAlpha(100) : Colors.grey.withAlpha(50),
+          color: isAvailable
+              ? thresholdColor.withAlpha(100)
+              : Colors.grey.withAlpha(50),
           width: 1.5,
         ),
         boxShadow: isAvailable && state != ThresholdState.inactive
@@ -294,7 +297,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                   color: thresholdColor.withAlpha(30),
                   blurRadius: 10,
                   spreadRadius: 1,
-                )
+                ),
               ]
             : null,
       ),
@@ -361,7 +364,9 @@ class SpeedDetailsDialog extends ConsumerWidget {
           Row(
             children: [
               Icon(
-                isAvailable ? Icons.check_circle_outline : Icons.cancel_outlined,
+                isAvailable
+                    ? Icons.check_circle_outline
+                    : Icons.cancel_outlined,
                 size: 12,
                 color: isAvailable ? Colors.green : Colors.grey,
               ),

@@ -20,7 +20,8 @@ class DraggableWidget extends StatefulWidget {
   State<DraggableWidget> createState() => _DraggableWidgetState();
 }
 
-class _DraggableWidgetState extends State<DraggableWidget> with WidgetsBindingObserver {
+class _DraggableWidgetState extends State<DraggableWidget>
+    with WidgetsBindingObserver {
   late double _top;
   late double _left;
   bool _isDragging = false;
@@ -39,7 +40,8 @@ class _DraggableWidgetState extends State<DraggableWidget> with WidgetsBindingOb
   void didUpdateWidget(DraggableWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Listen to external resets (e.g. initial positions changed from default settings)
-    if (widget.initialTop != oldWidget.initialTop || widget.initialLeft != oldWidget.initialLeft) {
+    if (widget.initialTop != oldWidget.initialTop ||
+        widget.initialLeft != oldWidget.initialLeft) {
       setState(() {
         _top = widget.initialTop;
         _left = widget.initialLeft;
@@ -110,10 +112,10 @@ class _DraggableWidgetState extends State<DraggableWidget> with WidgetsBindingOb
       if (context == null) return;
       final box = context.findRenderObject() as RenderBox?;
       if (box == null) return;
-      
+
       final size = box.size;
       final screenSize = MediaQuery.of(context).size;
-      
+
       bool changed = false;
       double newTop = _top;
       double newLeft = _left;
@@ -155,7 +157,7 @@ class _DraggableWidgetState extends State<DraggableWidget> with WidgetsBindingOb
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    
+
     // Check bounds only when screen dimensions/orientation actually change to protect CPU & frames
     if (_lastScreenSize != screenSize) {
       _lastScreenSize = screenSize;
@@ -164,10 +166,7 @@ class _DraggableWidgetState extends State<DraggableWidget> with WidgetsBindingOb
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Widget content = Container(
-      key: _key,
-      child: widget.child,
-    );
+    Widget content = Container(key: _key, child: widget.child);
 
     if (widget.isDraggable) {
       // Draw an elegant "edit/move mode" glow border with a small floating indicator handle
@@ -186,7 +185,9 @@ class _DraggableWidgetState extends State<DraggableWidget> with WidgetsBindingOb
                 width: 1.5,
               ),
               color: _isDragging
-                  ? (isDark ? Colors.blue.withAlpha(25) : Colors.blue.withAlpha(15))
+                  ? (isDark
+                        ? Colors.blue.withAlpha(25)
+                        : Colors.blue.withAlpha(15))
                   : Colors.transparent,
             ),
             child: content,
@@ -210,7 +211,7 @@ class _DraggableWidgetState extends State<DraggableWidget> with WidgetsBindingOb
                       color: Colors.black.withAlpha(40),
                       blurRadius: 4,
                       spreadRadius: 1,
-                    )
+                    ),
                   ],
                 ),
                 child: Icon(

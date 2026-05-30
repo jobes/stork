@@ -17,7 +17,10 @@ class SettingsRepository {
   static final _defaultSettingsJson = json.encode(const AppSettings().toJson());
 
   Future<void> _resetToDefaults() async {
-    final success = await _prefs.setString(_keyAppSettings, _defaultSettingsJson);
+    final success = await _prefs.setString(
+      _keyAppSettings,
+      _defaultSettingsJson,
+    );
     if (!success) {
       throw StateError('Failed to reset settings to defaults.');
     }
@@ -33,14 +36,18 @@ class SettingsRepository {
         try {
           await _resetToDefaults();
         } catch (resetError) {
-          debugPrint('SettingsRepository: Failed to reset settings to defaults: $resetError');
+          debugPrint(
+            'SettingsRepository: Failed to reset settings to defaults: $resetError',
+          );
         }
       } on TypeError catch (e) {
         debugPrint('SettingsRepository: Settings JSON shape mismatch: $e');
         try {
           await _resetToDefaults();
         } catch (resetError) {
-          debugPrint('SettingsRepository: Failed to reset settings to defaults: $resetError');
+          debugPrint(
+            'SettingsRepository: Failed to reset settings to defaults: $resetError',
+          );
         }
       }
     }
@@ -49,7 +56,10 @@ class SettingsRepository {
   }
 
   Future<void> saveSettings(AppSettings settings) async {
-    final success = await _prefs.setString(_keyAppSettings, json.encode(settings.toJson()));
+    final success = await _prefs.setString(
+      _keyAppSettings,
+      json.encode(settings.toJson()),
+    );
     if (!success) {
       throw StateError('Failed to save settings to SharedPreferences.');
     }

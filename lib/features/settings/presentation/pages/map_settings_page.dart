@@ -61,7 +61,9 @@ class MapSettingsPage extends ConsumerWidget {
               title: Text(l10n.moveWidgets),
               value: settings.areWidgetsDraggable,
               onChanged: (val) {
-                ref.read(appSettingsProvider.notifier).updateAreWidgetsDraggable(val);
+                ref
+                    .read(appSettingsProvider.notifier)
+                    .updateAreWidgetsDraggable(val);
               },
             ),
             if (settings.widgetPositions.isNotEmpty)

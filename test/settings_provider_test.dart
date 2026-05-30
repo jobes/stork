@@ -401,7 +401,9 @@ void main() {
         );
 
         // Infinite should fallback to default (38.89)
-        final resInf = await notifier.updateFlightSpeedMaxRange(double.infinity);
+        final resInf = await notifier.updateFlightSpeedMaxRange(
+          double.infinity,
+        );
         expect(resInf, isA<SettingsUpdateSuccess>());
         expect(
           container.read(appSettingsProvider).value?.flightSpeedMaxRange,

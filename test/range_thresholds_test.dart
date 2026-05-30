@@ -4,10 +4,7 @@ import 'package:stork/features/settings/domain/range_thresholds.dart';
 void main() {
   group('RangeThresholds Boundary Invariant Tests', () {
     test('Valid combinations do not throw assertions', () {
-      expect(
-        () => RangeThresholds(),
-        returnsNormally,
-      );
+      expect(() => RangeThresholds(), returnsNormally);
 
       expect(
         () => RangeThresholds(
@@ -20,30 +17,15 @@ void main() {
         returnsNormally,
       );
 
-      expect(
-        () => RangeThresholds(inactiveMax: 10.0),
-        returnsNormally,
-      );
+      expect(() => RangeThresholds(inactiveMax: 10.0), returnsNormally);
 
-      expect(
-        () => RangeThresholds(minError: 20.0),
-        returnsNormally,
-      );
+      expect(() => RangeThresholds(minError: 20.0), returnsNormally);
 
-      expect(
-        () => RangeThresholds(minWarning: 30.0),
-        returnsNormally,
-      );
+      expect(() => RangeThresholds(minWarning: 30.0), returnsNormally);
 
-      expect(
-        () => RangeThresholds(maxWarning: 40.0),
-        returnsNormally,
-      );
+      expect(() => RangeThresholds(maxWarning: 40.0), returnsNormally);
 
-      expect(
-        () => RangeThresholds(maxError: 50.0),
-        returnsNormally,
-      );
+      expect(() => RangeThresholds(maxError: 50.0), returnsNormally);
 
       expect(
         () => RangeThresholds(inactiveMax: 10.0, maxError: 50.0),
@@ -161,10 +143,7 @@ void main() {
     });
 
     test('with null thresholds returns operational or correct subset', () {
-      const partial = RangeThresholds.raw(
-        minWarning: 30.0,
-        maxWarning: 40.0,
-      );
+      const partial = RangeThresholds.raw(minWarning: 30.0, maxWarning: 40.0);
       expect(partial.evaluate(20.0), ThresholdState.minWarning);
       expect(partial.evaluate(30.0), ThresholdState.minWarning);
       expect(partial.evaluate(35.0), ThresholdState.operational);
@@ -182,10 +161,7 @@ void main() {
         'maxWarning': 40.0,
         'maxError': 50.0,
       };
-      expect(
-        () => RangeThresholds.fromJson(json),
-        returnsNormally,
-      );
+      expect(() => RangeThresholds.fromJson(json), returnsNormally);
       final thresholds = RangeThresholds.fromJson(json);
       expect(thresholds.inactiveMax, 10.0);
       expect(thresholds.minError, 20.0);
@@ -195,25 +171,13 @@ void main() {
     });
 
     test('Invalid JSON (minWarning < minError) throws ArgumentError', () {
-      final json = {
-        'minError': 20.0,
-        'minWarning': 10.0,
-      };
-      expect(
-        () => RangeThresholds.fromJson(json),
-        throwsArgumentError,
-      );
+      final json = {'minError': 20.0, 'minWarning': 10.0};
+      expect(() => RangeThresholds.fromJson(json), throwsArgumentError);
     });
 
     test('Invalid JSON (inactiveMax > minError) throws ArgumentError', () {
-      final json = {
-        'inactiveMax': 30.0,
-        'minError': 20.0,
-      };
-      expect(
-        () => RangeThresholds.fromJson(json),
-        throwsArgumentError,
-      );
+      final json = {'inactiveMax': 30.0, 'minError': 20.0};
+      expect(() => RangeThresholds.fromJson(json), throwsArgumentError);
     });
   });
 }

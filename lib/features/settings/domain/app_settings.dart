@@ -14,13 +14,16 @@ abstract class AppSettings with _$AppSettings {
     @Default(6.0) double mapDefaultZoom,
     @Default(10.0) double mapOverviewZoom,
     @Default(12.0) double mapFollowZoom,
-    @Default(RangeThresholds.raw(
-      inactiveMax: 2.77,
-      minError: 16.67,
-      minWarning: 20.83,
-      maxWarning: 30.56,
-      maxError: 34.72,
-    )) RangeThresholds flightSpeedThresholds,
+    @Default(
+      RangeThresholds.raw(
+        inactiveMax: 2.77,
+        minError: 16.67,
+        minWarning: 20.83,
+        maxWarning: 30.56,
+        maxError: 34.72,
+      ),
+    )
+    RangeThresholds flightSpeedThresholds,
     @Default(38.89) double flightSpeedMaxRange,
     @Default(5) int courseLineSegmentsCount,
     @Default(60) int courseLineSegmentDuration,

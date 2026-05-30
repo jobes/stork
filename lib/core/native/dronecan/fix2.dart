@@ -80,14 +80,14 @@ class Fix2 implements DroneCanMessage {
     final lon = lonRaw / 1e8;
 
     // Altitudes are in mm (int27)
-    final heightEllipsoidMm = reader.readInt(27);
+    reader.readInt(27); // heightEllipsoidMm (unused but required to advance reader)
     final heightMslMm = reader.readInt(27);
     final alt = heightMslMm / 1000.0;
 
     // NED Velocity: float32[3] (m/s)
     final velN = reader.readFloat32();
     final velE = reader.readFloat32();
-    final velD = reader.readFloat32();
+    reader.readFloat32(); // velD (unused but required to advance reader)
 
     // Derive ground speed and heading from North/East components
     final gSpeed = math.sqrt(velN * velN + velE * velE);
