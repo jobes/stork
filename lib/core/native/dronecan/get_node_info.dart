@@ -111,11 +111,7 @@ class GetNodeInfoResponse implements DroneCanRequestResponseMessage {
 
     // Combine all sections into a single payload
     final totalLen =
-        statusBytes.length +
-        swBytes.length +
-        hwBytes.length +
-        1 +
-        nameLen;
+        statusBytes.length + swBytes.length + hwBytes.length + 1 + nameLen;
     final payload = Uint8List(totalLen);
 
     int offset = 0;

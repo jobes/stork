@@ -20,98 +20,119 @@ void main() {
         mapDefaultZoom: 8.0,
         autoSelectDevice: false,
       );
-      
+
       prefs.setString('app_settings', json.encode(originalSettings.toJson()));
-      
+
       final settings = await repository.getSettings();
       expect(settings.mapFontSize, equals(1.2));
       expect(settings.mapDefaultZoom, equals(8.0));
       expect(settings.autoSelectDevice, isFalse);
     });
 
-    test('Falls back to default AppSettings and updates storage on FormatException (invalid JSON syntax)', () async {
-      final repository = SettingsRepository(prefs);
-      
-      // Invalid JSON string (missing closing brace)
-      prefs.setString('app_settings', '{"mapFontSize": 1.2');
-      
-      final settings = await repository.getSettings();
-      
-      // Should fall back to default
-      expect(settings.mapFontSize, equals(1.0));
-      expect(settings.mapDefaultZoom, equals(6.0));
+    test(
+      'Falls back to default AppSettings and updates storage on FormatException (invalid JSON syntax)',
+      () async {
+        final repository = SettingsRepository(prefs);
 
-      // SharedPreferences should have been healed to hold the default AppSettings JSON
-      final savedSettingsJson = prefs.getString('app_settings');
-      expect(savedSettingsJson, isNotNull);
-      final savedSettings = AppSettings.fromJson(json.decode(savedSettingsJson!));
-      expect(savedSettings.mapFontSize, equals(1.0));
-      expect(savedSettings.mapDefaultZoom, equals(6.0));
-    });
+        // Invalid JSON string (missing closing brace)
+        prefs.setString('app_settings', '{"mapFontSize": 1.2');
 
-    test('Falls back to default AppSettings and updates storage on TypeError (invalid type schema)', () async {
-      final repository = SettingsRepository(prefs);
-      
-      // JSON contains double for boolean field (autoSelectDevice expected bool, gets 1.2)
-      prefs.setString('app_settings', '{"autoSelectDevice": 1.2}');
-      
-      final settings = await repository.getSettings();
-      
-      // Should fall back to default
-      expect(settings.autoSelectDevice, isTrue);
-      expect(settings.mapFontSize, equals(1.0));
+        final settings = await repository.getSettings();
 
-      // SharedPreferences should have been healed to hold the default AppSettings JSON
-      final savedSettingsJson = prefs.getString('app_settings');
-      expect(savedSettingsJson, isNotNull);
-      final savedSettings = AppSettings.fromJson(json.decode(savedSettingsJson!));
-      expect(savedSettings.autoSelectDevice, isTrue);
-      expect(savedSettings.mapFontSize, equals(1.0));
-    });
+        // Should fall back to default
+        expect(settings.mapFontSize, equals(1.0));
+        expect(settings.mapDefaultZoom, equals(6.0));
 
-    test('getSettings recovery fails and falls back to default AppSettings', () async {
-      final failurePrefs = FailureSharedPreferences();
-      final repository = SettingsRepository(failurePrefs);
-      
-      // Seed with malformed data to force healing/recovery path
-      failurePrefs.seedAppSettings('{"mapFontSize": 1.2');
-      
-      final settings = await repository.getSettings();
-      expect(settings, equals(const AppSettings()));
-    });
+        // SharedPreferences should have been healed to hold the default AppSettings JSON
+        final savedSettingsJson = prefs.getString('app_settings');
+        expect(savedSettingsJson, isNotNull);
+        final savedSettings = AppSettings.fromJson(
+          json.decode(savedSettingsJson!),
+        );
+        expect(savedSettings.mapFontSize, equals(1.0));
+        expect(savedSettings.mapDefaultZoom, equals(6.0));
+      },
+    );
 
-    test('saveSettings successfully persists AppSettings to SharedPreferences', () async {
-      final repository = SettingsRepository(prefs);
-      const settingsToSave = AppSettings(
-        mapFontSize: 1.5,
-        mapDefaultZoom: 10.0,
-        autoSelectDevice: true,
-      );
+    test(
+      'Falls back to default AppSettings and updates storage on TypeError (invalid type schema)',
+      () async {
+        final repository = SettingsRepository(prefs);
 
-      await repository.saveSettings(settingsToSave);
+        // JSON contains double for boolean field (autoSelectDevice expected bool, gets 1.2)
+        prefs.setString('app_settings', '{"autoSelectDevice": 1.2}');
 
-      final savedSettingsJson = prefs.getString('app_settings');
-      expect(savedSettingsJson, isNotNull);
-      final savedSettings = AppSettings.fromJson(json.decode(savedSettingsJson!));
-      expect(savedSettings.mapFontSize, equals(1.5));
-      expect(savedSettings.mapDefaultZoom, equals(10.0));
-      expect(savedSettings.autoSelectDevice, isTrue);
-    });
+        final settings = await repository.getSettings();
 
-    test('saveSettings throws StateError when SharedPreferences.setString returns false', () async {
-      final failurePrefs = FailureSharedPreferences();
-      final repository = SettingsRepository(failurePrefs);
-      const settingsToSave = AppSettings(
-        mapFontSize: 1.5,
-        mapDefaultZoom: 10.0,
-        autoSelectDevice: true,
-      );
+        // Should fall back to default
+        expect(settings.autoSelectDevice, isTrue);
+        expect(settings.mapFontSize, equals(1.0));
 
-      expect(
-        () => repository.saveSettings(settingsToSave),
-        throwsA(isA<StateError>()),
-      );
-    });
+        // SharedPreferences should have been healed to hold the default AppSettings JSON
+        final savedSettingsJson = prefs.getString('app_settings');
+        expect(savedSettingsJson, isNotNull);
+        final savedSettings = AppSettings.fromJson(
+          json.decode(savedSettingsJson!),
+        );
+        expect(savedSettings.autoSelectDevice, isTrue);
+        expect(savedSettings.mapFontSize, equals(1.0));
+      },
+    );
+
+    test(
+      'getSettings recovery fails and falls back to default AppSettings',
+      () async {
+        final failurePrefs = FailureSharedPreferences();
+        final repository = SettingsRepository(failurePrefs);
+
+        // Seed with malformed data to force healing/recovery path
+        failurePrefs.seedAppSettings('{"mapFontSize": 1.2');
+
+        final settings = await repository.getSettings();
+        expect(settings, equals(const AppSettings()));
+      },
+    );
+
+    test(
+      'saveSettings successfully persists AppSettings to SharedPreferences',
+      () async {
+        final repository = SettingsRepository(prefs);
+        const settingsToSave = AppSettings(
+          mapFontSize: 1.5,
+          mapDefaultZoom: 10.0,
+          autoSelectDevice: true,
+        );
+
+        await repository.saveSettings(settingsToSave);
+
+        final savedSettingsJson = prefs.getString('app_settings');
+        expect(savedSettingsJson, isNotNull);
+        final savedSettings = AppSettings.fromJson(
+          json.decode(savedSettingsJson!),
+        );
+        expect(savedSettings.mapFontSize, equals(1.5));
+        expect(savedSettings.mapDefaultZoom, equals(10.0));
+        expect(savedSettings.autoSelectDevice, isTrue);
+      },
+    );
+
+    test(
+      'saveSettings throws StateError when SharedPreferences.setString returns false',
+      () async {
+        final failurePrefs = FailureSharedPreferences();
+        final repository = SettingsRepository(failurePrefs);
+        const settingsToSave = AppSettings(
+          mapFontSize: 1.5,
+          mapDefaultZoom: 10.0,
+          autoSelectDevice: true,
+        );
+
+        expect(
+          () => repository.saveSettings(settingsToSave),
+          throwsA(isA<StateError>()),
+        );
+      },
+    );
   });
 }
 

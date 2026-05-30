@@ -24,10 +24,7 @@ extension MapCameraStyle on MapCamera {
         LineStyleLayer(
           id: 'course-line-border',
           sourceId: 'course-line-source',
-          paint: {
-            'line-color': '#000000',
-            'line-width': 5.0,
-          },
+          paint: {'line-color': '#000000', 'line-width': 5.0},
         ),
       );
       if (!refAccess.mounted) return;
@@ -37,10 +34,7 @@ extension MapCameraStyle on MapCamera {
           id: 'course-line-white',
           sourceId: 'course-line-source',
           filter: ['==', 'isEven', false],
-          paint: {
-            'line-color': '#FFFFFF',
-            'line-width': 3.0,
-          },
+          paint: {'line-color': '#FFFFFF', 'line-width': 3.0},
         ),
       );
       if (!refAccess.mounted) return;

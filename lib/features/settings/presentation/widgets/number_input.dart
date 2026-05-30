@@ -34,7 +34,9 @@ class _NumberInputState extends State<NumberInput> {
   void initState() {
     super.initState();
     _currentValue = widget.initialValue;
-    _controller = TextEditingController(text: _currentValue.toStringAsFixed(widget.decimalPlaces));
+    _controller = TextEditingController(
+      text: _currentValue.toStringAsFixed(widget.decimalPlaces),
+    );
     _focusNode = FocusNode();
     _focusNode.addListener(_onFocusChange);
   }
@@ -91,7 +93,10 @@ class _NumberInputState extends State<NumberInput> {
   }
 
   void _handleIncrement() {
-    final newValue = (_currentValue + widget.step).clamp(widget.min, widget.max);
+    final newValue = (_currentValue + widget.step).clamp(
+      widget.min,
+      widget.max,
+    );
     setState(() {
       _currentValue = newValue;
       _controller.text = newValue.toStringAsFixed(widget.decimalPlaces);
@@ -100,7 +105,10 @@ class _NumberInputState extends State<NumberInput> {
   }
 
   void _handleDecrement() {
-    final newValue = (_currentValue - widget.step).clamp(widget.min, widget.max);
+    final newValue = (_currentValue - widget.step).clamp(
+      widget.min,
+      widget.max,
+    );
     setState(() {
       _currentValue = newValue;
       _controller.text = newValue.toStringAsFixed(widget.decimalPlaces);
@@ -122,12 +130,17 @@ class _NumberInputState extends State<NumberInput> {
           child: TextField(
             controller: _controller,
             focusNode: _focusNode,
-            keyboardType: TextInputType.numberWithOptions(decimal: widget.decimalPlaces > 0),
+            keyboardType: TextInputType.numberWithOptions(
+              decimal: widget.decimalPlaces > 0,
+            ),
             textAlign: TextAlign.center,
             decoration: InputDecoration(
               suffixText: widget.suffix,
               suffixStyle: const TextStyle(fontSize: 12),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 4.0,
+                vertical: 8.0,
+              ),
               border: const OutlineInputBorder(),
             ),
             onSubmitted: (_) => _submit(),

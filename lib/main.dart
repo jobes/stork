@@ -28,7 +28,8 @@ class StorkApp extends ConsumerStatefulWidget {
   ConsumerState<StorkApp> createState() => _StorkAppState();
 }
 
-class _StorkAppState extends ConsumerState<StorkApp> with WidgetsBindingObserver {
+class _StorkAppState extends ConsumerState<StorkApp>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();

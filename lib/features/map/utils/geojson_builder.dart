@@ -8,7 +8,11 @@ import '../../telemetry/domain/models/telemetry_state.dart';
 /// A utility class for constructing GeoJSON strings required by MapLibre sources.
 class GeoJsonBuilder {
   /// Builds a GeoJSON Point feature for the aircraft symbol.
-  static String buildAircraftGeoJson(double? lat, double? lon, double? heading) {
+  static String buildAircraftGeoJson(
+    double? lat,
+    double? lon,
+    double? heading,
+  ) {
     if (lat == null || lon == null || (lat == 0.0 && lon == 0.0)) {
       return jsonEncode({'type': 'FeatureCollection', 'features': []});
     }
@@ -52,7 +56,10 @@ class GeoJsonBuilder {
     final distancePerSegment = speedMS * segmentDuration.toDouble();
 
     final features = [];
-    Geographic currentPoint = Geographic(lon: telemetry.longitude!, lat: telemetry.latitude!);
+    Geographic currentPoint = Geographic(
+      lon: telemetry.longitude!,
+      lat: telemetry.latitude!,
+    );
 
     for (int i = 0; i < segmentsCount; i++) {
       final nextPoint = GeoUtils.calculateDestination(
@@ -70,17 +77,12 @@ class GeoJsonBuilder {
             [nextPoint.lon, nextPoint.lat],
           ],
         },
-        'properties': {
-          'isEven': i % 2 == 0,
-        },
+        'properties': {'isEven': i % 2 == 0},
       });
 
       currentPoint = nextPoint;
     }
 
-    return jsonEncode({
-      'type': 'FeatureCollection',
-      'features': features,
-    });
+    return jsonEncode({'type': 'FeatureCollection', 'features': features});
   }
 }

@@ -6,17 +6,17 @@ class GeoUtils {
   /// Earth's mean radius in meters.
   static const double earthRadiusMeters = 6371000;
 
-  /// Calculates the destination point from a given [start] point, 
-  /// traveling along a great circle path with a given initial [headingDegrees] 
+  /// Calculates the destination point from a given [start] point,
+  /// traveling along a great circle path with a given initial [headingDegrees]
   /// for a specified [distanceMeters].
   ///
   /// Uses the Haversine formula for the calculation.
-  /// 
+  ///
   /// Parameters:
   /// - [start]: The starting coordinate.
   /// - [headingDegrees]: The initial bearing in degrees from North.
   /// - [distanceMeters]: The distance to travel in meters.
-  /// 
+  ///
   /// Returns a new [Geographic] representing the destination coordinate.
   static Geographic calculateDestination(
     Geographic start,
@@ -31,17 +31,24 @@ class GeoUtils {
 
     final destLatRad = math.asin(
       math.sin(startLatRad) * math.cos(angularDistance) +
-          math.cos(startLatRad) * math.sin(angularDistance) * math.cos(headingRad),
+          math.cos(startLatRad) *
+              math.sin(angularDistance) *
+              math.cos(headingRad),
     );
 
-    final destLonRad = startLonRad +
+    final destLonRad =
+        startLonRad +
         math.atan2(
-          math.sin(headingRad) * math.sin(angularDistance) * math.cos(startLatRad),
-          math.cos(angularDistance) - math.sin(startLatRad) * math.sin(destLatRad),
+          math.sin(headingRad) *
+              math.sin(angularDistance) *
+              math.cos(startLatRad),
+          math.cos(angularDistance) -
+              math.sin(startLatRad) * math.sin(destLatRad),
         );
 
     // Normalize longitude to be between -pi and +pi
-    final normalizedLonRad = (destLonRad + 3 * math.pi) % (2 * math.pi) - math.pi;
+    final normalizedLonRad =
+        (destLonRad + 3 * math.pi) % (2 * math.pi) - math.pi;
 
     return Geographic(
       lat: _radiansToDegrees(destLatRad),

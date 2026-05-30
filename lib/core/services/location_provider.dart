@@ -50,8 +50,9 @@ positionStream(Ref ref) {
   final geo.LocationSettings locationSettings;
   if (defaultTargetPlatform == TargetPlatform.android) {
     final locale = ui.PlatformDispatcher.instance.locale;
-    final isSupported = AppLocalizations.supportedLocales
-        .any((l) => l.languageCode == locale.languageCode);
+    final isSupported = AppLocalizations.supportedLocales.any(
+      (l) => l.languageCode == locale.languageCode,
+    );
     final supportedLocale = isSupported ? locale : const Locale('en');
     final l10n = lookupAppLocalizations(supportedLocale);
 

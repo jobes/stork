@@ -12,7 +12,9 @@ class BitReader {
   /// Reads [bitCount] bits from the payload and returns them as a signed or unsigned integer.
   int readBits(int bitCount, {bool signed = false}) {
     if (_bitOffset + bitCount > bytes.length * 8) {
-      throw RangeError('Reading past end of payload (requested $bitCount bits at $_bitOffset, total bits: ${bytes.length * 8})');
+      throw RangeError(
+        'Reading past end of payload (requested $bitCount bits at $_bitOffset, total bits: ${bytes.length * 8})',
+      );
     }
 
     int value = 0;

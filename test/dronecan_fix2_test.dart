@@ -15,7 +15,7 @@ class BitWriter {
       final fBitInByteIdx = i % 8;
       final fBitsInThisByte = (fByteIdx == lastByteIdx) && (rem != 0) ? rem : 8;
       final destBitPos = 8 * fByteIdx + (fBitsInThisByte - 1 - fBitInByteIdx);
-      
+
       final bitVal = (value >> destBitPos) & 1;
       _bits.add(bitVal);
     }
@@ -50,7 +50,8 @@ class BitWriter {
         final fraction = (absVal / math.pow(2, -14) * 1024.0).round();
         bits = sign | fraction;
       } else {
-        final fraction = ((absVal / math.pow(2, exponent - 15) - 1.0) * 1024.0).round();
+        final fraction = ((absVal / math.pow(2, exponent - 15) - 1.0) * 1024.0)
+            .round();
         bits = sign | ((exponent & 0x1F) << 10) | (fraction & 0x03FF);
       }
     }
@@ -136,44 +137,49 @@ void main() {
 
       expect(
         () => Fix2.fromPayload(payload49),
-        throwsA(isA<FormatException>().having(
-          (e) => e.message,
-          'message',
-          contains('Payload too short for Fix2 GNSS message'),
-        )),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('Payload too short for Fix2 GNSS message'),
+          ),
+        ),
       );
     });
 
-    test('Parses empty covariance correctly (covLen = 0) with mode and subMode', () {
-      final payload = generateFix2Payload(
-        latitude: 45.12345,
-        longitude: -75.54321,
-        altitudeMsl: 250.5,
-        mode: 2,
-        subMode: 1,
-        covariance: [],
-        pdop: 1.5,
-      );
+    test(
+      'Parses empty covariance correctly (covLen = 0) with mode and subMode',
+      () {
+        final payload = generateFix2Payload(
+          latitude: 45.12345,
+          longitude: -75.54321,
+          altitudeMsl: 250.5,
+          mode: 2,
+          subMode: 1,
+          covariance: [],
+          pdop: 1.5,
+        );
 
-      expect(payload.length, equals(50));
+        expect(payload.length, equals(50));
 
-      final fix2 = Fix2.fromPayload(payload);
+        final fix2 = Fix2.fromPayload(payload);
 
-      expect(fix2.latitude, closeTo(45.12345, 1e-6));
-      expect(fix2.longitude, closeTo(-75.54321, 1e-6));
-      expect(fix2.altitude, closeTo(250.5, 0.1));
-      expect(fix2.groundSpeed, closeTo(13.0, 0.01)); // sqrt(5*5 + 12*12) = 13
-      expect(fix2.satellites, equals(12));
-      expect(fix2.status, equals(3));
-      expect(fix2.pdop, closeTo(1.5, 0.01));
-      expect(fix2.mode, equals(2));
-      expect(fix2.subMode, equals(1));
+        expect(fix2.latitude, closeTo(45.12345, 1e-6));
+        expect(fix2.longitude, closeTo(-75.54321, 1e-6));
+        expect(fix2.altitude, closeTo(250.5, 0.1));
+        expect(fix2.groundSpeed, closeTo(13.0, 0.01)); // sqrt(5*5 + 12*12) = 13
+        expect(fix2.satellites, equals(12));
+        expect(fix2.status, equals(3));
+        expect(fix2.pdop, closeTo(1.5, 0.01));
+        expect(fix2.mode, equals(2));
+        expect(fix2.subMode, equals(1));
 
-      expect(fix2.positionCovariance, isEmpty);
-      expect(fix2.velocityCovariance, isEmpty);
-      expect(fix2.horizontalAccuracy, isNull);
-      expect(fix2.verticalAccuracy, isNull);
-    });
+        expect(fix2.positionCovariance, isEmpty);
+        expect(fix2.velocityCovariance, isEmpty);
+        expect(fix2.horizontalAccuracy, isNull);
+        expect(fix2.verticalAccuracy, isNull);
+      },
+    );
 
     test('Parses covLen = 1 covariance correctly and calculates EPH/EPV', () {
       final payload = generateFix2Payload(
@@ -206,11 +212,14 @@ void main() {
 
       expect(fix2.mode, equals(2));
       expect(fix2.subMode, equals(0));
-      expect(fix2.positionCovariance, equals([
-        closeTo(0.09, 0.001),
-        closeTo(0.16, 0.001),
-        closeTo(0.25, 0.001),
-      ]));
+      expect(
+        fix2.positionCovariance,
+        equals([
+          closeTo(0.09, 0.001),
+          closeTo(0.16, 0.001),
+          closeTo(0.25, 0.001),
+        ]),
+      );
       expect(fix2.velocityCovariance, isEmpty);
 
       // horAcc = sqrt(varN + varE) = sqrt(0.09 + 0.16) = 0.5
@@ -239,52 +248,55 @@ void main() {
       expect(fix2.verticalAccuracy, closeTo(0.5, 0.001));
     });
 
-    test('Parses covLen = 18 covariance correctly, splits pos/vel, and calculates EPH/EPV', () {
-      final payload = generateFix2Payload(
-        mode: 2,
-        subMode: 1,
-        covariance: [
-          // First 9 elements: position covariance
-          0.09, // index 0 (varN)
-          9.99, // index 1
-          9.99, // index 2
-          9.99, // index 3
-          0.16, // index 4 (varE)
-          9.99, // index 5
-          1.0,  // index 6
-          2.0,  // index 7
-          0.25, // index 8 (varD)
-          // Next 9 elements: velocity covariance
-          4.0,  // index 9
-          5.0,  // index 10
-          6.0,  // index 11
-          7.0,  // index 12
-          8.0,  // index 13
-          9.0,  // index 14
-          10.0, // index 15
-          11.0, // index 16
-          12.0, // index 17
-        ],
-        pdop: 1.5,
-      );
-      final fix2 = Fix2.fromPayload(payload);
+    test(
+      'Parses covLen = 18 covariance correctly, splits pos/vel, and calculates EPH/EPV',
+      () {
+        final payload = generateFix2Payload(
+          mode: 2,
+          subMode: 1,
+          covariance: [
+            // First 9 elements: position covariance
+            0.09, // index 0 (varN)
+            9.99, // index 1
+            9.99, // index 2
+            9.99, // index 3
+            0.16, // index 4 (varE)
+            9.99, // index 5
+            1.0, // index 6
+            2.0, // index 7
+            0.25, // index 8 (varD)
+            // Next 9 elements: velocity covariance
+            4.0, // index 9
+            5.0, // index 10
+            6.0, // index 11
+            7.0, // index 12
+            8.0, // index 13
+            9.0, // index 14
+            10.0, // index 15
+            11.0, // index 16
+            12.0, // index 17
+          ],
+          pdop: 1.5,
+        );
+        final fix2 = Fix2.fromPayload(payload);
 
-      expect(fix2.mode, equals(2));
-      expect(fix2.subMode, equals(1));
-      expect(fix2.positionCovariance.length, equals(9));
-      expect(fix2.velocityCovariance.length, equals(9));
+        expect(fix2.mode, equals(2));
+        expect(fix2.subMode, equals(1));
+        expect(fix2.positionCovariance.length, equals(9));
+        expect(fix2.velocityCovariance.length, equals(9));
 
-      expect(fix2.positionCovariance[0], closeTo(0.09, 0.001));
-      expect(fix2.positionCovariance[4], closeTo(0.16, 0.001));
-      expect(fix2.positionCovariance[8], closeTo(0.25, 0.001));
+        expect(fix2.positionCovariance[0], closeTo(0.09, 0.001));
+        expect(fix2.positionCovariance[4], closeTo(0.16, 0.001));
+        expect(fix2.positionCovariance[8], closeTo(0.25, 0.001));
 
-      expect(fix2.velocityCovariance[0], closeTo(4.0, 0.001));
-      expect(fix2.velocityCovariance[8], closeTo(12.0, 0.001));
+        expect(fix2.velocityCovariance[0], closeTo(4.0, 0.001));
+        expect(fix2.velocityCovariance[8], closeTo(12.0, 0.001));
 
-      // horAcc = sqrt(posCov[0] + posCov[4]) = 0.5
-      expect(fix2.horizontalAccuracy, closeTo(0.5, 0.001));
-      // vertAcc = sqrt(posCov[8]) = 0.5
-      expect(fix2.verticalAccuracy, closeTo(0.5, 0.001));
-    });
+        // horAcc = sqrt(posCov[0] + posCov[4]) = 0.5
+        expect(fix2.horizontalAccuracy, closeTo(0.5, 0.001));
+        // vertAcc = sqrt(posCov[8]) = 0.5
+        expect(fix2.verticalAccuracy, closeTo(0.5, 0.001));
+      },
+    );
   });
 }

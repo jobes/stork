@@ -79,7 +79,8 @@ class TelemetryState {
       gpsAltitude: gpsAltitude ?? this.gpsAltitude,
       heightAboveGround: heightAboveGround ?? this.heightAboveGround,
       gpsSatelliteCount: gpsSatelliteCount ?? this.gpsSatelliteCount,
-      gpsHorizontalAccuracy: gpsHorizontalAccuracy ?? this.gpsHorizontalAccuracy,
+      gpsHorizontalAccuracy:
+          gpsHorizontalAccuracy ?? this.gpsHorizontalAccuracy,
       gpsVerticalAccuracy: gpsVerticalAccuracy ?? this.gpsVerticalAccuracy,
       isGpsDroneCan: isGpsDroneCan ?? this.isGpsDroneCan,
       mapViewState: mapViewState ?? this.mapViewState,
@@ -92,16 +93,30 @@ class TelemetryState {
       longitude: field == TelemetryField.longitude ? null : longitude,
       heading: field == TelemetryField.heading ? null : heading,
       groundSpeed: field == TelemetryField.groundSpeed ? null : groundSpeed,
-      indicatedAirSpeed: field == TelemetryField.indicatedAirSpeed ? null : indicatedAirSpeed,
+      indicatedAirSpeed: field == TelemetryField.indicatedAirSpeed
+          ? null
+          : indicatedAirSpeed,
       isFlying: isFlying,
       engineRPM: field == TelemetryField.engineRPM ? null : engineRPM,
       airPressure: field == TelemetryField.airPressure ? null : airPressure,
       gpsAltitude: field == TelemetryField.gpsAltitude ? null : gpsAltitude,
-      heightAboveGround: field == TelemetryField.heightAboveGround ? null : heightAboveGround,
-      gpsSatelliteCount: field == TelemetryField.gpsSatelliteCount ? null : gpsSatelliteCount,
-      gpsHorizontalAccuracy: field == TelemetryField.gpsHorizontalAccuracy ? null : gpsHorizontalAccuracy,
-      gpsVerticalAccuracy: field == TelemetryField.gpsVerticalAccuracy ? null : gpsVerticalAccuracy,
-      isGpsDroneCan: field == TelemetryField.gpsHorizontalAccuracy || field == TelemetryField.gpsVerticalAccuracy ? false : isGpsDroneCan,
+      heightAboveGround: field == TelemetryField.heightAboveGround
+          ? null
+          : heightAboveGround,
+      gpsSatelliteCount: field == TelemetryField.gpsSatelliteCount
+          ? null
+          : gpsSatelliteCount,
+      gpsHorizontalAccuracy: field == TelemetryField.gpsHorizontalAccuracy
+          ? null
+          : gpsHorizontalAccuracy,
+      gpsVerticalAccuracy: field == TelemetryField.gpsVerticalAccuracy
+          ? null
+          : gpsVerticalAccuracy,
+      isGpsDroneCan:
+          field == TelemetryField.gpsHorizontalAccuracy ||
+              field == TelemetryField.gpsVerticalAccuracy
+          ? false
+          : isGpsDroneCan,
       mapViewState: mapViewState,
     );
   }
@@ -111,5 +126,3 @@ class TelemetryState {
     return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, agl: $heightAboveGround, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState)';
   }
 }
-
-
