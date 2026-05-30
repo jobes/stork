@@ -23,7 +23,9 @@ class MapCamera extends _$MapCamera {
   final _controllerCompleter = Completer<MapController>();
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
+  bool _isTransitionAnimating = false;
   int _programmaticMoveCount = 0;
+  DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
 
   Timer? _interpolationTimer;
@@ -83,7 +85,8 @@ class MapCamera extends _$MapCamera {
             next.longitude != null &&
             next.latitude != 0.0 &&
             next.longitude != 0.0 &&
-            !_isFollowPaused) {
+            !_isFollowPaused &&
+            !_isTransitionAnimating) {
           final isContinuousFollow =
               previous?.mapViewState == MapViewState.follow;
           if (isContinuousFollow) {
@@ -280,6 +283,10 @@ class MapCamera extends _$MapCamera {
     _cancelInterpolation();
     if (_mapController != null && center.lat != 0 && center.lon != 0) {
       _programmaticMoveCount++;
+      _lastProgrammaticMoveTime = DateTime.now();
+      if (animate) {
+        _isTransitionAnimating = true;
+      }
       try {
         if (animate) {
           await _mapController!.animateCamera(
@@ -299,16 +306,17 @@ class MapCamera extends _$MapCamera {
           );
         }
       } finally {
+        _lastProgrammaticMoveTime = DateTime.now();
         await Future.delayed(const Duration(milliseconds: 200));
         _programmaticMoveCount--;
+        _isTransitionAnimating = false;
       }
     }
   }
 
   void handleUserInteraction({bool isExplicitInteraction = true}) {
     // Only proceed if it's not a programmatical movement
-    if (!isExplicitInteraction &&
-        (_programmaticMoveCount > 0 || _interpolationTimer != null)) {
+    if (!isExplicitInteraction && isMovingProgrammatically) {
       return;
     }
 
@@ -320,6 +328,7 @@ class MapCamera extends _$MapCamera {
       _isFollowPaused = true;
       _cancelInterpolation();
     }
+    _isTransitionAnimating = false;
 
     _followResumeTimer = Timer(const Duration(seconds: 5), () {
       if (!ref.mounted) return;
@@ -454,6 +463,17 @@ class MapCamera extends _$MapCamera {
     }
   }
 
-  bool get isMovingProgrammatically =>
-      _programmaticMoveCount > 0 || _interpolationTimer != null;
+  bool get isMovingProgrammatically {
+    if (_programmaticMoveCount > 0 || _interpolationTimer != null || _isTransitionAnimating) {
+      return true;
+    }
+    final lastMove = _lastProgrammaticMoveTime;
+    if (lastMove != null) {
+      final elapsed = DateTime.now().difference(lastMove);
+      if (elapsed < const Duration(milliseconds: 300)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

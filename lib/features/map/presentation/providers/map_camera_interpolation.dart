@@ -60,8 +60,9 @@ extension MapCameraInterpolation on MapCamera {
         pitch: pitch,
         bearing: bearing,
       );
+      _lastProgrammaticMoveTime = DateTime.now();
 
-      // Interpolate the aircraft and course line symbols too (2x faster for snappier tracking)
+      // Interpolate the course line symbol 2x faster for snappier tracking
       double t2 = t * 2;
       if (t2 > 1.0) t2 = 1.0;
 
@@ -69,24 +70,38 @@ extension MapCameraInterpolation on MapCamera {
       final lon2 = _interpolateLinear(startCenter.lon, targetCenter.lon, t2);
       final bearing2 = _interpolateAngle(startBearing, targetBearing, t2);
 
-      _updateAircraftAndCourseLine(lat2, lon2, bearing2);
+      _updateAircraftAndCourseLine(
+        aircraftLat: lat,
+        aircraftLon: lon,
+        aircraftBearing: bearing,
+        courseLat: lat2,
+        courseLon: lon2,
+        courseBearing: bearing2,
+      );
     });
   }
 
-  void _updateAircraftAndCourseLine(double lat, double lon, double bearing) {
+  void _updateAircraftAndCourseLine({
+    required double aircraftLat,
+    required double aircraftLon,
+    required double aircraftBearing,
+    required double courseLat,
+    required double courseLon,
+    required double courseBearing,
+  }) {
     if (!_isAircraftSymbolInitialized || _mapController?.style == null) return;
 
     _mapController!.style!.updateGeoJsonSource(
       id: 'aircraft-source',
-      data: GeoJsonBuilder.buildAircraftGeoJson(lat, lon, bearing),
+      data: GeoJsonBuilder.buildAircraftGeoJson(aircraftLat, aircraftLon, aircraftBearing),
     );
 
     final telemetry = refAccess.read(telemetryProvider);
     final settings = refAccess.read(appSettingsProvider).value;
     final interpolatedTelemetry = telemetry.copyWith(
-      latitude: lat,
-      longitude: lon,
-      heading: bearing,
+      latitude: courseLat,
+      longitude: courseLon,
+      heading: courseBearing,
     );
 
     _mapController!.style!.updateGeoJsonSource(
@@ -118,5 +133,6 @@ extension MapCameraInterpolation on MapCamera {
     _currentInterpolatedBearing = null;
     _lastUpdateTimestamp = null;
     _lastUpdateInterval = const Duration(seconds: 1);
+    _lastProgrammaticMoveTime = DateTime.now();
   }
 }
