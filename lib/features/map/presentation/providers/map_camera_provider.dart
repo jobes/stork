@@ -23,7 +23,8 @@ class MapCamera extends _$MapCamera {
   final _controllerCompleter = Completer<MapController>();
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
-  bool _isTransitionAnimating = false;
+  Object? _activeTransitionToken;
+  bool get _isTransitionAnimating => _activeTransitionToken != null;
   int _programmaticMoveCount = 0;
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
@@ -284,8 +285,10 @@ class MapCamera extends _$MapCamera {
     if (_mapController != null && center.lat != 0 && center.lon != 0) {
       _programmaticMoveCount++;
       _lastProgrammaticMoveTime = DateTime.now();
+      Object? token;
       if (animate) {
-        _isTransitionAnimating = true;
+        token = Object();
+        _activeTransitionToken = token;
       }
       try {
         if (animate) {
@@ -309,7 +312,9 @@ class MapCamera extends _$MapCamera {
         _lastProgrammaticMoveTime = DateTime.now();
         await Future.delayed(const Duration(milliseconds: 200));
         _programmaticMoveCount--;
-        _isTransitionAnimating = false;
+        if (token != null && _activeTransitionToken == token) {
+          _activeTransitionToken = null;
+        }
       }
     }
   }
@@ -328,7 +333,7 @@ class MapCamera extends _$MapCamera {
       _isFollowPaused = true;
       _cancelInterpolation();
     }
-    _isTransitionAnimating = false;
+    _activeTransitionToken = null;
 
     _followResumeTimer = Timer(const Duration(seconds: 5), () {
       if (!ref.mounted) return;

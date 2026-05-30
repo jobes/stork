@@ -257,11 +257,10 @@ FFI_EXPORT void stork_canard_process_packet(const uint8_t *data,
         frame.data_len = max_len;
       }
       memcpy(frame.data, &data[offset], frame.data_len);
-
-      offset += dlc;
     } else {
       frame.data_len = 0;
     }
+    offset += dlc;
 
     (void)canardHandleRxFrame(&g_canard, &frame, timestamp_usec);
   }
