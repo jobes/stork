@@ -3,6 +3,7 @@ import 'cannelloni_device.dart';
 import 'range_thresholds.dart';
 import 'widget_position.dart';
 import 'speed_unit.dart';
+import 'altitude_unit.dart';
 
 part 'app_settings.freezed.dart';
 part 'app_settings.g.dart';
@@ -32,6 +33,11 @@ abstract class AppSettings with _$AppSettings {
     @Default(false) bool areWidgetsDraggable,
     @Default({}) Map<String, WidgetPosition> widgetPositions,
     @Default(SpeedUnit.kmh) SpeedUnit speedUnit,
+    @Default(1013.25) double qnh,
+    @Default(1013.25) double qfe,
+    @Default(true) bool autoQnh,
+    @Default(AltitudeUnit.feet) AltitudeUnit altitudeUnit,
+    @Default(AltitudeUnit.meters) AltitudeUnit heightUnit,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>

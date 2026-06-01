@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AppSettings {
 
- double get mapFontSize; double get mapDefaultZoom; double get mapOverviewZoom; double get mapFollowZoom; RangeThresholds get flightSpeedThresholds; double get flightSpeedMaxRange; int get courseLineSegmentsCount; int get courseLineSegmentDuration; bool get autoSelectDevice; CannelloniDevice? get selectedDevice; bool get areWidgetsDraggable; Map<String, WidgetPosition> get widgetPositions; SpeedUnit get speedUnit;
+ double get mapFontSize; double get mapDefaultZoom; double get mapOverviewZoom; double get mapFollowZoom; RangeThresholds get flightSpeedThresholds; double get flightSpeedMaxRange; int get courseLineSegmentsCount; int get courseLineSegmentDuration; bool get autoSelectDevice; CannelloniDevice? get selectedDevice; bool get areWidgetsDraggable; Map<String, WidgetPosition> get widgetPositions; SpeedUnit get speedUnit; double get qnh; double get qfe; bool get autoQnh; AltitudeUnit get altitudeUnit; AltitudeUnit get heightUnit;
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AppSettingsCopyWith<AppSettings> get copyWith => _$AppSettingsCopyWithImpl<AppS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.mapFontSize, mapFontSize) || other.mapFontSize == mapFontSize)&&(identical(other.mapDefaultZoom, mapDefaultZoom) || other.mapDefaultZoom == mapDefaultZoom)&&(identical(other.mapOverviewZoom, mapOverviewZoom) || other.mapOverviewZoom == mapOverviewZoom)&&(identical(other.mapFollowZoom, mapFollowZoom) || other.mapFollowZoom == mapFollowZoom)&&(identical(other.flightSpeedThresholds, flightSpeedThresholds) || other.flightSpeedThresholds == flightSpeedThresholds)&&(identical(other.flightSpeedMaxRange, flightSpeedMaxRange) || other.flightSpeedMaxRange == flightSpeedMaxRange)&&(identical(other.courseLineSegmentsCount, courseLineSegmentsCount) || other.courseLineSegmentsCount == courseLineSegmentsCount)&&(identical(other.courseLineSegmentDuration, courseLineSegmentDuration) || other.courseLineSegmentDuration == courseLineSegmentDuration)&&(identical(other.autoSelectDevice, autoSelectDevice) || other.autoSelectDevice == autoSelectDevice)&&(identical(other.selectedDevice, selectedDevice) || other.selectedDevice == selectedDevice)&&(identical(other.areWidgetsDraggable, areWidgetsDraggable) || other.areWidgetsDraggable == areWidgetsDraggable)&&const DeepCollectionEquality().equals(other.widgetPositions, widgetPositions)&&(identical(other.speedUnit, speedUnit) || other.speedUnit == speedUnit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppSettings&&(identical(other.mapFontSize, mapFontSize) || other.mapFontSize == mapFontSize)&&(identical(other.mapDefaultZoom, mapDefaultZoom) || other.mapDefaultZoom == mapDefaultZoom)&&(identical(other.mapOverviewZoom, mapOverviewZoom) || other.mapOverviewZoom == mapOverviewZoom)&&(identical(other.mapFollowZoom, mapFollowZoom) || other.mapFollowZoom == mapFollowZoom)&&(identical(other.flightSpeedThresholds, flightSpeedThresholds) || other.flightSpeedThresholds == flightSpeedThresholds)&&(identical(other.flightSpeedMaxRange, flightSpeedMaxRange) || other.flightSpeedMaxRange == flightSpeedMaxRange)&&(identical(other.courseLineSegmentsCount, courseLineSegmentsCount) || other.courseLineSegmentsCount == courseLineSegmentsCount)&&(identical(other.courseLineSegmentDuration, courseLineSegmentDuration) || other.courseLineSegmentDuration == courseLineSegmentDuration)&&(identical(other.autoSelectDevice, autoSelectDevice) || other.autoSelectDevice == autoSelectDevice)&&(identical(other.selectedDevice, selectedDevice) || other.selectedDevice == selectedDevice)&&(identical(other.areWidgetsDraggable, areWidgetsDraggable) || other.areWidgetsDraggable == areWidgetsDraggable)&&const DeepCollectionEquality().equals(other.widgetPositions, widgetPositions)&&(identical(other.speedUnit, speedUnit) || other.speedUnit == speedUnit)&&(identical(other.qnh, qnh) || other.qnh == qnh)&&(identical(other.qfe, qfe) || other.qfe == qfe)&&(identical(other.autoQnh, autoQnh) || other.autoQnh == autoQnh)&&(identical(other.altitudeUnit, altitudeUnit) || other.altitudeUnit == altitudeUnit)&&(identical(other.heightUnit, heightUnit) || other.heightUnit == heightUnit));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,mapFontSize,mapDefaultZoom,mapOverviewZoom,mapFollowZoom,flightSpeedThresholds,flightSpeedMaxRange,courseLineSegmentsCount,courseLineSegmentDuration,autoSelectDevice,selectedDevice,areWidgetsDraggable,const DeepCollectionEquality().hash(widgetPositions),speedUnit);
+int get hashCode => Object.hash(runtimeType,mapFontSize,mapDefaultZoom,mapOverviewZoom,mapFollowZoom,flightSpeedThresholds,flightSpeedMaxRange,courseLineSegmentsCount,courseLineSegmentDuration,autoSelectDevice,selectedDevice,areWidgetsDraggable,const DeepCollectionEquality().hash(widgetPositions),speedUnit,qnh,qfe,autoQnh,altitudeUnit,heightUnit);
 
 @override
 String toString() {
-  return 'AppSettings(mapFontSize: $mapFontSize, mapDefaultZoom: $mapDefaultZoom, mapOverviewZoom: $mapOverviewZoom, mapFollowZoom: $mapFollowZoom, flightSpeedThresholds: $flightSpeedThresholds, flightSpeedMaxRange: $flightSpeedMaxRange, courseLineSegmentsCount: $courseLineSegmentsCount, courseLineSegmentDuration: $courseLineSegmentDuration, autoSelectDevice: $autoSelectDevice, selectedDevice: $selectedDevice, areWidgetsDraggable: $areWidgetsDraggable, widgetPositions: $widgetPositions, speedUnit: $speedUnit)';
+  return 'AppSettings(mapFontSize: $mapFontSize, mapDefaultZoom: $mapDefaultZoom, mapOverviewZoom: $mapOverviewZoom, mapFollowZoom: $mapFollowZoom, flightSpeedThresholds: $flightSpeedThresholds, flightSpeedMaxRange: $flightSpeedMaxRange, courseLineSegmentsCount: $courseLineSegmentsCount, courseLineSegmentDuration: $courseLineSegmentDuration, autoSelectDevice: $autoSelectDevice, selectedDevice: $selectedDevice, areWidgetsDraggable: $areWidgetsDraggable, widgetPositions: $widgetPositions, speedUnit: $speedUnit, qnh: $qnh, qfe: $qfe, autoQnh: $autoQnh, altitudeUnit: $altitudeUnit, heightUnit: $heightUnit)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AppSettingsCopyWith<$Res>  {
   factory $AppSettingsCopyWith(AppSettings value, $Res Function(AppSettings) _then) = _$AppSettingsCopyWithImpl;
 @useResult
 $Res call({
- double mapFontSize, double mapDefaultZoom, double mapOverviewZoom, double mapFollowZoom, RangeThresholds flightSpeedThresholds, double flightSpeedMaxRange, int courseLineSegmentsCount, int courseLineSegmentDuration, bool autoSelectDevice, CannelloniDevice? selectedDevice, bool areWidgetsDraggable, Map<String, WidgetPosition> widgetPositions, SpeedUnit speedUnit
+ double mapFontSize, double mapDefaultZoom, double mapOverviewZoom, double mapFollowZoom, RangeThresholds flightSpeedThresholds, double flightSpeedMaxRange, int courseLineSegmentsCount, int courseLineSegmentDuration, bool autoSelectDevice, CannelloniDevice? selectedDevice, bool areWidgetsDraggable, Map<String, WidgetPosition> widgetPositions, SpeedUnit speedUnit, double qnh, double qfe, bool autoQnh, AltitudeUnit altitudeUnit, AltitudeUnit heightUnit
 });
 
 
@@ -65,7 +65,7 @@ class _$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? mapFontSize = null,Object? mapDefaultZoom = null,Object? mapOverviewZoom = null,Object? mapFollowZoom = null,Object? flightSpeedThresholds = null,Object? flightSpeedMaxRange = null,Object? courseLineSegmentsCount = null,Object? courseLineSegmentDuration = null,Object? autoSelectDevice = null,Object? selectedDevice = freezed,Object? areWidgetsDraggable = null,Object? widgetPositions = null,Object? speedUnit = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? mapFontSize = null,Object? mapDefaultZoom = null,Object? mapOverviewZoom = null,Object? mapFollowZoom = null,Object? flightSpeedThresholds = null,Object? flightSpeedMaxRange = null,Object? courseLineSegmentsCount = null,Object? courseLineSegmentDuration = null,Object? autoSelectDevice = null,Object? selectedDevice = freezed,Object? areWidgetsDraggable = null,Object? widgetPositions = null,Object? speedUnit = null,Object? qnh = null,Object? qfe = null,Object? autoQnh = null,Object? altitudeUnit = null,Object? heightUnit = null,}) {
   return _then(_self.copyWith(
 mapFontSize: null == mapFontSize ? _self.mapFontSize : mapFontSize // ignore: cast_nullable_to_non_nullable
 as double,mapDefaultZoom: null == mapDefaultZoom ? _self.mapDefaultZoom : mapDefaultZoom // ignore: cast_nullable_to_non_nullable
@@ -80,7 +80,12 @@ as bool,selectedDevice: freezed == selectedDevice ? _self.selectedDevice : selec
 as CannelloniDevice?,areWidgetsDraggable: null == areWidgetsDraggable ? _self.areWidgetsDraggable : areWidgetsDraggable // ignore: cast_nullable_to_non_nullable
 as bool,widgetPositions: null == widgetPositions ? _self.widgetPositions : widgetPositions // ignore: cast_nullable_to_non_nullable
 as Map<String, WidgetPosition>,speedUnit: null == speedUnit ? _self.speedUnit : speedUnit // ignore: cast_nullable_to_non_nullable
-as SpeedUnit,
+as SpeedUnit,qnh: null == qnh ? _self.qnh : qnh // ignore: cast_nullable_to_non_nullable
+as double,qfe: null == qfe ? _self.qfe : qfe // ignore: cast_nullable_to_non_nullable
+as double,autoQnh: null == autoQnh ? _self.autoQnh : autoQnh // ignore: cast_nullable_to_non_nullable
+as bool,altitudeUnit: null == altitudeUnit ? _self.altitudeUnit : altitudeUnit // ignore: cast_nullable_to_non_nullable
+as AltitudeUnit,heightUnit: null == heightUnit ? _self.heightUnit : heightUnit // ignore: cast_nullable_to_non_nullable
+as AltitudeUnit,
   ));
 }
 /// Create a copy of AppSettings
@@ -186,10 +191,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double mapFontSize,  double mapDefaultZoom,  double mapOverviewZoom,  double mapFollowZoom,  RangeThresholds flightSpeedThresholds,  double flightSpeedMaxRange,  int courseLineSegmentsCount,  int courseLineSegmentDuration,  bool autoSelectDevice,  CannelloniDevice? selectedDevice,  bool areWidgetsDraggable,  Map<String, WidgetPosition> widgetPositions,  SpeedUnit speedUnit)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double mapFontSize,  double mapDefaultZoom,  double mapOverviewZoom,  double mapFollowZoom,  RangeThresholds flightSpeedThresholds,  double flightSpeedMaxRange,  int courseLineSegmentsCount,  int courseLineSegmentDuration,  bool autoSelectDevice,  CannelloniDevice? selectedDevice,  bool areWidgetsDraggable,  Map<String, WidgetPosition> widgetPositions,  SpeedUnit speedUnit,  double qnh,  double qfe,  bool autoQnh,  AltitudeUnit altitudeUnit,  AltitudeUnit heightUnit)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_that.mapFollowZoom,_that.flightSpeedThresholds,_that.flightSpeedMaxRange,_that.courseLineSegmentsCount,_that.courseLineSegmentDuration,_that.autoSelectDevice,_that.selectedDevice,_that.areWidgetsDraggable,_that.widgetPositions,_that.speedUnit);case _:
+return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_that.mapFollowZoom,_that.flightSpeedThresholds,_that.flightSpeedMaxRange,_that.courseLineSegmentsCount,_that.courseLineSegmentDuration,_that.autoSelectDevice,_that.selectedDevice,_that.areWidgetsDraggable,_that.widgetPositions,_that.speedUnit,_that.qnh,_that.qfe,_that.autoQnh,_that.altitudeUnit,_that.heightUnit);case _:
   return orElse();
 
 }
@@ -207,10 +212,10 @@ return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double mapFontSize,  double mapDefaultZoom,  double mapOverviewZoom,  double mapFollowZoom,  RangeThresholds flightSpeedThresholds,  double flightSpeedMaxRange,  int courseLineSegmentsCount,  int courseLineSegmentDuration,  bool autoSelectDevice,  CannelloniDevice? selectedDevice,  bool areWidgetsDraggable,  Map<String, WidgetPosition> widgetPositions,  SpeedUnit speedUnit)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double mapFontSize,  double mapDefaultZoom,  double mapOverviewZoom,  double mapFollowZoom,  RangeThresholds flightSpeedThresholds,  double flightSpeedMaxRange,  int courseLineSegmentsCount,  int courseLineSegmentDuration,  bool autoSelectDevice,  CannelloniDevice? selectedDevice,  bool areWidgetsDraggable,  Map<String, WidgetPosition> widgetPositions,  SpeedUnit speedUnit,  double qnh,  double qfe,  bool autoQnh,  AltitudeUnit altitudeUnit,  AltitudeUnit heightUnit)  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings():
-return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_that.mapFollowZoom,_that.flightSpeedThresholds,_that.flightSpeedMaxRange,_that.courseLineSegmentsCount,_that.courseLineSegmentDuration,_that.autoSelectDevice,_that.selectedDevice,_that.areWidgetsDraggable,_that.widgetPositions,_that.speedUnit);case _:
+return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_that.mapFollowZoom,_that.flightSpeedThresholds,_that.flightSpeedMaxRange,_that.courseLineSegmentsCount,_that.courseLineSegmentDuration,_that.autoSelectDevice,_that.selectedDevice,_that.areWidgetsDraggable,_that.widgetPositions,_that.speedUnit,_that.qnh,_that.qfe,_that.autoQnh,_that.altitudeUnit,_that.heightUnit);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -227,10 +232,10 @@ return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double mapFontSize,  double mapDefaultZoom,  double mapOverviewZoom,  double mapFollowZoom,  RangeThresholds flightSpeedThresholds,  double flightSpeedMaxRange,  int courseLineSegmentsCount,  int courseLineSegmentDuration,  bool autoSelectDevice,  CannelloniDevice? selectedDevice,  bool areWidgetsDraggable,  Map<String, WidgetPosition> widgetPositions,  SpeedUnit speedUnit)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double mapFontSize,  double mapDefaultZoom,  double mapOverviewZoom,  double mapFollowZoom,  RangeThresholds flightSpeedThresholds,  double flightSpeedMaxRange,  int courseLineSegmentsCount,  int courseLineSegmentDuration,  bool autoSelectDevice,  CannelloniDevice? selectedDevice,  bool areWidgetsDraggable,  Map<String, WidgetPosition> widgetPositions,  SpeedUnit speedUnit,  double qnh,  double qfe,  bool autoQnh,  AltitudeUnit altitudeUnit,  AltitudeUnit heightUnit)?  $default,) {final _that = this;
 switch (_that) {
 case _AppSettings() when $default != null:
-return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_that.mapFollowZoom,_that.flightSpeedThresholds,_that.flightSpeedMaxRange,_that.courseLineSegmentsCount,_that.courseLineSegmentDuration,_that.autoSelectDevice,_that.selectedDevice,_that.areWidgetsDraggable,_that.widgetPositions,_that.speedUnit);case _:
+return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_that.mapFollowZoom,_that.flightSpeedThresholds,_that.flightSpeedMaxRange,_that.courseLineSegmentsCount,_that.courseLineSegmentDuration,_that.autoSelectDevice,_that.selectedDevice,_that.areWidgetsDraggable,_that.widgetPositions,_that.speedUnit,_that.qnh,_that.qfe,_that.autoQnh,_that.altitudeUnit,_that.heightUnit);case _:
   return null;
 
 }
@@ -242,7 +247,7 @@ return $default(_that.mapFontSize,_that.mapDefaultZoom,_that.mapOverviewZoom,_th
 @JsonSerializable()
 
 class _AppSettings implements AppSettings {
-  const _AppSettings({this.mapFontSize = 1.0, this.mapDefaultZoom = 6.0, this.mapOverviewZoom = 10.0, this.mapFollowZoom = 12.0, this.flightSpeedThresholds = const RangeThresholds.raw(inactiveMax: 2.77, minError: 16.67, minWarning: 20.83, maxWarning: 30.56, maxError: 34.72), this.flightSpeedMaxRange = 38.89, this.courseLineSegmentsCount = 5, this.courseLineSegmentDuration = 60, this.autoSelectDevice = true, this.selectedDevice, this.areWidgetsDraggable = false, final  Map<String, WidgetPosition> widgetPositions = const {}, this.speedUnit = SpeedUnit.kmh}): _widgetPositions = widgetPositions;
+  const _AppSettings({this.mapFontSize = 1.0, this.mapDefaultZoom = 6.0, this.mapOverviewZoom = 10.0, this.mapFollowZoom = 12.0, this.flightSpeedThresholds = const RangeThresholds.raw(inactiveMax: 2.77, minError: 16.67, minWarning: 20.83, maxWarning: 30.56, maxError: 34.72), this.flightSpeedMaxRange = 38.89, this.courseLineSegmentsCount = 5, this.courseLineSegmentDuration = 60, this.autoSelectDevice = true, this.selectedDevice, this.areWidgetsDraggable = false, final  Map<String, WidgetPosition> widgetPositions = const {}, this.speedUnit = SpeedUnit.kmh, this.qnh = 1013.25, this.qfe = 1013.25, this.autoQnh = true, this.altitudeUnit = AltitudeUnit.feet, this.heightUnit = AltitudeUnit.meters}): _widgetPositions = widgetPositions;
   factory _AppSettings.fromJson(Map<String, dynamic> json) => _$AppSettingsFromJson(json);
 
 @override@JsonKey() final  double mapFontSize;
@@ -264,6 +269,11 @@ class _AppSettings implements AppSettings {
 }
 
 @override@JsonKey() final  SpeedUnit speedUnit;
+@override@JsonKey() final  double qnh;
+@override@JsonKey() final  double qfe;
+@override@JsonKey() final  bool autoQnh;
+@override@JsonKey() final  AltitudeUnit altitudeUnit;
+@override@JsonKey() final  AltitudeUnit heightUnit;
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -278,16 +288,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.mapFontSize, mapFontSize) || other.mapFontSize == mapFontSize)&&(identical(other.mapDefaultZoom, mapDefaultZoom) || other.mapDefaultZoom == mapDefaultZoom)&&(identical(other.mapOverviewZoom, mapOverviewZoom) || other.mapOverviewZoom == mapOverviewZoom)&&(identical(other.mapFollowZoom, mapFollowZoom) || other.mapFollowZoom == mapFollowZoom)&&(identical(other.flightSpeedThresholds, flightSpeedThresholds) || other.flightSpeedThresholds == flightSpeedThresholds)&&(identical(other.flightSpeedMaxRange, flightSpeedMaxRange) || other.flightSpeedMaxRange == flightSpeedMaxRange)&&(identical(other.courseLineSegmentsCount, courseLineSegmentsCount) || other.courseLineSegmentsCount == courseLineSegmentsCount)&&(identical(other.courseLineSegmentDuration, courseLineSegmentDuration) || other.courseLineSegmentDuration == courseLineSegmentDuration)&&(identical(other.autoSelectDevice, autoSelectDevice) || other.autoSelectDevice == autoSelectDevice)&&(identical(other.selectedDevice, selectedDevice) || other.selectedDevice == selectedDevice)&&(identical(other.areWidgetsDraggable, areWidgetsDraggable) || other.areWidgetsDraggable == areWidgetsDraggable)&&const DeepCollectionEquality().equals(other._widgetPositions, _widgetPositions)&&(identical(other.speedUnit, speedUnit) || other.speedUnit == speedUnit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppSettings&&(identical(other.mapFontSize, mapFontSize) || other.mapFontSize == mapFontSize)&&(identical(other.mapDefaultZoom, mapDefaultZoom) || other.mapDefaultZoom == mapDefaultZoom)&&(identical(other.mapOverviewZoom, mapOverviewZoom) || other.mapOverviewZoom == mapOverviewZoom)&&(identical(other.mapFollowZoom, mapFollowZoom) || other.mapFollowZoom == mapFollowZoom)&&(identical(other.flightSpeedThresholds, flightSpeedThresholds) || other.flightSpeedThresholds == flightSpeedThresholds)&&(identical(other.flightSpeedMaxRange, flightSpeedMaxRange) || other.flightSpeedMaxRange == flightSpeedMaxRange)&&(identical(other.courseLineSegmentsCount, courseLineSegmentsCount) || other.courseLineSegmentsCount == courseLineSegmentsCount)&&(identical(other.courseLineSegmentDuration, courseLineSegmentDuration) || other.courseLineSegmentDuration == courseLineSegmentDuration)&&(identical(other.autoSelectDevice, autoSelectDevice) || other.autoSelectDevice == autoSelectDevice)&&(identical(other.selectedDevice, selectedDevice) || other.selectedDevice == selectedDevice)&&(identical(other.areWidgetsDraggable, areWidgetsDraggable) || other.areWidgetsDraggable == areWidgetsDraggable)&&const DeepCollectionEquality().equals(other._widgetPositions, _widgetPositions)&&(identical(other.speedUnit, speedUnit) || other.speedUnit == speedUnit)&&(identical(other.qnh, qnh) || other.qnh == qnh)&&(identical(other.qfe, qfe) || other.qfe == qfe)&&(identical(other.autoQnh, autoQnh) || other.autoQnh == autoQnh)&&(identical(other.altitudeUnit, altitudeUnit) || other.altitudeUnit == altitudeUnit)&&(identical(other.heightUnit, heightUnit) || other.heightUnit == heightUnit));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,mapFontSize,mapDefaultZoom,mapOverviewZoom,mapFollowZoom,flightSpeedThresholds,flightSpeedMaxRange,courseLineSegmentsCount,courseLineSegmentDuration,autoSelectDevice,selectedDevice,areWidgetsDraggable,const DeepCollectionEquality().hash(_widgetPositions),speedUnit);
+int get hashCode => Object.hash(runtimeType,mapFontSize,mapDefaultZoom,mapOverviewZoom,mapFollowZoom,flightSpeedThresholds,flightSpeedMaxRange,courseLineSegmentsCount,courseLineSegmentDuration,autoSelectDevice,selectedDevice,areWidgetsDraggable,const DeepCollectionEquality().hash(_widgetPositions),speedUnit,qnh,qfe,autoQnh,altitudeUnit,heightUnit);
 
 @override
 String toString() {
-  return 'AppSettings(mapFontSize: $mapFontSize, mapDefaultZoom: $mapDefaultZoom, mapOverviewZoom: $mapOverviewZoom, mapFollowZoom: $mapFollowZoom, flightSpeedThresholds: $flightSpeedThresholds, flightSpeedMaxRange: $flightSpeedMaxRange, courseLineSegmentsCount: $courseLineSegmentsCount, courseLineSegmentDuration: $courseLineSegmentDuration, autoSelectDevice: $autoSelectDevice, selectedDevice: $selectedDevice, areWidgetsDraggable: $areWidgetsDraggable, widgetPositions: $widgetPositions, speedUnit: $speedUnit)';
+  return 'AppSettings(mapFontSize: $mapFontSize, mapDefaultZoom: $mapDefaultZoom, mapOverviewZoom: $mapOverviewZoom, mapFollowZoom: $mapFollowZoom, flightSpeedThresholds: $flightSpeedThresholds, flightSpeedMaxRange: $flightSpeedMaxRange, courseLineSegmentsCount: $courseLineSegmentsCount, courseLineSegmentDuration: $courseLineSegmentDuration, autoSelectDevice: $autoSelectDevice, selectedDevice: $selectedDevice, areWidgetsDraggable: $areWidgetsDraggable, widgetPositions: $widgetPositions, speedUnit: $speedUnit, qnh: $qnh, qfe: $qfe, autoQnh: $autoQnh, altitudeUnit: $altitudeUnit, heightUnit: $heightUnit)';
 }
 
 
@@ -298,7 +308,7 @@ abstract mixin class _$AppSettingsCopyWith<$Res> implements $AppSettingsCopyWith
   factory _$AppSettingsCopyWith(_AppSettings value, $Res Function(_AppSettings) _then) = __$AppSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- double mapFontSize, double mapDefaultZoom, double mapOverviewZoom, double mapFollowZoom, RangeThresholds flightSpeedThresholds, double flightSpeedMaxRange, int courseLineSegmentsCount, int courseLineSegmentDuration, bool autoSelectDevice, CannelloniDevice? selectedDevice, bool areWidgetsDraggable, Map<String, WidgetPosition> widgetPositions, SpeedUnit speedUnit
+ double mapFontSize, double mapDefaultZoom, double mapOverviewZoom, double mapFollowZoom, RangeThresholds flightSpeedThresholds, double flightSpeedMaxRange, int courseLineSegmentsCount, int courseLineSegmentDuration, bool autoSelectDevice, CannelloniDevice? selectedDevice, bool areWidgetsDraggable, Map<String, WidgetPosition> widgetPositions, SpeedUnit speedUnit, double qnh, double qfe, bool autoQnh, AltitudeUnit altitudeUnit, AltitudeUnit heightUnit
 });
 
 
@@ -315,7 +325,7 @@ class __$AppSettingsCopyWithImpl<$Res>
 
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? mapFontSize = null,Object? mapDefaultZoom = null,Object? mapOverviewZoom = null,Object? mapFollowZoom = null,Object? flightSpeedThresholds = null,Object? flightSpeedMaxRange = null,Object? courseLineSegmentsCount = null,Object? courseLineSegmentDuration = null,Object? autoSelectDevice = null,Object? selectedDevice = freezed,Object? areWidgetsDraggable = null,Object? widgetPositions = null,Object? speedUnit = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? mapFontSize = null,Object? mapDefaultZoom = null,Object? mapOverviewZoom = null,Object? mapFollowZoom = null,Object? flightSpeedThresholds = null,Object? flightSpeedMaxRange = null,Object? courseLineSegmentsCount = null,Object? courseLineSegmentDuration = null,Object? autoSelectDevice = null,Object? selectedDevice = freezed,Object? areWidgetsDraggable = null,Object? widgetPositions = null,Object? speedUnit = null,Object? qnh = null,Object? qfe = null,Object? autoQnh = null,Object? altitudeUnit = null,Object? heightUnit = null,}) {
   return _then(_AppSettings(
 mapFontSize: null == mapFontSize ? _self.mapFontSize : mapFontSize // ignore: cast_nullable_to_non_nullable
 as double,mapDefaultZoom: null == mapDefaultZoom ? _self.mapDefaultZoom : mapDefaultZoom // ignore: cast_nullable_to_non_nullable
@@ -330,7 +340,12 @@ as bool,selectedDevice: freezed == selectedDevice ? _self.selectedDevice : selec
 as CannelloniDevice?,areWidgetsDraggable: null == areWidgetsDraggable ? _self.areWidgetsDraggable : areWidgetsDraggable // ignore: cast_nullable_to_non_nullable
 as bool,widgetPositions: null == widgetPositions ? _self._widgetPositions : widgetPositions // ignore: cast_nullable_to_non_nullable
 as Map<String, WidgetPosition>,speedUnit: null == speedUnit ? _self.speedUnit : speedUnit // ignore: cast_nullable_to_non_nullable
-as SpeedUnit,
+as SpeedUnit,qnh: null == qnh ? _self.qnh : qnh // ignore: cast_nullable_to_non_nullable
+as double,qfe: null == qfe ? _self.qfe : qfe // ignore: cast_nullable_to_non_nullable
+as double,autoQnh: null == autoQnh ? _self.autoQnh : autoQnh // ignore: cast_nullable_to_non_nullable
+as bool,altitudeUnit: null == altitudeUnit ? _self.altitudeUnit : altitudeUnit // ignore: cast_nullable_to_non_nullable
+as AltitudeUnit,heightUnit: null == heightUnit ? _self.heightUnit : heightUnit // ignore: cast_nullable_to_non_nullable
+as AltitudeUnit,
   ));
 }
 

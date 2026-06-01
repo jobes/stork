@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +9,7 @@ import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/range_thresholds.dart';
 import '../../../settings/domain/speed_unit.dart';
 import 'speed_details_dialog.dart';
+import 'telemetry_card.dart';
 
 class SpeedTelemetryWidget extends ConsumerWidget {
   const SpeedTelemetryWidget({super.key});
@@ -180,58 +180,22 @@ class SpeedTelemetryWidget extends ConsumerWidget {
       );
     }
 
-    final areWidgetsDraggable = settings?.areWidgetsDraggable ?? false;
-
-    final widgetContent = AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: _getBoxShadow(speedState, isDark),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.black.withAlpha(76)
-                  : Colors.white.withAlpha(128),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _getBorderColor(speedState, isDark),
-                width: _getBorderWidth(speedState),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: columnChildren,
-            ),
-          ),
-        ),
+    return TelemetryCard(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => const SpeedDetailsDialog(),
+        );
+      },
+      boxShadow: _getBoxShadow(speedState, isDark),
+      borderColor: _getBorderColor(speedState, isDark),
+      borderWidth: _getBorderWidth(speedState),
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: columnChildren,
       ),
     );
-
-    if (!areWidgetsDraggable) {
-      return GestureDetector(
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (context) => const SpeedDetailsDialog(),
-          );
-        },
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: widgetContent,
-        ),
-      );
-    }
-
-    return widgetContent;
   }
 }

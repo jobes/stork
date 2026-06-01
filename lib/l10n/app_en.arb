@@ -178,5 +178,34 @@
   "gpsSourceInternal": "Internal GPS (Phone)",
   "gpsSourceDroneCan": "DroneCAN (Receiver)",
   "gpsNotificationTitle": "Stork GPS Service",
-  "gpsNotificationText": "Tracking location in background"
+  "gpsNotificationText": "Tracking location in background",
+  "altitude": "Altitude",
+  "altitudeSourceBaro": "BARO (DroneCAN)",
+  "altitudeSourceGpsReceiver": "GPS (DroneCAN)",
+  "altitudeSourceGpsPhone": "GPS (Mobile)",
+  "altitudeSourceNone": "N/A",
+  "altitudeUnitMeters": "m",
+  "altitudeUnitSettings": "Altitude Unit",
+  "altitudeUnitMetersMsl": "m MSL",
+  "altitudeUnitFeetMsl": "ft MSL",
+  "altitudeUnitMetersGnd": "m AGL",
+  "altitudeUnitFeetGnd": "ft AGL",
+  "heightUnitSettings": "Height Unit (AGL)",
+  "altitudeDetailsTitle": "Altitude Details",
+  "altitudeSource": "Altitude Source",
+  "autoQnhLabel": "Automatic QNH Calculation",
+  "autoQnhHelpTooltip": "QNH is automatically set at startup on the ground and will be adjusted from GPS during flight because atmospheric pressure changes with weather.",
+  "qnhSetting": "QNH Setting",
+  "invalidQnhNumber": "Invalid number",
+  "qnhOutOfRange": "Out of range ({min} - {max})",
+  "@qnhOutOfRange": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  }
 }

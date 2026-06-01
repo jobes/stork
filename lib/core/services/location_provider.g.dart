@@ -56,6 +56,7 @@ final class PositionStreamProvider
         $FunctionalProvider<
           AsyncValue<
             ({
+              double altitude,
               double groundSpeed,
               double heading,
               double horizontalAccuracy,
@@ -65,6 +66,7 @@ final class PositionStreamProvider
             })
           >,
           ({
+            double altitude,
             double groundSpeed,
             double heading,
             double horizontalAccuracy,
@@ -74,6 +76,7 @@ final class PositionStreamProvider
           }),
           Stream<
             ({
+              double altitude,
               double groundSpeed,
               double heading,
               double horizontalAccuracy,
@@ -86,6 +89,7 @@ final class PositionStreamProvider
     with
         $FutureModifier<
           ({
+            double altitude,
             double groundSpeed,
             double heading,
             double horizontalAccuracy,
@@ -96,6 +100,7 @@ final class PositionStreamProvider
         >,
         $StreamProvider<
           ({
+            double altitude,
             double groundSpeed,
             double heading,
             double horizontalAccuracy,
@@ -122,6 +127,7 @@ final class PositionStreamProvider
   @override
   $StreamProviderElement<
     ({
+      double altitude,
       double groundSpeed,
       double heading,
       double horizontalAccuracy,
@@ -135,6 +141,7 @@ final class PositionStreamProvider
   @override
   Stream<
     ({
+      double altitude,
       double groundSpeed,
       double heading,
       double horizontalAccuracy,
@@ -148,7 +155,7 @@ final class PositionStreamProvider
   }
 }
 
-String _$positionStreamHash() => r'4265ccaf800f4786f7c92f2a4adf8bb5c0b68c7b';
+String _$positionStreamHash() => r'7937b606f5ebac684c1421d570659a8cc8b7e158';
 
 @ProviderFor(compassStream)
 final compassStreamProvider = CompassStreamProvider._();

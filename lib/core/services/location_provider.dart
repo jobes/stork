@@ -27,6 +27,7 @@ Stream<
     double groundSpeed,
     double horizontalAccuracy,
     double verticalAccuracy,
+    double altitude,
   })
 >
 positionStream(Ref ref) {
@@ -81,6 +82,7 @@ positionStream(Ref ref) {
       groundSpeed: pos.speed,
       horizontalAccuracy: pos.accuracy,
       verticalAccuracy: pos.altitudeAccuracy,
+      altitude: pos.altitude,
     ),
   );
 }

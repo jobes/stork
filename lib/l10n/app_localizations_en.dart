@@ -294,4 +294,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsNotificationText => 'Tracking location in background';
+
+  @override
+  String get altitude => 'Altitude';
+
+  @override
+  String get altitudeSourceBaro => 'BARO (DroneCAN)';
+
+  @override
+  String get altitudeSourceGpsReceiver => 'GPS (DroneCAN)';
+
+  @override
+  String get altitudeSourceGpsPhone => 'GPS (Mobile)';
+
+  @override
+  String get altitudeSourceNone => 'N/A';
+
+  @override
+  String get altitudeUnitMeters => 'm';
+
+  @override
+  String get altitudeUnitSettings => 'Altitude Unit';
+
+  @override
+  String get altitudeUnitMetersMsl => 'm MSL';
+
+  @override
+  String get altitudeUnitFeetMsl => 'ft MSL';
+
+  @override
+  String get altitudeUnitMetersGnd => 'm AGL';
+
+  @override
+  String get altitudeUnitFeetGnd => 'ft AGL';
+
+  @override
+  String get heightUnitSettings => 'Height Unit (AGL)';
+
+  @override
+  String get altitudeDetailsTitle => 'Altitude Details';
+
+  @override
+  String get altitudeSource => 'Altitude Source';
+
+  @override
+  String get autoQnhLabel => 'Automatic QNH Calculation';
+
+  @override
+  String get autoQnhHelpTooltip =>
+      'QNH is automatically set at startup on the ground and will be adjusted from GPS during flight because atmospheric pressure changes with weather.';
+
+  @override
+  String get qnhSetting => 'QNH Setting';
+
+  @override
+  String get invalidQnhNumber => 'Invalid number';
+
+  @override
+  String qnhOutOfRange(String min, String max) {
+    return 'Out of range ($min - $max)';
+  }
 }

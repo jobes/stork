@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'style_service.dart';
 
@@ -7,7 +8,8 @@ part 'style_provider.g.dart';
 
 @riverpod
 Future<String> mapStyle(Ref ref) async {
-  final settingsAsync = ref.watch(appSettingsProvider);
-  final fontSize = settingsAsync.value?.mapFontSize ?? 1.0;
+  final fontSize = ref.watch(
+    appSettingsProvider.select((s) => s.value?.mapFontSize ?? 1.0),
+  );
   return StyleService.loadStyle(fontSize: fontSize);
 }

@@ -44,6 +44,15 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   speedUnit:
       $enumDecodeNullable(_$SpeedUnitEnumMap, json['speedUnit']) ??
       SpeedUnit.kmh,
+  qnh: (json['qnh'] as num?)?.toDouble() ?? 1013.25,
+  qfe: (json['qfe'] as num?)?.toDouble() ?? 1013.25,
+  autoQnh: json['autoQnh'] as bool? ?? true,
+  altitudeUnit:
+      $enumDecodeNullable(_$AltitudeUnitEnumMap, json['altitudeUnit']) ??
+      AltitudeUnit.feet,
+  heightUnit:
+      $enumDecodeNullable(_$AltitudeUnitEnumMap, json['heightUnit']) ??
+      AltitudeUnit.meters,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -61,6 +70,11 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'areWidgetsDraggable': instance.areWidgetsDraggable,
       'widgetPositions': instance.widgetPositions,
       'speedUnit': _$SpeedUnitEnumMap[instance.speedUnit]!,
+      'qnh': instance.qnh,
+      'qfe': instance.qfe,
+      'autoQnh': instance.autoQnh,
+      'altitudeUnit': _$AltitudeUnitEnumMap[instance.altitudeUnit]!,
+      'heightUnit': _$AltitudeUnitEnumMap[instance.heightUnit]!,
     };
 
 const _$SpeedUnitEnumMap = {
@@ -68,4 +82,10 @@ const _$SpeedUnitEnumMap = {
   SpeedUnit.kmh: 'kmh',
   SpeedUnit.mph: 'mph',
   SpeedUnit.knots: 'knots',
+};
+
+const _$AltitudeUnitEnumMap = {
+  AltitudeUnit.meters: 'meters',
+  AltitudeUnit.feet: 'feet',
+  AltitudeUnit.flightLevel: 'flightLevel',
 };

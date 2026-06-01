@@ -479,5 +479,53 @@ void main() {
       );
       expect(mockRepository.currentSettings.widgetPositions, isEmpty);
     });
+
+    test('updateAutoQnh modifies the autoQnh setting and persists it', () async {
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      expect(container.read(appSettingsProvider).value?.autoQnh, isTrue);
+
+      final result = await notifier.updateAutoQnh(false);
+      expect(result, isA<SettingsUpdateSuccess>());
+      expect(container.read(appSettingsProvider).value?.autoQnh, isFalse);
+      expect(mockRepository.currentSettings.autoQnh, isFalse);
+    });
+
+    test('updateQnh modifies the qnh setting and persists it', () async {
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      expect(container.read(appSettingsProvider).value?.qnh, equals(1013.25));
+
+      final result = await notifier.updateQnh(1020.5);
+      expect(result, isA<SettingsUpdateSuccess>());
+      expect(container.read(appSettingsProvider).value?.qnh, equals(1020.5));
+      expect(mockRepository.currentSettings.qnh, equals(1020.5));
+    });
   });
 }

@@ -637,6 +637,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tracking location in background'**
   String get gpsNotificationText;
+
+  /// No description provided for @altitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get altitude;
+
+  /// No description provided for @altitudeSourceBaro.
+  ///
+  /// In en, this message translates to:
+  /// **'BARO (DroneCAN)'**
+  String get altitudeSourceBaro;
+
+  /// No description provided for @altitudeSourceGpsReceiver.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS (DroneCAN)'**
+  String get altitudeSourceGpsReceiver;
+
+  /// No description provided for @altitudeSourceGpsPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS (Mobile)'**
+  String get altitudeSourceGpsPhone;
+
+  /// No description provided for @altitudeSourceNone.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get altitudeSourceNone;
+
+  /// No description provided for @altitudeUnitMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'m'**
+  String get altitudeUnitMeters;
+
+  /// No description provided for @altitudeUnitSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude Unit'**
+  String get altitudeUnitSettings;
+
+  /// No description provided for @altitudeUnitMetersMsl.
+  ///
+  /// In en, this message translates to:
+  /// **'m MSL'**
+  String get altitudeUnitMetersMsl;
+
+  /// No description provided for @altitudeUnitFeetMsl.
+  ///
+  /// In en, this message translates to:
+  /// **'ft MSL'**
+  String get altitudeUnitFeetMsl;
+
+  /// No description provided for @altitudeUnitMetersGnd.
+  ///
+  /// In en, this message translates to:
+  /// **'m AGL'**
+  String get altitudeUnitMetersGnd;
+
+  /// No description provided for @altitudeUnitFeetGnd.
+  ///
+  /// In en, this message translates to:
+  /// **'ft AGL'**
+  String get altitudeUnitFeetGnd;
+
+  /// No description provided for @heightUnitSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Height Unit (AGL)'**
+  String get heightUnitSettings;
+
+  /// No description provided for @altitudeDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude Details'**
+  String get altitudeDetailsTitle;
+
+  /// No description provided for @altitudeSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude Source'**
+  String get altitudeSource;
+
+  /// No description provided for @autoQnhLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic QNH Calculation'**
+  String get autoQnhLabel;
+
+  /// No description provided for @autoQnhHelpTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'QNH is automatically set at startup on the ground and will be adjusted from GPS during flight because atmospheric pressure changes with weather.'**
+  String get autoQnhHelpTooltip;
+
+  /// No description provided for @qnhSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'QNH Setting'**
+  String get qnhSetting;
+
+  /// No description provided for @invalidQnhNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid number'**
+  String get invalidQnhNumber;
+
+  /// No description provided for @qnhOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of range ({min} - {max})'**
+  String qnhOutOfRange(String min, String max);
 }
 
 class _AppLocalizationsDelegate

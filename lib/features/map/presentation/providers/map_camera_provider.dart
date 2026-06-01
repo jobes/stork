@@ -205,6 +205,7 @@ class MapCamera extends _$MapCamera {
                     null, // Phone GPS satellites set to null as per requirement
                 gpsHorizontalAccuracy: location.horizontalAccuracy,
                 gpsVerticalAccuracy: location.verticalAccuracy,
+                gpsAltitude: location.altitude,
               );
 
           // Use GPS heading only if we are flying (according to telemetry logic)
