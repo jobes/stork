@@ -9,7 +9,7 @@ part 'style_provider.g.dart';
 @riverpod
 Future<String> mapStyle(Ref ref) async {
   final fontSize = ref.watch(
-    appSettingsProvider.select((s) => s.value?.mapFontSize ?? 1.0),
+    appSettingsProvider.select((s) => (s.value?.mapFontSize ?? 1.0) * 1.5),
   );
   return StyleService.loadStyle(fontSize: fontSize);
 }

@@ -6,15 +6,15 @@ import '../../../settings/presentation/providers/settings_provider.dart';
 class _CompassLayout {
   static const double barHeight = 40.0;
   static const double indicatorHeight = 40.0;
-  static const double indicatorWidth = 2.0;
+  static const double indicatorWidth = 4.0;
   static const double pixelsPerDegreeBase = 8.0;
-  static const double labelFontSizeBase = 12.0;
+  static const double labelFontSizeBase = 14.0;
   static const double headingFontSizeBase = 14.0;
   static const double markerHeightSmall = 6.0;
   static const double markerHeightMedium = 10.0;
-  static const double markerHeightLarge = 15.0;
-  static const double markerHeightXLarge = 20.0;
-  static const double labelOffsetBase = 18.0;
+  static const double markerHeightLarge = 15;
+  static const double markerHeightXLarge = 10.0;
+  static const double labelOffsetBase = 15.0;
 }
 
 class CompassBar extends ConsumerWidget {

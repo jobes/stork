@@ -21,8 +21,8 @@ class MapSettingsPage extends ConsumerWidget {
               label: l10n.mapFontSize,
               value: settings.mapFontSize,
               min: 0.5,
-              max: 2.0,
-              divisions: 15,
+              max: 3.0,
+              divisions: 25,
               onChanged: (val) {
                 ref.read(appSettingsProvider.notifier).updateFontSize(val);
               },

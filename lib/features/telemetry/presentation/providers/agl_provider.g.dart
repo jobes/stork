@@ -228,7 +228,7 @@ final class AutoQnhCalibratorProvider
   }
 }
 
-String _$autoQnhCalibratorHash() => r'fcf030b48cd65ffc3b53a9b6a9b91074c328bda7';
+String _$autoQnhCalibratorHash() => r'd37574531194495eca18f20173ea8e898012c931';
 
 abstract class _$AutoQnhCalibrator extends $Notifier<AutoQnhCalibratorState> {
   AutoQnhCalibratorState build();
@@ -288,4 +288,4 @@ final class AglProvider
   }
 }
 
-String _$aglHash() => r'6fbbbb85fcc6136bf4ff2eeff39f204d4de3d169';
+String _$aglHash() => r'29f684e9da65ae972412be9bcd3cff742291588b';

@@ -77,6 +77,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     String unit,
     Color valueColor,
     Color unitColor,
+    double fontScale,
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -85,14 +86,14 @@ class SpeedTelemetryWidget extends ConsumerWidget {
         Text(
           value,
           style: TextStyle(
-            fontSize: 32,
+            fontSize: 32 * fontScale,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',
             color: valueColor,
           ),
         ),
-        const SizedBox(width: 4),
-        Text(unit, style: TextStyle(fontSize: 12, color: unitColor)),
+        SizedBox(width: 4 * fontScale),
+        Text(unit, style: TextStyle(fontSize: 12 * fontScale, color: unitColor)),
       ],
     );
   }
@@ -105,6 +106,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     final thresholds =
         settings?.flightSpeedThresholds ?? const RangeThresholds.raw();
     final l10n = AppLocalizations.of(context)!;
+    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultTextColor = isDark
@@ -144,13 +146,14 @@ class SpeedTelemetryWidget extends ConsumerWidget {
           unitLabel,
           speedValueColor,
           defaultTextColor,
+          fontScale,
         ),
       );
       columnChildren.add(
         Text(
           l10n.gsSpeedLabel(gs.toStringAsFixed(0).padLeft(3), unitLabel),
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 12 * fontScale,
             color: defaultTextColor,
             fontFamily: 'monospace',
           ),
@@ -163,6 +166,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
           unitLabel,
           speedValueColor,
           defaultTextColor,
+          fontScale,
         ),
       );
     } else if (gs != null) {
@@ -172,11 +176,12 @@ class SpeedTelemetryWidget extends ConsumerWidget {
           unitLabel,
           speedValueColor,
           defaultTextColor,
+          fontScale,
         ),
       );
     } else {
       columnChildren.add(
-        _buildSpeedRow('---', unitLabel, speedValueColor, defaultTextColor),
+        _buildSpeedRow('---', unitLabel, speedValueColor, defaultTextColor, fontScale),
       );
     }
 
@@ -190,7 +195,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
       boxShadow: _getBoxShadow(speedState, isDark),
       borderColor: _getBorderColor(speedState, isDark),
       borderWidth: _getBorderWidth(speedState),
-      padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.symmetric(horizontal: 12.0 * fontScale, vertical: 8.0 * fontScale),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
