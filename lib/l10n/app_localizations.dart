@@ -728,6 +728,12 @@ abstract class AppLocalizations {
   /// **'Automatic QNH Calculation'**
   String get autoQnhLabel;
 
+  /// Label for the current QNH value
+  ///
+  /// In en, this message translates to:
+  /// **'Current QNH'**
+  String get currentQnhLabel;
+
   /// No description provided for @autoQnhHelpTooltip.
   ///
   /// In en, this message translates to:

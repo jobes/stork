@@ -194,6 +194,10 @@
   "altitudeDetailsTitle": "Altitude Details",
   "altitudeSource": "Altitude Source",
   "autoQnhLabel": "Automatic QNH Calculation",
+  "currentQnhLabel": "Current QNH",
+  "@currentQnhLabel": {
+    "description": "Label for the current QNH value"
+  },
   "autoQnhHelpTooltip": "QNH is automatically set at startup on the ground and will be adjusted from GPS during flight because atmospheric pressure changes with weather.",
   "qnhSetting": "QNH Setting",
   "invalidQnhNumber": "Invalid number",

@@ -451,7 +451,6 @@ void main() {
             ),
           ],
         );
-        addTearDown(container.dispose);
 
         container.listen(telemetryProvider, (_, _) {});
         container.listen(aglProvider, (_, _) {});
@@ -485,7 +484,7 @@ void main() {
             .read(telemetryProvider.notifier)
             .updateGPS(latitude: 0.0, longitude: 0.0, gpsVerticalAccuracy: 5.0);
 
-        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(seconds: 2));
         await tester.pump();
 
         final currentSettings = container.read(appSettingsProvider).value;

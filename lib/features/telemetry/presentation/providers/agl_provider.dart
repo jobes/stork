@@ -275,9 +275,9 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
       // 2. Update Step (2D Extended Kalman Filter)
       // Predicted pressure measurement based on physical equations:
       // pred_P = QNH * 100 * (1 - H / 44330.77)^barometricExponent (in Pa)
-      final double base = (1.0 - (currentEstH! / 44330.77)).clamp(0.0001, 1.0);
+      final double base = (1.0 - (currentEstH / 44330.77)).clamp(0.0001, 1.0);
       final double predP =
-          currentEstQnh! *
+          currentEstQnh *
           100.0 *
           math.pow(base, AviationMath.barometricExponent);
 
@@ -363,37 +363,33 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
       );
 
       // Check if we need to update the settings QNH
-      if (currentEstQnh != null) {
-        final currentQnh = ref.read(appSettingsProvider).value?.qnh ?? 1013.25;
-        final diff = (currentEstQnh - currentQnh).abs();
-        if (diff > AviationMath.qnhUpdateThresholdHpa) {
-          _pendingQnh = currentEstQnh;
+      final currentQnh = ref.read(appSettingsProvider).value?.qnh ?? 1013.25;
+      final diff = (currentEstQnh - currentQnh).abs();
+      if (diff > AviationMath.qnhUpdateThresholdHpa) {
+        _pendingQnh = currentEstQnh;
 
-          if (_lastSaveTime == null ||
-              now.difference(_lastSaveTime!) >= const Duration(seconds: 15)) {
-            _lastSaveTime = now;
-            ref.read(appSettingsProvider.notifier).updateQnh(currentEstQnh);
-            _debounceTimer?.cancel();
-          } else {
-            _debounceTimer?.cancel();
-            _debounceTimer = Timer(const Duration(seconds: 15), () {
-              if (_pendingQnh != null) {
-                final latestQnh =
-                    ref.read(appSettingsProvider).value?.qnh ?? 1013.25;
-                if ((_pendingQnh! - latestQnh).abs() >
-                    AviationMath.qnhUpdateThresholdHpa) {
-                  _lastSaveTime = DateTime.now();
-                  ref
-                      .read(appSettingsProvider.notifier)
-                      .updateQnh(_pendingQnh!);
-                }
-              }
-            });
-          }
+        if (_lastSaveTime == null ||
+            now.difference(_lastSaveTime!) >= const Duration(seconds: 15)) {
+          _lastSaveTime = now;
+          ref.read(appSettingsProvider.notifier).updateQnh(currentEstQnh);
+          _debounceTimer?.cancel();
         } else {
           _debounceTimer?.cancel();
-          _pendingQnh = null;
+          _debounceTimer = Timer(const Duration(seconds: 15), () {
+            if (_pendingQnh != null) {
+              final latestQnh =
+                  ref.read(appSettingsProvider).value?.qnh ?? 1013.25;
+              if ((_pendingQnh! - latestQnh).abs() >
+                  AviationMath.qnhUpdateThresholdHpa) {
+                _lastSaveTime = DateTime.now();
+                ref.read(appSettingsProvider.notifier).updateQnh(_pendingQnh!);
+              }
+            }
+          });
         }
+      } else {
+        _debounceTimer?.cancel();
+        _pendingQnh = null;
       }
     }
   }
@@ -429,7 +425,7 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
 
 @riverpod
 AglState agl(Ref ref) {
-  ref.listen(autoQnhCalibratorProvider, (_, __) {});
+  ref.listen(autoQnhCalibratorProvider, (_, _) {});
 
   final resolved = ref.watch(resolvedAltitudeProvider);
   final elevationAsync = ref.watch(terrainElevationProvider);

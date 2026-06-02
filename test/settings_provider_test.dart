@@ -9,6 +9,7 @@ import 'package:stork/features/settings/domain/range_thresholds.dart';
 import 'package:stork/features/settings/domain/speed_unit.dart';
 import 'package:stork/features/settings/domain/widget_position.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
+import 'package:stork/core/utils/aviation_math.dart';
 
 class MockSettingsRepository implements SettingsRepository {
   AppSettings currentSettings = const AppSettings();
@@ -530,5 +531,88 @@ void main() {
       expect(container.read(appSettingsProvider).value?.qnh, equals(1020.5));
       expect(mockRepository.currentSettings.qnh, equals(1020.5));
     });
+
+    test(
+      'updateQnh defensive validation for invalid/NaN/infinite/negative/out-of-range values',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
+
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
+
+        // NaN should fallback to default (AviationMath.standardPressureHpa)
+        final resNaN = await notifier.updateQnh(double.nan);
+        expect(resNaN, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.qnh,
+          equals(AviationMath.standardPressureHpa),
+        );
+        expect(mockRepository.currentSettings.qnh, equals(AviationMath.standardPressureHpa));
+
+        // Infinite should fallback to default (AviationMath.standardPressureHpa)
+        final resInf = await notifier.updateQnh(double.infinity);
+        expect(resInf, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.qnh,
+          equals(AviationMath.standardPressureHpa),
+        );
+        expect(mockRepository.currentSettings.qnh, equals(AviationMath.standardPressureHpa));
+
+        // Negative infinity should fallback to default (AviationMath.standardPressureHpa)
+        final resNegInf = await notifier.updateQnh(double.negativeInfinity);
+        expect(resNegInf, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.qnh,
+          equals(AviationMath.standardPressureHpa),
+        );
+        expect(mockRepository.currentSettings.qnh, equals(AviationMath.standardPressureHpa));
+
+        // Zero should fallback to default (AviationMath.standardPressureHpa)
+        final resZero = await notifier.updateQnh(0.0);
+        expect(resZero, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.qnh,
+          equals(AviationMath.standardPressureHpa),
+        );
+        expect(mockRepository.currentSettings.qnh, equals(AviationMath.standardPressureHpa));
+
+        // Negative should fallback to default (AviationMath.standardPressureHpa)
+        final resNeg = await notifier.updateQnh(-50.0);
+        expect(resNeg, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.qnh,
+          equals(AviationMath.standardPressureHpa),
+        );
+        expect(mockRepository.currentSettings.qnh, equals(AviationMath.standardPressureHpa));
+
+        // Out-of-range low value should clamp to AviationMath.minQnhHpa
+        final resTooSmall = await notifier.updateQnh(AviationMath.minQnhHpa - 0.1);
+        expect(resTooSmall, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.qnh,
+          equals(AviationMath.minQnhHpa),
+        );
+        expect(mockRepository.currentSettings.qnh, equals(AviationMath.minQnhHpa));
+
+        // Out-of-range high value should clamp to AviationMath.maxQnhHpa
+        final resTooLarge = await notifier.updateQnh(AviationMath.maxQnhHpa + 0.1);
+        expect(resTooLarge, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.qnh,
+          equals(AviationMath.maxQnhHpa),
+        );
+        expect(mockRepository.currentSettings.qnh, equals(AviationMath.maxQnhHpa));
+      },
+    );
   });
 }

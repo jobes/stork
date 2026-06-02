@@ -56,7 +56,7 @@ Because sensors can fail or drop offline, the `AltitudeResolver` dynamically sel
 
 ### Mathematical Calculations
 
-The barometric altitude formula is implemented in [AviationMath](file:///home/vjoba/Develop/stork/lib/core/utils/aviation_math.dart) based on the **US Standard Atmosphere** model:
+The barometric altitude formula is implemented in [AviationMath](../lib/core/utils/aviation_math.dart) based on the **US Standard Atmosphere** model:
 
 #### 1. Pressure to Altitude (MSL / FL)
 Calculates altitude $h$ (in meters) for a measured air pressure $p$ (in Pa) and reference sea-level pressure $p_0$ (in hPa, e.g., QNH):
@@ -189,7 +189,7 @@ The frontend exposes altitude options cleanly using modern typography, glassmorp
 
 ## 8. Test Coverage and Verification
 
-The system is validated under [terrain_elevation_test.dart](file:///home/vjoba/Develop/stork/test/terrain_elevation_test.dart) across multiple domains:
+The system is validated under [terrain_elevation_test.dart](../test/terrain_elevation_test.dart) across multiple domains:
 
 1. **Projection Math:** Verifies Web Mercator conversion at coordinates $(0,0)$ matching zoom level 12 boundaries.
 2. **Terrarium Decode:** Simulates raw color arrays and verifies height values for sea level, Mt. Everest ($8848.0\text{ m}$), and negative heights (Dead Sea).

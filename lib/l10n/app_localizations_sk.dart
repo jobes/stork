@@ -341,6 +341,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get autoQnhLabel => 'Automatický výpočet QNH';
 
   @override
+  String get currentQnhLabel => 'Aktuálne QNH';
+
+  @override
   String get autoQnhHelpTooltip =>
       'QNH sa automaticky nastaví pri štarte na zemi a počas letu sa bude upravovať z GPS, nakoľko atmosférický tlak sa mení vplyvom počasia.';
 

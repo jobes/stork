@@ -394,7 +394,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  l10n.autoQnhLabel,
+                                  l10n.currentQnhLabel,
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: isDark

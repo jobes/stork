@@ -18,6 +18,8 @@ Future<Geographic?> currentLocation(Ref ref) async {
   return await LocationService.getCurrentLocation();
 }
 
+/// Stream of user positions. The returned [altitude] is in Mean Sea Level (MSL) datum
+/// (configured via AndroidSettings.useMSLAltitude on Android).
 @riverpod
 Stream<
   ({
@@ -60,6 +62,7 @@ positionStream(Ref ref) {
     locationSettings = geo.AndroidSettings(
       accuracy: geo.LocationAccuracy.bestForNavigation,
       intervalDuration: const Duration(seconds: 1),
+      useMSLAltitude: true,
       foregroundNotificationConfig: geo.ForegroundNotificationConfig(
         notificationTitle: l10n.gpsNotificationTitle,
         notificationText: l10n.gpsNotificationText,

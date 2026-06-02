@@ -162,6 +162,7 @@
   "altitudeDetailsTitle": "Detaily výšky",
   "altitudeSource": "Zdroj výšky",
   "autoQnhLabel": "Automatický výpočet QNH",
+  "currentQnhLabel": "Aktuálne QNH",
   "autoQnhHelpTooltip": "QNH sa automaticky nastaví pri štarte na zemi a počas letu sa bude upravovať z GPS, nakoľko atmosférický tlak sa mení vplyvom počasia.",
   "qnhSetting": "Nastavenie QNH",
   "invalidQnhNumber": "Neplatné číslo",

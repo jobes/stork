@@ -341,6 +341,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoQnhLabel => 'Automatic QNH Calculation';
 
   @override
+  String get currentQnhLabel => 'Current QNH';
+
+  @override
   String get autoQnhHelpTooltip =>
       'QNH is automatically set at startup on the ground and will be adjusted from GPS during flight because atmospheric pressure changes with weather.';
 
