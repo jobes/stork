@@ -1,6 +1,5 @@
 import '../../../settings/domain/app_settings.dart';
 import '../../../../core/utils/aviation_math.dart';
-import 'telemetry_state.dart';
 
 /// Represents the source of active altitude data.
 enum AltitudeSource {
@@ -29,10 +28,14 @@ class ResolvedAltitude {
   });
 }
 
-/// Extension on [TelemetryState] to resolve altitude source and values.
-extension TelemetryAltitudeExtension on TelemetryState {
+/// Utility class to resolve altitude source and values.
+class AltitudeResolver {
   /// Returns the active [AltitudeSource] based on available telemetry fields.
-  AltitudeSource get altitudeSource {
+  static AltitudeSource determineSource({
+    required double? airPressure,
+    required double? gpsAltitude,
+    required bool isGpsDroneCan,
+  }) {
     if (airPressure != null) {
       return AltitudeSource.baro;
     } else if (gpsAltitude != null) {
@@ -41,9 +44,18 @@ extension TelemetryAltitudeExtension on TelemetryState {
     return AltitudeSource.none;
   }
 
-  /// Resolves the MSL altitude and flight level based on telemetry state and app settings.
-  ResolvedAltitude resolveAltitude(AppSettings? settings) {
-    final source = altitudeSource;
+  /// Resolves the MSL altitude and flight level based on telemetry fields and app settings.
+  static ResolvedAltitude resolve({
+    required double? airPressure,
+    required double? gpsAltitude,
+    required bool isGpsDroneCan,
+    required AppSettings? settings,
+  }) {
+    final source = determineSource(
+      airPressure: airPressure,
+      gpsAltitude: gpsAltitude,
+      isGpsDroneCan: isGpsDroneCan,
+    );
     if (settings == null) {
       return ResolvedAltitude(source: source);
     }
@@ -54,7 +66,7 @@ extension TelemetryAltitudeExtension on TelemetryState {
     if (airPressure != null) {
       // Flight Level is ALWAYS pressure altitude based on standard sea-level pressure (1013.25 hPa)
       final double stdAltMeters = AviationMath.pressureToAltitudeMeters(
-        airPressure!,
+        airPressure,
         AviationMath.standardPressureHpa,
       );
       final double stdAltFeet = stdAltMeters * 3.28084;
@@ -62,11 +74,11 @@ extension TelemetryAltitudeExtension on TelemetryState {
 
       // QNH-based altitude
       mslValue = AviationMath.pressureToAltitudeMeters(
-        airPressure!,
+        airPressure,
         settings.qnh,
       );
     } else if (gpsAltitude != null) {
-      final double gpsFeet = gpsAltitude! * 3.28084;
+      final double gpsFeet = gpsAltitude * 3.28084;
       flightLevel = gpsFeet / 100.0;
       mslValue = gpsAltitude;
     }
@@ -78,3 +90,4 @@ extension TelemetryAltitudeExtension on TelemetryState {
     );
   }
 }
+

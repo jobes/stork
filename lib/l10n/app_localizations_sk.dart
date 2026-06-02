@@ -354,4 +354,10 @@ class AppLocalizationsSk extends AppLocalizations {
   String qnhOutOfRange(String min, String max) {
     return 'Mimo rozsah ($min - $max)';
   }
+
+  @override
+  String get terrainElevation => 'Nadmorská výška terénu';
+
+  @override
+  String get terrainUnderPosition => 'Terén pod polohou';
 }

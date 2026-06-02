@@ -165,5 +165,7 @@
   "autoQnhHelpTooltip": "QNH sa automaticky nastaví pri štarte na zemi a počas letu sa bude upravovať z GPS, nakoľko atmosférický tlak sa mení vplyvom počasia.",
   "qnhSetting": "Nastavenie QNH",
   "invalidQnhNumber": "Neplatné číslo",
-  "qnhOutOfRange": "Mimo rozsah ({min} - {max})"
+  "qnhOutOfRange": "Mimo rozsah ({min} - {max})",
+  "terrainElevation": "Nadmorská výška terénu",
+  "terrainUnderPosition": "Terén pod polohou"
 }

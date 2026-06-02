@@ -751,6 +751,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Out of range ({min} - {max})'**
   String qnhOutOfRange(String min, String max);
+
+  /// No description provided for @terrainElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrain Elevation'**
+  String get terrainElevation;
+
+  /// No description provided for @terrainUnderPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrain under position'**
+  String get terrainUnderPosition;
 }
 
 class _AppLocalizationsDelegate

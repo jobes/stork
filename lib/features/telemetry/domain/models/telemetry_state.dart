@@ -9,7 +9,6 @@ enum TelemetryField {
   engineRPM,
   airPressure,
   gpsAltitude,
-  heightAboveGround,
   gpsSatelliteCount,
   gpsHorizontalAccuracy,
   gpsVerticalAccuracy,
@@ -25,7 +24,6 @@ class TelemetryState {
   final double? engineRPM;
   final double? airPressure; // in Pa
   final double? gpsAltitude; // MSL
-  final double? heightAboveGround; // AGL
   final int? gpsSatelliteCount;
   final double? gpsHorizontalAccuracy; // in meters
   final double? gpsVerticalAccuracy; // in meters
@@ -42,7 +40,6 @@ class TelemetryState {
     this.engineRPM,
     this.airPressure,
     this.gpsAltitude,
-    this.heightAboveGround,
     this.gpsSatelliteCount,
     this.gpsHorizontalAccuracy,
     this.gpsVerticalAccuracy,
@@ -60,7 +57,6 @@ class TelemetryState {
     double? engineRPM,
     double? airPressure,
     double? gpsAltitude,
-    double? heightAboveGround,
     int? gpsSatelliteCount,
     double? gpsHorizontalAccuracy,
     double? gpsVerticalAccuracy,
@@ -77,7 +73,6 @@ class TelemetryState {
       engineRPM: engineRPM ?? this.engineRPM,
       airPressure: airPressure ?? this.airPressure,
       gpsAltitude: gpsAltitude ?? this.gpsAltitude,
-      heightAboveGround: heightAboveGround ?? this.heightAboveGround,
       gpsSatelliteCount: gpsSatelliteCount ?? this.gpsSatelliteCount,
       gpsHorizontalAccuracy:
           gpsHorizontalAccuracy ?? this.gpsHorizontalAccuracy,
@@ -100,9 +95,6 @@ class TelemetryState {
       engineRPM: field == TelemetryField.engineRPM ? null : engineRPM,
       airPressure: field == TelemetryField.airPressure ? null : airPressure,
       gpsAltitude: field == TelemetryField.gpsAltitude ? null : gpsAltitude,
-      heightAboveGround: field == TelemetryField.heightAboveGround
-          ? null
-          : heightAboveGround,
       gpsSatelliteCount: field == TelemetryField.gpsSatelliteCount
           ? null
           : gpsSatelliteCount,
@@ -123,6 +115,6 @@ class TelemetryState {
 
   @override
   String toString() {
-    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, agl: $heightAboveGround, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState)';
+    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState)';
   }
 }

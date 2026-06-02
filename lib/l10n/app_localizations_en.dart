@@ -354,4 +354,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String qnhOutOfRange(String min, String max) {
     return 'Out of range ($min - $max)';
   }
+
+  @override
+  String get terrainElevation => 'Terrain Elevation';
+
+  @override
+  String get terrainUnderPosition => 'Terrain under position';
 }

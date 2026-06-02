@@ -5,8 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/domain/models/resolved_altitude.dart';
+import '../../../settings/domain/altitude_unit.dart';
+import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../../core/utils/aviation_math.dart';
 
 class AltitudeDetailsDialog extends ConsumerStatefulWidget {
@@ -36,7 +37,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
     super.dispose();
   }
 
-  void _updateQnhFromController(String val) {
+  void _validateAndSubmitQnh(String val) {
     final l10n = AppLocalizations.of(context)!;
     final double? parsed = double.tryParse(val);
     if (parsed == null) {
@@ -80,7 +81,8 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final telemetry = ref.watch(telemetryProvider);
+    final resolved = ref.watch(resolvedAltitudeProvider);
+    final aglState = ref.watch(aglProvider);
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -100,9 +102,6 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
         }
       },
     );
-
-    // Resolve active altitude source using domain model extension
-    final resolved = telemetry.resolveAltitude(settings);
 
     String activeSourceText = l10n.altitudeSourceNone;
     Color sourceColor = Colors.grey;
@@ -236,9 +235,65 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                 ),
                 const SizedBox(height: 20),
 
-                if (resolved.source == AltitudeSource.baro) ...[
-                  const SizedBox(height: 20),
+                // Terrain Elevation Section
+                Text(
+                  l10n.terrainElevation,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withAlpha(15)
+                        : Colors.black.withAlpha(10),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? Colors.white12 : Colors.black12,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.terrain_outlined,
+                        color: aglState.terrainElevation != null
+                            ? (isDark ? Colors.brown.shade300 : Colors.brown)
+                            : Colors.grey,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l10n.terrainUnderPosition,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        aglState.terrainElevation != null
+                            ? '${(settings?.heightUnit ?? AltitudeUnit.meters).convertFromMeters(aglState.terrainElevation!).toStringAsFixed(0)} ${(settings?.heightUnit ?? AltitudeUnit.meters).getGndLabel(l10n)}'
+                            : '----',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'monospace',
+                          color: aglState.terrainElevation != null
+                              ? (isDark ? Colors.white : Colors.black)
+                              : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
 
+                if (resolved.source == AltitudeSource.baro) ...[
                   // QNH Setting Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -383,7 +438,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                                           _isEditing = hasFocus;
                                         });
                                         if (!hasFocus) {
-                                          _updateQnhFromController(_qnhController.text);
+                                          _validateAndSubmitQnh(_qnhController.text);
                                         }
                                       },
                                       child: TextField(
@@ -415,9 +470,15 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                                             borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
                                           ),
                                         ),
-                                        onChanged: _updateQnhFromController,
+                                        onChanged: (val) {
+                                          if (_errorMessage != null) {
+                                            setState(() {
+                                              _errorMessage = null;
+                                            });
+                                          }
+                                        },
                                         onSubmitted: (val) {
-                                          _updateQnhFromController(val);
+                                          _validateAndSubmitQnh(val);
                                           FocusScope.of(context).unfocus();
                                         },
                                       ),

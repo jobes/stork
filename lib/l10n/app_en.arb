@@ -207,5 +207,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "terrainElevation": "Terrain Elevation",
+  "terrainUnderPosition": "Terrain under position"
 }
