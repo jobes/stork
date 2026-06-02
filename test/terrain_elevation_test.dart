@@ -451,6 +451,7 @@ void main() {
             ),
           ],
         );
+        addTearDown(container.dispose);
 
         container.listen(telemetryProvider, (_, _) {});
         container.listen(aglProvider, (_, _) {});
@@ -490,8 +491,6 @@ void main() {
         final currentSettings = container.read(appSettingsProvider).value;
         expect(currentSettings, isNotNull);
         expect(currentSettings!.qnh, equals(AviationMath.maxQnhHpa));
-
-        container.dispose();
       },
     );
 
