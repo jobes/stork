@@ -6,7 +6,9 @@ import '../../domain/app_settings.dart';
 import '../../domain/cannelloni_device.dart';
 import '../../domain/range_thresholds.dart';
 import '../../domain/speed_unit.dart';
+import '../../domain/altitude_unit.dart';
 import '../../domain/widget_position.dart';
+import '../../../../core/utils/aviation_math.dart';
 
 part 'settings_provider.g.dart';
 
@@ -327,4 +329,28 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   Future<SettingsUpdateResult> updateSelectedDevice(CannelloniDevice? device) =>
       _updateSettings((s) => s.copyWith(selectedDevice: device));
+
+  Future<SettingsUpdateResult> updateQnh(double qnh) {
+    return _updateSettings((s) {
+      double validatedQnh = qnh;
+      if (!validatedQnh.isFinite || validatedQnh <= 0.0) {
+        validatedQnh = AviationMath.standardPressureHpa;
+      } else {
+        validatedQnh = validatedQnh.clamp(AviationMath.minQnhHpa, AviationMath.maxQnhHpa);
+      }
+      return s.copyWith(qnh: validatedQnh);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateQfe(double qfe) =>
+      _updateSettings((s) => s.copyWith(qfe: qfe));
+
+  Future<SettingsUpdateResult> updateAutoQnh(bool autoQnh) =>
+      _updateSettings((s) => s.copyWith(autoQnh: autoQnh));
+
+  Future<SettingsUpdateResult> updateAltitudeUnit(AltitudeUnit altitudeUnit) =>
+      _updateSettings((s) => s.copyWith(altitudeUnit: altitudeUnit));
+
+  Future<SettingsUpdateResult> updateHeightUnit(AltitudeUnit heightUnit) =>
+      _updateSettings((s) => s.copyWith(heightUnit: heightUnit));
 }

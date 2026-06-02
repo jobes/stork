@@ -5,6 +5,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/app_settings.dart';
 import '../../domain/range_thresholds.dart';
 import '../../domain/speed_unit.dart';
+import '../../domain/altitude_unit.dart';
 import '../providers/settings_provider.dart';
 import '../threshold_state_extension.dart';
 import '../widgets/number_input.dart';
@@ -119,6 +120,91 @@ class FlightSettingsPage extends ConsumerWidget {
                           child: Text(value.getLabel(l10n)),
                         );
                       }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.altitudeUnitSettings,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    DropdownButton<AltitudeUnit>(
+                      value: settings.altitudeUnit,
+                      onChanged: (AltitudeUnit? newValue) {
+                        if (newValue != null) {
+                          unawaited(
+                            ref
+                                .read(appSettingsProvider.notifier)
+                                .updateAltitudeUnit(newValue),
+                          );
+                        }
+                      },
+                      items: AltitudeUnit.values
+                          .map<DropdownMenuItem<AltitudeUnit>>((
+                            AltitudeUnit value,
+                          ) {
+                            return DropdownMenuItem<AltitudeUnit>(
+                              value: value,
+                              child: Text(value.getLabel(l10n)),
+                            );
+                          })
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.heightUnitSettings,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    DropdownButton<AltitudeUnit>(
+                      value: settings.heightUnit,
+                      onChanged: (AltitudeUnit? newValue) {
+                        if (newValue != null) {
+                          unawaited(
+                            ref
+                                .read(appSettingsProvider.notifier)
+                                .updateHeightUnit(newValue),
+                          );
+                        }
+                      },
+                      items: AltitudeUnit.values
+                          .where((value) => value != AltitudeUnit.flightLevel)
+                          .map<DropdownMenuItem<AltitudeUnit>>((
+                            AltitudeUnit value,
+                          ) {
+                            return DropdownMenuItem<AltitudeUnit>(
+                              value: value,
+                              child: Text(value.getLabel(l10n)),
+                            );
+                          })
+                          .toList(),
                     ),
                   ],
                 ),

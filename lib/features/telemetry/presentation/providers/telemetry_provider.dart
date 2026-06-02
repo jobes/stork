@@ -71,14 +71,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
           : state.copyWith(gpsAltitude: val);
     },
   );
-  late final DecayableField<double> _heightAboveGround = DecayableField<double>(
-    timeout: const Duration(seconds: 2),
-    onChanged: (val) {
-      state = val == null
-          ? state.resetField(TelemetryField.heightAboveGround)
-          : state.copyWith(heightAboveGround: val);
-    },
-  );
+
   late final DecayableField<int> _gpsSatelliteCount = DecayableField<int>(
     timeout: const Duration(seconds: 1),
     onChanged: (val) {
@@ -119,11 +112,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _engineRPM.cancel();
       _airPressure.cancel();
       _gpsAltitude.cancel();
-      _heightAboveGround.cancel();
       _gpsSatelliteCount.cancel();
       _gpsHorizontalAccuracy.cancel();
       _gpsVerticalAccuracy.cancel();
     });
+
     return const TelemetryState();
   }
 
@@ -188,10 +181,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _airPressure.update(pressure);
   }
 
-  void updateHeightAboveGround(double? heightAboveGround) {
-    if (heightAboveGround != null) _heightAboveGround.update(heightAboveGround);
-  }
-
   void setMapViewState(MapViewState viewState) {
     state = state.copyWith(mapViewState: viewState);
   }
@@ -207,7 +196,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _engineRPM.sync(newState.engineRPM);
     _airPressure.sync(newState.airPressure);
     _gpsAltitude.sync(newState.gpsAltitude);
-    _heightAboveGround.sync(newState.heightAboveGround);
     _gpsSatelliteCount.sync(newState.gpsSatelliteCount);
     _gpsHorizontalAccuracy.sync(newState.gpsHorizontalAccuracy);
     _gpsVerticalAccuracy.sync(newState.gpsVerticalAccuracy);

@@ -26,8 +26,11 @@ class CompassBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final settingsAsync = ref.watch(appSettingsProvider);
-    final fontScale = (settingsAsync.value?.mapFontSize ?? 1.0).toDouble();
+    final fontScale = ref.watch(
+      appSettingsProvider.select(
+        (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
+      ),
+    );
 
     return ClipRRect(
       child: BackdropFilter(

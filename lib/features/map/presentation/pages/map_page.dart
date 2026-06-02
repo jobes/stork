@@ -13,6 +13,7 @@ import '../components/map_controls.dart';
 import '../components/aircraft_map.dart';
 import '../components/compass_bar.dart';
 import '../components/speed_telemetry_widget.dart';
+import '../components/altitude_telemetry_widget.dart';
 import '../components/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 
@@ -95,13 +96,20 @@ class _MapPageState extends ConsumerState<MapPage> {
                 child: CompassBar(heading: telemetry.heading),
               ),
             ),
-            if (telemetry.mapViewState != MapViewState.init)
+            if (telemetry.mapViewState != MapViewState.init) ...[
               const MapWidgetWrapper(
                 widgetId: 'speed_widget',
                 defaultTop: 50.0, // Odsadenie pod kompas
                 defaultLeft: 16.0,
                 child: SpeedTelemetryWidget(),
               ),
+              const MapWidgetWrapper(
+                widgetId: 'altitude_widget',
+                defaultTop: 50.0, // Odsadenie pod kompas
+                defaultLeft: 175.0, // Vedľa speed widgetu
+                child: AltitudeTelemetryWidget(),
+              ),
+            ],
             Builder(
               builder: (context) => MapControls(
                 mapViewState: telemetry.mapViewState,

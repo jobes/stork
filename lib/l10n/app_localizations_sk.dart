@@ -294,4 +294,73 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get gpsNotificationText => 'Sledovanie polohy na pozadí';
+
+  @override
+  String get altitude => 'Výška';
+
+  @override
+  String get altitudeSourceBaro => 'BARO (DroneCAN)';
+
+  @override
+  String get altitudeSourceGpsReceiver => 'GPS (DroneCAN)';
+
+  @override
+  String get altitudeSourceGpsPhone => 'GPS (Mobil)';
+
+  @override
+  String get altitudeSourceNone => 'Nedostupné';
+
+  @override
+  String get altitudeUnitMeters => 'm';
+
+  @override
+  String get altitudeUnitSettings => 'Jednotka výšky';
+
+  @override
+  String get altitudeUnitMetersMsl => 'm n.m.';
+
+  @override
+  String get altitudeUnitFeetMsl => 'ft n.m.';
+
+  @override
+  String get altitudeUnitMetersGnd => 'm GND';
+
+  @override
+  String get altitudeUnitFeetGnd => 'ft GND';
+
+  @override
+  String get heightUnitSettings => 'Jednotka výšky nad zemou (GND)';
+
+  @override
+  String get altitudeDetailsTitle => 'Detaily výšky';
+
+  @override
+  String get altitudeSource => 'Zdroj výšky';
+
+  @override
+  String get autoQnhLabel => 'Automatický výpočet QNH';
+
+  @override
+  String get currentQnhLabel => 'Aktuálne QNH';
+
+  @override
+  String get autoQnhHelpTooltip =>
+      'QNH sa automaticky nastaví pri štarte na zemi a počas letu sa bude upravovať z GPS, nakoľko atmosférický tlak sa mení vplyvom počasia.';
+
+  @override
+  String get qnhSetting => 'Nastavenie QNH';
+
+  @override
+  String get invalidQnhNumber => 'Neplatné číslo';
+
+  @override
+  String qnhOutOfRange(String min, String max) {
+    return 'Mimo rozsah ($min - $max)';
+  }
+
+  @override
+  String get terrainElevation => 'Nadmorská výška terénu';
+
+  @override
+  String get terrainUnderPosition => 'Terén pod polohou';
 }

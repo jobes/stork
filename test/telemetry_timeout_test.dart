@@ -22,7 +22,6 @@ void main() {
       expect(state.engineRPM, isNull);
       expect(state.airPressure, isNull);
       expect(state.gpsAltitude, isNull);
-      expect(state.heightAboveGround, isNull);
       expect(state.gpsSatelliteCount, isNull);
       expect(state.gpsHorizontalAccuracy, isNull);
       expect(state.gpsVerticalAccuracy, isNull);

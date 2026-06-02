@@ -205,6 +205,7 @@ class MapCamera extends _$MapCamera {
                     null, // Phone GPS satellites set to null as per requirement
                 gpsHorizontalAccuracy: location.horizontalAccuracy,
                 gpsVerticalAccuracy: location.verticalAccuracy,
+                gpsAltitude: location.altitude,
               );
 
           // Use GPS heading only if we are flying (according to telemetry logic)
@@ -469,7 +470,9 @@ class MapCamera extends _$MapCamera {
   }
 
   bool get isMovingProgrammatically {
-    if (_programmaticMoveCount > 0 || _interpolationTimer != null || _isTransitionAnimating) {
+    if (_programmaticMoveCount > 0 ||
+        _interpolationTimer != null ||
+        _isTransitionAnimating) {
       return true;
     }
     final lastMove = _lastProgrammaticMoveTime;
