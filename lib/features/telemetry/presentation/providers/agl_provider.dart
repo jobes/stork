@@ -215,7 +215,9 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
 
     if (!isFlying) {
       // Reset Kalman filter state variables on ground so they are ready for the next flight
-      if (state.wasFlying || state.estimatedH != null || state.estimatedQnh != null) {
+      if (state.wasFlying ||
+          state.estimatedH != null ||
+          state.estimatedQnh != null) {
         state = const AutoQnhCalibratorState();
       }
       return;
@@ -242,7 +244,10 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
       DateTime? currentLastFilterUpdateTime = state.lastFilterUpdateTime;
       bool currentWasFlying = state.wasFlying;
 
-      if (!currentWasFlying || currentEstH == null || currentEstQnh == null || currentLastFilterUpdateTime == null) {
+      if (!currentWasFlying ||
+          currentEstH == null ||
+          currentEstQnh == null ||
+          currentLastFilterUpdateTime == null) {
         currentWasFlying = true;
         currentEstH = gpsAltitude;
         currentEstQnh = settings?.qnh ?? 1013.25;
@@ -252,7 +257,8 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
         currentLastFilterUpdateTime = now;
       }
 
-      final dt = now.difference(currentLastFilterUpdateTime).inMilliseconds / 1000.0;
+      final dt =
+          now.difference(currentLastFilterUpdateTime).inMilliseconds / 1000.0;
       currentLastFilterUpdateTime = now;
 
       if (dt > 0.0) {
@@ -270,14 +276,21 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
       // Predicted pressure measurement based on physical equations:
       // pred_P = QNH * 100 * (1 - H / 44330.77)^barometricExponent (in Pa)
       final double base = (1.0 - (currentEstH! / 44330.77)).clamp(0.0001, 1.0);
-      final double predP = currentEstQnh! * 100.0 * math.pow(base, AviationMath.barometricExponent);
+      final double predP =
+          currentEstQnh! *
+          100.0 *
+          math.pow(base, AviationMath.barometricExponent);
 
       // Jacobian H_jac of measurement model h(x) = [H, P]^T
       // h11 = dH/dH = 1.0, h12 = dH/dQNH = 0.0
       // h21 = dP/dH = - (barometricExponent * predP) / (44330.77 - H)
       // h22 = dP/dQNH = predP / QNH
-      final double denominator = (44330.77 - currentEstH).clamp(1000.0, 44330.77);
-      final double h21 = - (AviationMath.barometricExponent * predP) / denominator;
+      final double denominator = (44330.77 - currentEstH).clamp(
+        1000.0,
+        44330.77,
+      );
+      final double h21 =
+          -(AviationMath.barometricExponent * predP) / denominator;
       final double h22 = predP / currentEstQnh;
 
       // M = P * H_jac^T
@@ -317,8 +330,10 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
 
         // State Update
         currentEstH = currentEstH + k11 * y1 + k12 * y2;
-        currentEstQnh = (currentEstQnh + k21 * y1 + k22 * y2)
-            .clamp(AviationMath.minQnhHpa, AviationMath.maxQnhHpa);
+        currentEstQnh = (currentEstQnh + k21 * y1 + k22 * y2).clamp(
+          AviationMath.minQnhHpa,
+          AviationMath.maxQnhHpa,
+        );
 
         // Covariance Update P = (I - K * H_jac) * P
         // W = I - K * H_jac
@@ -354,7 +369,8 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
         if (diff > AviationMath.qnhUpdateThresholdHpa) {
           _pendingQnh = currentEstQnh;
 
-          if (_lastSaveTime == null || now.difference(_lastSaveTime!) >= const Duration(seconds: 15)) {
+          if (_lastSaveTime == null ||
+              now.difference(_lastSaveTime!) >= const Duration(seconds: 15)) {
             _lastSaveTime = now;
             ref.read(appSettingsProvider.notifier).updateQnh(currentEstQnh);
             _debounceTimer?.cancel();
@@ -362,10 +378,14 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
             _debounceTimer?.cancel();
             _debounceTimer = Timer(const Duration(seconds: 15), () {
               if (_pendingQnh != null) {
-                final latestQnh = ref.read(appSettingsProvider).value?.qnh ?? 1013.25;
-                if ((_pendingQnh! - latestQnh).abs() > AviationMath.qnhUpdateThresholdHpa) {
+                final latestQnh =
+                    ref.read(appSettingsProvider).value?.qnh ?? 1013.25;
+                if ((_pendingQnh! - latestQnh).abs() >
+                    AviationMath.qnhUpdateThresholdHpa) {
                   _lastSaveTime = DateTime.now();
-                  ref.read(appSettingsProvider.notifier).updateQnh(_pendingQnh!);
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .updateQnh(_pendingQnh!);
                 }
               }
             });

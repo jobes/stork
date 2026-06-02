@@ -12,29 +12,32 @@ import 'package:stork/features/settings/domain/app_settings.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('Terrain Web Mercator and Terrarium math tests', () {
-    test('Equator and Prime Meridian (0,0) translates to exact middle tile and pixel', () {
-      const double lat = 0.0;
-      const double lon = 0.0;
-      const int zoomLevel = 12;
-      final n = pow(2, zoomLevel).toInt(); // 4096
+    test(
+      'Equator and Prime Meridian (0,0) translates to exact middle tile and pixel',
+      () {
+        const double lat = 0.0;
+        const double lon = 0.0;
+        const int zoomLevel = 12;
+        final n = pow(2, zoomLevel).toInt(); // 4096
 
-      // Longitude to x coordinate
-      final double xDecimal = ((lon + 180) / 360) * n;
-      final int tileX = xDecimal.floor();
-      final int pixelX = ((xDecimal - tileX) * 256).floor();
+        // Longitude to x coordinate
+        final double xDecimal = ((lon + 180) / 360) * n;
+        final int tileX = xDecimal.floor();
+        final int pixelX = ((xDecimal - tileX) * 256).floor();
 
-      // Latitude to y coordinate (Web Mercator projection)
-      final double latRad = lat * pi / 180;
-      final double yDecimal =
-          (1.0 - (log(tan(latRad) + 1.0 / cos(latRad)) / pi)) / 2.0 * n;
-      final int tileY = yDecimal.floor();
-      final int pixelY = ((yDecimal - tileY) * 256).floor();
+        // Latitude to y coordinate (Web Mercator projection)
+        final double latRad = lat * pi / 180;
+        final double yDecimal =
+            (1.0 - (log(tan(latRad) + 1.0 / cos(latRad)) / pi)) / 2.0 * n;
+        final int tileY = yDecimal.floor();
+        final int pixelY = ((yDecimal - tileY) * 256).floor();
 
-      expect(tileX, equals(2048));
-      expect(tileY, equals(2048));
-      expect(pixelX, equals(0));
-      expect(pixelY, equals(0));
-    });
+        expect(tileX, equals(2048));
+        expect(tileY, equals(2048));
+        expect(pixelX, equals(0));
+        expect(pixelY, equals(0));
+      },
+    );
 
     test('Terrarium height formula matches Mapzen specification', () {
       // Test terrarium decode: elevation = (R * 256 + G + B / 256) - 32768
@@ -63,31 +66,34 @@ void main() {
       expect(elev3, equals(-418.0));
     });
 
-    test('TerrainElevationService uses mock cache and decodes correctly', () async {
-      final service = TerrainElevationService();
-      service.clearCache();
-      
-      // A zoom 12 tile is 256x256. Raw RGBA buffer size = 256 * 256 * 4 = 262144 bytes.
-      final Uint8List rawBytes = Uint8List(256 * 256 * 4);
-      final ByteData mockByteData = ByteData.sublistView(rawBytes);
+    test(
+      'TerrainElevationService uses mock cache and decodes correctly',
+      () async {
+        final service = TerrainElevationService();
+        service.clearCache();
 
-      // (0,0) is pixelX=0, pixelY=0 in tile (2048, 2048) at zoom 12.
-      // Set R=162, G=144, B=0 (expected Mt. Everest elevation: 8848.0)
-      mockByteData.setUint8(0, 162);
-      mockByteData.setUint8(1, 144);
-      mockByteData.setUint8(2, 0);
-      mockByteData.setUint8(3, 255); // Alpha
+        // A zoom 12 tile is 256x256. Raw RGBA buffer size = 256 * 256 * 4 = 262144 bytes.
+        final Uint8List rawBytes = Uint8List(256 * 256 * 4);
+        final ByteData mockByteData = ByteData.sublistView(rawBytes);
 
-      service.setMockCache(2048, 2048, mockByteData);
+        // (0,0) is pixelX=0, pixelY=0 in tile (2048, 2048) at zoom 12.
+        // Set R=162, G=144, B=0 (expected Mt. Everest elevation: 8848.0)
+        mockByteData.setUint8(0, 162);
+        mockByteData.setUint8(1, 144);
+        mockByteData.setUint8(2, 0);
+        mockByteData.setUint8(3, 255); // Alpha
 
-      final double? elevation = await service.getElevation(0.0, 0.0);
-      expect(elevation, equals(8848.0));
+        service.setMockCache(2048, 2048, mockByteData);
 
-      // Clear cache and verify it doesn't return mock value
-      service.clearCache();
-      final double? postClearElevation = await service.getElevation(0.0, 0.0);
-      expect(postClearElevation, isNot(equals(8848.0)));
-    });
+        final double? elevation = await service.getElevation(0.0, 0.0);
+        expect(elevation, equals(8848.0));
+
+        // Clear cache and verify it doesn't return mock value
+        service.clearCache();
+        final double? postClearElevation = await service.getElevation(0.0, 0.0);
+        expect(postClearElevation, isNot(equals(8848.0)));
+      },
+    );
 
     test('TerrainPixel equality and hashcode comparison works correctly', () {
       const p1 = TerrainPixel(tileX: 10, tileY: 20, pixelX: 5, pixelY: 6);
@@ -126,60 +132,75 @@ void main() {
       expect(cache.get(5, 5), equals(data5)); // Still present!
     });
 
-    test('TileCache getEntry returns correct record and updates LRU position', () {
-      final cache = TileCache(4);
-      final data1 = TerrainTile(byteData: ByteData(10), sideSize: 256);
-      final data2 = TerrainTile(byteData: ByteData(10), sideSize: 256);
+    test(
+      'TileCache getEntry returns correct record and updates LRU position',
+      () {
+        final cache = TileCache(4);
+        final data1 = TerrainTile(byteData: ByteData(10), sideSize: 256);
+        final data2 = TerrainTile(byteData: ByteData(10), sideSize: 256);
 
-      cache.put(1, 1, data1);
-      cache.put(2, 2, data2);
+        cache.put(1, 1, data1);
+        cache.put(2, 2, data2);
 
-      // Check non-existing entry
-      final (isCached1, dataEntry1) = cache.getEntry(3, 3);
-      expect(isCached1, isFalse);
-      expect(dataEntry1, isNull);
+        // Check non-existing entry
+        final (isCached1, dataEntry1) = cache.getEntry(3, 3);
+        expect(isCached1, isFalse);
+        expect(dataEntry1, isNull);
 
-      // Check existing entry
-      final (isCached2, dataEntry2) = cache.getEntry(1, 1);
-      expect(isCached2, isTrue);
-      expect(dataEntry2, equals(data1));
-    });
+        // Check existing entry
+        final (isCached2, dataEntry2) = cache.getEntry(1, 1);
+        expect(isCached2, isTrue);
+        expect(dataEntry2, equals(data1));
+      },
+    );
 
-    test('TerrainFractionalPixel maps fractional values and works with high-res tile size scaling', () async {
-      final service = TerrainElevationService();
-      service.clearCache();
+    test(
+      'TerrainFractionalPixel maps fractional values and works with high-res tile size scaling',
+      () async {
+        final service = TerrainElevationService();
+        service.clearCache();
 
-      // Setup a 512x512 high-res tile. Byte size = 512 * 512 * 4 = 1048576 bytes.
-      final Uint8List rawBytes = Uint8List(512 * 512 * 4);
-      // Initialize the whole buffer to Mt. Everest elevation so that interpolation always yields 8848.0
-      for (int i = 0; i < rawBytes.length; i += 4) {
-        rawBytes[i] = 162;
-        rawBytes[i + 1] = 144;
-        rawBytes[i + 2] = 0;
-        rawBytes[i + 3] = 255;
-      }
-      final ByteData mockByteData = ByteData.sublistView(rawBytes);
+        // Setup a 512x512 high-res tile. Byte size = 512 * 512 * 4 = 1048576 bytes.
+        final Uint8List rawBytes = Uint8List(512 * 512 * 4);
+        // Initialize the whole buffer to Mt. Everest elevation so that interpolation always yields 8848.0
+        for (int i = 0; i < rawBytes.length; i += 4) {
+          rawBytes[i] = 162;
+          rawBytes[i + 1] = 144;
+          rawBytes[i + 2] = 0;
+          rawBytes[i + 3] = 255;
+        }
+        final ByteData mockByteData = ByteData.sublistView(rawBytes);
 
-      // E.g. a coordinate that falls exactly on pixel 1.5 in a 256x256 tile.
-      // That corresponds to pixel 3 in a 512x512 tile!
-      const double targetLon = 0.000515625;
-      const double targetLat = 0.0;
+        // E.g. a coordinate that falls exactly on pixel 1.5 in a 256x256 tile.
+        // That corresponds to pixel 3 in a 512x512 tile!
+        const double targetLon = 0.000515625;
+        const double targetLat = 0.0;
 
-      // Let's verify fractional coordinate mapping:
-      final fractionalCoord = TerrainElevationService.getFractionalPixelCoordinate(targetLat, targetLon);
-      expect(fractionalCoord.pixelX, closeTo(1.5, 0.005));
-      expect(fractionalCoord.pixelY, closeTo(0.0, 0.0001));
+        // Let's verify fractional coordinate mapping:
+        final fractionalCoord =
+            TerrainElevationService.getFractionalPixelCoordinate(
+              targetLat,
+              targetLon,
+            );
+        expect(fractionalCoord.pixelX, closeTo(1.5, 0.005));
+        expect(fractionalCoord.pixelY, closeTo(0.0, 0.0001));
 
-      service.setMockCache(2048, 2048, mockByteData);
+        service.setMockCache(2048, 2048, mockByteData);
 
-      final double? elevation = await service.getElevation(targetLat, targetLon);
-      expect(elevation, equals(8848.0));
-    });
+        final double? elevation = await service.getElevation(
+          targetLat,
+          targetLon,
+        );
+        expect(elevation, equals(8848.0));
+      },
+    );
 
     test('aglProvider computes elevation and AGL reactively', () async {
       final container = ProviderContainer(
         overrides: [
-          terrainElevationServiceProvider.overrideWithValue(TerrainElevationService()),
+          terrainElevationServiceProvider.overrideWithValue(
+            TerrainElevationService(),
+          ),
           appSettingsProvider.overrideWith(() => MockAppSettingsNotifier()),
         ],
       );
@@ -190,7 +211,7 @@ void main() {
       container.listen(aglProvider, (_, _) {});
 
       final service = container.read(terrainElevationServiceProvider);
-      
+
       // Set Mt. Everest elevation in cache for (0,0) zoom 12 tile (2048, 2048) at pixel (0,0)
       final Uint8List rawBytes = Uint8List(256 * 256 * 4);
       final ByteData mockByteData = ByteData.sublistView(rawBytes);
@@ -206,11 +227,13 @@ void main() {
       expect(agl.heightAboveGround, isNull);
 
       // Now update telemetry with GPS coordinates and MSL altitude
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsAltitude: 10000.0, // MSL: 10000m
-      );
+      container
+          .read(telemetryProvider.notifier)
+          .updateGPS(
+            latitude: 0.0,
+            longitude: 0.0,
+            gpsAltitude: 10000.0, // MSL: 10000m
+          );
 
       // Wait for the async fetching and decoding to complete
       await Future.delayed(const Duration(milliseconds: 100));
@@ -222,356 +245,401 @@ void main() {
       expect(agl.heightAboveGround, equals(1152.0));
     });
 
-    test('aglProvider rounds coordinates to 5 decimal places to ignore micro-fluctuations', () async {
-      final container = ProviderContainer(
-        overrides: [
-          terrainElevationServiceProvider.overrideWithValue(TerrainElevationService()),
-          appSettingsProvider.overrideWith(() => MockAppSettingsNotifier()),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'aglProvider rounds coordinates to 5 decimal places to ignore micro-fluctuations',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            terrainElevationServiceProvider.overrideWithValue(
+              TerrainElevationService(),
+            ),
+            appSettingsProvider.overrideWith(() => MockAppSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      container.listen(telemetryProvider, (_, _) {});
-      container.listen(aglProvider, (_, _) {});
+        container.listen(telemetryProvider, (_, _) {});
+        container.listen(aglProvider, (_, _) {});
 
-      final service = container.read(terrainElevationServiceProvider);
-      
-      final Uint8List rawBytes = Uint8List(256 * 256 * 4);
-      final ByteData mockByteData = ByteData.sublistView(rawBytes);
-      mockByteData.setUint8(0, 162);
-      mockByteData.setUint8(1, 144);
-      mockByteData.setUint8(2, 0);
-      mockByteData.setUint8(3, 255);
-      service.setMockCache(2048, 2048, mockByteData);
+        final service = container.read(terrainElevationServiceProvider);
 
-      // Set initial GPS position
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsAltitude: 10000.0,
-      );
+        final Uint8List rawBytes = Uint8List(256 * 256 * 4);
+        final ByteData mockByteData = ByteData.sublistView(rawBytes);
+        mockByteData.setUint8(0, 162);
+        mockByteData.setUint8(1, 144);
+        mockByteData.setUint8(2, 0);
+        mockByteData.setUint8(3, 255);
+        service.setMockCache(2048, 2048, mockByteData);
 
-      await Future.delayed(const Duration(milliseconds: 100));
-      var agl = container.read(aglProvider);
-      expect(agl.terrainElevation, equals(8848.0));
+        // Set initial GPS position
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0, longitude: 0.0, gpsAltitude: 10000.0);
 
-      // Clear the mock cache to verify if service is called again
-      service.clearCache();
+        await Future.delayed(const Duration(milliseconds: 100));
+        var agl = container.read(aglProvider);
+        expect(agl.terrainElevation, equals(8848.0));
 
-      // Change GPS coordinates by a very small amount (micro-fluctuation less than 5 decimal places: 0.000001)
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.000001, // 0.000001 rounds to 0.00000
-        longitude: 0.0,
-      );
+        // Clear the mock cache to verify if service is called again
+        service.clearCache();
 
-      await Future.delayed(const Duration(milliseconds: 50));
-      
-      // Since it rounded to 0.0, telemetryCoordinatesProvider shouldn't change,
-      // and terrainElevationProvider shouldn't call getElevation again.
-      // So it will still return the previous value from the provider's cache.
-      agl = container.read(aglProvider);
-      expect(agl.terrainElevation, equals(8848.0));
+        // Change GPS coordinates by a very small amount (micro-fluctuation less than 5 decimal places: 0.000001)
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(
+              latitude: 0.000001, // 0.000001 rounds to 0.00000
+              longitude: 0.0,
+            );
 
-      // Change coordinates by a larger amount (greater than 5 decimal places: 0.00002)
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.00002, // rounds to 0.00002
-        longitude: 0.0,
-      );
+        await Future.delayed(const Duration(milliseconds: 50));
 
-      await Future.delayed(const Duration(milliseconds: 50));
-      agl = container.read(aglProvider);
-      // Since it changed, it should call getElevation again.
-      // Since the mock cache was cleared, it will try to fetch the real tile (which will fail/return null in test)
-      // and thus terrainElevation should be null now.
-      expect(agl.terrainElevation, isNull);
-    });
+        // Since it rounded to 0.0, telemetryCoordinatesProvider shouldn't change,
+        // and terrainElevationProvider shouldn't call getElevation again.
+        // So it will still return the previous value from the provider's cache.
+        agl = container.read(aglProvider);
+        expect(agl.terrainElevation, equals(8848.0));
 
-    test('Bilinear interpolation calculates smooth elevations between pixels correctly', () async {
-      final service = TerrainElevationService();
-      service.clearCache();
+        // Change coordinates by a larger amount (greater than 5 decimal places: 0.00002)
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(
+              latitude: 0.00002, // rounds to 0.00002
+              longitude: 0.0,
+            );
 
-      final Uint8List rawBytes = Uint8List(256 * 256 * 4);
-      final ByteData mockByteData = ByteData.sublistView(rawBytes);
+        await Future.delayed(const Duration(milliseconds: 50));
+        agl = container.read(aglProvider);
+        // Since it changed, it should call getElevation again.
+        // Since the mock cache was cleared, it will try to fetch the real tile (which will fail/return null in test)
+        // and thus terrainElevation should be null now.
+        expect(agl.terrainElevation, isNull);
+      },
+    );
 
-      // (0,0) to R=128, G=0, B=0 -> elevation = 0m
-      // (1,0) to R=128, G=100, B=0 -> elevation = 100m
-      // (0,1) to R=128, G=0, B=0 -> elevation = 0m
-      // (1,1) to R=128, G=100, B=0 -> elevation = 100m
-      
-      mockByteData.setUint8(0, 128);
-      mockByteData.setUint8(3, 255);
+    test(
+      'Bilinear interpolation calculates smooth elevations between pixels correctly',
+      () async {
+        final service = TerrainElevationService();
+        service.clearCache();
 
-      mockByteData.setUint8(4, 128);
-      mockByteData.setUint8(5, 100);
-      mockByteData.setUint8(7, 255);
+        final Uint8List rawBytes = Uint8List(256 * 256 * 4);
+        final ByteData mockByteData = ByteData.sublistView(rawBytes);
 
-      final int rowSize = 256 * 4;
-      mockByteData.setUint8(rowSize, 128);
-      mockByteData.setUint8(rowSize + 3, 255);
+        // (0,0) to R=128, G=0, B=0 -> elevation = 0m
+        // (1,0) to R=128, G=100, B=0 -> elevation = 100m
+        // (0,1) to R=128, G=0, B=0 -> elevation = 0m
+        // (1,1) to R=128, G=100, B=0 -> elevation = 100m
 
-      mockByteData.setUint8(rowSize + 4, 128);
-      mockByteData.setUint8(rowSize + 5, 100);
-      mockByteData.setUint8(rowSize + 7, 255);
+        mockByteData.setUint8(0, 128);
+        mockByteData.setUint8(3, 255);
 
-      service.setMockCache(2048, 2048, mockByteData);
+        mockByteData.setUint8(4, 128);
+        mockByteData.setUint8(5, 100);
+        mockByteData.setUint8(7, 255);
 
-      // If we query half-way in longitude: pixelX = 0.5.
-      // With linear interpolation along X between 0m and 100m, it should return exactly 50m!
-      final double? halfElevation = await service.getElevation(0.0, 0.000171875);
-      expect(halfElevation, closeTo(50.0, 0.1));
-    });
+        final int rowSize = 256 * 4;
+        mockByteData.setUint8(rowSize, 128);
+        mockByteData.setUint8(rowSize + 3, 255);
 
-    test('TileCache caches failed (null) tile fetches and prevents duplicate requests', () async {
-      final service = TerrainElevationService();
-      service.clearCache();
+        mockByteData.setUint8(rowSize + 4, 128);
+        mockByteData.setUint8(rowSize + 5, 100);
+        mockByteData.setUint8(rowSize + 7, 255);
 
-      // The tile is not in cache, and it will fail to fetch (returns null in tests)
-      final double? elev1 = await service.getElevation(45.0, 45.0);
-      expect(elev1, isNull);
+        service.setMockCache(2048, 2048, mockByteData);
 
-      // Now it should be cached as null.
-      expect(service.isTileCached(45.0, 45.0), isTrue);
+        // If we query half-way in longitude: pixelX = 0.5.
+        // With linear interpolation along X between 0m and 100m, it should return exactly 50m!
+        final double? halfElevation = await service.getElevation(
+          0.0,
+          0.000171875,
+        );
+        expect(halfElevation, closeTo(50.0, 0.1));
+      },
+    );
 
-      // If we query again, it should return null instantly from the cache
-      final double? elev2 = await service.getElevation(45.0, 45.0);
-      expect(elev2, isNull);
-    });
+    test(
+      'TileCache caches failed (null) tile fetches and prevents duplicate requests',
+      () async {
+        final service = TerrainElevationService();
+        service.clearCache();
 
-    test('terrainElevation notifier returns cached values synchronously without transitioning to loading', () {
-      final service = TerrainElevationService();
-      service.clearCache();
+        // The tile is not in cache, and it will fail to fetch (returns null in tests)
+        final double? elev1 = await service.getElevation(45.0, 45.0);
+        expect(elev1, isNull);
 
-      final Uint8List rawBytes = Uint8List(256 * 256 * 4);
-      final ByteData mockByteData = ByteData.sublistView(rawBytes);
-      mockByteData.setUint8(0, 162);
-      mockByteData.setUint8(1, 144);
-      mockByteData.setUint8(3, 255);
-      service.setMockCache(2048, 2048, mockByteData);
+        // Now it should be cached as null.
+        expect(service.isTileCached(45.0, 45.0), isTrue);
 
-      final container = ProviderContainer(
-        overrides: [
-          terrainElevationServiceProvider.overrideWithValue(service),
-        ],
-      );
-      addTearDown(container.dispose);
+        // If we query again, it should return null instantly from the cache
+        final double? elev2 = await service.getElevation(45.0, 45.0);
+        expect(elev2, isNull);
+      },
+    );
 
-      var elevationState = container.read(terrainElevationProvider);
-      expect(elevationState, const AsyncValue<double?>.data(null));
+    test(
+      'terrainElevation notifier returns cached values synchronously without transitioning to loading',
+      () {
+        final service = TerrainElevationService();
+        service.clearCache();
 
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-      );
+        final Uint8List rawBytes = Uint8List(256 * 256 * 4);
+        final ByteData mockByteData = ByteData.sublistView(rawBytes);
+        mockByteData.setUint8(0, 162);
+        mockByteData.setUint8(1, 144);
+        mockByteData.setUint8(3, 255);
+        service.setMockCache(2048, 2048, mockByteData);
 
-      elevationState = container.read(terrainElevationProvider);
-      expect(elevationState.isLoading, isFalse);
-      expect(elevationState.value, equals(8848.0));
-    });
+        final container = ProviderContainer(
+          overrides: [
+            terrainElevationServiceProvider.overrideWithValue(service),
+          ],
+        );
+        addTearDown(container.dispose);
 
-    test('AviationMath.altitudeToQnhHpa calculates sea-level pressure correctly', () {
-      // At 0m elevation, QNH is exactly the measured pressure
-      expect(AviationMath.altitudeToQnhHpa(101325, 0), closeTo(1013.25, 0.01));
-      
-      // Known altitude check
-      // Measured: 90000 Pa at 988.61m elevation -> QNH should be 1013.25 hPa
-      expect(AviationMath.altitudeToQnhHpa(90000, 988.61), closeTo(1013.25, 0.05));
-    });
+        var elevationState = container.read(terrainElevationProvider);
+        expect(elevationState, const AsyncValue<double?>.data(null));
 
-    testWidgets('aglProvider performs auto-QNH calibration when on the ground and conditions are met', (WidgetTester tester) async {
-      final service = TerrainElevationService();
-      service.clearCache();
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0, longitude: 0.0);
 
-      final Uint8List rawBytes = Uint8List(256 * 256 * 4);
-      final ByteData mockByteData = ByteData.sublistView(rawBytes);
-      mockByteData.setUint8(0, 162);
-      mockByteData.setUint8(1, 144);
-      mockByteData.setUint8(2, 0);
-      mockByteData.setUint8(3, 255);
-      service.setMockCache(2048, 2048, mockByteData);
+        elevationState = container.read(terrainElevationProvider);
+        expect(elevationState.isLoading, isFalse);
+        expect(elevationState.value, equals(8848.0));
+      },
+    );
 
-      final container = ProviderContainer(
-        overrides: [
-          terrainElevationServiceProvider.overrideWithValue(service),
-          appSettingsProvider.overrideWith(() => FakeAppSettingsNotifier(
-            const AppSettings(autoQnh: true, qnh: 1013.25),
-          )),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'AviationMath.altitudeToQnhHpa calculates sea-level pressure correctly',
+      () {
+        // At 0m elevation, QNH is exactly the measured pressure
+        expect(
+          AviationMath.altitudeToQnhHpa(101325, 0),
+          closeTo(1013.25, 0.01),
+        );
 
-      container.listen(telemetryProvider, (_, _) {});
-      container.listen(aglProvider, (_, _) {});
+        // Known altitude check
+        // Measured: 90000 Pa at 988.61m elevation -> QNH should be 1013.25 hPa
+        expect(
+          AviationMath.altitudeToQnhHpa(90000, 988.61),
+          closeTo(1013.25, 0.05),
+        );
+      },
+    );
 
-      container.read(telemetryProvider.notifier).updatePressure(90000);
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsVerticalAccuracy: 5.0,
-      );
+    testWidgets(
+      'aglProvider performs auto-QNH calibration when on the ground and conditions are met',
+      (WidgetTester tester) async {
+        final service = TerrainElevationService();
+        service.clearCache();
 
-      await tester.pump(const Duration(milliseconds: 500));
-      container.read(telemetryProvider.notifier).updatePressure(90000);
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsVerticalAccuracy: 5.0,
-      );
+        final Uint8List rawBytes = Uint8List(256 * 256 * 4);
+        final ByteData mockByteData = ByteData.sublistView(rawBytes);
+        mockByteData.setUint8(0, 162);
+        mockByteData.setUint8(1, 144);
+        mockByteData.setUint8(2, 0);
+        mockByteData.setUint8(3, 255);
+        service.setMockCache(2048, 2048, mockByteData);
 
-      await tester.pump(const Duration(milliseconds: 500));
-      container.read(telemetryProvider.notifier).updatePressure(90000);
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsVerticalAccuracy: 5.0,
-      );
+        final container = ProviderContainer(
+          overrides: [
+            terrainElevationServiceProvider.overrideWithValue(service),
+            appSettingsProvider.overrideWith(
+              () => FakeAppSettingsNotifier(
+                const AppSettings(autoQnh: true, qnh: 1013.25),
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      await tester.pump(const Duration(milliseconds: 500));
-      container.read(telemetryProvider.notifier).updatePressure(90000);
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsVerticalAccuracy: 5.0,
-      );
+        container.listen(telemetryProvider, (_, _) {});
+        container.listen(aglProvider, (_, _) {});
 
-      await tester.pump(const Duration(milliseconds: 500));
-      container.read(telemetryProvider.notifier).updatePressure(90000);
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsVerticalAccuracy: 5.0,
-      );
+        container.read(telemetryProvider.notifier).updatePressure(90000);
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0, longitude: 0.0, gpsVerticalAccuracy: 5.0);
 
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        container.read(telemetryProvider.notifier).updatePressure(90000);
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0, longitude: 0.0, gpsVerticalAccuracy: 5.0);
 
-      final currentSettings = container.read(appSettingsProvider).value;
-      expect(currentSettings, isNotNull);
-      expect(currentSettings!.qnh, equals(AviationMath.maxQnhHpa));
+        await tester.pump(const Duration(milliseconds: 500));
+        container.read(telemetryProvider.notifier).updatePressure(90000);
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0, longitude: 0.0, gpsVerticalAccuracy: 5.0);
 
-      container.dispose();
-    });
+        await tester.pump(const Duration(milliseconds: 500));
+        container.read(telemetryProvider.notifier).updatePressure(90000);
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0, longitude: 0.0, gpsVerticalAccuracy: 5.0);
 
-    test('aglProvider does NOT perform auto-QNH calibration when isFlying is true', () async {
-      final service = TerrainElevationService();
-      service.clearCache();
+        await tester.pump(const Duration(milliseconds: 500));
+        container.read(telemetryProvider.notifier).updatePressure(90000);
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0, longitude: 0.0, gpsVerticalAccuracy: 5.0);
 
-      final Uint8List rawBytes = Uint8List(256 * 256 * 4);
-      final ByteData mockByteData = ByteData.sublistView(rawBytes);
-      mockByteData.setUint8(0, 162);
-      mockByteData.setUint8(1, 144);
-      mockByteData.setUint8(2, 0);
-      mockByteData.setUint8(3, 255);
-      service.setMockCache(2048, 2048, mockByteData);
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump();
 
-      final container = ProviderContainer(
-        overrides: [
-          terrainElevationServiceProvider.overrideWithValue(service),
-          appSettingsProvider.overrideWith(() => FakeAppSettingsNotifier(
-            const AppSettings(autoQnh: true, qnh: 1013.25),
-          )),
-        ],
-      );
-      addTearDown(container.dispose);
+        final currentSettings = container.read(appSettingsProvider).value;
+        expect(currentSettings, isNotNull);
+        expect(currentSettings!.qnh, equals(AviationMath.maxQnhHpa));
 
-      container.listen(telemetryProvider, (_, _) {});
-      container.listen(aglProvider, (_, _) {});
+        container.dispose();
+      },
+    );
 
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsVerticalAccuracy: 5.0,
-        groundSpeed: 10.0,
-      );
-      container.read(telemetryProvider.notifier).updatePressure(90000);
+    test(
+      'aglProvider does NOT perform auto-QNH calibration when isFlying is true',
+      () async {
+        final service = TerrainElevationService();
+        service.clearCache();
 
-      await Future.delayed(const Duration(milliseconds: 100));
+        final Uint8List rawBytes = Uint8List(256 * 256 * 4);
+        final ByteData mockByteData = ByteData.sublistView(rawBytes);
+        mockByteData.setUint8(0, 162);
+        mockByteData.setUint8(1, 144);
+        mockByteData.setUint8(2, 0);
+        mockByteData.setUint8(3, 255);
+        service.setMockCache(2048, 2048, mockByteData);
 
-      final currentSettings = container.read(appSettingsProvider).value;
-      expect(currentSettings!.qnh, equals(1013.25));
-    });
+        final container = ProviderContainer(
+          overrides: [
+            terrainElevationServiceProvider.overrideWithValue(service),
+            appSettingsProvider.overrideWith(
+              () => FakeAppSettingsNotifier(
+                const AppSettings(autoQnh: true, qnh: 1013.25),
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-    test('aglProvider performs in-flight auto-QNH calibration using Kalman filter', () async {
-      final service = TerrainElevationService();
-      service.clearCache();
+        container.listen(telemetryProvider, (_, _) {});
+        container.listen(aglProvider, (_, _) {});
 
-      final container = ProviderContainer(
-        overrides: [
-          terrainElevationServiceProvider.overrideWithValue(service),
-          appSettingsProvider.overrideWith(() => FakeAppSettingsNotifier(
-            const AppSettings(autoQnh: true, qnh: 1013.25),
-          )),
-        ],
-      );
-      addTearDown(container.dispose);
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(
+              latitude: 0.0,
+              longitude: 0.0,
+              gpsVerticalAccuracy: 5.0,
+              groundSpeed: 10.0,
+            );
+        container.read(telemetryProvider.notifier).updatePressure(90000);
 
-      container.listen(telemetryProvider, (_, _) {});
-      container.listen(aglProvider, (_, _) {});
+        await Future.delayed(const Duration(milliseconds: 100));
 
-      // Wait for appSettingsProvider to initialize
-      await container.read(appSettingsProvider.future);
+        final currentSettings = container.read(appSettingsProvider).value;
+        expect(currentSettings!.qnh, equals(1013.25));
+      },
+    );
 
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsAltitude: 1000.0,
-        gpsVerticalAccuracy: 5.0,
-        groundSpeed: 10.0,
-      );
-      container.read(telemetryProvider.notifier).updatePressure(90000);
+    test(
+      'aglProvider performs in-flight auto-QNH calibration using Kalman filter',
+      () async {
+        final service = TerrainElevationService();
+        service.clearCache();
 
-      await Future.delayed(const Duration(milliseconds: 100));
+        final container = ProviderContainer(
+          overrides: [
+            terrainElevationServiceProvider.overrideWithValue(service),
+            appSettingsProvider.overrideWith(
+              () => FakeAppSettingsNotifier(
+                const AppSettings(autoQnh: true, qnh: 1013.25),
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      final currentSettings = container.read(appSettingsProvider).value;
-      expect(currentSettings!.qnh, isNot(equals(1013.25)));
-      expect(currentSettings.qnh, greaterThan(1013.25));
-    });
+        container.listen(telemetryProvider, (_, _) {});
+        container.listen(aglProvider, (_, _) {});
 
-    test('aglProvider does NOT perform Kalman in-flight calibration if GPS accuracy is out of 1-20m bounds', () async {
-      final service = TerrainElevationService();
-      service.clearCache();
+        // Wait for appSettingsProvider to initialize
+        await container.read(appSettingsProvider.future);
 
-      final container = ProviderContainer(
-        overrides: [
-          terrainElevationServiceProvider.overrideWithValue(service),
-          appSettingsProvider.overrideWith(() => FakeAppSettingsNotifier(
-            const AppSettings(autoQnh: true, qnh: 1013.25),
-          )),
-        ],
-      );
-      addTearDown(container.dispose);
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(
+              latitude: 0.0,
+              longitude: 0.0,
+              gpsAltitude: 1000.0,
+              gpsVerticalAccuracy: 5.0,
+              groundSpeed: 10.0,
+            );
+        container.read(telemetryProvider.notifier).updatePressure(90000);
 
-      container.listen(telemetryProvider, (_, _) {});
-      container.listen(aglProvider, (_, _) {});
+        await Future.delayed(const Duration(milliseconds: 100));
 
-      // Wait for appSettingsProvider to initialize
-      await container.read(appSettingsProvider.future);
+        final currentSettings = container.read(appSettingsProvider).value;
+        expect(currentSettings!.qnh, isNot(equals(1013.25)));
+        expect(currentSettings.qnh, greaterThan(1013.25));
+      },
+    );
 
-      // Case A: accuracy too bad (> 20.0m)
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsAltitude: 1000.0,
-        gpsVerticalAccuracy: 25.0,
-        groundSpeed: 10.0,
-      );
-      container.read(telemetryProvider.notifier).updatePressure(90000);
+    test(
+      'aglProvider does NOT perform Kalman in-flight calibration if GPS accuracy is out of 1-20m bounds',
+      () async {
+        final service = TerrainElevationService();
+        service.clearCache();
 
-      await Future.delayed(const Duration(milliseconds: 100));
-      expect(container.read(appSettingsProvider).value!.qnh, equals(1013.25));
+        final container = ProviderContainer(
+          overrides: [
+            terrainElevationServiceProvider.overrideWithValue(service),
+            appSettingsProvider.overrideWith(
+              () => FakeAppSettingsNotifier(
+                const AppSettings(autoQnh: true, qnh: 1013.25),
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      // Case B: accuracy too good (< 1.0m)
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: 0.0,
-        longitude: 0.0,
-        gpsAltitude: 1000.0,
-        gpsVerticalAccuracy: 0.5,
-        groundSpeed: 10.0,
-      );
-      container.read(telemetryProvider.notifier).updatePressure(90000);
+        container.listen(telemetryProvider, (_, _) {});
+        container.listen(aglProvider, (_, _) {});
 
-      await Future.delayed(const Duration(milliseconds: 100));
-      expect(container.read(appSettingsProvider).value!.qnh, equals(1013.25));
-    });
+        // Wait for appSettingsProvider to initialize
+        await container.read(appSettingsProvider.future);
+
+        // Case A: accuracy too bad (> 20.0m)
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(
+              latitude: 0.0,
+              longitude: 0.0,
+              gpsAltitude: 1000.0,
+              gpsVerticalAccuracy: 25.0,
+              groundSpeed: 10.0,
+            );
+        container.read(telemetryProvider.notifier).updatePressure(90000);
+
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(container.read(appSettingsProvider).value!.qnh, equals(1013.25));
+
+        // Case B: accuracy too good (< 1.0m)
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(
+              latitude: 0.0,
+              longitude: 0.0,
+              gpsAltitude: 1000.0,
+              gpsVerticalAccuracy: 0.5,
+              groundSpeed: 10.0,
+            );
+        container.read(telemetryProvider.notifier).updatePressure(90000);
+
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(container.read(appSettingsProvider).value!.qnh, equals(1013.25));
+      },
+    );
   });
 }
 

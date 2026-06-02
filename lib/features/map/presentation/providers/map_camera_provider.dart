@@ -470,7 +470,9 @@ class MapCamera extends _$MapCamera {
   }
 
   bool get isMovingProgrammatically {
-    if (_programmaticMoveCount > 0 || _interpolationTimer != null || _isTransitionAnimating) {
+    if (_programmaticMoveCount > 0 ||
+        _interpolationTimer != null ||
+        _isTransitionAnimating) {
       return true;
     }
     final lastMove = _lastProgrammaticMoveTime;

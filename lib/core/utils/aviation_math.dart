@@ -35,9 +35,13 @@ class AviationMath {
   ///
   /// Uses the US Standard Atmosphere formula:
   /// h = 44330.77 * (1.0 - (p / p0)^inverseBarometricExponent)
-  static double pressureToAltitudeMeters(double pressurePa, double referencePressureHpa) {
+  static double pressureToAltitudeMeters(
+    double pressurePa,
+    double referencePressureHpa,
+  ) {
     final double refPressurePa = referencePressureHpa * 100.0;
-    return 44330.77 * (1.0 - math.pow(pressurePa / refPressurePa, inverseBarometricExponent));
+    return 44330.77 *
+        (1.0 - math.pow(pressurePa / refPressurePa, inverseBarometricExponent));
   }
 
   /// Calculates the reference pressure (QNH) in hPa for a given measured air pressure (in Pa)

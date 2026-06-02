@@ -1,10 +1,6 @@
 import '../../../../l10n/app_localizations.dart';
 
-enum AltitudeUnit {
-  meters,
-  feet,
-  flightLevel,
-}
+enum AltitudeUnit { meters, feet, flightLevel }
 
 extension AltitudeUnitExtension on AltitudeUnit {
   double convertFromMeters(double meters) {

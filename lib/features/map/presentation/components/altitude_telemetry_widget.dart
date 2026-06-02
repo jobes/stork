@@ -74,7 +74,8 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
     final String? prefix;
 
     if (activeUnit == AltitudeUnit.flightLevel) {
-      altitudeValueStr = resolved.flightLevel?.toStringAsFixed(0).padLeft(4) ?? '----';
+      altitudeValueStr =
+          resolved.flightLevel?.toStringAsFixed(0).padLeft(4) ?? '----';
       altitudeUnitLabel = '';
       prefix = 'FL';
     } else {

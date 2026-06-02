@@ -152,14 +152,16 @@ class FlightSettingsPage extends ConsumerWidget {
                           );
                         }
                       },
-                      items: AltitudeUnit.values.map<DropdownMenuItem<AltitudeUnit>>((
-                        AltitudeUnit value,
-                      ) {
-                        return DropdownMenuItem<AltitudeUnit>(
-                          value: value,
-                          child: Text(value.getLabel(l10n)),
-                        );
-                      }).toList(),
+                      items: AltitudeUnit.values
+                          .map<DropdownMenuItem<AltitudeUnit>>((
+                            AltitudeUnit value,
+                          ) {
+                            return DropdownMenuItem<AltitudeUnit>(
+                              value: value,
+                              child: Text(value.getLabel(l10n)),
+                            );
+                          })
+                          .toList(),
                     ),
                   ],
                 ),
@@ -195,13 +197,14 @@ class FlightSettingsPage extends ConsumerWidget {
                       items: AltitudeUnit.values
                           .where((value) => value != AltitudeUnit.flightLevel)
                           .map<DropdownMenuItem<AltitudeUnit>>((
-                        AltitudeUnit value,
-                      ) {
-                        return DropdownMenuItem<AltitudeUnit>(
-                          value: value,
-                          child: Text(value.getLabel(l10n)),
-                        );
-                      }).toList(),
+                            AltitudeUnit value,
+                          ) {
+                            return DropdownMenuItem<AltitudeUnit>(
+                              value: value,
+                              child: Text(value.getLabel(l10n)),
+                            );
+                          })
+                          .toList(),
                     ),
                   ],
                 ),

@@ -2,12 +2,7 @@ import '../../../settings/domain/app_settings.dart';
 import '../../../../core/utils/aviation_math.dart';
 
 /// Represents the source of active altitude data.
-enum AltitudeSource {
-  baro,
-  gpsDroneCan,
-  gpsPhone,
-  none,
-}
+enum AltitudeSource { baro, gpsDroneCan, gpsPhone, none }
 
 /// Represents the resolved altitude and flight level values with their active source.
 class ResolvedAltitude {
@@ -39,7 +34,9 @@ class AltitudeResolver {
     if (airPressure != null) {
       return AltitudeSource.baro;
     } else if (gpsAltitude != null) {
-      return isGpsDroneCan ? AltitudeSource.gpsDroneCan : AltitudeSource.gpsPhone;
+      return isGpsDroneCan
+          ? AltitudeSource.gpsDroneCan
+          : AltitudeSource.gpsPhone;
     }
     return AltitudeSource.none;
   }
@@ -90,4 +87,3 @@ class AltitudeResolver {
     );
   }
 }
-

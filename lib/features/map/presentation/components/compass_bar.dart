@@ -27,7 +27,9 @@ class CompassBar extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final fontScale = ref.watch(
-      appSettingsProvider.select((s) => (s.value?.mapFontSize ?? 1.0).toDouble()),
+      appSettingsProvider.select(
+        (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
+      ),
     );
 
     return ClipRRect(

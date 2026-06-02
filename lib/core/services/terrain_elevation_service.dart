@@ -88,16 +88,14 @@ class TerrainTile {
   final ByteData byteData;
   final int sideSize;
 
-  const TerrainTile({
-    required this.byteData,
-    required this.sideSize,
-  });
+  const TerrainTile({required this.byteData, required this.sideSize});
 }
 
 /// A lightweight Least-Recently-Used (LRU) cache for terrain tile byte data.
 class TileCache {
   final int maxEntries;
-  final LinkedHashMap<(int, int), TerrainTile?> _cache = LinkedHashMap<(int, int), TerrainTile?>();
+  final LinkedHashMap<(int, int), TerrainTile?> _cache =
+      LinkedHashMap<(int, int), TerrainTile?>();
 
   TileCache(this.maxEntries);
 
@@ -163,12 +161,19 @@ class TerrainElevationService {
   void setMockCache(int tileX, int tileY, ByteData byteData) {
     final int totalPixels = byteData.lengthInBytes ~/ 4;
     final int sideSize = totalPixels == 0 ? 0 : sqrt(totalPixels).round();
-    _cache.put(tileX, tileY, TerrainTile(byteData: byteData, sideSize: sideSize));
+    _cache.put(
+      tileX,
+      tileY,
+      TerrainTile(byteData: byteData, sideSize: sideSize),
+    );
   }
 
   /// Translates a given latitude and longitude to its corresponding
   /// Web Mercator zoom level 12 tile and fractional pixel coordinate.
-  static TerrainFractionalPixel getFractionalPixelCoordinate(double lat, double lon) {
+  static TerrainFractionalPixel getFractionalPixelCoordinate(
+    double lat,
+    double lon,
+  ) {
     // Longitude to x coordinate
     final double xDecimal = ((lon + 180) / 360) * _numTiles;
     final int tileX = xDecimal.floor();
@@ -201,25 +206,42 @@ class TerrainElevationService {
   /// Returns `null` if the tile is not cached or if fetching it previously failed.
   double? getCachedElevation(double lat, double lon) {
     final fractionalCoord = getFractionalPixelCoordinate(lat, lon);
-    final (isCached, tile) = _cache.getEntry(fractionalCoord.tileX, fractionalCoord.tileY);
+    final (isCached, tile) = _cache.getEntry(
+      fractionalCoord.tileX,
+      fractionalCoord.tileY,
+    );
     if (!isCached || tile == null) {
       return null;
     }
-    return _decodeElevation(tile, fractionalCoord.pixelX, fractionalCoord.pixelY);
+    return _decodeElevation(
+      tile,
+      fractionalCoord.pixelX,
+      fractionalCoord.pixelY,
+    );
   }
 
   /// Returns a record `(bool isCached, double? elevation)` indicating whether the tile
   /// is cached, and its decoded elevation if it is cached and valid.
-  (bool isCached, double? elevation) getCachedElevationState(double lat, double lon) {
+  (bool isCached, double? elevation) getCachedElevationState(
+    double lat,
+    double lon,
+  ) {
     final fractionalCoord = getFractionalPixelCoordinate(lat, lon);
-    final (isCached, tile) = _cache.getEntry(fractionalCoord.tileX, fractionalCoord.tileY);
+    final (isCached, tile) = _cache.getEntry(
+      fractionalCoord.tileX,
+      fractionalCoord.tileY,
+    );
     if (!isCached) {
       return (false, null);
     }
     if (tile == null) {
       return (true, null);
     }
-    final elevation = _decodeElevation(tile, fractionalCoord.pixelX, fractionalCoord.pixelY);
+    final elevation = _decodeElevation(
+      tile,
+      fractionalCoord.pixelX,
+      fractionalCoord.pixelY,
+    );
     return (true, elevation);
   }
 
@@ -275,14 +297,22 @@ class TerrainElevationService {
       final (isCached, cachedTile) = _cache.getEntry(tileX, tileY);
       if (isCached) {
         if (cachedTile == null) return null;
-        return _decodeElevation(cachedTile, fractionalCoord.pixelX, fractionalCoord.pixelY);
+        return _decodeElevation(
+          cachedTile,
+          fractionalCoord.pixelX,
+          fractionalCoord.pixelY,
+        );
       }
 
       // 2. Fetch asynchronously (handles deduplication and caching internally)
       final tile = await _getTileFuture(tileX, tileY);
       if (tile == null) return null;
 
-      return _decodeElevation(tile, fractionalCoord.pixelX, fractionalCoord.pixelY);
+      return _decodeElevation(
+        tile,
+        fractionalCoord.pixelX,
+        fractionalCoord.pixelY,
+      );
     } catch (e, stack) {
       debugPrint('Error decoding elevation from terrain tile: $e\n$stack');
       return null;
@@ -372,7 +402,9 @@ class TerrainElevationService {
     }
 
     if (tileBytes == null || tileBytes.isEmpty) {
-      debugPrint('TerrainElevationService: No tile bytes found for $tileX, $tileY');
+      debugPrint(
+        'TerrainElevationService: No tile bytes found for $tileX, $tileY',
+      );
       return null;
     }
 
@@ -383,18 +415,19 @@ class TerrainElevationService {
       final ui.Image image = fi.image;
 
       try {
-        debugPrint('TerrainElevationService: Decoded tile $tileX, $tileY. Size: ${image.width}x${image.height}');
-
-        return await image.toByteData(
-          format: ui.ImageByteFormat.rawRgba,
+        debugPrint(
+          'TerrainElevationService: Decoded tile $tileX, $tileY. Size: ${image.width}x${image.height}',
         );
+
+        return await image.toByteData(format: ui.ImageByteFormat.rawRgba);
       } finally {
         image.dispose();
       }
     } catch (e) {
-      debugPrint('TerrainElevationService: Error decoding tile $tileX, $tileY: $e');
+      debugPrint(
+        'TerrainElevationService: Error decoding tile $tileX, $tileY: $e',
+      );
       return null;
     }
   }
 }
-
