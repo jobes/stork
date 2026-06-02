@@ -153,7 +153,89 @@ final class ResolvedAltitudeProvider
   }
 }
 
-String _$resolvedAltitudeHash() => r'55992463429424dcf3898e56db5529a247604ad9';
+String _$resolvedAltitudeHash() => r'e5a4a66771240ed07d4678f0521ebc550bc7b656';
+
+@ProviderFor(recommendedQnh)
+final recommendedQnhProvider = RecommendedQnhProvider._();
+
+final class RecommendedQnhProvider
+    extends $FunctionalProvider<double?, double?, double?>
+    with $Provider<double?> {
+  RecommendedQnhProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recommendedQnhProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recommendedQnhHash();
+
+  @$internal
+  @override
+  $ProviderElement<double?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  double? create(Ref ref) {
+    return recommendedQnh(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(double? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<double?>(value),
+    );
+  }
+}
+
+String _$recommendedQnhHash() => r'5e924c56b0a58622053c630c011e33963283bb35';
+
+@ProviderFor(autoQnhCalibrator)
+final autoQnhCalibratorProvider = AutoQnhCalibratorProvider._();
+
+final class AutoQnhCalibratorProvider
+    extends $FunctionalProvider<void, void, void>
+    with $Provider<void> {
+  AutoQnhCalibratorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'autoQnhCalibratorProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$autoQnhCalibratorHash();
+
+  @$internal
+  @override
+  $ProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  void create(Ref ref) {
+    return autoQnhCalibrator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
+  }
+}
+
+String _$autoQnhCalibratorHash() => r'030f45d495bdb050242b2c28908fa0c7ed644f27';
 
 @ProviderFor(agl)
 final aglProvider = AglProvider._();
@@ -194,4 +276,4 @@ final class AglProvider
   }
 }
 
-String _$aglHash() => r'bd0e964f251915d715eba64e7531b8501df49836';
+String _$aglHash() => r'6fbbbb85fcc6136bf4ff2eeff39f204d4de3d169';

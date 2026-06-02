@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/core/services/terrain_elevation_service.dart';
+import 'package:stork/core/utils/aviation_math.dart';
 import 'package:stork/features/telemetry/presentation/providers/agl_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
@@ -366,6 +367,128 @@ void main() {
       expect(elevationState.isLoading, isFalse);
       expect(elevationState.value, equals(8848.0));
     });
+
+    test('AviationMath.altitudeToQnhHpa calculates sea-level pressure correctly', () {
+      // At 0m elevation, QNH is exactly the measured pressure
+      expect(AviationMath.altitudeToQnhHpa(101325, 0), closeTo(1013.25, 0.01));
+      
+      // Known altitude check
+      // Measured: 90000 Pa at 988.61m elevation -> QNH should be 1013.25 hPa
+      expect(AviationMath.altitudeToQnhHpa(90000, 988.61), closeTo(1013.25, 0.05));
+    });
+
+    testWidgets('aglProvider performs auto-QNH calibration when on the ground and conditions are met', (WidgetTester tester) async {
+      final service = TerrainElevationService();
+      service.clearCache();
+
+      final Uint8List rawBytes = Uint8List(256 * 256 * 4);
+      final ByteData mockByteData = ByteData.sublistView(rawBytes);
+      mockByteData.setUint8(0, 162);
+      mockByteData.setUint8(1, 144);
+      mockByteData.setUint8(2, 0);
+      mockByteData.setUint8(3, 255);
+      service.setMockCache(2048, 2048, mockByteData);
+
+      final container = ProviderContainer(
+        overrides: [
+          terrainElevationServiceProvider.overrideWithValue(service),
+          appSettingsProvider.overrideWith(() => FakeAppSettingsNotifier(
+            const AppSettings(autoQnh: true, qnh: 1013.25),
+          )),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.listen(telemetryProvider, (_, _) {});
+      container.listen(aglProvider, (_, _) {});
+
+      container.read(telemetryProvider.notifier).updatePressure(90000);
+      container.read(telemetryProvider.notifier).updateGPS(
+        latitude: 0.0,
+        longitude: 0.0,
+        gpsVerticalAccuracy: 5.0,
+      );
+
+      await tester.pump(const Duration(milliseconds: 500));
+      container.read(telemetryProvider.notifier).updatePressure(90000);
+      container.read(telemetryProvider.notifier).updateGPS(
+        latitude: 0.0,
+        longitude: 0.0,
+        gpsVerticalAccuracy: 5.0,
+      );
+
+      await tester.pump(const Duration(milliseconds: 500));
+      container.read(telemetryProvider.notifier).updatePressure(90000);
+      container.read(telemetryProvider.notifier).updateGPS(
+        latitude: 0.0,
+        longitude: 0.0,
+        gpsVerticalAccuracy: 5.0,
+      );
+
+      await tester.pump(const Duration(milliseconds: 500));
+      container.read(telemetryProvider.notifier).updatePressure(90000);
+      container.read(telemetryProvider.notifier).updateGPS(
+        latitude: 0.0,
+        longitude: 0.0,
+        gpsVerticalAccuracy: 5.0,
+      );
+
+      await tester.pump(const Duration(milliseconds: 500));
+      container.read(telemetryProvider.notifier).updatePressure(90000);
+      container.read(telemetryProvider.notifier).updateGPS(
+        latitude: 0.0,
+        longitude: 0.0,
+        gpsVerticalAccuracy: 5.0,
+      );
+
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump();
+
+      final currentSettings = container.read(appSettingsProvider).value;
+      expect(currentSettings, isNotNull);
+      expect(currentSettings!.qnh, equals(AviationMath.maxQnhHpa));
+
+      container.dispose();
+    });
+
+    test('aglProvider does NOT perform auto-QNH calibration when isFlying is true', () async {
+      final service = TerrainElevationService();
+      service.clearCache();
+
+      final Uint8List rawBytes = Uint8List(256 * 256 * 4);
+      final ByteData mockByteData = ByteData.sublistView(rawBytes);
+      mockByteData.setUint8(0, 162);
+      mockByteData.setUint8(1, 144);
+      mockByteData.setUint8(2, 0);
+      mockByteData.setUint8(3, 255);
+      service.setMockCache(2048, 2048, mockByteData);
+
+      final container = ProviderContainer(
+        overrides: [
+          terrainElevationServiceProvider.overrideWithValue(service),
+          appSettingsProvider.overrideWith(() => FakeAppSettingsNotifier(
+            const AppSettings(autoQnh: true, qnh: 1013.25),
+          )),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.listen(telemetryProvider, (_, _) {});
+      container.listen(aglProvider, (_, _) {});
+
+      container.read(telemetryProvider.notifier).updateGPS(
+        latitude: 0.0,
+        longitude: 0.0,
+        gpsVerticalAccuracy: 5.0,
+        groundSpeed: 10.0,
+      );
+      container.read(telemetryProvider.notifier).updatePressure(90000);
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final currentSettings = container.read(appSettingsProvider).value;
+      expect(currentSettings!.qnh, equals(1013.25));
+    });
   });
 }
 
@@ -373,5 +496,21 @@ class MockAppSettingsNotifier extends AppSettingsNotifier {
   @override
   Future<AppSettings> build() async {
     return const AppSettings();
+  }
+}
+
+class FakeAppSettingsNotifier extends AppSettingsNotifier {
+  final AppSettings initialSettings;
+  FakeAppSettingsNotifier([this.initialSettings = const AppSettings()]);
+
+  @override
+  Future<AppSettings> build() async {
+    return initialSettings;
+  }
+
+  @override
+  Future<SettingsUpdateResult> updateQnh(double qnh) async {
+    state = AsyncData(state.value!.copyWith(qnh: qnh));
+    return const SettingsUpdateSuccess();
   }
 }

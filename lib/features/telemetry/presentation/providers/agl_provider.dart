@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/terrain_elevation_service.dart';
+import '../../../../core/utils/aviation_math.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/resolved_altitude.dart';
 import 'telemetry_provider.dart';
@@ -56,8 +58,11 @@ class TerrainElevation extends _$TerrainElevation {
     if (coords == null) return const AsyncValue.data(null);
 
     final service = ref.read(terrainElevationServiceProvider);
-    
-    final (isCached, cachedVal) = service.getCachedElevationState(coords.$1, coords.$2);
+
+    final (isCached, cachedVal) = service.getCachedElevationState(
+      coords.$1,
+      coords.$2,
+    );
     if (isCached) {
       return AsyncValue.data(cachedVal);
     }
@@ -74,12 +79,16 @@ class TerrainElevation extends _$TerrainElevation {
     try {
       final value = await service.getElevation(lat, lon);
       final currentCoords = ref.read(telemetryCoordinatesProvider);
-      if (currentCoords != null && currentCoords.$1 == lat && currentCoords.$2 == lon) {
+      if (currentCoords != null &&
+          currentCoords.$1 == lat &&
+          currentCoords.$2 == lon) {
         state = AsyncValue.data(value);
       }
     } catch (e, st) {
       final currentCoords = ref.read(telemetryCoordinatesProvider);
-      if (currentCoords != null && currentCoords.$1 == lat && currentCoords.$2 == lon) {
+      if (currentCoords != null &&
+          currentCoords.$1 == lat &&
+          currentCoords.$2 == lon) {
         state = AsyncValue.error(e, st);
       }
     }
@@ -89,12 +98,14 @@ class TerrainElevation extends _$TerrainElevation {
 @riverpod
 ResolvedAltitude resolvedAltitude(Ref ref) {
   final settings = ref.watch(appSettingsProvider).value;
-  
+
   // Watch only the specific fields of TelemetryState that affect altitude:
   final airPressure = ref.watch(telemetryProvider.select((s) => s.airPressure));
   final gpsAltitude = ref.watch(telemetryProvider.select((s) => s.gpsAltitude));
-  final isGpsDroneCan = ref.watch(telemetryProvider.select((s) => s.isGpsDroneCan));
-  
+  final isGpsDroneCan = ref.watch(
+    telemetryProvider.select((s) => s.isGpsDroneCan),
+  );
+
   return AltitudeResolver.resolve(
     airPressure: airPressure,
     gpsAltitude: gpsAltitude,
@@ -104,7 +115,62 @@ ResolvedAltitude resolvedAltitude(Ref ref) {
 }
 
 @riverpod
+double? recommendedQnh(Ref ref) {
+  final airPressure = ref.watch(telemetryProvider.select((s) => s.airPressure));
+  if (airPressure == null) return null;
+
+  final autoQnh = ref.watch(
+    appSettingsProvider.select((s) => s.value?.autoQnh ?? true),
+  );
+  if (!autoQnh) return null;
+
+  final isFlying = ref.watch(telemetryProvider.select((s) => s.isFlying));
+  if (isFlying) return null;
+
+  final elevation = ref.watch(terrainElevationProvider).value;
+  if (elevation == null) return null;
+
+  return AviationMath.altitudeToQnhHpa(
+    airPressure,
+    elevation,
+  ).clamp(AviationMath.minQnhHpa, AviationMath.maxQnhHpa);
+}
+
+@Riverpod(keepAlive: true)
+void autoQnhCalibrator(Ref ref) {
+  Timer? debounceTimer;
+  double? pendingQnh;
+
+  ref.onDispose(() {
+    debounceTimer?.cancel();
+  });
+
+  ref.listen(recommendedQnhProvider, (previous, next) {
+    if (next != null) {
+      pendingQnh = next;
+      if (debounceTimer == null || !debounceTimer!.isActive) {
+        debounceTimer = Timer(const Duration(seconds: 2), () {
+          if (pendingQnh != null) {
+            final currentQnh =
+                ref.read(appSettingsProvider).value?.qnh ?? 1013.25;
+            if ((pendingQnh! - currentQnh).abs() >
+                AviationMath.qnhUpdateThresholdHpa) {
+              ref.read(appSettingsProvider.notifier).updateQnh(pendingQnh!);
+            }
+          }
+        });
+      }
+    } else {
+      debounceTimer?.cancel();
+      pendingQnh = null;
+    }
+  });
+}
+
+@riverpod
 AglState agl(Ref ref) {
+  ref.watch(autoQnhCalibratorProvider);
+
   final resolved = ref.watch(resolvedAltitudeProvider);
   final elevationAsync = ref.watch(terrainElevationProvider);
 
@@ -113,7 +179,9 @@ AglState agl(Ref ref) {
 
   return AglState(
     terrainElevation: elevation,
-    heightAboveGround: (msl != null && elevation != null) ? msl - elevation : null,
+    heightAboveGround: (msl != null && elevation != null)
+        ? msl - elevation
+        : null,
     isFetching: elevationAsync.isLoading,
   );
 }
