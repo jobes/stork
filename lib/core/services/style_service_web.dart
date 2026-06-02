@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import 'protomaps_resolver.dart';
+import 'style_helper.dart';
 
 class StyleService {
   static const _stylePath = 'assets/openaip/styles.json';
@@ -19,9 +20,10 @@ class StyleService {
     final sources = styleMap['sources'] as Map<String, dynamic>?;
     if (sources != null && sources.containsKey('protomaps')) {
       sources['protomaps']['url'] = newUrl;
-      styleJson = jsonEncode(styleMap);
     }
 
-    return styleJson;
+    StyleHelper.scaleLayers(styleMap, fontSize);
+
+    return jsonEncode(styleMap);
   }
 }

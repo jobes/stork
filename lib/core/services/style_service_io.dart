@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'map_assets_server.dart';
+import 'style_helper.dart';
 
 class StyleService {
   static const _stylePath = 'assets/openaip/styles.json';
@@ -32,6 +33,8 @@ class StyleService {
         ];
       }
     }
+
+    StyleHelper.scaleLayers(styleMap, fontSize);
 
     return jsonEncode(styleMap);
   }
