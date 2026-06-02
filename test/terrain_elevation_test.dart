@@ -489,6 +489,89 @@ void main() {
       final currentSettings = container.read(appSettingsProvider).value;
       expect(currentSettings!.qnh, equals(1013.25));
     });
+
+    test('aglProvider performs in-flight auto-QNH calibration using Kalman filter', () async {
+      final service = TerrainElevationService();
+      service.clearCache();
+
+      final container = ProviderContainer(
+        overrides: [
+          terrainElevationServiceProvider.overrideWithValue(service),
+          appSettingsProvider.overrideWith(() => FakeAppSettingsNotifier(
+            const AppSettings(autoQnh: true, qnh: 1013.25),
+          )),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.listen(telemetryProvider, (_, _) {});
+      container.listen(aglProvider, (_, _) {});
+
+      // Wait for appSettingsProvider to initialize
+      await container.read(appSettingsProvider.future);
+
+      container.read(telemetryProvider.notifier).updateGPS(
+        latitude: 0.0,
+        longitude: 0.0,
+        gpsAltitude: 1000.0,
+        gpsVerticalAccuracy: 5.0,
+        groundSpeed: 10.0,
+      );
+      container.read(telemetryProvider.notifier).updatePressure(90000);
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final currentSettings = container.read(appSettingsProvider).value;
+      expect(currentSettings!.qnh, isNot(equals(1013.25)));
+      expect(currentSettings.qnh, greaterThan(1013.25));
+    });
+
+    test('aglProvider does NOT perform Kalman in-flight calibration if GPS accuracy is out of 1-20m bounds', () async {
+      final service = TerrainElevationService();
+      service.clearCache();
+
+      final container = ProviderContainer(
+        overrides: [
+          terrainElevationServiceProvider.overrideWithValue(service),
+          appSettingsProvider.overrideWith(() => FakeAppSettingsNotifier(
+            const AppSettings(autoQnh: true, qnh: 1013.25),
+          )),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.listen(telemetryProvider, (_, _) {});
+      container.listen(aglProvider, (_, _) {});
+
+      // Wait for appSettingsProvider to initialize
+      await container.read(appSettingsProvider.future);
+
+      // Case A: accuracy too bad (> 20.0m)
+      container.read(telemetryProvider.notifier).updateGPS(
+        latitude: 0.0,
+        longitude: 0.0,
+        gpsAltitude: 1000.0,
+        gpsVerticalAccuracy: 25.0,
+        groundSpeed: 10.0,
+      );
+      container.read(telemetryProvider.notifier).updatePressure(90000);
+
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(container.read(appSettingsProvider).value!.qnh, equals(1013.25));
+
+      // Case B: accuracy too good (< 1.0m)
+      container.read(telemetryProvider.notifier).updateGPS(
+        latitude: 0.0,
+        longitude: 0.0,
+        gpsAltitude: 1000.0,
+        gpsVerticalAccuracy: 0.5,
+        groundSpeed: 10.0,
+      );
+      container.read(telemetryProvider.notifier).updatePressure(90000);
+
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(container.read(appSettingsProvider).value!.qnh, equals(1013.25));
+    });
   });
 }
 

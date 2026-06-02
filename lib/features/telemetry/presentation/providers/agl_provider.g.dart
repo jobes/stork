@@ -194,14 +194,13 @@ final class RecommendedQnhProvider
   }
 }
 
-String _$recommendedQnhHash() => r'5e924c56b0a58622053c630c011e33963283bb35';
+String _$recommendedQnhHash() => r'4bbe88b9ba9df57abbb7c892b36fdeac53e4f51c';
 
-@ProviderFor(autoQnhCalibrator)
+@ProviderFor(AutoQnhCalibrator)
 final autoQnhCalibratorProvider = AutoQnhCalibratorProvider._();
 
 final class AutoQnhCalibratorProvider
-    extends $FunctionalProvider<void, void, void>
-    with $Provider<void> {
+    extends $NotifierProvider<AutoQnhCalibrator, AutoQnhCalibratorState> {
   AutoQnhCalibratorProvider._()
     : super(
         from: null,
@@ -218,24 +217,37 @@ final class AutoQnhCalibratorProvider
 
   @$internal
   @override
-  $ProviderElement<void> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  void create(Ref ref) {
-    return autoQnhCalibrator(ref);
-  }
+  AutoQnhCalibrator create() => AutoQnhCalibrator();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(void value) {
+  Override overrideWithValue(AutoQnhCalibratorState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<void>(value),
+      providerOverride: $SyncValueProvider<AutoQnhCalibratorState>(value),
     );
   }
 }
 
-String _$autoQnhCalibratorHash() => r'030f45d495bdb050242b2c28908fa0c7ed644f27';
+String _$autoQnhCalibratorHash() => r'fcf030b48cd65ffc3b53a9b6a9b91074c328bda7';
+
+abstract class _$AutoQnhCalibrator extends $Notifier<AutoQnhCalibratorState> {
+  AutoQnhCalibratorState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref as $Ref<AutoQnhCalibratorState, AutoQnhCalibratorState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AutoQnhCalibratorState, AutoQnhCalibratorState>,
+              AutoQnhCalibratorState,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 @ProviderFor(agl)
 final aglProvider = AglProvider._();
