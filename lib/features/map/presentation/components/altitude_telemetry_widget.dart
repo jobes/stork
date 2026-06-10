@@ -15,7 +15,8 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
     String value,
     String unit,
     Color valueColor,
-    Color unitColor, {
+    Color unitColor,
+    double fontScale, {
     String? prefix,
   }) {
     return Row(
@@ -26,17 +27,17 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
           Text(
             prefix,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 16 * fontScale,
               fontWeight: FontWeight.bold,
               color: unitColor,
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4 * fontScale),
         ],
         Text(
           value,
           style: TextStyle(
-            fontSize: 32,
+            fontSize: 32 * fontScale,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',
             color: valueColor,
@@ -44,8 +45,8 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
           ),
         ),
         if (unit.isNotEmpty) ...[
-          const SizedBox(width: 4),
-          Text(unit, style: TextStyle(fontSize: 12, color: unitColor)),
+          SizedBox(width: 4 * fontScale),
+          Text(unit, style: TextStyle(fontSize: 12 * fontScale, color: unitColor)),
         ],
       ],
     );
@@ -57,6 +58,7 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
     final aglState = ref.watch(aglProvider);
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
+    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultTextColor = isDark
@@ -93,6 +95,7 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         altitudeUnitLabel,
         altitudeValueColor,
         defaultTextColor,
+        fontScale,
         prefix: prefix,
       ),
     );
@@ -111,11 +114,11 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
-            padding: const EdgeInsets.only(top: 4.0),
+            padding: EdgeInsets.only(top: 4.0 * fontScale),
             child: Text(
               '$heightStr $heightUnitLabel',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12 * fontScale,
                 fontWeight: FontWeight.bold,
                 color: defaultTextColor,
                 fontFamily: 'monospace',
@@ -139,7 +142,7 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         );
       },
       borderColor: borderColor,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 12 * fontScale, vertical: 8 * fontScale),
       child: IntrinsicWidth(
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),

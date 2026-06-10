@@ -48,8 +48,14 @@ final class CurrentLocationProvider
 
 String _$currentLocationHash() => r'cb79119672f4cb95e04b9d102ca104793b740642';
 
+/// Stream of user positions. The returned [altitude] is in Mean Sea Level (MSL) datum
+/// (configured via AndroidSettings.useMSLAltitude on Android).
+
 @ProviderFor(positionStream)
 final positionStreamProvider = PositionStreamProvider._();
+
+/// Stream of user positions. The returned [altitude] is in Mean Sea Level (MSL) datum
+/// (configured via AndroidSettings.useMSLAltitude on Android).
 
 final class PositionStreamProvider
     extends
@@ -109,6 +115,8 @@ final class PositionStreamProvider
             double verticalAccuracy,
           })
         > {
+  /// Stream of user positions. The returned [altitude] is in Mean Sea Level (MSL) datum
+  /// (configured via AndroidSettings.useMSLAltitude on Android).
   PositionStreamProvider._()
     : super(
         from: null,
@@ -155,7 +163,7 @@ final class PositionStreamProvider
   }
 }
 
-String _$positionStreamHash() => r'7937b606f5ebac684c1421d570659a8cc8b7e158';
+String _$positionStreamHash() => r'ec877d190ae806923c41d7fd9f7a4ed4bed1c6ea';
 
 @ProviderFor(compassStream)
 final compassStreamProvider = CompassStreamProvider._();
