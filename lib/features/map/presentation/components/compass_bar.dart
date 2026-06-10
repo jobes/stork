@@ -13,7 +13,7 @@ class _CompassLayout {
   static const double markerHeightSmall = 6.0;
   static const double markerHeightMedium = 10.0;
   static const double markerHeightLarge = 15;
-  static const double markerHeightXLarge = 10.0;
+  static const double markerHeightXLarge = 13.0;
   static const double labelOffsetBase = 15.0;
 }
 

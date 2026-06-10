@@ -41,13 +41,16 @@ class StyleHelper {
             }
             return newList;
           } else if (op == 'interpolate' || op == 'step') {
-            final startIdx = (op == 'interpolate') ? 3 : 2;
-            if (op == 'step') {
+            if (op == 'interpolate') {
+              for (var i = 3; i < newList.length; i += 2) {
+                if (i + 1 < newList.length) {
+                  newList[i + 1] = scaleValue(newList[i + 1]);
+                }
+              }
+            } else {
               newList[2] = scaleValue(newList[2]);
-            }
-            for (var i = startIdx; i < newList.length; i += 2) {
-              if (i + 1 < newList.length) {
-                newList[i + 1] = scaleValue(newList[i + 1]);
+              for (var i = 4; i < newList.length; i += 2) {
+                newList[i] = scaleValue(newList[i]);
               }
             }
             return newList;
