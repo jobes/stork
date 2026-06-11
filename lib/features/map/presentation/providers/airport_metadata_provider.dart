@@ -82,7 +82,7 @@ class AirportMetadataCache extends _$AirportMetadataCache {
         }
 
         // Use compute to parse large JSON in a separate isolate to prevent UI jank
-        final parsedFeatures = await compute(_parseAirportFeatures, response.body);
+        final parsedFeatures = await compute(_parseAirportFeatures, utf8.decode(response.bodyBytes));
         _memoryCache.addAll(parsedFeatures);
         _downloadedCountries.add(lowerCountryCode);
       }();

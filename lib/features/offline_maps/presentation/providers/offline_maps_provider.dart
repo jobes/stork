@@ -305,7 +305,8 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final decodedBody = utf8.decode(response.bodyBytes);
+        final data = json.decode(decodedBody);
         if (data is Map<String, dynamic> && data['features'] is List) {
           final featuresList = List<GeoJsonFeature>.from(
             (data['features'] as List).map(

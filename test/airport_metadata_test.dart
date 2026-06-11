@@ -236,5 +236,40 @@ void main() {
         expect(requestCount, equals(2));
       }, () => mockClient);
     });
+
+    test('Downloads and decodes UTF-8 characters correctly (e.g. Austrian/Hungarian/German)', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final cache = container.read(airportMetadataCacheProvider.notifier);
+
+      final mockClient = MockClient((request) async {
+        return http.Response.bytes(
+          utf8.encode(json.encode({
+            'features': [
+              {
+                'type': 'Feature',
+                'properties': {
+                  'id': 'apt_utf8',
+                  'name': 'Bad Vöslau / Fertőszentmiklós',
+                  'type': 1,
+                  'country': 'AT',
+                }
+              }
+            ]
+          })),
+          200,
+          headers: {
+            'content-type': 'application/json',
+          },
+        );
+      });
+
+      await http.runWithClient(() async {
+        final result = await cache.getMetadata('apt_utf8', 'AT');
+        expect(result, isNotNull);
+        expect(result?.name, equals('Bad Vöslau / Fertőszentmiklós'));
+      }, () => mockClient);
+    });
   });
 }
