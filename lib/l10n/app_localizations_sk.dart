@@ -42,6 +42,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get aircraftTotalHours => 'Nálet (lietadlo)';
 
   @override
+  String get airportDetails => 'Detaili letiska';
+
+  @override
   String get downloadMaps => 'Stiahnuť mapy';
 
   @override
@@ -363,4 +366,244 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get terrainUnderPosition => 'Terén pod polohou';
+
+  @override
+  String get close => 'Zavrieť';
+
+  @override
+  String get airportLoadingDetails => 'Načítavam detaily...';
+
+  @override
+  String get airportFailedToLoad => 'Nepodarilo sa načítať detaily letiska.';
+
+  @override
+  String airportNameLabel(String name) {
+    return 'Názov: $name';
+  }
+
+  @override
+  String airportIcao(String icao) {
+    return 'ICAO: $icao';
+  }
+
+  @override
+  String get airportElevation => 'Nadmorská výška';
+
+  @override
+  String get airportFrequencies => 'Frekvencie';
+
+  @override
+  String get airportRunways => 'Dráhy';
+
+  @override
+  String get airportPpr => 'PPR';
+
+  @override
+  String get airportPrivate => 'Súkromné';
+
+  @override
+  String get airportSkydiveActivity => 'Parašutizmus';
+
+  @override
+  String get airportWinchOnly => 'Navijak';
+
+  @override
+  String airportRunwayDimension(String length, String width, String unit) {
+    return '${length}x$width $unit';
+  }
+
+  @override
+  String get airportSurface => 'Povrch';
+
+  @override
+  String get airportTypeLabel => 'Typ';
+
+  @override
+  String get airportViewOnOpenAip => 'Zobraziť na openAIP';
+
+  @override
+  String get airportTypeAirport => 'Letisko';
+
+  @override
+  String get airportTypeGliderSite => 'Bezmotorové letisko';
+
+  @override
+  String get airportTypeAirfieldCivil => 'Civilné letisko';
+
+  @override
+  String get airportTypeInternationalAirport => 'Medzinárodné letisko';
+
+  @override
+  String get airportTypeHeliportMilitary => 'Vojenský heliport';
+
+  @override
+  String get airportTypeMilitaryAerodrome => 'Vojenské letisko';
+
+  @override
+  String get airportTypeUltralightFlyingSite => 'Plocha pre ultralighty';
+
+  @override
+  String get airportTypeHeliportCivil => 'Civilný heliport';
+
+  @override
+  String get airportTypeAerodromeClosed => 'Zatvorené letisko';
+
+  @override
+  String get airportTypeIfr => 'IFR letisko';
+
+  @override
+  String get airportTypeAirfieldWater => 'Vodné letisko';
+
+  @override
+  String get airportTypeLandingStrip => 'Pristávacia dráha';
+
+  @override
+  String get airportTypeAgriculturalLandingStrip => 'Poľnohospodárska plocha';
+
+  @override
+  String get airportTypeAltiport => 'Altiport';
+
+  @override
+  String airportTypeUnknown(String type) {
+    return 'Neznámy typ ($type)';
+  }
+
+  @override
+  String get frequencyTypeApproach => 'Priblíženie';
+
+  @override
+  String get frequencyTypeApron => 'Apron';
+
+  @override
+  String get frequencyTypeArrival => 'Prílet';
+
+  @override
+  String get frequencyTypeCenter => 'Center';
+
+  @override
+  String get frequencyTypeCtaf => 'CTAF';
+
+  @override
+  String get frequencyTypeDelivery => 'Delivery';
+
+  @override
+  String get frequencyTypeDeparture => 'Odlet';
+
+  @override
+  String get frequencyTypeFis => 'FIS';
+
+  @override
+  String get frequencyTypeGliding => 'Plachtenie';
+
+  @override
+  String get frequencyTypeGround => 'Ground';
+
+  @override
+  String get frequencyTypeInfo => 'Info';
+
+  @override
+  String get frequencyTypeMulticom => 'Multicom';
+
+  @override
+  String get frequencyTypeUnicom => 'Unicom';
+
+  @override
+  String get frequencyTypeRadar => 'Radar';
+
+  @override
+  String get frequencyTypeTower => 'Veža';
+
+  @override
+  String get frequencyTypeAtis => 'ATIS';
+
+  @override
+  String get frequencyTypeRadio => 'Rádio';
+
+  @override
+  String get frequencyTypeOther => 'Iné';
+
+  @override
+  String get frequencyTypeAirmet => 'AIRMET';
+
+  @override
+  String get frequencyTypeAwos => 'AWOS';
+
+  @override
+  String get frequencyTypeLights => 'Svetlá';
+
+  @override
+  String get frequencyTypeVolmet => 'VOLMET';
+
+  @override
+  String frequencyTypeUnknown(String type) {
+    return 'Neznáma ($type)';
+  }
+
+  @override
+  String get surfaceAsphalt => 'Asfalt';
+
+  @override
+  String get surfaceConcrete => 'Betón';
+
+  @override
+  String get surfaceGrass => 'Tráva';
+
+  @override
+  String get surfaceSand => 'Piesok';
+
+  @override
+  String get surfaceWater => 'Voda';
+
+  @override
+  String get surfaceBituminousTar => 'Bitúmen';
+
+  @override
+  String get surfaceBrick => 'Tehla';
+
+  @override
+  String get surfaceMacadam => 'Makadam';
+
+  @override
+  String get surfaceStone => 'Kameň';
+
+  @override
+  String get surfaceCoral => 'Korál';
+
+  @override
+  String get surfaceClay => 'Hlina';
+
+  @override
+  String get surfaceLaterite => 'Laterit';
+
+  @override
+  String get surfaceGravel => 'Štrk';
+
+  @override
+  String get surfaceEarth => 'Hlina/Zem';
+
+  @override
+  String get surfaceIce => 'Ľad';
+
+  @override
+  String get surfaceSnow => 'Sneh';
+
+  @override
+  String get surfaceProtectiveLaminate => 'Ochranný laminát';
+
+  @override
+  String get surfaceMetal => 'Kov';
+
+  @override
+  String get surfaceLandingMat => 'Pristávacia rohož';
+
+  @override
+  String get surfaceUnknown => 'Neznámy';
+
+  @override
+  String get surfaceWood => 'Drevo';
+
+  @override
+  String surfaceUnknownType(String type) {
+    return 'Neznámy ($type)';
+  }
 }

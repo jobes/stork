@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aircraftTotalHours => 'Aircraft total';
 
   @override
+  String get airportDetails => 'Airport Details';
+
+  @override
   String get downloadMaps => 'Download Maps';
 
   @override
@@ -363,4 +366,245 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get terrainUnderPosition => 'Terrain under position';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get airportLoadingDetails => 'Loading details...';
+
+  @override
+  String get airportFailedToLoad => 'Failed to load airport details.';
+
+  @override
+  String airportNameLabel(String name) {
+    return 'Name: $name';
+  }
+
+  @override
+  String airportIcao(String icao) {
+    return 'ICAO: $icao';
+  }
+
+  @override
+  String get airportElevation => 'Elevation';
+
+  @override
+  String get airportFrequencies => 'Frequencies';
+
+  @override
+  String get airportRunways => 'Runways';
+
+  @override
+  String get airportPpr => 'PPR';
+
+  @override
+  String get airportPrivate => 'Private';
+
+  @override
+  String get airportSkydiveActivity => 'Skydive';
+
+  @override
+  String get airportWinchOnly => 'Winch';
+
+  @override
+  String airportRunwayDimension(String length, String width, String unit) {
+    return '${length}x$width $unit';
+  }
+
+  @override
+  String get airportSurface => 'Surface';
+
+  @override
+  String get airportTypeLabel => 'Type';
+
+  @override
+  String get airportViewOnOpenAip => 'View on openAIP';
+
+  @override
+  String get airportTypeAirport => 'Airport';
+
+  @override
+  String get airportTypeGliderSite => 'Glider Site';
+
+  @override
+  String get airportTypeAirfieldCivil => 'Airfield Civil';
+
+  @override
+  String get airportTypeInternationalAirport => 'International Airport';
+
+  @override
+  String get airportTypeHeliportMilitary => 'Heliport Military';
+
+  @override
+  String get airportTypeMilitaryAerodrome => 'Military Aerodrome';
+
+  @override
+  String get airportTypeUltralightFlyingSite => 'Ultralight Flying Site';
+
+  @override
+  String get airportTypeHeliportCivil => 'Heliport Civil';
+
+  @override
+  String get airportTypeAerodromeClosed => 'Aerodrome Closed';
+
+  @override
+  String get airportTypeIfr => 'IFR';
+
+  @override
+  String get airportTypeAirfieldWater => 'Airfield Water';
+
+  @override
+  String get airportTypeLandingStrip => 'Landing Strip';
+
+  @override
+  String get airportTypeAgriculturalLandingStrip =>
+      'Agricultural Landing Strip';
+
+  @override
+  String get airportTypeAltiport => 'Altiport';
+
+  @override
+  String airportTypeUnknown(String type) {
+    return 'Unknown ($type)';
+  }
+
+  @override
+  String get frequencyTypeApproach => 'Approach';
+
+  @override
+  String get frequencyTypeApron => 'Apron';
+
+  @override
+  String get frequencyTypeArrival => 'Arrival';
+
+  @override
+  String get frequencyTypeCenter => 'Center';
+
+  @override
+  String get frequencyTypeCtaf => 'CTAF';
+
+  @override
+  String get frequencyTypeDelivery => 'Delivery';
+
+  @override
+  String get frequencyTypeDeparture => 'Departure';
+
+  @override
+  String get frequencyTypeFis => 'FIS';
+
+  @override
+  String get frequencyTypeGliding => 'Gliding';
+
+  @override
+  String get frequencyTypeGround => 'Ground';
+
+  @override
+  String get frequencyTypeInfo => 'Info';
+
+  @override
+  String get frequencyTypeMulticom => 'Multicom';
+
+  @override
+  String get frequencyTypeUnicom => 'Unicom';
+
+  @override
+  String get frequencyTypeRadar => 'Radar';
+
+  @override
+  String get frequencyTypeTower => 'Tower';
+
+  @override
+  String get frequencyTypeAtis => 'ATIS';
+
+  @override
+  String get frequencyTypeRadio => 'Radio';
+
+  @override
+  String get frequencyTypeOther => 'Other';
+
+  @override
+  String get frequencyTypeAirmet => 'AIRMET';
+
+  @override
+  String get frequencyTypeAwos => 'AWOS';
+
+  @override
+  String get frequencyTypeLights => 'Lights';
+
+  @override
+  String get frequencyTypeVolmet => 'VOLMET';
+
+  @override
+  String frequencyTypeUnknown(String type) {
+    return 'Unknown ($type)';
+  }
+
+  @override
+  String get surfaceAsphalt => 'Asphalt';
+
+  @override
+  String get surfaceConcrete => 'Concrete';
+
+  @override
+  String get surfaceGrass => 'Grass';
+
+  @override
+  String get surfaceSand => 'Sand';
+
+  @override
+  String get surfaceWater => 'Water';
+
+  @override
+  String get surfaceBituminousTar => 'Bituminous Tar';
+
+  @override
+  String get surfaceBrick => 'Brick';
+
+  @override
+  String get surfaceMacadam => 'Macadam';
+
+  @override
+  String get surfaceStone => 'Stone';
+
+  @override
+  String get surfaceCoral => 'Coral';
+
+  @override
+  String get surfaceClay => 'Clay';
+
+  @override
+  String get surfaceLaterite => 'Laterite';
+
+  @override
+  String get surfaceGravel => 'Gravel';
+
+  @override
+  String get surfaceEarth => 'Earth';
+
+  @override
+  String get surfaceIce => 'Ice';
+
+  @override
+  String get surfaceSnow => 'Snow';
+
+  @override
+  String get surfaceProtectiveLaminate => 'Protective Laminate';
+
+  @override
+  String get surfaceMetal => 'Metal';
+
+  @override
+  String get surfaceLandingMat => 'Landing Mat';
+
+  @override
+  String get surfaceUnknown => 'Unknown';
+
+  @override
+  String get surfaceWood => 'Wood';
+
+  @override
+  String surfaceUnknownType(String type) {
+    return 'Unknown ($type)';
+  }
 }

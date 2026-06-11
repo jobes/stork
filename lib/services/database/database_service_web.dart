@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import '../../features/offline_maps/domain/offline_maps_state.dart';
 import '../../features/offline_maps/domain/tile_utils.dart';
+import '../../features/map/domain/airport_metadata.dart';
 
 class DatabaseService {
   static Future<void> get database async =>
@@ -69,6 +70,10 @@ class DatabaseService {
 
   static Future<int> getMetadataSize() async {
     return 0;
+  }
+
+  static Future<AirportMetadata?> getOpenAipFeature(String id) async {
+    return null;
   }
 
   static Future<void> clearMapData() async {

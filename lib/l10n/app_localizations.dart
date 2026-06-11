@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Aircraft total'**
   String get aircraftTotalHours;
 
+  /// No description provided for @airportDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Airport Details'**
+  String get airportDetails;
+
   /// No description provided for @downloadMaps.
   ///
   /// In en, this message translates to:
@@ -769,6 +775,462 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terrain under position'**
   String get terrainUnderPosition;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @airportLoadingDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading details...'**
+  String get airportLoadingDetails;
+
+  /// No description provided for @airportFailedToLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load airport details.'**
+  String get airportFailedToLoad;
+
+  /// No description provided for @airportNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name: {name}'**
+  String airportNameLabel(String name);
+
+  /// No description provided for @airportIcao.
+  ///
+  /// In en, this message translates to:
+  /// **'ICAO: {icao}'**
+  String airportIcao(String icao);
+
+  /// No description provided for @airportElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Elevation'**
+  String get airportElevation;
+
+  /// No description provided for @airportFrequencies.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequencies'**
+  String get airportFrequencies;
+
+  /// No description provided for @airportRunways.
+  ///
+  /// In en, this message translates to:
+  /// **'Runways'**
+  String get airportRunways;
+
+  /// No description provided for @airportPpr.
+  ///
+  /// In en, this message translates to:
+  /// **'PPR'**
+  String get airportPpr;
+
+  /// No description provided for @airportPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private'**
+  String get airportPrivate;
+
+  /// No description provided for @airportSkydiveActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Skydive'**
+  String get airportSkydiveActivity;
+
+  /// No description provided for @airportWinchOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Winch'**
+  String get airportWinchOnly;
+
+  /// No description provided for @airportRunwayDimension.
+  ///
+  /// In en, this message translates to:
+  /// **'{length}x{width} {unit}'**
+  String airportRunwayDimension(String length, String width, String unit);
+
+  /// No description provided for @airportSurface.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface'**
+  String get airportSurface;
+
+  /// No description provided for @airportTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get airportTypeLabel;
+
+  /// No description provided for @airportViewOnOpenAip.
+  ///
+  /// In en, this message translates to:
+  /// **'View on openAIP'**
+  String get airportViewOnOpenAip;
+
+  /// No description provided for @airportTypeAirport.
+  ///
+  /// In en, this message translates to:
+  /// **'Airport'**
+  String get airportTypeAirport;
+
+  /// No description provided for @airportTypeGliderSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Glider Site'**
+  String get airportTypeGliderSite;
+
+  /// No description provided for @airportTypeAirfieldCivil.
+  ///
+  /// In en, this message translates to:
+  /// **'Airfield Civil'**
+  String get airportTypeAirfieldCivil;
+
+  /// No description provided for @airportTypeInternationalAirport.
+  ///
+  /// In en, this message translates to:
+  /// **'International Airport'**
+  String get airportTypeInternationalAirport;
+
+  /// No description provided for @airportTypeHeliportMilitary.
+  ///
+  /// In en, this message translates to:
+  /// **'Heliport Military'**
+  String get airportTypeHeliportMilitary;
+
+  /// No description provided for @airportTypeMilitaryAerodrome.
+  ///
+  /// In en, this message translates to:
+  /// **'Military Aerodrome'**
+  String get airportTypeMilitaryAerodrome;
+
+  /// No description provided for @airportTypeUltralightFlyingSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Ultralight Flying Site'**
+  String get airportTypeUltralightFlyingSite;
+
+  /// No description provided for @airportTypeHeliportCivil.
+  ///
+  /// In en, this message translates to:
+  /// **'Heliport Civil'**
+  String get airportTypeHeliportCivil;
+
+  /// No description provided for @airportTypeAerodromeClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Aerodrome Closed'**
+  String get airportTypeAerodromeClosed;
+
+  /// No description provided for @airportTypeIfr.
+  ///
+  /// In en, this message translates to:
+  /// **'IFR'**
+  String get airportTypeIfr;
+
+  /// No description provided for @airportTypeAirfieldWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Airfield Water'**
+  String get airportTypeAirfieldWater;
+
+  /// No description provided for @airportTypeLandingStrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing Strip'**
+  String get airportTypeLandingStrip;
+
+  /// No description provided for @airportTypeAgriculturalLandingStrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Agricultural Landing Strip'**
+  String get airportTypeAgriculturalLandingStrip;
+
+  /// No description provided for @airportTypeAltiport.
+  ///
+  /// In en, this message translates to:
+  /// **'Altiport'**
+  String get airportTypeAltiport;
+
+  /// No description provided for @airportTypeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown ({type})'**
+  String airportTypeUnknown(String type);
+
+  /// No description provided for @frequencyTypeApproach.
+  ///
+  /// In en, this message translates to:
+  /// **'Approach'**
+  String get frequencyTypeApproach;
+
+  /// No description provided for @frequencyTypeApron.
+  ///
+  /// In en, this message translates to:
+  /// **'Apron'**
+  String get frequencyTypeApron;
+
+  /// No description provided for @frequencyTypeArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival'**
+  String get frequencyTypeArrival;
+
+  /// No description provided for @frequencyTypeCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Center'**
+  String get frequencyTypeCenter;
+
+  /// No description provided for @frequencyTypeCtaf.
+  ///
+  /// In en, this message translates to:
+  /// **'CTAF'**
+  String get frequencyTypeCtaf;
+
+  /// No description provided for @frequencyTypeDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get frequencyTypeDelivery;
+
+  /// No description provided for @frequencyTypeDeparture.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure'**
+  String get frequencyTypeDeparture;
+
+  /// No description provided for @frequencyTypeFis.
+  ///
+  /// In en, this message translates to:
+  /// **'FIS'**
+  String get frequencyTypeFis;
+
+  /// No description provided for @frequencyTypeGliding.
+  ///
+  /// In en, this message translates to:
+  /// **'Gliding'**
+  String get frequencyTypeGliding;
+
+  /// No description provided for @frequencyTypeGround.
+  ///
+  /// In en, this message translates to:
+  /// **'Ground'**
+  String get frequencyTypeGround;
+
+  /// No description provided for @frequencyTypeInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get frequencyTypeInfo;
+
+  /// No description provided for @frequencyTypeMulticom.
+  ///
+  /// In en, this message translates to:
+  /// **'Multicom'**
+  String get frequencyTypeMulticom;
+
+  /// No description provided for @frequencyTypeUnicom.
+  ///
+  /// In en, this message translates to:
+  /// **'Unicom'**
+  String get frequencyTypeUnicom;
+
+  /// No description provided for @frequencyTypeRadar.
+  ///
+  /// In en, this message translates to:
+  /// **'Radar'**
+  String get frequencyTypeRadar;
+
+  /// No description provided for @frequencyTypeTower.
+  ///
+  /// In en, this message translates to:
+  /// **'Tower'**
+  String get frequencyTypeTower;
+
+  /// No description provided for @frequencyTypeAtis.
+  ///
+  /// In en, this message translates to:
+  /// **'ATIS'**
+  String get frequencyTypeAtis;
+
+  /// No description provided for @frequencyTypeRadio.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio'**
+  String get frequencyTypeRadio;
+
+  /// No description provided for @frequencyTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get frequencyTypeOther;
+
+  /// No description provided for @frequencyTypeAirmet.
+  ///
+  /// In en, this message translates to:
+  /// **'AIRMET'**
+  String get frequencyTypeAirmet;
+
+  /// No description provided for @frequencyTypeAwos.
+  ///
+  /// In en, this message translates to:
+  /// **'AWOS'**
+  String get frequencyTypeAwos;
+
+  /// No description provided for @frequencyTypeLights.
+  ///
+  /// In en, this message translates to:
+  /// **'Lights'**
+  String get frequencyTypeLights;
+
+  /// No description provided for @frequencyTypeVolmet.
+  ///
+  /// In en, this message translates to:
+  /// **'VOLMET'**
+  String get frequencyTypeVolmet;
+
+  /// No description provided for @frequencyTypeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown ({type})'**
+  String frequencyTypeUnknown(String type);
+
+  /// No description provided for @surfaceAsphalt.
+  ///
+  /// In en, this message translates to:
+  /// **'Asphalt'**
+  String get surfaceAsphalt;
+
+  /// No description provided for @surfaceConcrete.
+  ///
+  /// In en, this message translates to:
+  /// **'Concrete'**
+  String get surfaceConcrete;
+
+  /// No description provided for @surfaceGrass.
+  ///
+  /// In en, this message translates to:
+  /// **'Grass'**
+  String get surfaceGrass;
+
+  /// No description provided for @surfaceSand.
+  ///
+  /// In en, this message translates to:
+  /// **'Sand'**
+  String get surfaceSand;
+
+  /// No description provided for @surfaceWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get surfaceWater;
+
+  /// No description provided for @surfaceBituminousTar.
+  ///
+  /// In en, this message translates to:
+  /// **'Bituminous Tar'**
+  String get surfaceBituminousTar;
+
+  /// No description provided for @surfaceBrick.
+  ///
+  /// In en, this message translates to:
+  /// **'Brick'**
+  String get surfaceBrick;
+
+  /// No description provided for @surfaceMacadam.
+  ///
+  /// In en, this message translates to:
+  /// **'Macadam'**
+  String get surfaceMacadam;
+
+  /// No description provided for @surfaceStone.
+  ///
+  /// In en, this message translates to:
+  /// **'Stone'**
+  String get surfaceStone;
+
+  /// No description provided for @surfaceCoral.
+  ///
+  /// In en, this message translates to:
+  /// **'Coral'**
+  String get surfaceCoral;
+
+  /// No description provided for @surfaceClay.
+  ///
+  /// In en, this message translates to:
+  /// **'Clay'**
+  String get surfaceClay;
+
+  /// No description provided for @surfaceLaterite.
+  ///
+  /// In en, this message translates to:
+  /// **'Laterite'**
+  String get surfaceLaterite;
+
+  /// No description provided for @surfaceGravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gravel'**
+  String get surfaceGravel;
+
+  /// No description provided for @surfaceEarth.
+  ///
+  /// In en, this message translates to:
+  /// **'Earth'**
+  String get surfaceEarth;
+
+  /// No description provided for @surfaceIce.
+  ///
+  /// In en, this message translates to:
+  /// **'Ice'**
+  String get surfaceIce;
+
+  /// No description provided for @surfaceSnow.
+  ///
+  /// In en, this message translates to:
+  /// **'Snow'**
+  String get surfaceSnow;
+
+  /// No description provided for @surfaceProtectiveLaminate.
+  ///
+  /// In en, this message translates to:
+  /// **'Protective Laminate'**
+  String get surfaceProtectiveLaminate;
+
+  /// No description provided for @surfaceMetal.
+  ///
+  /// In en, this message translates to:
+  /// **'Metal'**
+  String get surfaceMetal;
+
+  /// No description provided for @surfaceLandingMat.
+  ///
+  /// In en, this message translates to:
+  /// **'Landing Mat'**
+  String get surfaceLandingMat;
+
+  /// No description provided for @surfaceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get surfaceUnknown;
+
+  /// No description provided for @surfaceWood.
+  ///
+  /// In en, this message translates to:
+  /// **'Wood'**
+  String get surfaceWood;
+
+  /// No description provided for @surfaceUnknownType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown ({type})'**
+  String surfaceUnknownType(String type);
 }
 
 class _AppLocalizationsDelegate

@@ -42,7 +42,7 @@ final class OfflineMapsNotifierProvider
 }
 
 String _$offlineMapsNotifierHash() =>
-    r'ca663d3112789a04309a072d8e430864726175ce';
+    r'f20cc14a7bf0a28655afeaff136e150723ec03f4';
 
 abstract class _$OfflineMapsNotifier extends $Notifier<OfflineMapsState> {
   OfflineMapsState build();
