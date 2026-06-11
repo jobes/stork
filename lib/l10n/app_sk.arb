@@ -10,6 +10,7 @@
   "editSettings": "Nastavenia",
   "pilotTotalHours": "Nálet (pilot)",
   "aircraftTotalHours": "Nálet (lietadlo)",
+  "airportDetails": "Detaili letiska",
   "downloadMaps": "Stiahnuť mapy",
   "updateMaps": "Aktualizovať mapy",
   "lastUpdate": "Posledná aktualizácia: {date}",
@@ -168,5 +169,16 @@
   "invalidQnhNumber": "Neplatné číslo",
   "qnhOutOfRange": "Mimo rozsah ({min} - {max})",
   "terrainElevation": "Nadmorská výška terénu",
-  "terrainUnderPosition": "Terén pod polohou"
+  "terrainUnderPosition": "Terén pod polohou",
+  "close": "Zavrieť",
+  "airportLoadingDetails": "Načítavam detaily...",
+  "airportFailedToLoad": "Nepodarilo sa načítať detaily letiska.",
+  "airportNameLabel": "Názov: {name}",
+  "@airportNameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

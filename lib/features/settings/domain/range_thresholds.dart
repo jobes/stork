@@ -1,7 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'range_thresholds.freezed.dart';
-part 'range_thresholds.g.dart';
 
 enum ThresholdState {
   inactive,
@@ -72,18 +71,22 @@ abstract class RangeThresholds with _$RangeThresholds {
   }
 
   factory RangeThresholds.fromJson(Map<String, dynamic> json) {
-    final _RangeThresholds raw = _$RangeThresholdsFromJson(json);
     return RangeThresholds(
-      inactiveMax: raw.inactiveMax,
-      minError: raw.minError,
-      minWarning: raw.minWarning,
-      maxWarning: raw.maxWarning,
-      maxError: raw.maxError,
+      inactiveMax: (json['inactiveMax'] as num?)?.toDouble(),
+      minError: (json['minError'] as num?)?.toDouble(),
+      minWarning: (json['minWarning'] as num?)?.toDouble(),
+      maxWarning: (json['maxWarning'] as num?)?.toDouble(),
+      maxError: (json['maxError'] as num?)?.toDouble(),
     );
   }
 
-  Map<String, dynamic> toJson() =>
-      _$RangeThresholdsToJson(this as _RangeThresholds);
+  Map<String, dynamic> toJson() => {
+    'inactiveMax': inactiveMax,
+    'minError': minError,
+    'minWarning': minWarning,
+    'maxWarning': maxWarning,
+    'maxError': maxError,
+  };
 
   ThresholdState evaluate(double value) => switch (value) {
     _ when inactiveMax != null && value <= inactiveMax! =>

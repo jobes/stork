@@ -16,6 +16,7 @@ import '../components/speed_telemetry_widget.dart';
 import '../components/altitude_telemetry_widget.dart';
 import '../components/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
+import '../components/map_features_bottom_sheet.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});
@@ -79,7 +80,12 @@ class _MapPageState extends ConsumerState<MapPage> {
                   },
                   onEvent: (event) {
                     if (_isDrawerOpen) return;
-                    cameraController.handleMapEvent(event);
+                    cameraController.handleMapEvent(
+                      event,
+                      onFeaturesTapped: (features, coordinate) {
+                        showMapFeaturesBottomSheet(context, features);
+                      },
+                    );
                   },
                 );
               },

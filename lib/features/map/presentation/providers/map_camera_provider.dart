@@ -460,12 +460,52 @@ class MapCamera extends _$MapCamera {
   bool get isAircraftSymbolInitialized => _isAircraftSymbolInitialized;
   MapController? get mapController => _mapController;
 
-  void handleMapEvent(MapEvent event) {
+  void handleMapEvent(
+    MapEvent event, {
+    Function(List<dynamic> features, Geographic coordinate)? onFeaturesTapped,
+  }) {
     if (event is MapEventMoveCamera) {
       handleUserInteraction(isExplicitInteraction: false);
     }
     if (event is MapEventClick) {
       debugPrint('Map clicked at ${event.point}');
+      if (onFeaturesTapped != null) {
+        _handleMapClick(event, onFeaturesTapped);
+      }
+    }
+  }
+
+  Future<void> _handleMapClick(
+    MapEventClick event,
+    Function(List<dynamic> features, Geographic coordinate) onFeaturesTapped,
+  ) async {
+    if (_mapController == null) return;
+    try {
+      final features = _mapController!.featuresAtPoint(
+        event.screenPoint,
+        layerIds: [
+          'airport_clicktarget',
+          'airport_runway',
+          'airport_parachute',
+          'airport_gliding',
+          'airport_gliding_winch',
+          'airport_other',
+          'airport_with_code_runway',
+          'airport_with_code',
+          'airport_runway_intl',
+          'airport_intl',
+        ],
+      );
+
+      if (features.isNotEmpty) {
+        debugPrint(features.toString());
+        final featureMaps = features
+            .map((f) => {'id': f.id, 'properties': f.properties})
+            .toList();
+        onFeaturesTapped(featureMaps, event.point);
+      }
+    } catch (e) {
+      debugPrint('Error querying map features: $e');
     }
   }
 

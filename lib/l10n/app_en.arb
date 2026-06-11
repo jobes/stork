@@ -16,6 +16,7 @@
   "editSettings": "Settings",
   "pilotTotalHours": "Pilot total",
   "aircraftTotalHours": "Aircraft total",
+  "airportDetails": "Airport Details",
   "downloadMaps": "Download Maps",
   "updateMaps": "Update Maps",
   "lastUpdate": "Last update: {date}",
@@ -213,5 +214,16 @@
     }
   },
   "terrainElevation": "Terrain Elevation",
-  "terrainUnderPosition": "Terrain under position"
+  "terrainUnderPosition": "Terrain under position",
+  "close": "Close",
+  "airportLoadingDetails": "Loading details...",
+  "airportFailedToLoad": "Failed to load airport details.",
+  "airportNameLabel": "Name: {name}",
+  "@airportNameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aircraftTotalHours => 'Aircraft total';
 
   @override
+  String get airportDetails => 'Airport Details';
+
+  @override
   String get downloadMaps => 'Download Maps';
 
   @override
@@ -363,4 +366,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get terrainUnderPosition => 'Terrain under position';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get airportLoadingDetails => 'Loading details...';
+
+  @override
+  String get airportFailedToLoad => 'Failed to load airport details.';
+
+  @override
+  String airportNameLabel(String name) {
+    return 'Name: $name';
+  }
 }

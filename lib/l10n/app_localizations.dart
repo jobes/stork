@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Aircraft total'**
   String get aircraftTotalHours;
 
+  /// No description provided for @airportDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Airport Details'**
+  String get airportDetails;
+
   /// No description provided for @downloadMaps.
   ///
   /// In en, this message translates to:
@@ -769,6 +775,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terrain under position'**
   String get terrainUnderPosition;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @airportLoadingDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading details...'**
+  String get airportLoadingDetails;
+
+  /// No description provided for @airportFailedToLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load airport details.'**
+  String get airportFailedToLoad;
+
+  /// No description provided for @airportNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name: {name}'**
+  String airportNameLabel(String name);
 }
 
 class _AppLocalizationsDelegate

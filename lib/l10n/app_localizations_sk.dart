@@ -42,6 +42,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get aircraftTotalHours => 'Nálet (lietadlo)';
 
   @override
+  String get airportDetails => 'Detaili letiska';
+
+  @override
   String get downloadMaps => 'Stiahnuť mapy';
 
   @override
@@ -363,4 +366,18 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get terrainUnderPosition => 'Terén pod polohou';
+
+  @override
+  String get close => 'Zavrieť';
+
+  @override
+  String get airportLoadingDetails => 'Načítavam detaily...';
+
+  @override
+  String get airportFailedToLoad => 'Nepodarilo sa načítať detaily letiska.';
+
+  @override
+  String airportNameLabel(String name) {
+    return 'Názov: $name';
+  }
 }

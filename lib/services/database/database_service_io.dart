@@ -9,6 +9,8 @@ import 'package:pmtiles/pmtiles.dart';
 
 import '../../features/offline_maps/domain/offline_maps_state.dart';
 import '../../features/offline_maps/domain/tile_utils.dart';
+import '../../features/map/domain/airport_metadata.dart';
+import 'dart:convert';
 
 class DatabaseService {
   static Database? _db;
@@ -302,6 +304,18 @@ class DatabaseService {
       db,
       'SELECT SUM(length(json)) FROM openaip_features',
     );
+  }
+
+  static Future<AirportMetadata?> getOpenAipFeature(String id) async {
+    if (kIsWeb) return null;
+    final db = await database;
+    final result = db.select(
+      'SELECT json FROM openaip_features WHERE id = ?',
+      [id],
+    );
+    if (result.isEmpty) return null;
+    final decoded = json.decode(result.first['json'] as String) as Map<String, dynamic>;
+    return AirportMetadata.fromJson(decoded);
   }
 
   static Future<void> clearMapData() async {

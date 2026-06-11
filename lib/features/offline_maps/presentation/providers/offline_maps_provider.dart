@@ -12,14 +12,14 @@ import 'package:vector_tile/vector_tile.dart';
 
 import '../../../../services/database/database_service.dart';
 import '../../../../core/services/tile_download_service.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../domain/tile_utils.dart';
+import '../../../map/domain/airport_metadata.dart';
 
 part 'offline_maps_provider.g.dart';
 
 @riverpod
 class OfflineMapsNotifier extends _$OfflineMapsNotifier {
-  static const _openAipMetadataBaseUrl =
-      'https://storage.googleapis.com/storage/v1/b/29f98e10-a489-4c82-ae5e-489dbcd4912f/o';
   static const _defaultExtractZoom = 10;
   static const _fallbackExtractZoom = 7;
   static const _maxTilesBeforeFallback = 500;
@@ -300,14 +300,19 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
 
   Future<int> _downloadAndStoreMetadata(String country, String type) async {
     final url =
-        '$_openAipMetadataBaseUrl/${country.toLowerCase()}_$type.geojson?alt=media';
+        '${ApiConstants.openAipMetadataBaseUrl}/${country.toLowerCase()}_$type.geojson?alt=media';
 
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['features'] != null) {
-          await _storeFeatures(data['features'], country, type);
+        if (data is Map<String, dynamic> && data['features'] is List) {
+          final featuresList = List<GeoJsonFeature>.from(
+            (data['features'] as List).map(
+              (e) => GeoJsonFeature.fromJson(e as Map<String, dynamic>),
+            ),
+          );
+          await _storeFeatures(featuresList, country, type);
           return response.bodyBytes.length;
         }
       } else {
@@ -321,16 +326,16 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
   }
 
   Future<void> _storeFeatures(
-    List<dynamic> features,
+    List<GeoJsonFeature> features,
     String country,
     String type,
   ) async {
     final dbFeatures = features
-        .where((f) => f['properties'] != null && f['properties']['_id'] != null)
+        .where((f) => f.properties.id.isNotEmpty)
         .map(
           (f) => {
-            'id': f['properties']['_id'].toString(),
-            'json': json.encode(f['properties']),
+            'id': f.properties.id,
+            'json': json.encode(f.properties.toJson()),
             'country': country,
             'type': type,
           },
