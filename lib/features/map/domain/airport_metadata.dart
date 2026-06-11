@@ -1,6 +1,151 @@
+import '../../../../core/constants/api_constants.dart';
+
+enum AirportType {
+  airport,                  // 0
+  gliderSite,               // 1
+  airfieldCivil,            // 2
+  internationalAirport,     // 3
+  heliportMilitary,         // 4
+  militaryAerodrome,        // 5
+  ultralightFlyingSite,     // 6
+  heliportCivil,            // 7
+  aerodromeClosed,          // 8
+  ifr,                      // 9
+  airfieldWater,            // 10
+  landingStrip,             // 11
+  agriculturalLandingStrip, // 12
+  altiport,                 // 13
+  unknown;
+
+  static AirportType fromInt(int val) {
+    if (val >= 0 && val < AirportType.values.length - 1) {
+      return AirportType.values[val];
+    }
+    return AirportType.unknown;
+  }
+
+  int toInt() {
+    return index;
+  }
+}
+
+enum FrequencyType {
+  approach,       // 0
+  apron,          // 1
+  arrival,        // 2
+  center,         // 3
+  ctaf,           // 4
+  delivery,       // 5
+  departure,      // 6
+  fis,            // 7
+  gliding,        // 8
+  ground,         // 9
+  info,           // 10
+  multicom,       // 11
+  unicom,         // 12
+  radar,          // 13
+  tower,          // 14
+  atis,           // 15
+  radio,          // 16
+  other,          // 17
+  airmet,         // 18
+  awos,           // 19
+  lights,         // 20
+  volmet,         // 21
+  unknown;
+
+  static FrequencyType fromInt(int val) {
+    if (val >= 0 && val < FrequencyType.values.length - 1) {
+      return FrequencyType.values[val];
+    }
+    return FrequencyType.unknown;
+  }
+
+  int toInt() {
+    return index;
+  }
+}
+
+enum RunwayComposition {
+  asphalt,            // 0
+  concrete,           // 1
+  grass,              // 2
+  sand,               // 3
+  water,              // 4
+  bituminousTar,      // 5
+  brick,              // 6
+  macadam,            // 7
+  stone,              // 8
+  coral,              // 9
+  clay,               // 10
+  laterite,           // 11
+  gravel,             // 12
+  earth,              // 13
+  ice,                // 14
+  snow,               // 15
+  protectiveLaminate, // 16
+  metal,              // 17
+  landingMat,         // 18
+  unknown,            // 19
+  wood;               // 20
+
+  static RunwayComposition fromInt(int val) {
+    if (val >= 0 && val < RunwayComposition.values.length) {
+      return RunwayComposition.values[val];
+    }
+    return RunwayComposition.unknown;
+  }
+
+  int toInt() {
+    return index;
+  }
+}
+
+enum OpenAipUnit {
+  meters,      // 0
+  feet,        // 1
+  mhz,         // 2
+  flightLevel, // 6
+  khz,         // 7
+  unknown;
+
+  static OpenAipUnit fromInt(int val) {
+    switch (val) {
+      case 0: return OpenAipUnit.meters;
+      case 1: return OpenAipUnit.feet;
+      case 2: return OpenAipUnit.mhz;
+      case 6: return OpenAipUnit.flightLevel;
+      case 7: return OpenAipUnit.khz;
+      default: return OpenAipUnit.unknown;
+    }
+  }
+
+  int toInt() {
+    switch (this) {
+      case OpenAipUnit.meters: return 0;
+      case OpenAipUnit.feet: return 1;
+      case OpenAipUnit.mhz: return 2;
+      case OpenAipUnit.flightLevel: return 6;
+      case OpenAipUnit.khz: return 7;
+      default: return -1;
+    }
+  }
+
+  String get symbol {
+    switch (this) {
+      case OpenAipUnit.meters: return 'm';
+      case OpenAipUnit.feet: return 'ft';
+      case OpenAipUnit.mhz: return 'MHz';
+      case OpenAipUnit.flightLevel: return 'FL';
+      case OpenAipUnit.khz: return 'kHz';
+      default: return '';
+    }
+  }
+}
+
 class AirportElevation {
   final double value;
-  final int unit;
+  final OpenAipUnit unit;
   final int referenceDatum;
 
   AirportElevation({
@@ -12,7 +157,7 @@ class AirportElevation {
   factory AirportElevation.fromJson(Map<String, Object?> json) {
     return AirportElevation(
       value: (json['value'] as num? ?? 0.0).toDouble(),
-      unit: (json['unit'] as num? ?? 0).toInt(),
+      unit: OpenAipUnit.fromInt((json['unit'] as num? ?? 0).toInt()),
       referenceDatum: (json['referenceDatum'] as num? ?? 0).toInt(),
     );
   }
@@ -20,7 +165,7 @@ class AirportElevation {
   Map<String, Object?> toJson() {
     return {
       'value': value,
-      'unit': unit,
+      'unit': unit.toInt(),
       'referenceDatum': referenceDatum,
     };
   }
@@ -29,8 +174,8 @@ class AirportElevation {
 class AirportFrequency {
   final String id;
   final String value;
-  final int unit;
-  final int type;
+  final OpenAipUnit unit;
+  final FrequencyType type;
   final String name;
   final bool primary;
   final bool publicUse;
@@ -49,8 +194,8 @@ class AirportFrequency {
     return AirportFrequency(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       value: (json['value'] ?? '').toString(),
-      unit: (json['unit'] as num? ?? 0).toInt(),
-      type: (json['type'] as num? ?? 0).toInt(),
+      unit: OpenAipUnit.fromInt((json['unit'] as num? ?? 0).toInt()),
+      type: FrequencyType.fromInt((json['type'] as num? ?? 0).toInt()),
       name: (json['name'] ?? '').toString(),
       primary: json['primary'] as bool? ?? false,
       publicUse: json['publicUse'] as bool? ?? false,
@@ -61,8 +206,8 @@ class AirportFrequency {
     return {
       '_id': id,
       'value': value,
-      'unit': unit,
-      'type': type,
+      'unit': unit.toInt(),
+      'type': type.toInt(),
       'name': name,
       'primary': primary,
       'publicUse': publicUse,
@@ -72,7 +217,7 @@ class AirportFrequency {
 
 class RunwayDimensionValue {
   final double value;
-  final int unit;
+  final OpenAipUnit unit;
 
   RunwayDimensionValue({
     required this.value,
@@ -82,14 +227,14 @@ class RunwayDimensionValue {
   factory RunwayDimensionValue.fromJson(Map<String, Object?> json) {
     return RunwayDimensionValue(
       value: (json['value'] as num? ?? 0.0).toDouble(),
-      unit: (json['unit'] as num? ?? 0).toInt(),
+      unit: OpenAipUnit.fromInt((json['unit'] as num? ?? 0).toInt()),
     );
   }
 
   Map<String, Object?> toJson() {
     return {
       'value': value,
-      'unit': unit,
+      'unit': unit.toInt(),
     };
   }
 }
@@ -125,8 +270,8 @@ class RunwayDimension {
 }
 
 class RunwaySurface {
-  final List<int> composition;
-  final int mainComposite;
+  final List<RunwayComposition> composition;
+  final RunwayComposition mainComposite;
   final int condition;
 
   RunwaySurface({
@@ -139,17 +284,17 @@ class RunwaySurface {
     final compList = json['composition'];
     return RunwaySurface(
       composition: compList is List
-          ? compList.map((e) => (e as num).toInt()).toList()
+          ? compList.map((e) => RunwayComposition.fromInt((e as num).toInt())).toList()
           : const [],
-      mainComposite: (json['mainComposite'] as num? ?? 0).toInt(),
+      mainComposite: RunwayComposition.fromInt((json['mainComposite'] as num? ?? 0).toInt()),
       condition: (json['condition'] as num? ?? 0).toInt(),
     );
   }
 
   Map<String, Object?> toJson() {
     return {
-      'composition': composition,
-      'mainComposite': mainComposite,
+      'composition': composition.map((e) => e.toInt()).toList(),
+      'mainComposite': mainComposite.toInt(),
       'condition': condition,
     };
   }
@@ -157,7 +302,7 @@ class RunwaySurface {
 
 class RunwayDeclaredDistanceValue {
   final double value;
-  final int unit;
+  final OpenAipUnit unit;
 
   RunwayDeclaredDistanceValue({
     required this.value,
@@ -167,14 +312,14 @@ class RunwayDeclaredDistanceValue {
   factory RunwayDeclaredDistanceValue.fromJson(Map<String, Object?> json) {
     return RunwayDeclaredDistanceValue(
       value: (json['value'] as num? ?? 0.0).toDouble(),
-      unit: (json['unit'] as num? ?? 0).toInt(),
+      unit: OpenAipUnit.fromInt((json['unit'] as num? ?? 0).toInt()),
     );
   }
 
   Map<String, Object?> toJson() {
     return {
       'value': value,
-      'unit': unit,
+      'unit': unit.toInt(),
     };
   }
 }
@@ -286,11 +431,43 @@ class AirportRunway {
   }
 }
 
+class AirportImage {
+  final String id;
+  final String filename;
+
+  AirportImage({
+    required this.id,
+    required this.filename,
+  });
+
+  factory AirportImage.fromJson(Map<String, Object?> json) {
+    return AirportImage(
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
+      filename: (json['filename'] ?? '').toString(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      '_id': id,
+      'filename': filename,
+    };
+  }
+
+  String getThumbnailUrl(String apiKey) {
+    return '${ApiConstants.openAipImageBaseUrl}/$filename?width=200&height=200&apiKey=$apiKey';
+  }
+
+  String getFullSizeUrl(String apiKey) {
+    return '${ApiConstants.openAipImageBaseUrl}/$filename?apiKey=$apiKey';
+  }
+}
+
 class AirportMetadata {
   final String id;
   final String name;
   final String? icaoCode;
-  final int type;
+  final AirportType type;
   final List<int> trafficType;
   final double? magneticDeclination;
   final String country;
@@ -301,6 +478,7 @@ class AirportMetadata {
   final bool? winchOnly;
   final List<AirportFrequency> frequencies;
   final List<AirportRunway> runways;
+  final List<AirportImage> images;
 
   AirportMetadata({
     required this.id,
@@ -317,6 +495,7 @@ class AirportMetadata {
     this.winchOnly,
     required this.frequencies,
     required this.runways,
+    required this.images,
   });
 
   factory AirportMetadata.fromJson(Map<String, Object?> json) {
@@ -324,12 +503,13 @@ class AirportMetadata {
     final elevJson = json['elevation'];
     final freqList = json['frequencies'];
     final rwyList = json['runways'];
+    final imgList = json['images'];
 
     return AirportMetadata(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       name: (json['name'] ?? '').toString(),
       icaoCode: json['icaoCode'] as String?,
-      type: (json['type'] as num? ?? 0).toInt(),
+      type: AirportType.fromInt((json['type'] as num? ?? 0).toInt()),
       trafficType: trafficList is List
           ? trafficList.map((e) => (e as num).toInt()).toList()
           : const [],
@@ -352,6 +532,11 @@ class AirportMetadata {
               .map((e) => AirportRunway.fromJson(e as Map<String, Object?>))
               .toList()
           : const [],
+      images: imgList is List
+          ? imgList
+              .map((e) => AirportImage.fromJson(e as Map<String, Object?>))
+              .toList()
+          : const [],
     );
   }
 
@@ -360,7 +545,7 @@ class AirportMetadata {
       '_id': id,
       'name': name,
       if (icaoCode != null) 'icaoCode': icaoCode,
-      'type': type,
+      'type': type.toInt(),
       'trafficType': trafficType,
       if (magneticDeclination != null)
         'magneticDeclination': magneticDeclination,
@@ -372,6 +557,7 @@ class AirportMetadata {
       if (winchOnly != null) 'winchOnly': winchOnly,
       'frequencies': frequencies.map((e) => e.toJson()).toList(),
       'runways': runways.map((e) => e.toJson()).toList(),
+      'images': images.map((e) => e.toJson()).toList(),
     };
   }
 }

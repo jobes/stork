@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'l10n/app_localizations.dart';
 
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -15,6 +16,7 @@ import 'package:stork/core/utils/time_utils.dart';
 Future<void> main() async {
   appStopwatch.start();
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   if (!kIsWeb) {
     await MapAssetsServer.start();
   }

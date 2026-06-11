@@ -140,3 +140,44 @@ final class AirportMetadataFamily extends $Family
   @override
   String toString() => r'airportMetadataProvider';
 }
+
+@ProviderFor(openAipApiKey)
+final openAipApiKeyProvider = OpenAipApiKeyProvider._();
+
+final class OpenAipApiKeyProvider
+    extends $FunctionalProvider<String, String, String>
+    with $Provider<String> {
+  OpenAipApiKeyProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'openAipApiKeyProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$openAipApiKeyHash();
+
+  @$internal
+  @override
+  $ProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  String create(Ref ref) {
+    return openAipApiKey(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
+String _$openAipApiKeyHash() => r'51cc996c0ca99c5a773645a0c7655b185de3be2c';

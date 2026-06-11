@@ -180,5 +180,97 @@
         "type": "String"
       }
     }
-  }
+  },
+  "airportIcao": "ICAO: {icao}",
+  "@airportIcao": {
+    "placeholders": {
+      "icao": {
+        "type": "String"
+      }
+    }
+  },
+  "airportElevation": "Nadmorská výška",
+  "airportFrequencies": "Frekvencie",
+  "airportRunways": "Dráhy",
+  "airportPpr": "PPR",
+  "airportPrivate": "Súkromné",
+  "airportSkydiveActivity": "Parašutizmus",
+  "airportWinchOnly": "Navijak",
+  "airportRunwayDimension": "{length}x{width} {unit}",
+  "@airportRunwayDimension": {
+    "placeholders": {
+      "length": {
+        "type": "String"
+      },
+      "width": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "airportSurface": "Povrch",
+  "airportTypeLabel": "Typ",
+  "airportViewOnOpenAip": "Zobraziť na openAIP",
+  "airportTypeAirport": "Letisko",
+  "airportTypeGliderSite": "Bezmotorové letisko",
+  "airportTypeAirfieldCivil": "Civilné letisko",
+  "airportTypeInternationalAirport": "Medzinárodné letisko",
+  "airportTypeHeliportMilitary": "Vojenský heliport",
+  "airportTypeMilitaryAerodrome": "Vojenské letisko",
+  "airportTypeUltralightFlyingSite": "Plocha pre ultralighty",
+  "airportTypeHeliportCivil": "Civilný heliport",
+  "airportTypeAerodromeClosed": "Zatvorené letisko",
+  "airportTypeIfr": "IFR letisko",
+  "airportTypeAirfieldWater": "Vodné letisko",
+  "airportTypeLandingStrip": "Pristávacia dráha",
+  "airportTypeAgriculturalLandingStrip": "Poľnohospodárska plocha",
+  "airportTypeAltiport": "Altiport",
+  "airportTypeUnknown": "Neznámy typ ({type})",
+  "frequencyTypeApproach": "Priblíženie",
+  "frequencyTypeApron": "Apron",
+  "frequencyTypeArrival": "Prílet",
+  "frequencyTypeCenter": "Center",
+  "frequencyTypeCtaf": "CTAF",
+  "frequencyTypeDelivery": "Delivery",
+  "frequencyTypeDeparture": "Odlet",
+  "frequencyTypeFis": "FIS",
+  "frequencyTypeGliding": "Plachtenie",
+  "frequencyTypeGround": "Ground",
+  "frequencyTypeInfo": "Info",
+  "frequencyTypeMulticom": "Multicom",
+  "frequencyTypeUnicom": "Unicom",
+  "frequencyTypeRadar": "Radar",
+  "frequencyTypeTower": "Veža",
+  "frequencyTypeAtis": "ATIS",
+  "frequencyTypeRadio": "Rádio",
+  "frequencyTypeOther": "Iné",
+  "frequencyTypeAirmet": "AIRMET",
+  "frequencyTypeAwos": "AWOS",
+  "frequencyTypeLights": "Svetlá",
+  "frequencyTypeVolmet": "VOLMET",
+  "frequencyTypeUnknown": "Neznáma ({type})",
+  "surfaceAsphalt": "Asfalt",
+  "surfaceConcrete": "Betón",
+  "surfaceGrass": "Tráva",
+  "surfaceSand": "Piesok",
+  "surfaceWater": "Voda",
+  "surfaceBituminousTar": "Bitúmen",
+  "surfaceBrick": "Tehla",
+  "surfaceMacadam": "Makadam",
+  "surfaceStone": "Kameň",
+  "surfaceCoral": "Korál",
+  "surfaceClay": "Hlina",
+  "surfaceLaterite": "Laterit",
+  "surfaceGravel": "Štrk",
+  "surfaceEarth": "Hlina/Zem",
+  "surfaceIce": "Ľad",
+  "surfaceSnow": "Sneh",
+  "surfaceProtectiveLaminate": "Ochranný laminát",
+  "surfaceMetal": "Kov",
+  "surfaceLandingMat": "Pristávacia rohož",
+  "surfaceUnknown": "Neznámy",
+  "surfaceWood": "Drevo",
+  "surfaceUnknownType": "Neznámy ({type})"
 }

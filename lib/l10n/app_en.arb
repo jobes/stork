@@ -225,5 +225,118 @@
         "type": "String"
       }
     }
+  },
+  "airportIcao": "ICAO: {icao}",
+  "@airportIcao": {
+    "placeholders": {
+      "icao": {
+        "type": "String"
+      }
+    }
+  },
+  "airportElevation": "Elevation",
+  "airportFrequencies": "Frequencies",
+  "airportRunways": "Runways",
+  "airportPpr": "PPR",
+  "airportPrivate": "Private",
+  "airportSkydiveActivity": "Skydive",
+  "airportWinchOnly": "Winch",
+  "airportRunwayDimension": "{length}x{width} {unit}",
+  "@airportRunwayDimension": {
+    "placeholders": {
+      "length": {
+        "type": "String"
+      },
+      "width": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "airportSurface": "Surface",
+  "airportTypeLabel": "Type",
+  "airportViewOnOpenAip": "View on openAIP",
+  "airportTypeAirport": "Airport",
+  "airportTypeGliderSite": "Glider Site",
+  "airportTypeAirfieldCivil": "Airfield Civil",
+  "airportTypeInternationalAirport": "International Airport",
+  "airportTypeHeliportMilitary": "Heliport Military",
+  "airportTypeMilitaryAerodrome": "Military Aerodrome",
+  "airportTypeUltralightFlyingSite": "Ultralight Flying Site",
+  "airportTypeHeliportCivil": "Heliport Civil",
+  "airportTypeAerodromeClosed": "Aerodrome Closed",
+  "airportTypeIfr": "IFR",
+  "airportTypeAirfieldWater": "Airfield Water",
+  "airportTypeLandingStrip": "Landing Strip",
+  "airportTypeAgriculturalLandingStrip": "Agricultural Landing Strip",
+  "airportTypeAltiport": "Altiport",
+  "airportTypeUnknown": "Unknown ({type})",
+  "@airportTypeUnknown": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "frequencyTypeApproach": "Approach",
+  "frequencyTypeApron": "Apron",
+  "frequencyTypeArrival": "Arrival",
+  "frequencyTypeCenter": "Center",
+  "frequencyTypeCtaf": "CTAF",
+  "frequencyTypeDelivery": "Delivery",
+  "frequencyTypeDeparture": "Departure",
+  "frequencyTypeFis": "FIS",
+  "frequencyTypeGliding": "Gliding",
+  "frequencyTypeGround": "Ground",
+  "frequencyTypeInfo": "Info",
+  "frequencyTypeMulticom": "Multicom",
+  "frequencyTypeUnicom": "Unicom",
+  "frequencyTypeRadar": "Radar",
+  "frequencyTypeTower": "Tower",
+  "frequencyTypeAtis": "ATIS",
+  "frequencyTypeRadio": "Radio",
+  "frequencyTypeOther": "Other",
+  "frequencyTypeAirmet": "AIRMET",
+  "frequencyTypeAwos": "AWOS",
+  "frequencyTypeLights": "Lights",
+  "frequencyTypeVolmet": "VOLMET",
+  "frequencyTypeUnknown": "Unknown ({type})",
+  "@frequencyTypeUnknown": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "surfaceAsphalt": "Asphalt",
+  "surfaceConcrete": "Concrete",
+  "surfaceGrass": "Grass",
+  "surfaceSand": "Sand",
+  "surfaceWater": "Water",
+  "surfaceBituminousTar": "Bituminous Tar",
+  "surfaceBrick": "Brick",
+  "surfaceMacadam": "Macadam",
+  "surfaceStone": "Stone",
+  "surfaceCoral": "Coral",
+  "surfaceClay": "Clay",
+  "surfaceLaterite": "Laterite",
+  "surfaceGravel": "Gravel",
+  "surfaceEarth": "Earth",
+  "surfaceIce": "Ice",
+  "surfaceSnow": "Snow",
+  "surfaceProtectiveLaminate": "Protective Laminate",
+  "surfaceMetal": "Metal",
+  "surfaceLandingMat": "Landing Mat",
+  "surfaceUnknown": "Unknown",
+  "surfaceWood": "Wood",
+  "surfaceUnknownType": "Unknown ({type})",
+  "@surfaceUnknownType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
   }
 }
