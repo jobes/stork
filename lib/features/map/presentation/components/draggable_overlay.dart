@@ -36,7 +36,7 @@ class DraggableOverlayState extends State<DraggableOverlay> {
     if (box == null || !box.hasSize) return;
 
     final overlaySize = box.size;
-    final screenSize = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.sizeOf(context);
 
     final maxDx = ((screenSize.width - overlaySize.width) / 2).clamp(0.0, double.infinity);
     final maxDy = ((screenSize.height - overlaySize.height) / 2).clamp(0.0, double.infinity);

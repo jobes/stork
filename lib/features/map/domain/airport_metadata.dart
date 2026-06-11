@@ -1,20 +1,20 @@
-import '../../../../core/constants/api_constants.dart';
+import '../../../core/constants/api_constants.dart';
 
 enum AirportType {
-  airport,                  // 0
-  gliderSite,               // 1
-  airfieldCivil,            // 2
-  internationalAirport,     // 3
-  heliportMilitary,         // 4
-  militaryAerodrome,        // 5
-  ultralightFlyingSite,     // 6
-  heliportCivil,            // 7
-  aerodromeClosed,          // 8
-  ifr,                      // 9
-  airfieldWater,            // 10
-  landingStrip,             // 11
+  airport, // 0
+  gliderSite, // 1
+  airfieldCivil, // 2
+  internationalAirport, // 3
+  heliportMilitary, // 4
+  militaryAerodrome, // 5
+  ultralightFlyingSite, // 6
+  heliportCivil, // 7
+  aerodromeClosed, // 8
+  ifr, // 9
+  airfieldWater, // 10
+  landingStrip, // 11
   agriculturalLandingStrip, // 12
-  altiport,                 // 13
+  altiport, // 13
   unknown;
 
   static AirportType fromInt(int val) {
@@ -30,28 +30,28 @@ enum AirportType {
 }
 
 enum FrequencyType {
-  approach,       // 0
-  apron,          // 1
-  arrival,        // 2
-  center,         // 3
-  ctaf,           // 4
-  delivery,       // 5
-  departure,      // 6
-  fis,            // 7
-  gliding,        // 8
-  ground,         // 9
-  info,           // 10
-  multicom,       // 11
-  unicom,         // 12
-  radar,          // 13
-  tower,          // 14
-  atis,           // 15
-  radio,          // 16
-  other,          // 17
-  airmet,         // 18
-  awos,           // 19
-  lights,         // 20
-  volmet,         // 21
+  approach, // 0
+  apron, // 1
+  arrival, // 2
+  center, // 3
+  ctaf, // 4
+  delivery, // 5
+  departure, // 6
+  fis, // 7
+  gliding, // 8
+  ground, // 9
+  info, // 10
+  multicom, // 11
+  unicom, // 12
+  radar, // 13
+  tower, // 14
+  atis, // 15
+  radio, // 16
+  other, // 17
+  airmet, // 18
+  awos, // 19
+  lights, // 20
+  volmet, // 21
   unknown;
 
   static FrequencyType fromInt(int val) {
@@ -67,27 +67,27 @@ enum FrequencyType {
 }
 
 enum RunwayComposition {
-  asphalt,            // 0
-  concrete,           // 1
-  grass,              // 2
-  sand,               // 3
-  water,              // 4
-  bituminousTar,      // 5
-  brick,              // 6
-  macadam,            // 7
-  stone,              // 8
-  coral,              // 9
-  clay,               // 10
-  laterite,           // 11
-  gravel,             // 12
-  earth,              // 13
-  ice,                // 14
-  snow,               // 15
+  asphalt, // 0
+  concrete, // 1
+  grass, // 2
+  sand, // 3
+  water, // 4
+  bituminousTar, // 5
+  brick, // 6
+  macadam, // 7
+  stone, // 8
+  coral, // 9
+  clay, // 10
+  laterite, // 11
+  gravel, // 12
+  earth, // 13
+  ice, // 14
+  snow, // 15
   protectiveLaminate, // 16
-  metal,              // 17
-  landingMat,         // 18
-  unknown,            // 19
-  wood;               // 20
+  metal, // 17
+  landingMat, // 18
+  unknown, // 19
+  wood; // 20
 
   static RunwayComposition fromInt(int val) {
     if (val >= 0 && val < RunwayComposition.values.length) {
@@ -102,43 +102,61 @@ enum RunwayComposition {
 }
 
 enum OpenAipUnit {
-  meters,      // 0
-  feet,        // 1
-  mhz,         // 2
+  meters, // 0
+  feet, // 1
+  mhz, // 2
   flightLevel, // 6
-  khz,         // 7
+  khz, // 7
   unknown;
 
   static OpenAipUnit fromInt(int val) {
     switch (val) {
-      case 0: return OpenAipUnit.meters;
-      case 1: return OpenAipUnit.feet;
-      case 2: return OpenAipUnit.mhz;
-      case 6: return OpenAipUnit.flightLevel;
-      case 7: return OpenAipUnit.khz;
-      default: return OpenAipUnit.unknown;
+      case 0:
+        return OpenAipUnit.meters;
+      case 1:
+        return OpenAipUnit.feet;
+      case 2:
+        return OpenAipUnit.mhz;
+      case 6:
+        return OpenAipUnit.flightLevel;
+      case 7:
+        return OpenAipUnit.khz;
+      default:
+        return OpenAipUnit.unknown;
     }
   }
 
   int toInt() {
     switch (this) {
-      case OpenAipUnit.meters: return 0;
-      case OpenAipUnit.feet: return 1;
-      case OpenAipUnit.mhz: return 2;
-      case OpenAipUnit.flightLevel: return 6;
-      case OpenAipUnit.khz: return 7;
-      default: return -1;
+      case OpenAipUnit.meters:
+        return 0;
+      case OpenAipUnit.feet:
+        return 1;
+      case OpenAipUnit.mhz:
+        return 2;
+      case OpenAipUnit.flightLevel:
+        return 6;
+      case OpenAipUnit.khz:
+        return 7;
+      default:
+        return -1;
     }
   }
 
   String get symbol {
     switch (this) {
-      case OpenAipUnit.meters: return 'm';
-      case OpenAipUnit.feet: return 'ft';
-      case OpenAipUnit.mhz: return 'MHz';
-      case OpenAipUnit.flightLevel: return 'FL';
-      case OpenAipUnit.khz: return 'kHz';
-      default: return '';
+      case OpenAipUnit.meters:
+        return 'm';
+      case OpenAipUnit.feet:
+        return 'ft';
+      case OpenAipUnit.mhz:
+        return 'MHz';
+      case OpenAipUnit.flightLevel:
+        return 'FL';
+      case OpenAipUnit.khz:
+        return 'kHz';
+      default:
+        return '';
     }
   }
 }
@@ -219,10 +237,7 @@ class RunwayDimensionValue {
   final double value;
   final OpenAipUnit unit;
 
-  RunwayDimensionValue({
-    required this.value,
-    required this.unit,
-  });
+  RunwayDimensionValue({required this.value, required this.unit});
 
   factory RunwayDimensionValue.fromJson(Map<String, Object?> json) {
     return RunwayDimensionValue(
@@ -232,10 +247,7 @@ class RunwayDimensionValue {
   }
 
   Map<String, Object?> toJson() {
-    return {
-      'value': value,
-      'unit': unit.toInt(),
-    };
+    return {'value': value, 'unit': unit.toInt()};
   }
 }
 
@@ -243,10 +255,7 @@ class RunwayDimension {
   final RunwayDimensionValue length;
   final RunwayDimensionValue width;
 
-  RunwayDimension({
-    required this.length,
-    required this.width,
-  });
+  RunwayDimension({required this.length, required this.width});
 
   factory RunwayDimension.fromJson(Map<String, Object?> json) {
     final lenJson = json['length'];
@@ -262,10 +271,7 @@ class RunwayDimension {
   }
 
   Map<String, Object?> toJson() {
-    return {
-      'length': length.toJson(),
-      'width': width.toJson(),
-    };
+    return {'length': length.toJson(), 'width': width.toJson()};
   }
 }
 
@@ -284,9 +290,14 @@ class RunwaySurface {
     final compList = json['composition'];
     return RunwaySurface(
       composition: compList is List
-          ? compList.map((e) => RunwayComposition.fromInt((e as num).toInt())).toList()
+          ? compList
+                .whereType<num>()
+                .map((e) => RunwayComposition.fromInt(e.toInt()))
+                .toList()
           : const [],
-      mainComposite: RunwayComposition.fromInt((json['mainComposite'] as num? ?? 0).toInt()),
+      mainComposite: RunwayComposition.fromInt(
+        (json['mainComposite'] as num? ?? 0).toInt(),
+      ),
       condition: (json['condition'] as num? ?? 0).toInt(),
     );
   }
@@ -304,10 +315,7 @@ class RunwayDeclaredDistanceValue {
   final double value;
   final OpenAipUnit unit;
 
-  RunwayDeclaredDistanceValue({
-    required this.value,
-    required this.unit,
-  });
+  RunwayDeclaredDistanceValue({required this.value, required this.unit});
 
   factory RunwayDeclaredDistanceValue.fromJson(Map<String, Object?> json) {
     return RunwayDeclaredDistanceValue(
@@ -317,10 +325,7 @@ class RunwayDeclaredDistanceValue {
   }
 
   Map<String, Object?> toJson() {
-    return {
-      'value': value,
-      'unit': unit.toInt(),
-    };
+    return {'value': value, 'unit': unit.toInt()};
   }
 }
 
@@ -328,10 +333,7 @@ class RunwayDeclaredDistance {
   final RunwayDeclaredDistanceValue? tora;
   final RunwayDeclaredDistanceValue? lda;
 
-  RunwayDeclaredDistance({
-    this.tora,
-    this.lda,
-  });
+  RunwayDeclaredDistance({this.tora, this.lda});
 
   factory RunwayDeclaredDistance.fromJson(Map<String, Object?> json) {
     final toraJson = json['tora'];
@@ -425,7 +427,8 @@ class AirportRunway {
       'landingOnly': landingOnly,
       if (surface != null) 'surface': surface!.toJson(),
       if (dimension != null) 'dimension': dimension!.toJson(),
-      if (declaredDistance != null) 'declaredDistance': declaredDistance!.toJson(),
+      if (declaredDistance != null)
+        'declaredDistance': declaredDistance!.toJson(),
       'pilotCtrlLighting': pilotCtrlLighting,
     };
   }
@@ -435,10 +438,7 @@ class AirportImage {
   final String id;
   final String filename;
 
-  AirportImage({
-    required this.id,
-    required this.filename,
-  });
+  AirportImage({required this.id, required this.filename});
 
   factory AirportImage.fromJson(Map<String, Object?> json) {
     return AirportImage(
@@ -448,10 +448,7 @@ class AirportImage {
   }
 
   Map<String, Object?> toJson() {
-    return {
-      '_id': id,
-      'filename': filename,
-    };
+    return {'_id': id, 'filename': filename};
   }
 
   String getThumbnailUrl(String apiKey) {
@@ -511,7 +508,7 @@ class AirportMetadata {
       icaoCode: json['icaoCode'] as String?,
       type: AirportType.fromInt((json['type'] as num? ?? 0).toInt()),
       trafficType: trafficList is List
-          ? trafficList.map((e) => (e as num).toInt()).toList()
+          ? trafficList.whereType<num>().map((e) => e.toInt()).toList()
           : const [],
       magneticDeclination: (json['magneticDeclination'] as num?)?.toDouble(),
       country: (json['country'] ?? '').toString(),
@@ -524,18 +521,26 @@ class AirportMetadata {
       winchOnly: json['winchOnly'] as bool?,
       frequencies: freqList is List
           ? freqList
-              .map((e) => AirportFrequency.fromJson(e as Map<String, Object?>))
-              .toList()
+                .whereType<Map>()
+                .map(
+                  (e) =>
+                      AirportFrequency.fromJson(Map<String, Object?>.from(e)),
+                )
+                .toList()
           : const [],
       runways: rwyList is List
           ? rwyList
-              .map((e) => AirportRunway.fromJson(e as Map<String, Object?>))
-              .toList()
+                .whereType<Map>()
+                .map(
+                  (e) => AirportRunway.fromJson(Map<String, Object?>.from(e)),
+                )
+                .toList()
           : const [],
       images: imgList is List
           ? imgList
-              .map((e) => AirportImage.fromJson(e as Map<String, Object?>))
-              .toList()
+                .whereType<Map>()
+                .map((e) => AirportImage.fromJson(Map<String, Object?>.from(e)))
+                .toList()
           : const [],
     );
   }
@@ -566,10 +571,7 @@ class GeoJsonFeature {
   final String type;
   final AirportMetadata properties;
 
-  GeoJsonFeature({
-    required this.type,
-    required this.properties,
-  });
+  GeoJsonFeature({required this.type, required this.properties});
 
   factory GeoJsonFeature.fromJson(Map<String, Object?> json) {
     final props = json['properties'];

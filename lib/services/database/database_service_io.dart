@@ -314,8 +314,17 @@ class DatabaseService {
       [id],
     );
     if (result.isEmpty) return null;
-    final decoded = json.decode(result.first['json'] as String) as Map<String, dynamic>;
-    return AirportMetadata.fromJson(decoded);
+    try {
+      final decoded = json.decode(result.first['json'] as String);
+      if (decoded is Map<String, dynamic>) {
+        return AirportMetadata.fromJson(decoded);
+      } else {
+        debugPrint('getOpenAipFeature: decoded JSON is not a Map<String, dynamic> for id: $id');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('getOpenAipFeature: Failed to decode cached JSON for id $id: $e\n$stackTrace');
+    }
+    return null;
   }
 
   static Future<void> clearMapData() async {

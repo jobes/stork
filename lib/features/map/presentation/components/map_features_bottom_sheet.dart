@@ -27,13 +27,19 @@ class MapFeaturesBottomSheet extends StatelessWidget {
     final airportId = properties['source_id']?.toString() ?? '';
     final country = properties['country']?.toString() ?? '';
 
+    final nameLabel = properties['name_label'];
+    String fallbackName = '';
+    if (nameLabel != null) {
+      final lines = nameLabel.toString().split('\n');
+      fallbackName = lines.length > 1 ? lines[1] : lines.first;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AirportDetailsDialog(
         airportId: airportId,
         countryCode: country,
-        fallbackName:
-            properties['name_label']?.split('\n')?[1]?.toString() ?? '',
+        fallbackName: fallbackName,
       ),
     );
   }

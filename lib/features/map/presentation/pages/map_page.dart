@@ -83,6 +83,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                     cameraController.handleMapEvent(
                       event,
                       onFeaturesTapped: (features, coordinate) {
+                        if (!mounted) return;
                         showMapFeaturesBottomSheet(context, features);
                       },
                     );

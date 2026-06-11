@@ -34,6 +34,7 @@ Map<String, AirportMetadata> _parseAirportFeatures(String responseBody) {
 class AirportMetadataCache extends _$AirportMetadataCache {
   final Map<String, AirportMetadata> _memoryCache = {};
   final Set<String> _downloadedCountries = {};
+  final Map<String, Future<void>> _inflightDownloads = {};
 
   @override
   void build() {
@@ -60,20 +61,41 @@ class AirportMetadataCache extends _$AirportMetadataCache {
     // 3. If the country has not been downloaded in this session, fetch it
     final lowerCountryCode = countryCode.toLowerCase();
     if (!_downloadedCountries.contains(lowerCountryCode)) {
-      try {
+      final inflight = _inflightDownloads[lowerCountryCode];
+      if (inflight != null) {
+        try {
+          await inflight;
+        } catch (e) {
+          throw Exception(
+              'Failed to fetch airport metadata for country $countryCode: $e');
+        }
+        return _memoryCache[airportId];
+      }
+
+      final future = () async {
         final url =
             '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_apt.geojson?alt=media';
-        final response = await http.get(Uri.parse(url));
+        final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
 
-        if (response.statusCode == 200) {
-          // Use compute to parse large JSON in a separate isolate to prevent UI jank
-          final parsedFeatures = await compute(_parseAirportFeatures, response.body);
-          _memoryCache.addAll(parsedFeatures);
-          _downloadedCountries.add(lowerCountryCode);
+        if (response.statusCode != 200) {
+          throw Exception('HTTP status ${response.statusCode}');
         }
+
+        // Use compute to parse large JSON in a separate isolate to prevent UI jank
+        final parsedFeatures = await compute(_parseAirportFeatures, response.body);
+        _memoryCache.addAll(parsedFeatures);
+        _downloadedCountries.add(lowerCountryCode);
+      }();
+
+      _inflightDownloads[lowerCountryCode] = future;
+
+      try {
+        await future;
       } catch (e) {
-        // Return null or rethrow, allowing UI to handle the error
-        return null;
+        throw Exception(
+            'Failed to fetch airport metadata for country $countryCode: $e');
+      } finally {
+        _inflightDownloads.remove(lowerCountryCode);
       }
     }
 
@@ -84,6 +106,7 @@ class AirportMetadataCache extends _$AirportMetadataCache {
   void clearCache() {
     _memoryCache.clear();
     _downloadedCountries.clear();
+    _inflightDownloads.clear();
   }
 }
 
@@ -94,7 +117,7 @@ Future<AirportMetadata?> airportMetadata(
   String countryCode,
 ) {
   return ref
-      .read(airportMetadataCacheProvider.notifier)
+      .watch(airportMetadataCacheProvider.notifier)
       .getMetadata(airportId, countryCode);
 }
 
