@@ -11,6 +11,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/airport_metadata.dart';
 import '../utils/openaip_enums.dart';
 import '../providers/airport_metadata_provider.dart';
+import 'draggable_overlay.dart';
 
 class AirportDetailsDialog extends ConsumerWidget {
   final String airportId;
@@ -36,39 +37,41 @@ class AirportDetailsDialog extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 450),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.black.withAlpha(190)
-                  : Colors.white.withAlpha(225),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: isDark ? Colors.white24 : Colors.black12,
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(80),
-                  blurRadius: 24,
-                  spreadRadius: 4,
+      child: DraggableOverlay(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 450),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.black.withAlpha(190)
+                    : Colors.white.withAlpha(225),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark ? Colors.white24 : Colors.black12,
+                  width: 1,
                 ),
-              ],
-            ),
-            child: metadataAsync.when(
-              data: (AirportMetadata? metadata) {
-                if (metadata == null) {
-                  return _buildError(context, l10n, isDark);
-                }
-                return _buildContent(context, ref, metadata, l10n, isDark);
-              },
-              loading: () => _buildLoading(l10n, isDark),
-              error: (err, stack) => _buildError(context, l10n, isDark),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(80),
+                    blurRadius: 24,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: metadataAsync.when(
+                data: (AirportMetadata? metadata) {
+                  if (metadata == null) {
+                    return _buildError(context, l10n, isDark);
+                  }
+                  return _buildContent(context, ref, metadata, l10n, isDark);
+                },
+                loading: () => _buildLoading(l10n, isDark),
+                error: (err, stack) => _buildError(context, l10n, isDark),
+              ),
             ),
           ),
         ),
@@ -77,37 +80,41 @@ class AirportDetailsDialog extends ConsumerWidget {
   }
 
   Widget _buildLoading(AppLocalizations l10n, bool isDark) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const CircularProgressIndicator(),
-        const SizedBox(height: 16),
-        Text(
-          l10n.airportLoadingDetails,
-          style: TextStyle(
-            color: isDark ? Colors.white70 : Colors.black87,
+    return DraggableOverlayGestureDetector(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            l10n.airportLoadingDetails,
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildError(BuildContext context, AppLocalizations l10n, bool isDark) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          l10n.airportFailedToLoad,
-          style: TextStyle(
-            color: isDark ? Colors.white70 : Colors.black87,
+    return DraggableOverlayGestureDetector(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.airportFailedToLoad,
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.close),
-        ),
-      ],
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.close),
+          ),
+        ],
+      ),
     );
   }
 
@@ -126,41 +133,49 @@ class AirportDetailsDialog extends ConsumerWidget {
         // Header
         Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue.withAlpha(40),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.flight_land,
-                color: Colors.blueAccent,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  if (metadata.icaoCode?.isNotEmpty == true)
-                    Text(
-                      l10n.airportIcao(metadata.icaoCode!),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey,
+              child: DraggableOverlayGestureDetector(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.flight_land,
+                        color: Colors.blueAccent,
+                        size: 24,
                       ),
                     ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          if (metadata.icaoCode?.isNotEmpty == true)
+                            Text(
+                              l10n.airportIcao(metadata.icaoCode!),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             IconButton(
@@ -387,8 +402,8 @@ class AirportDetailsDialog extends ConsumerWidget {
           String dimensions = '';
           if (r.dimension != null) {
             dimensions = l10n.airportRunwayDimension(
-              r.dimension!.length.value.toString(),
-              r.dimension!.width.value.toString(),
+              r.dimension!.length.value.round().toString(),
+              r.dimension!.width.value.round().toString(),
               r.dimension!.length.unit.symbol,
             );
           }
