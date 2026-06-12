@@ -66,7 +66,7 @@ class AirspaceDetailsDialog extends StatelessWidget {
           shrinkWrap: true,
           itemCount: sortedFeatures.length,
           separatorBuilder: (context, index) =>
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
           itemBuilder: (context, index) {
             final feature = sortedFeatures[index] as Map;
             final props = feature['properties'] as Map;
@@ -115,10 +115,10 @@ class AirspaceDetailCard extends ConsumerWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? Colors.white.withAlpha(12) : Colors.black.withAlpha(8),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
       ),
       child: metadataAsync.when(
@@ -189,15 +189,15 @@ class AirspaceDetailCard extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Name & Class Badge
+        // Name & Class Badge & OpenAIP Link Icon
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Text(
                 name,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : Colors.black87,
                 ),
@@ -214,15 +214,35 @@ class AirspaceDetailCard extends ConsumerWidget {
               child: Text(
                 metadata.icaoClass.toLocalizedName(l10n),
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: Colors.blueAccent,
                 ),
               ),
             ),
+            const SizedBox(width: 6),
+            IconButton(
+              icon: Icon(
+                Icons.open_in_new,
+                size: 16,
+                color: isDark ? Colors.white60 : Colors.black54,
+              ),
+              onPressed: () async {
+                final url = Uri.parse(
+                  'https://www.openaip.net/data/airspaces/${metadata.id}',
+                );
+                try {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } catch (_) {}
+              },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              visualDensity: VisualDensity.compact,
+              tooltip: l10n.airspaceViewOnOpenAip,
+            ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
 
         // Type
         _buildInfoRow(
@@ -231,43 +251,22 @@ class AirspaceDetailCard extends ConsumerWidget {
           value: metadata.type.toLocalizedName(l10n),
           isDark: isDark,
         ),
-        const SizedBox(height: 8),
 
         // Vertical Limits
         _buildLimitsRow(metadata, l10n, isDark),
 
         // Optional Activity
         if (metadata.activity != null &&
-            metadata.activity != AirspaceActivity.none) ...[
-          const SizedBox(height: 8),
+            metadata.activity != AirspaceActivity.none)
           _buildInfoRow(
             icon: Icons.sports,
             label: l10n.airspaceActivity,
             value: metadata.activity!.toLocalizedName(l10n),
             isDark: isDark,
           ),
-        ],
 
         // Optional Flags
         _buildFlags(context, metadata, l10n),
-
-        // Link
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () async {
-              final url = Uri.parse(
-                'https://www.openaip.net/data/airspaces/${metadata.id}',
-              );
-              try {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-              } catch (_) {}
-            },
-            icon: const Icon(Icons.open_in_new, size: 16),
-            label: Text(l10n.airspaceViewOnOpenAip),
-          ),
-        ),
       ],
     );
   }
@@ -278,35 +277,32 @@ class AirspaceDetailCard extends ConsumerWidget {
     required String value,
     required bool isDark,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: isDark ? Colors.white60 : Colors.black54),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.white70 : Colors.black87,
-                ),
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: isDark ? Colors.white54 : Colors.black45),
+          const SizedBox(width: 8),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
           ),
-        ),
-      ],
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white.withAlpha(230) : Colors.black87,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -315,56 +311,45 @@ class AirspaceDetailCard extends ConsumerWidget {
     AppLocalizations l10n,
     bool isDark,
   ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(Icons.height, size: 18, color: isDark ? Colors.white60 : Colors.black54),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.airspaceLimits,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.arrow_drop_up, size: 20, color: Colors.blueAccent),
-                  const SizedBox(width: 2),
-                  Text(
-                    metadata.limitUpper.formatLimit(l10n),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  const Icon(Icons.arrow_drop_down, size: 20, color: Colors.orangeAccent),
-                  const SizedBox(width: 2),
-                  Text(
-                    metadata.limitLower.formatLimit(l10n),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? Colors.white70 : Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Icon(Icons.height, size: 16, color: isDark ? Colors.white54 : Colors.black45),
+          const SizedBox(width: 8),
+          Text(
+            '${l10n.airspaceLimits}: ',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
           ),
-        ),
-      ],
+          Text(
+            metadata.limitLower.formatLimit(l10n),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.orangeAccent.shade200 : Colors.orange.shade800,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Icon(
+              Icons.trending_flat,
+              size: 14,
+              color: isDark ? Colors.white38 : Colors.black38,
+            ),
+          ),
+          Text(
+            metadata.limitUpper.formatLimit(l10n),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.blueAccent.shade100 : Colors.blue.shade800,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -378,58 +363,64 @@ class AirspaceDetailCard extends ConsumerWidget {
 
     if (metadata.byNotam == true) {
       chips.add(
-        Chip(
-          label: Text(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.orange.shade900.withValues(alpha: 0.3)
+                : Colors.orange.shade100,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
             l10n.airspaceFlagByNotam,
             style: TextStyle(
               color: isDark ? Colors.orange.shade200 : Colors.orange.shade900,
               fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          backgroundColor: isDark
-              ? Colors.orange.shade900.withValues(alpha: 0.3)
-              : Colors.orange.shade100,
-          side: BorderSide.none,
-          padding: EdgeInsets.zero,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       );
     }
     if (metadata.onRequest == true) {
       chips.add(
-        Chip(
-          label: Text(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.blue.shade900.withValues(alpha: 0.3)
+                : Colors.blue.shade100,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
             l10n.airspaceFlagOnRequest,
             style: TextStyle(
               color: isDark ? Colors.blue.shade200 : Colors.blue.shade900,
               fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          backgroundColor: isDark
-              ? Colors.blue.shade900.withValues(alpha: 0.3)
-              : Colors.blue.shade100,
-          side: BorderSide.none,
-          padding: EdgeInsets.zero,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       );
     }
     if (metadata.onDemand == true) {
       chips.add(
-        Chip(
-          label: Text(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.green.shade900.withValues(alpha: 0.3)
+                : Colors.green.shade100,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
             l10n.airspaceFlagOnDemand,
             style: TextStyle(
               color: isDark ? Colors.green.shade200 : Colors.green.shade900,
               fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          backgroundColor: isDark
-              ? Colors.green.shade900.withValues(alpha: 0.3)
-              : Colors.green.shade100,
-          side: BorderSide.none,
-          padding: EdgeInsets.zero,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       );
     }
@@ -438,7 +429,7 @@ class AirspaceDetailCard extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
-      child: Wrap(spacing: 8, runSpacing: 8, children: chips),
+      child: Wrap(spacing: 6, runSpacing: 6, children: chips),
     );
   }
 }
