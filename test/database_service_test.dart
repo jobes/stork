@@ -57,8 +57,8 @@ void main() {
 
       final result = await DatabaseService.getOpenAipFeature('apt123');
       expect(result, isNotNull);
-      expect(result!.id, equals('apt123'));
-      expect(result.name, equals('Valid Airport'));
+      expect(result!['id'], equals('apt123'));
+      expect(result['name'], equals('Valid Airport'));
     });
 
     test('getOpenAipFeature returns null and swallows exception for malformed JSON string', () async {

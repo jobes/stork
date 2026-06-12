@@ -606,4 +606,214 @@ class AppLocalizationsSk extends AppLocalizations {
   String surfaceUnknownType(String type) {
     return 'Neznámy ($type)';
   }
+
+  @override
+  String get airspacesTitle => 'Letecké priestory';
+
+  @override
+  String get airspaceClass => 'Trieda';
+
+  @override
+  String get airspaceType => 'Typ';
+
+  @override
+  String get airspaceLimits => 'Limity';
+
+  @override
+  String get airspaceLimitLower => 'Dolná hranica';
+
+  @override
+  String get airspaceLimitUpper => 'Horná hranica';
+
+  @override
+  String get airspaceActivity => 'Aktivita';
+
+  @override
+  String get airspaceFrequencies => 'Frekvencie';
+
+  @override
+  String get airspaceViewOnOpenAip => 'Zobraziť na openAIP';
+
+  @override
+  String get airspacesLoadingDetails =>
+      'Načítavam detaily leteckých priestorov...';
+
+  @override
+  String get airspacesFailedToLoad =>
+      'Nepodarilo sa načítať detaily leteckých priestorov.';
+
+  @override
+  String get airspacesAtLocation => 'Letecké priestory na tomto mieste';
+
+  @override
+  String get airspaceFlagByNotam => 'CEZ NOTAM';
+
+  @override
+  String get airspaceFlagOnRequest => 'NA VYŽIADANIE';
+
+  @override
+  String get airspaceFlagOnDemand => 'NA POŽIADANIE';
+
+  @override
+  String get airspaceClassA => 'Trieda A';
+
+  @override
+  String get airspaceClassB => 'Trieda B';
+
+  @override
+  String get airspaceClassC => 'Trieda C';
+
+  @override
+  String get airspaceClassD => 'Trieda D';
+
+  @override
+  String get airspaceClassE => 'Trieda E';
+
+  @override
+  String get airspaceClassF => 'Trieda F';
+
+  @override
+  String get airspaceClassG => 'Trieda G';
+
+  @override
+  String get airspaceClassUnclassified => 'Nezaradené / SUA';
+
+  @override
+  String get airspaceClassUnknown => 'Neznáma trieda';
+
+  @override
+  String get airspaceTypeOther => 'Iný';
+
+  @override
+  String get airspaceTypeRestricted => 'Obmedzený priestor (Restricted)';
+
+  @override
+  String get airspaceTypeDanger => 'Nebezpečný priestor (Danger)';
+
+  @override
+  String get airspaceTypeProhibited => 'Zakázaný priestor (Prohibited)';
+
+  @override
+  String get airspaceTypeCtr => 'Riadený okrsok (CTR)';
+
+  @override
+  String get airspaceTypeTmz => 'Zóna s povinným odpovedačom (TMZ)';
+
+  @override
+  String get airspaceTypeRmz => 'Zóna s povinným rádiovým spojením (RMZ)';
+
+  @override
+  String get airspaceTypeTma => 'Koncová riadená oblasť (TMA)';
+
+  @override
+  String get airspaceTypeTra => 'Dočasne vyhradený priestor (TRA)';
+
+  @override
+  String get airspaceTypeTsa => 'Dočasne vyčlenený priestor (TSA)';
+
+  @override
+  String get airspaceTypeFir => 'Letová informačná oblasť (FIR)';
+
+  @override
+  String get airspaceTypeUir => 'Horná informačná oblasť (UIR)';
+
+  @override
+  String get airspaceTypeAdiz => 'Identifikačná zóna PVO (ADIZ)';
+
+  @override
+  String get airspaceTypeAtz => 'Letisková prevádzková zóna (ATZ)';
+
+  @override
+  String get airspaceTypeMatz => 'Vojenská letisková prevádzková zóna (MATZ)';
+
+  @override
+  String get airspaceTypeAirway => 'Letová cesta';
+
+  @override
+  String get airspaceTypeMtr => 'Vojenská výcviková trať (MTR)';
+
+  @override
+  String get airspaceTypeAlert => 'Výstražný priestor (Alert)';
+
+  @override
+  String get airspaceTypeWarning => 'Upozorňujúci priestor (Warning)';
+
+  @override
+  String get airspaceTypeProtected => 'Chránený priestor';
+
+  @override
+  String get airspaceTypeHtz => 'Vrtuľníková prevádzková zóna (HTZ)';
+
+  @override
+  String get airspaceTypeGliding => 'Plachtársky sektor';
+
+  @override
+  String get airspaceTypeTrp => 'Transpondérový sektor (TRP)';
+
+  @override
+  String get airspaceTypeTiz => 'Zóna s informáciami o letovej prevádzke (TIZ)';
+
+  @override
+  String get airspaceTypeTia =>
+      'Oblasť s informáciami o letovej prevádzke (TIA)';
+
+  @override
+  String get airspaceTypeMta => 'Vojenský výcvikový priestor (MTA)';
+
+  @override
+  String get airspaceTypeCta => 'Riadená oblasť (CTA)';
+
+  @override
+  String get airspaceTypeAcc => 'Sektor ACC';
+
+  @override
+  String get airspaceTypeSport => 'Letecká športová/rekreačná aktivita';
+
+  @override
+  String get airspaceTypeLowOverflight => 'Obmedzenie letu v nízkych výškach';
+
+  @override
+  String get airspaceTypeMrt => 'Vojenská trať (MRT)';
+
+  @override
+  String get airspaceTypeTfr => 'Napájacia trať TSA/TRA (TFR)';
+
+  @override
+  String get airspaceTypeVfr => 'Sektor VFR';
+
+  @override
+  String get airspaceTypeFis => 'Sektor FIS';
+
+  @override
+  String get airspaceTypeLta => 'Dolná riadená oblasť (LTA)';
+
+  @override
+  String get airspaceTypeUta => 'Horná riadená oblasť (UTA)';
+
+  @override
+  String get airspaceTypeMctr => 'Vojenský riadený okrsok (MCTR)';
+
+  @override
+  String get airspaceTypeUnknown => 'Neznámy';
+
+  @override
+  String get airspaceActivityNone => 'Žiadna';
+
+  @override
+  String get airspaceActivityParachuting => 'Parašutizmus';
+
+  @override
+  String get airspaceActivityAerobatics => 'Akrobacia';
+
+  @override
+  String get airspaceActivityAeroclub => 'Aeroklub / Letecké práce';
+
+  @override
+  String get airspaceActivityUlm => 'Plocha pre ULL';
+
+  @override
+  String get airspaceActivityGliding => 'Bezmotorové lietanie';
+
+  @override
+  String get airspaceActivityUnknown => 'Neznáma';
 }

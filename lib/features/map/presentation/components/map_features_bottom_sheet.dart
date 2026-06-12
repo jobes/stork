@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'airport_details_dialog.dart';
+import 'airspace_details_dialog.dart';
 
 class MapFeaturesBottomSheet extends StatelessWidget {
   final List<dynamic> features;
@@ -10,13 +11,22 @@ class MapFeaturesBottomSheet extends StatelessWidget {
   /// Helper method to find airport feature in the features list
   Map<dynamic, dynamic>? _findAirportFeature() {
     for (final f in features) {
-      if (f is Map &&
-          f.containsKey('properties') &&
-          (f['properties'] as Map).containsKey('source_id')) {
+      if (f is Map && f['layerType'] == 'airport') {
         return f;
       }
     }
     return null;
+  }
+
+  /// Helper method to find airspace features in the features list
+  List<Map<dynamic, dynamic>> _findAirspaceFeatures() {
+    final list = <Map<dynamic, dynamic>>[];
+    for (final f in features) {
+      if (f is Map && f['layerType'] == 'airspace') {
+        list.add(f);
+      }
+    }
+    return list;
   }
 
   void _showAirportDetails(
@@ -44,10 +54,24 @@ class MapFeaturesBottomSheet extends StatelessWidget {
     );
   }
 
+  void _showAirspaceDetails(
+    BuildContext context,
+    List<Map<dynamic, dynamic>> airspaceFeatures,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AirspaceDetailsDialog(
+        features: airspaceFeatures,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final airportFeature = _findAirportFeature();
-    if (airportFeature == null) {
+    final airspaceFeatures = _findAirspaceFeatures();
+
+    if (airportFeature == null && airspaceFeatures.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -57,14 +81,24 @@ class MapFeaturesBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ListTile(
-            leading: const Icon(Icons.flight_land),
-            title: Text(l10n?.airportDetails ?? 'Airport Details'),
-            onTap: () {
-              Navigator.pop(context); // Close bottom sheet
-              _showAirportDetails(context, airportFeature);
-            },
-          ),
+          if (airportFeature != null)
+            ListTile(
+              leading: const Icon(Icons.flight_land),
+              title: Text(l10n?.airportDetails ?? 'Airport Details'),
+              onTap: () {
+                Navigator.pop(context); // Close bottom sheet
+                _showAirportDetails(context, airportFeature);
+              },
+            ),
+          if (airspaceFeatures.isNotEmpty)
+            ListTile(
+              leading: const Icon(Icons.public),
+              title: Text(l10n?.airspacesTitle ?? 'Airspaces'),
+              onTap: () {
+                Navigator.pop(context); // Close bottom sheet
+                _showAirspaceDetails(context, airspaceFeatures);
+              },
+            ),
         ],
       ),
     );
@@ -74,13 +108,14 @@ class MapFeaturesBottomSheet extends StatelessWidget {
 /// Helper function to trigger bottom sheet display for map features
 void showMapFeaturesBottomSheet(BuildContext context, List<dynamic> features) {
   final hasAirport = features.any(
-    (f) =>
-        f is Map &&
-        f.containsKey('properties') &&
-        (f['properties'] as Map).containsKey('source_id'),
+    (f) => f is Map && f['layerType'] == 'airport',
   );
 
-  if (!hasAirport) return;
+  final hasAirspace = features.any(
+    (f) => f is Map && f['layerType'] == 'airspace',
+  );
+
+  if (!hasAirport && !hasAirspace) return;
 
   showModalBottomSheet(
     context: context,

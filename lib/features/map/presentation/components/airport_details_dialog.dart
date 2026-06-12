@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_view/photo_view.dart';
@@ -11,7 +10,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/airport_metadata.dart';
 import '../utils/openaip_enums.dart';
 import '../providers/airport_metadata_provider.dart';
-import 'draggable_overlay.dart';
+import 'base_details_dialog.dart';
 
 class AirportDetailsDialog extends ConsumerWidget {
   final String airportId;
@@ -33,54 +32,72 @@ class AirportDetailsDialog extends ConsumerWidget {
     );
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: DraggableOverlay(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 450),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.black.withAlpha(190)
-                    : Colors.white.withAlpha(225),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: isDark ? Colors.white24 : Colors.black12,
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(80),
-                    blurRadius: 24,
-                    spreadRadius: 4,
-                  ),
-                ],
-              ),
-              child: metadataAsync.when(
-                data: (AirportMetadata? metadata) {
-                  if (metadata == null) {
-                    return _buildError(context, l10n, isDark);
-                  }
-                  return _buildContent(context, ref, metadata, l10n, isDark);
-                },
-                loading: () => _buildLoading(l10n, isDark),
-                error: (err, stack) => _buildError(context, l10n, isDark),
+    final titleWidget = metadataAsync.when(
+      data: (AirportMetadata? metadata) {
+        final name = metadata != null && metadata.name.isNotEmpty
+            ? metadata.name
+            : fallbackName;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              name,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-          ),
+            if (metadata?.icaoCode?.isNotEmpty == true)
+              Text(
+                l10n.airportIcao(metadata!.icaoCode!),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                ),
+              ),
+          ],
+        );
+      },
+      loading: () => Text(
+        fallbackName.isNotEmpty ? fallbackName : 'Airport',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white : Colors.black87,
         ),
+      ),
+      error: (err, stack) => Text(
+        fallbackName.isNotEmpty ? fallbackName : 'Airport',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+      ),
+    );
+
+    return BaseDetailsDialog(
+      title: titleWidget,
+      icon: Icons.flight_land,
+      child: metadataAsync.when(
+        data: (AirportMetadata? metadata) {
+          if (metadata == null) {
+            return _buildError(context, l10n, isDark);
+          }
+          return _buildContent(context, ref, metadata, l10n, isDark);
+        },
+        loading: () => _buildLoading(l10n, isDark),
+        error: (err, stack) => _buildError(context, l10n, isDark),
       ),
     );
   }
 
   Widget _buildLoading(AppLocalizations l10n, bool isDark) {
-    return DraggableOverlayGestureDetector(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -98,7 +115,8 @@ class AirportDetailsDialog extends ConsumerWidget {
   }
 
   Widget _buildError(BuildContext context, AppLocalizations l10n, bool isDark) {
-    return DraggableOverlayGestureDetector(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -125,83 +143,19 @@ class AirportDetailsDialog extends ConsumerWidget {
     AppLocalizations l10n,
     bool isDark,
   ) {
-    final name = metadata.name.isNotEmpty ? metadata.name : fallbackName;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Header
-        Row(
+    return Flexible(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: DraggableOverlayGestureDetector(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withAlpha(40),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.flight_land,
-                        color: Colors.blueAccent,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          if (metadata.icaoCode?.isNotEmpty == true)
-                            Text(
-                              l10n.airportIcao(metadata.icaoCode!),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.pop(context),
-              color: isDark ? Colors.white70 : Colors.black54,
-            ),
+            _buildGeneralInfo(metadata, l10n, isDark),
+            _buildWarnings(context, metadata, l10n),
+            _buildFrequencies(metadata, l10n, isDark),
+            _buildRunways(metadata, l10n, isDark),
+            _buildImages(ref, metadata, l10n),
           ],
         ),
-        const Divider(height: 24),
-
-        Flexible(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildGeneralInfo(metadata, l10n, isDark),
-                _buildWarnings(context, metadata, l10n),
-                _buildFrequencies(metadata, l10n, isDark),
-                _buildRunways(metadata, l10n, isDark),
-                _buildImages(ref, metadata, l10n),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
