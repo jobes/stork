@@ -23,11 +23,12 @@ class FlightSummary {
     Duration? duration,
     double? distanceMeters,
     DateTime? startTime,
+    bool resetStartTime = false,
   }) {
     return FlightSummary(
       duration: duration ?? this.duration,
       distanceMeters: distanceMeters ?? this.distanceMeters,
-      startTime: startTime ?? this.startTime,
+      startTime: resetStartTime ? null : (startTime ?? this.startTime),
     );
   }
 }

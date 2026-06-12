@@ -211,5 +211,33 @@ void main() {
         durationSub.close();
       });
     });
+
+    test('FlightSummary.copyWith can clear startTime using resetStartTime', () {
+      final now = DateTime.now();
+      final summary = FlightSummary(
+        duration: const Duration(seconds: 10),
+        distanceMeters: 100.0,
+        startTime: now,
+      );
+
+      // Verify basic copyWith retains startTime
+      final copied = summary.copyWith(duration: const Duration(seconds: 12));
+      expect(copied.duration, equals(const Duration(seconds: 12)));
+      expect(copied.distanceMeters, equals(100.0));
+      expect(copied.startTime, equals(now));
+
+      // Verify copyWith with resetStartTime: true clears startTime
+      final cleared = summary.copyWith(resetStartTime: true);
+      expect(cleared.duration, equals(const Duration(seconds: 10)));
+      expect(cleared.distanceMeters, equals(100.0));
+      expect(cleared.startTime, isNull);
+
+      // Verify copyWith with resetStartTime: true and a new startTime clears startTime (reset takes precedence)
+      final clearedWithNewVal = summary.copyWith(
+        startTime: DateTime.now(),
+        resetStartTime: true,
+      );
+      expect(clearedWithNewVal.startTime, isNull);
+    });
   });
 }

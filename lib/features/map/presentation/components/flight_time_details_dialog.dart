@@ -1,27 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/time_utils.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../telemetry/presentation/providers/flight_duration_provider.dart';
 import 'base_details_dialog.dart';
 
 class FlightTimeDetailsDialog extends ConsumerWidget {
   const FlightTimeDetailsDialog({super.key});
-
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-
-    final minutesStr = minutes.toString().padLeft(2, '0');
-    final secondsStr = seconds.toString().padLeft(2, '0');
-
-    if (hours > 0) {
-      return '$hours:$minutesStr:$secondsStr';
-    } else {
-      return '$minutesStr:$secondsStr';
-    }
-  }
 
   String _formatStartTime(DateTime? dateTime) {
     if (dateTime == null) return '---';
@@ -71,7 +57,7 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
               icon: Icons.access_time,
               iconColor: Colors.blueAccent,
               label: l10n.flightDuration,
-              value: _formatDuration(flightSummary.duration),
+              value: flightSummary.duration.toHMSString(),
               isDark: isDark,
             ),
             const Divider(height: 24),

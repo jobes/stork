@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/time_utils.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/presentation/providers/flight_duration_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -9,21 +10,6 @@ import 'flight_time_details_dialog.dart';
 
 class FlightTimeTelemetryWidget extends ConsumerWidget {
   const FlightTimeTelemetryWidget({super.key});
-
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-
-    final minutesStr = minutes.toString().padLeft(2, '0');
-    final secondsStr = seconds.toString().padLeft(2, '0');
-
-    if (hours > 0) {
-      return '$hours:$minutesStr:$secondsStr';
-    } else {
-      return '$minutesStr:$secondsStr';
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,7 +27,7 @@ class FlightTimeTelemetryWidget extends ConsumerWidget {
       timeColor = isDark ? Colors.white.withAlpha(76) : Colors.black.withAlpha(76);
     }
 
-    final formattedTime = _formatDuration(flightSummary.duration);
+    final formattedTime = flightSummary.duration.toHMSString();
 
     return TelemetryCard(
       onTap: () {
