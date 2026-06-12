@@ -371,6 +371,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get close => 'Close';
 
   @override
+  String get airport => 'Airport';
+
+  @override
+  String get tune => 'TUNE';
+
+  @override
+  String get mainRunway => 'Main runway';
+
+  @override
   String get airportLoadingDetails => 'Loading details...';
 
   @override
@@ -607,4 +616,214 @@ class AppLocalizationsEn extends AppLocalizations {
   String surfaceUnknownType(String type) {
     return 'Unknown ($type)';
   }
+
+  @override
+  String get airspace => 'Airspace';
+
+  @override
+  String get airspacesTitle => 'Airspaces';
+
+  @override
+  String get airspaceClass => 'Class';
+
+  @override
+  String get airspaceType => 'Type';
+
+  @override
+  String get airspaceLimits => 'Limits';
+
+  @override
+  String get airspaceLimitLower => 'Lower Limit';
+
+  @override
+  String get airspaceLimitUpper => 'Upper Limit';
+
+  @override
+  String get airspaceActivity => 'Activity';
+
+  @override
+  String get airspaceFrequencies => 'Frequencies';
+
+  @override
+  String get airspaceViewOnOpenAip => 'View on openAIP';
+
+  @override
+  String get airspacesLoadingDetails => 'Loading airspace details...';
+
+  @override
+  String get airspacesFailedToLoad => 'Failed to load airspace details.';
+
+  @override
+  String get airspacesAtLocation => 'Airspaces at this location';
+
+  @override
+  String get airspaceFlagByNotam => 'BY NOTAM';
+
+  @override
+  String get airspaceFlagOnRequest => 'ON REQUEST';
+
+  @override
+  String get airspaceFlagOnDemand => 'ON DEMAND';
+
+  @override
+  String get airspaceClassA => 'Class A';
+
+  @override
+  String get airspaceClassB => 'Class B';
+
+  @override
+  String get airspaceClassC => 'Class C';
+
+  @override
+  String get airspaceClassD => 'Class D';
+
+  @override
+  String get airspaceClassE => 'Class E';
+
+  @override
+  String get airspaceClassF => 'Class F';
+
+  @override
+  String get airspaceClassG => 'Class G';
+
+  @override
+  String get airspaceClassUnclassified => 'Unclassified / SUA';
+
+  @override
+  String get airspaceClassUnknown => 'Unknown class';
+
+  @override
+  String get airspaceTypeOther => 'Other';
+
+  @override
+  String get airspaceTypeRestricted => 'Restricted';
+
+  @override
+  String get airspaceTypeDanger => 'Danger';
+
+  @override
+  String get airspaceTypeProhibited => 'Prohibited';
+
+  @override
+  String get airspaceTypeCtr => 'CTR';
+
+  @override
+  String get airspaceTypeTmz => 'TMZ';
+
+  @override
+  String get airspaceTypeRmz => 'RMZ';
+
+  @override
+  String get airspaceTypeTma => 'TMA';
+
+  @override
+  String get airspaceTypeTra => 'TRA';
+
+  @override
+  String get airspaceTypeTsa => 'TSA';
+
+  @override
+  String get airspaceTypeFir => 'FIR';
+
+  @override
+  String get airspaceTypeUir => 'UIR';
+
+  @override
+  String get airspaceTypeAdiz => 'ADIZ';
+
+  @override
+  String get airspaceTypeAtz => 'ATZ';
+
+  @override
+  String get airspaceTypeMatz => 'MATZ';
+
+  @override
+  String get airspaceTypeAirway => 'Airway';
+
+  @override
+  String get airspaceTypeMtr => 'MTR';
+
+  @override
+  String get airspaceTypeAlert => 'Alert Area';
+
+  @override
+  String get airspaceTypeWarning => 'Warning Area';
+
+  @override
+  String get airspaceTypeProtected => 'Protected Area';
+
+  @override
+  String get airspaceTypeHtz => 'HTZ';
+
+  @override
+  String get airspaceTypeGliding => 'Gliding Sector';
+
+  @override
+  String get airspaceTypeTrp => 'TRP';
+
+  @override
+  String get airspaceTypeTiz => 'TIZ';
+
+  @override
+  String get airspaceTypeTia => 'TIA';
+
+  @override
+  String get airspaceTypeMta => 'MTA';
+
+  @override
+  String get airspaceTypeCta => 'CTA';
+
+  @override
+  String get airspaceTypeAcc => 'ACC Sector';
+
+  @override
+  String get airspaceTypeSport => 'Sport / Recreational Activity';
+
+  @override
+  String get airspaceTypeLowOverflight => 'Low Altitude Restriction';
+
+  @override
+  String get airspaceTypeMrt => 'MRT';
+
+  @override
+  String get airspaceTypeTfr => 'TFR';
+
+  @override
+  String get airspaceTypeVfr => 'VFR Sector';
+
+  @override
+  String get airspaceTypeFis => 'FIS Sector';
+
+  @override
+  String get airspaceTypeLta => 'LTA';
+
+  @override
+  String get airspaceTypeUta => 'UTA';
+
+  @override
+  String get airspaceTypeMctr => 'MCTR';
+
+  @override
+  String get airspaceTypeUnknown => 'Unknown';
+
+  @override
+  String get airspaceActivityNone => 'None';
+
+  @override
+  String get airspaceActivityParachuting => 'Parachuting';
+
+  @override
+  String get airspaceActivityAerobatics => 'Aerobatics';
+
+  @override
+  String get airspaceActivityAeroclub => 'Aeroclub';
+
+  @override
+  String get airspaceActivityUlm => 'ULM';
+
+  @override
+  String get airspaceActivityGliding => 'Gliding';
+
+  @override
+  String get airspaceActivityUnknown => 'Unknown';
 }

@@ -481,7 +481,7 @@ class MapCamera extends _$MapCamera {
   ) async {
     if (_mapController == null) return;
     try {
-      final features = _mapController!.featuresAtPoint(
+      final airportFeatures = _mapController!.featuresAtPoint(
         event.screenPoint,
         layerIds: [
           'airport_clicktarget',
@@ -497,11 +497,31 @@ class MapCamera extends _$MapCamera {
         ],
       );
 
-      if (features.isNotEmpty) {
-        debugPrint(features.toString());
-        final featureMaps = features
-            .map((f) => {'id': f.id, 'properties': f.properties})
-            .toList();
+      final airspaceFeatures = _mapController!.featuresAtPoint(
+        event.screenPoint,
+        layerIds: [
+          'airspace_clicktarget',
+        ],
+      );
+
+      final featureMaps = <Map<String, dynamic>>[];
+      for (final f in airportFeatures) {
+        featureMaps.add({
+          'id': f.id,
+          'properties': f.properties,
+          'layerType': 'airport',
+        });
+      }
+      for (final f in airspaceFeatures) {
+        featureMaps.add({
+          'id': f.id,
+          'properties': f.properties,
+          'layerType': 'airspace',
+        });
+      }
+
+      if (featureMaps.isNotEmpty) {
+        debugPrint('Tapped features: $featureMaps');
         onFeaturesTapped(featureMaps, event.point);
       }
     } catch (e) {

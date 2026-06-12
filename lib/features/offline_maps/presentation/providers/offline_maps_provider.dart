@@ -14,7 +14,8 @@ import '../../../../services/database/database_service.dart';
 import '../../../../core/services/tile_download_service.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../domain/tile_utils.dart';
-import '../../../map/domain/airport_metadata.dart';
+import '../../../map/presentation/providers/airport_metadata_provider.dart';
+import '../../../map/presentation/providers/airspace_metadata_provider.dart';
 
 part 'offline_maps_provider.g.dart';
 
@@ -108,6 +109,9 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
       totalTiles: 0,
       hasError: false,
     );
+
+    ref.read(airportMetadataCacheProvider.notifier).clearCache();
+    ref.read(airspaceMetadataCacheProvider.notifier).clearCache();
 
     await DatabaseService.resetDatabase();
     await DatabaseService.insertRegions(state.regions);
@@ -308,12 +312,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
         final decodedBody = utf8.decode(response.bodyBytes);
         final data = json.decode(decodedBody);
         if (data is Map<String, dynamic> && data['features'] is List) {
-          final featuresList = List<GeoJsonFeature>.from(
-            (data['features'] as List).map(
-              (e) => GeoJsonFeature.fromJson(e as Map<String, dynamic>),
-            ),
-          );
-          await _storeFeatures(featuresList, country, type);
+          await _storeFeatures(data['features'] as List, country, type);
           return response.bodyBytes.length;
         }
       } else {
@@ -326,21 +325,36 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     return 0;
   }
 
+  @visibleForTesting
+  Future<void> storeFeaturesForTesting(
+    List<dynamic> features,
+    String country,
+    String type,
+  ) => _storeFeatures(features, country, type);
+
   Future<void> _storeFeatures(
-    List<GeoJsonFeature> features,
+    List<dynamic> features,
     String country,
     String type,
   ) async {
     final dbFeatures = features
-        .where((f) => f.properties.id.isNotEmpty)
-        .map(
-          (f) => {
-            'id': f.properties.id,
-            'json': json.encode(f.properties.toJson()),
-            'country': country,
-            'type': type,
-          },
-        )
+        .map((f) {
+          if (f is Map<String, dynamic>) {
+            if (f['properties'] case Map<String, dynamic> props) {
+              final id = (props['_id'] ?? props['id'] ?? '').toString();
+              if (id.isNotEmpty) {
+                return {
+                  'id': id,
+                  'json': json.encode(props),
+                  'country': country,
+                  'type': type,
+                };
+              }
+            }
+          }
+          return null;
+        })
+        .whereType<Map<String, dynamic>>()
         .toList();
 
     if (dbFeatures.isNotEmpty) {

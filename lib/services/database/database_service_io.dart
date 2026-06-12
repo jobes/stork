@@ -9,7 +9,6 @@ import 'package:pmtiles/pmtiles.dart';
 
 import '../../features/offline_maps/domain/offline_maps_state.dart';
 import '../../features/offline_maps/domain/tile_utils.dart';
-import '../../features/map/domain/airport_metadata.dart';
 import 'dart:convert';
 
 class DatabaseService {
@@ -69,10 +68,11 @@ class DatabaseService {
       );
 
       CREATE TABLE IF NOT EXISTS openaip_features (
-          id TEXT PRIMARY KEY,
+          id TEXT NOT NULL,
           json TEXT NOT NULL,
           country TEXT NOT NULL,
-          type TEXT NOT NULL
+          type TEXT NOT NULL,
+          PRIMARY KEY (id, type)
       );
 
       CREATE INDEX IF NOT EXISTS idx_tiles_zxyk ON map_tiles (z, x, y, kind);
@@ -306,23 +306,27 @@ class DatabaseService {
     );
   }
 
-  static Future<AirportMetadata?> getOpenAipFeature(String id) async {
+  static Future<Map<String, dynamic>?> getOpenAipFeature(String id, String type) async {
     if (kIsWeb) return null;
     final db = await database;
-    final result = db.select(
-      'SELECT json FROM openaip_features WHERE id = ?',
-      [id],
-    );
+    final result = db.select('SELECT json FROM openaip_features WHERE id = ? AND type = ?', [
+      id,
+      type,
+    ]);
     if (result.isEmpty) return null;
     try {
       final decoded = json.decode(result.first['json'] as String);
       if (decoded is Map<String, dynamic>) {
-        return AirportMetadata.fromJson(decoded);
+        return decoded;
       } else {
-        debugPrint('getOpenAipFeature: decoded JSON is not a Map<String, dynamic> for id: $id');
+        debugPrint(
+          'getOpenAipFeature: decoded JSON is not a Map<String, dynamic> for id: $id, type: $type',
+        );
       }
     } catch (e, stackTrace) {
-      debugPrint('getOpenAipFeature: Failed to decode cached JSON for id $id: $e\n$stackTrace');
+      debugPrint(
+        'getOpenAipFeature: Failed to decode cached JSON for id $id, type $type: $e\n$stackTrace',
+      );
     }
     return null;
   }

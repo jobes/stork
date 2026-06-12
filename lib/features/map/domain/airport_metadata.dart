@@ -109,56 +109,32 @@ enum OpenAipUnit {
   khz, // 7
   unknown;
 
-  static OpenAipUnit fromInt(int val) {
-    switch (val) {
-      case 0:
-        return OpenAipUnit.meters;
-      case 1:
-        return OpenAipUnit.feet;
-      case 2:
-        return OpenAipUnit.mhz;
-      case 6:
-        return OpenAipUnit.flightLevel;
-      case 7:
-        return OpenAipUnit.khz;
-      default:
-        return OpenAipUnit.unknown;
-    }
-  }
+  static OpenAipUnit fromInt(int val) => switch (val) {
+        0 => OpenAipUnit.meters,
+        1 => OpenAipUnit.feet,
+        2 => OpenAipUnit.mhz,
+        6 => OpenAipUnit.flightLevel,
+        7 => OpenAipUnit.khz,
+        _ => OpenAipUnit.unknown,
+      };
 
-  int toInt() {
-    switch (this) {
-      case OpenAipUnit.meters:
-        return 0;
-      case OpenAipUnit.feet:
-        return 1;
-      case OpenAipUnit.mhz:
-        return 2;
-      case OpenAipUnit.flightLevel:
-        return 6;
-      case OpenAipUnit.khz:
-        return 7;
-      default:
-        return -1;
-    }
-  }
+  int toInt() => switch (this) {
+        OpenAipUnit.meters => 0,
+        OpenAipUnit.feet => 1,
+        OpenAipUnit.mhz => 2,
+        OpenAipUnit.flightLevel => 6,
+        OpenAipUnit.khz => 7,
+        _ => -1,
+      };
 
-  String get symbol {
-    switch (this) {
-      case OpenAipUnit.meters:
-        return 'm';
-      case OpenAipUnit.feet:
-        return 'ft';
-      case OpenAipUnit.mhz:
-        return 'MHz';
-      case OpenAipUnit.flightLevel:
-        return 'FL';
-      case OpenAipUnit.khz:
-        return 'kHz';
-      default:
-        return '';
-    }
-  }
+  String get symbol => switch (this) {
+        OpenAipUnit.meters => 'm',
+        OpenAipUnit.feet => 'ft',
+        OpenAipUnit.mhz => 'MHz',
+        OpenAipUnit.flightLevel => 'FL',
+        OpenAipUnit.khz => 'kHz',
+        _ => '',
+      };
 }
 
 class AirportElevation {

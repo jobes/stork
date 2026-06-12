@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,7 +6,7 @@ import '../../../settings/domain/range_thresholds.dart';
 import '../../../settings/domain/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
-import 'draggable_overlay.dart';
+import 'base_details_dialog.dart';
 
 class SpeedDetailsDialog extends ConsumerWidget {
   const SpeedDetailsDialog({super.key});
@@ -78,204 +77,132 @@ class SpeedDetailsDialog extends ConsumerWidget {
       }
     }
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: DraggableOverlay(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 500),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.black.withAlpha(190)
-                    : Colors.white.withAlpha(225),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: isDark ? Colors.white24 : Colors.black12,
-                  width: 1,
+    return BaseDetailsDialog(
+      titleText: l10n.speedDetailsTitle,
+      icon: Icons.speed,
+      maxWidth: 500,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Speed Cards (IAS and GS)
+          Row(
+            children: [
+              // IAS Card
+              Expanded(
+                child: _buildSpeedCard(
+                  context: context,
+                  title: l10n.iasShortTitle,
+                  subTitle: l10n.indicatedAirSpeedShort,
+                  value: ias != null ? ias.toStringAsFixed(0) : '---',
+                  unit: unitLabel,
+                  isAvailable: isIasAvailable,
+                  state: iasState,
+                  thresholdColor: getThresholdColor(iasState),
+                  thresholdLabel: getThresholdLabel(iasState),
+                  isDark: isDark,
+                  l10n: l10n,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(80),
-                    blurRadius: 24,
-                    spreadRadius: 4,
-                  ),
-                ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Header
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DraggableOverlayGestureDetector(
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withAlpha(40),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.speed,
-                                  color: Colors.blueAccent,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  l10n.speedDetailsTitle,
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.of(context).pop(),
-                        color: isDark ? Colors.white70 : Colors.black54,
-                      ),
-                    ],
-                  ),
-                const Divider(height: 24),
-
-                // Speed Cards (IAS and GS)
-                Row(
-                  children: [
-                    // IAS Card
-                    Expanded(
-                      child: _buildSpeedCard(
-                        context: context,
-                        title: l10n.iasShortTitle,
-                        subTitle: l10n.indicatedAirSpeedShort,
-                        value: ias != null ? ias.toStringAsFixed(0) : '---',
-                        unit: unitLabel,
-                        isAvailable: isIasAvailable,
-                        state: iasState,
-                        thresholdColor: getThresholdColor(iasState),
-                        thresholdLabel: getThresholdLabel(iasState),
-                        isDark: isDark,
-                        l10n: l10n,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // GS Card
-                    Expanded(
-                      child: _buildSpeedCard(
-                        context: context,
-                        title: l10n.gsShortTitle,
-                        subTitle: l10n.groundSpeedShort,
-                        value: gs != null ? gs.toStringAsFixed(0) : '---',
-                        unit: unitLabel,
-                        isAvailable: isGsAvailable,
-                        state: gsState,
-                        thresholdColor: getThresholdColor(gsState),
-                        thresholdLabel: getThresholdLabel(gsState),
-                        isDark: isDark,
-                        l10n: l10n,
-                        sourceLabel: isGsAvailable
-                            ? (telemetry.isGpsDroneCan
-                                  ? l10n.gpsSourceDroneCan
-                                  : l10n.gpsSourceInternal)
-                            : null,
-                      ),
-                    ),
-                  ],
+              const SizedBox(width: 12),
+              // GS Card
+              Expanded(
+                child: _buildSpeedCard(
+                  context: context,
+                  title: l10n.gsShortTitle,
+                  subTitle: l10n.groundSpeedShort,
+                  value: gs != null ? gs.toStringAsFixed(0) : '---',
+                  unit: unitLabel,
+                  isAvailable: isGsAvailable,
+                  state: gsState,
+                  thresholdColor: getThresholdColor(gsState),
+                  thresholdLabel: getThresholdLabel(gsState),
+                  isDark: isDark,
+                  l10n: l10n,
+                  sourceLabel: isGsAvailable
+                      ? (telemetry.isGpsDroneCan
+                            ? l10n.gpsSourceDroneCan
+                            : l10n.gpsSourceInternal)
+                      : null,
                 ),
-                const SizedBox(height: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
 
-                // GPS & Satellites Section Header
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, bottom: 8),
-                  child: Text(
-                    l10n.gpsAccuracy,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    ),
-                  ),
+          // GPS & Satellites Section Header
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            child: Text(
+              l10n.gpsAccuracy,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white70 : Colors.black54,
+              ),
+            ),
+          ),
+
+          // GPS Details Grid
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withAlpha(15)
+                  : Colors.black.withAlpha(10),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? Colors.white12 : Colors.black12,
+              ),
+            ),
+            child: Column(
+              children: [
+                // Satellite Count Row
+                _buildDetailRow(
+                  icon: Icons.satellite_alt,
+                  iconColor:
+                      telemetry.gpsSatelliteCount != null &&
+                          telemetry.gpsSatelliteCount! >= 6
+                      ? Colors.green
+                      : (telemetry.gpsSatelliteCount != null &&
+                                telemetry.gpsSatelliteCount! > 0
+                            ? Colors.orange
+                            : Colors.red),
+                  label: l10n.satelliteCount,
+                  value: telemetry.gpsSatelliteCount != null
+                      ? '${telemetry.gpsSatelliteCount}'
+                      : l10n.valueNotAvailable,
+                  isDark: isDark,
                 ),
-
-                // GPS Details Grid
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withAlpha(15)
-                        : Colors.black.withAlpha(10),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark ? Colors.white12 : Colors.black12,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      // Satellite Count Row
-                      _buildDetailRow(
-                        icon: Icons.satellite_alt,
-                        iconColor:
-                            telemetry.gpsSatelliteCount != null &&
-                                telemetry.gpsSatelliteCount! >= 6
-                            ? Colors.green
-                            : (telemetry.gpsSatelliteCount != null &&
-                                      telemetry.gpsSatelliteCount! > 0
-                                  ? Colors.orange
-                                  : Colors.red),
-                        label: l10n.satelliteCount,
-                        value: telemetry.gpsSatelliteCount != null
-                            ? '${telemetry.gpsSatelliteCount}'
-                            : l10n.valueNotAvailable,
-                        isDark: isDark,
-                      ),
-                      const Divider(height: 16),
-                      // Horizontal Accuracy Row
-                      _buildDetailRow(
-                        icon: Icons.gps_fixed,
-                        iconColor: Colors.blueAccent,
-                        label: l10n.horizontalAccuracy,
-                        value: telemetry.gpsHorizontalAccuracy != null
-                            ? '± ${telemetry.gpsHorizontalAccuracy!.toStringAsFixed(1)} m'
-                            : l10n.valueNotAvailable,
-                        isDark: isDark,
-                      ),
-                      const Divider(height: 16),
-                      // Vertical Accuracy Row
-                      _buildDetailRow(
-                        icon: Icons.height,
-                        iconColor: Colors.blueAccent,
-                        label: l10n.verticalAccuracy,
-                        value: telemetry.gpsVerticalAccuracy != null
-                            ? '± ${telemetry.gpsVerticalAccuracy!.toStringAsFixed(1)} m'
-                            : l10n.valueNotAvailable,
-                        isDark: isDark,
-                      ),
-                    ],
-                  ),
+                const Divider(height: 16),
+                // Horizontal Accuracy Row
+                _buildDetailRow(
+                  icon: Icons.gps_fixed,
+                  iconColor: Colors.blueAccent,
+                  label: l10n.horizontalAccuracy,
+                  value: telemetry.gpsHorizontalAccuracy != null
+                      ? '± ${telemetry.gpsHorizontalAccuracy!.toStringAsFixed(1)} m'
+                      : l10n.valueNotAvailable,
+                  isDark: isDark,
+                ),
+                const Divider(height: 16),
+                // Vertical Accuracy Row
+                _buildDetailRow(
+                  icon: Icons.height,
+                  iconColor: Colors.blueAccent,
+                  label: l10n.verticalAccuracy,
+                  value: telemetry.gpsVerticalAccuracy != null
+                      ? '± ${telemetry.gpsVerticalAccuracy!.toStringAsFixed(1)} m'
+                      : l10n.valueNotAvailable,
+                  isDark: isDark,
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildSpeedCard({
     required BuildContext context,

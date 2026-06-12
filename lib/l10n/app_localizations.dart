@@ -782,6 +782,24 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get close;
 
+  /// Fallback name for airport
+  ///
+  /// In en, this message translates to:
+  /// **'Airport'**
+  String get airport;
+
+  /// Label for frequency badge
+  ///
+  /// In en, this message translates to:
+  /// **'TUNE'**
+  String get tune;
+
+  /// Label for the main runway
+  ///
+  /// In en, this message translates to:
+  /// **'Main runway'**
+  String get mainRunway;
+
   /// No description provided for @airportLoadingDetails.
   ///
   /// In en, this message translates to:
@@ -1231,6 +1249,426 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown ({type})'**
   String surfaceUnknownType(String type);
+
+  /// Fallback name for airspace
+  ///
+  /// In en, this message translates to:
+  /// **'Airspace'**
+  String get airspace;
+
+  /// No description provided for @airspacesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Airspaces'**
+  String get airspacesTitle;
+
+  /// No description provided for @airspaceClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get airspaceClass;
+
+  /// No description provided for @airspaceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get airspaceType;
+
+  /// No description provided for @airspaceLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits'**
+  String get airspaceLimits;
+
+  /// No description provided for @airspaceLimitLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower Limit'**
+  String get airspaceLimitLower;
+
+  /// No description provided for @airspaceLimitUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper Limit'**
+  String get airspaceLimitUpper;
+
+  /// No description provided for @airspaceActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get airspaceActivity;
+
+  /// No description provided for @airspaceFrequencies.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequencies'**
+  String get airspaceFrequencies;
+
+  /// No description provided for @airspaceViewOnOpenAip.
+  ///
+  /// In en, this message translates to:
+  /// **'View on openAIP'**
+  String get airspaceViewOnOpenAip;
+
+  /// No description provided for @airspacesLoadingDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading airspace details...'**
+  String get airspacesLoadingDetails;
+
+  /// No description provided for @airspacesFailedToLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load airspace details.'**
+  String get airspacesFailedToLoad;
+
+  /// No description provided for @airspacesAtLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Airspaces at this location'**
+  String get airspacesAtLocation;
+
+  /// No description provided for @airspaceFlagByNotam.
+  ///
+  /// In en, this message translates to:
+  /// **'BY NOTAM'**
+  String get airspaceFlagByNotam;
+
+  /// No description provided for @airspaceFlagOnRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'ON REQUEST'**
+  String get airspaceFlagOnRequest;
+
+  /// No description provided for @airspaceFlagOnDemand.
+  ///
+  /// In en, this message translates to:
+  /// **'ON DEMAND'**
+  String get airspaceFlagOnDemand;
+
+  /// No description provided for @airspaceClassA.
+  ///
+  /// In en, this message translates to:
+  /// **'Class A'**
+  String get airspaceClassA;
+
+  /// No description provided for @airspaceClassB.
+  ///
+  /// In en, this message translates to:
+  /// **'Class B'**
+  String get airspaceClassB;
+
+  /// No description provided for @airspaceClassC.
+  ///
+  /// In en, this message translates to:
+  /// **'Class C'**
+  String get airspaceClassC;
+
+  /// No description provided for @airspaceClassD.
+  ///
+  /// In en, this message translates to:
+  /// **'Class D'**
+  String get airspaceClassD;
+
+  /// No description provided for @airspaceClassE.
+  ///
+  /// In en, this message translates to:
+  /// **'Class E'**
+  String get airspaceClassE;
+
+  /// No description provided for @airspaceClassF.
+  ///
+  /// In en, this message translates to:
+  /// **'Class F'**
+  String get airspaceClassF;
+
+  /// No description provided for @airspaceClassG.
+  ///
+  /// In en, this message translates to:
+  /// **'Class G'**
+  String get airspaceClassG;
+
+  /// No description provided for @airspaceClassUnclassified.
+  ///
+  /// In en, this message translates to:
+  /// **'Unclassified / SUA'**
+  String get airspaceClassUnclassified;
+
+  /// No description provided for @airspaceClassUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown class'**
+  String get airspaceClassUnknown;
+
+  /// No description provided for @airspaceTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get airspaceTypeOther;
+
+  /// No description provided for @airspaceTypeRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Restricted'**
+  String get airspaceTypeRestricted;
+
+  /// No description provided for @airspaceTypeDanger.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger'**
+  String get airspaceTypeDanger;
+
+  /// No description provided for @airspaceTypeProhibited.
+  ///
+  /// In en, this message translates to:
+  /// **'Prohibited'**
+  String get airspaceTypeProhibited;
+
+  /// No description provided for @airspaceTypeCtr.
+  ///
+  /// In en, this message translates to:
+  /// **'CTR'**
+  String get airspaceTypeCtr;
+
+  /// No description provided for @airspaceTypeTmz.
+  ///
+  /// In en, this message translates to:
+  /// **'TMZ'**
+  String get airspaceTypeTmz;
+
+  /// No description provided for @airspaceTypeRmz.
+  ///
+  /// In en, this message translates to:
+  /// **'RMZ'**
+  String get airspaceTypeRmz;
+
+  /// No description provided for @airspaceTypeTma.
+  ///
+  /// In en, this message translates to:
+  /// **'TMA'**
+  String get airspaceTypeTma;
+
+  /// No description provided for @airspaceTypeTra.
+  ///
+  /// In en, this message translates to:
+  /// **'TRA'**
+  String get airspaceTypeTra;
+
+  /// No description provided for @airspaceTypeTsa.
+  ///
+  /// In en, this message translates to:
+  /// **'TSA'**
+  String get airspaceTypeTsa;
+
+  /// No description provided for @airspaceTypeFir.
+  ///
+  /// In en, this message translates to:
+  /// **'FIR'**
+  String get airspaceTypeFir;
+
+  /// No description provided for @airspaceTypeUir.
+  ///
+  /// In en, this message translates to:
+  /// **'UIR'**
+  String get airspaceTypeUir;
+
+  /// No description provided for @airspaceTypeAdiz.
+  ///
+  /// In en, this message translates to:
+  /// **'ADIZ'**
+  String get airspaceTypeAdiz;
+
+  /// No description provided for @airspaceTypeAtz.
+  ///
+  /// In en, this message translates to:
+  /// **'ATZ'**
+  String get airspaceTypeAtz;
+
+  /// No description provided for @airspaceTypeMatz.
+  ///
+  /// In en, this message translates to:
+  /// **'MATZ'**
+  String get airspaceTypeMatz;
+
+  /// No description provided for @airspaceTypeAirway.
+  ///
+  /// In en, this message translates to:
+  /// **'Airway'**
+  String get airspaceTypeAirway;
+
+  /// No description provided for @airspaceTypeMtr.
+  ///
+  /// In en, this message translates to:
+  /// **'MTR'**
+  String get airspaceTypeMtr;
+
+  /// No description provided for @airspaceTypeAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert Area'**
+  String get airspaceTypeAlert;
+
+  /// No description provided for @airspaceTypeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning Area'**
+  String get airspaceTypeWarning;
+
+  /// No description provided for @airspaceTypeProtected.
+  ///
+  /// In en, this message translates to:
+  /// **'Protected Area'**
+  String get airspaceTypeProtected;
+
+  /// No description provided for @airspaceTypeHtz.
+  ///
+  /// In en, this message translates to:
+  /// **'HTZ'**
+  String get airspaceTypeHtz;
+
+  /// No description provided for @airspaceTypeGliding.
+  ///
+  /// In en, this message translates to:
+  /// **'Gliding Sector'**
+  String get airspaceTypeGliding;
+
+  /// No description provided for @airspaceTypeTrp.
+  ///
+  /// In en, this message translates to:
+  /// **'TRP'**
+  String get airspaceTypeTrp;
+
+  /// No description provided for @airspaceTypeTiz.
+  ///
+  /// In en, this message translates to:
+  /// **'TIZ'**
+  String get airspaceTypeTiz;
+
+  /// No description provided for @airspaceTypeTia.
+  ///
+  /// In en, this message translates to:
+  /// **'TIA'**
+  String get airspaceTypeTia;
+
+  /// No description provided for @airspaceTypeMta.
+  ///
+  /// In en, this message translates to:
+  /// **'MTA'**
+  String get airspaceTypeMta;
+
+  /// No description provided for @airspaceTypeCta.
+  ///
+  /// In en, this message translates to:
+  /// **'CTA'**
+  String get airspaceTypeCta;
+
+  /// No description provided for @airspaceTypeAcc.
+  ///
+  /// In en, this message translates to:
+  /// **'ACC Sector'**
+  String get airspaceTypeAcc;
+
+  /// No description provided for @airspaceTypeSport.
+  ///
+  /// In en, this message translates to:
+  /// **'Sport / Recreational Activity'**
+  String get airspaceTypeSport;
+
+  /// No description provided for @airspaceTypeLowOverflight.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Altitude Restriction'**
+  String get airspaceTypeLowOverflight;
+
+  /// No description provided for @airspaceTypeMrt.
+  ///
+  /// In en, this message translates to:
+  /// **'MRT'**
+  String get airspaceTypeMrt;
+
+  /// No description provided for @airspaceTypeTfr.
+  ///
+  /// In en, this message translates to:
+  /// **'TFR'**
+  String get airspaceTypeTfr;
+
+  /// No description provided for @airspaceTypeVfr.
+  ///
+  /// In en, this message translates to:
+  /// **'VFR Sector'**
+  String get airspaceTypeVfr;
+
+  /// No description provided for @airspaceTypeFis.
+  ///
+  /// In en, this message translates to:
+  /// **'FIS Sector'**
+  String get airspaceTypeFis;
+
+  /// No description provided for @airspaceTypeLta.
+  ///
+  /// In en, this message translates to:
+  /// **'LTA'**
+  String get airspaceTypeLta;
+
+  /// No description provided for @airspaceTypeUta.
+  ///
+  /// In en, this message translates to:
+  /// **'UTA'**
+  String get airspaceTypeUta;
+
+  /// No description provided for @airspaceTypeMctr.
+  ///
+  /// In en, this message translates to:
+  /// **'MCTR'**
+  String get airspaceTypeMctr;
+
+  /// No description provided for @airspaceTypeUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get airspaceTypeUnknown;
+
+  /// No description provided for @airspaceActivityNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get airspaceActivityNone;
+
+  /// No description provided for @airspaceActivityParachuting.
+  ///
+  /// In en, this message translates to:
+  /// **'Parachuting'**
+  String get airspaceActivityParachuting;
+
+  /// No description provided for @airspaceActivityAerobatics.
+  ///
+  /// In en, this message translates to:
+  /// **'Aerobatics'**
+  String get airspaceActivityAerobatics;
+
+  /// No description provided for @airspaceActivityAeroclub.
+  ///
+  /// In en, this message translates to:
+  /// **'Aeroclub'**
+  String get airspaceActivityAeroclub;
+
+  /// No description provided for @airspaceActivityUlm.
+  ///
+  /// In en, this message translates to:
+  /// **'ULM'**
+  String get airspaceActivityUlm;
+
+  /// No description provided for @airspaceActivityGliding.
+  ///
+  /// In en, this message translates to:
+  /// **'Gliding'**
+  String get airspaceActivityGliding;
+
+  /// No description provided for @airspaceActivityUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get airspaceActivityUnknown;
 }
 
 class _AppLocalizationsDelegate
