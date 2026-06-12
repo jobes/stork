@@ -423,5 +423,10 @@
   "airspaceActivityAeroclub": "Aeroclub",
   "airspaceActivityUlm": "ULM",
   "airspaceActivityGliding": "Gliding",
-  "airspaceActivityUnknown": "Unknown"
+  "airspaceActivityUnknown": "Unknown",
+  "flightTime": "Flight Time",
+  "flightDetailsTitle": "Flight Details",
+  "flightDuration": "Flight Duration",
+  "flightDistance": "Flight Distance",
+  "flightStartTime": "Flight Start Time"
 }

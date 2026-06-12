@@ -345,5 +345,10 @@
   "airspaceActivityAeroclub": "Aeroklub / Letecké práce",
   "airspaceActivityUlm": "Plocha pre ULM",
   "airspaceActivityGliding": "Bezmotorové lietanie",
-  "airspaceActivityUnknown": "Neznáma"
+  "airspaceActivityUnknown": "Neznáma",
+  "flightTime": "Čas letu",
+  "flightDetailsTitle": "Detaily letu",
+  "flightDuration": "Trvanie letu",
+  "flightDistance": "Dĺžka letu",
+  "flightStartTime": "Čas začiatku letu"
 }

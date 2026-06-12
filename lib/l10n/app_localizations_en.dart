@@ -826,4 +826,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get airspaceActivityUnknown => 'Unknown';
+
+  @override
+  String get flightTime => 'Flight Time';
+
+  @override
+  String get flightDetailsTitle => 'Flight Details';
+
+  @override
+  String get flightDuration => 'Flight Duration';
+
+  @override
+  String get flightDistance => 'Flight Distance';
+
+  @override
+  String get flightStartTime => 'Flight Start Time';
 }

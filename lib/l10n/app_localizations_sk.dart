@@ -828,4 +828,19 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get airspaceActivityUnknown => 'Neznáma';
+
+  @override
+  String get flightTime => 'Čas letu';
+
+  @override
+  String get flightDetailsTitle => 'Detaily letu';
+
+  @override
+  String get flightDuration => 'Trvanie letu';
+
+  @override
+  String get flightDistance => 'Dĺžka letu';
+
+  @override
+  String get flightStartTime => 'Čas začiatku letu';
 }

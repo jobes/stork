@@ -14,6 +14,7 @@ import '../components/aircraft_map.dart';
 import '../components/compass_bar.dart';
 import '../components/speed_telemetry_widget.dart';
 import '../components/altitude_telemetry_widget.dart';
+import '../components/flight_time_telemetry_widget.dart';
 import '../components/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 import '../components/map_features_bottom_sheet.dart';
@@ -115,6 +116,12 @@ class _MapPageState extends ConsumerState<MapPage> {
                 defaultTop: 50.0, // Odsadenie pod kompas
                 defaultLeft: 175.0, // Vedľa speed widgetu
                 child: AltitudeTelemetryWidget(),
+              ),
+              const MapWidgetWrapper(
+                widgetId: 'flight_time_widget',
+                defaultTop: 50.0,
+                defaultLeft: 334.0, // Vedľa altitude widgetu
+                child: FlightTimeTelemetryWidget(),
               ),
             ],
             Builder(
