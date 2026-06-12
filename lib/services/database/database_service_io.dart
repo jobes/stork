@@ -68,10 +68,11 @@ class DatabaseService {
       );
 
       CREATE TABLE IF NOT EXISTS openaip_features (
-          id TEXT PRIMARY KEY,
+          id TEXT NOT NULL,
           json TEXT NOT NULL,
           country TEXT NOT NULL,
-          type TEXT NOT NULL
+          type TEXT NOT NULL,
+          PRIMARY KEY (id, type)
       );
 
       CREATE INDEX IF NOT EXISTS idx_tiles_zxyk ON map_tiles (z, x, y, kind);
@@ -305,11 +306,12 @@ class DatabaseService {
     );
   }
 
-  static Future<Map<String, dynamic>?> getOpenAipFeature(String id) async {
+  static Future<Map<String, dynamic>?> getOpenAipFeature(String id, String type) async {
     if (kIsWeb) return null;
     final db = await database;
-    final result = db.select('SELECT json FROM openaip_features WHERE id = ?', [
+    final result = db.select('SELECT json FROM openaip_features WHERE id = ? AND type = ?', [
       id,
+      type,
     ]);
     if (result.isEmpty) return null;
     try {
@@ -318,12 +320,12 @@ class DatabaseService {
         return decoded;
       } else {
         debugPrint(
-          'getOpenAipFeature: decoded JSON is not a Map<String, dynamic> for id: $id',
+          'getOpenAipFeature: decoded JSON is not a Map<String, dynamic> for id: $id, type: $type',
         );
       }
     } catch (e, stackTrace) {
       debugPrint(
-        'getOpenAipFeature: Failed to decode cached JSON for id $id: $e\n$stackTrace',
+        'getOpenAipFeature: Failed to decode cached JSON for id $id, type $type: $e\n$stackTrace',
       );
     }
     return null;

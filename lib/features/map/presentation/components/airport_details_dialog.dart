@@ -62,7 +62,7 @@ class AirportDetailsDialog extends ConsumerWidget {
         );
       },
       loading: () => Text(
-        fallbackName.isNotEmpty ? fallbackName : 'Airport',
+        fallbackName.isNotEmpty ? fallbackName : l10n.airport,
         style: TextStyle(
           fontSize: 17,
           fontWeight: FontWeight.bold,
@@ -70,7 +70,7 @@ class AirportDetailsDialog extends ConsumerWidget {
         ),
       ),
       error: (err, stack) => Text(
-        fallbackName.isNotEmpty ? fallbackName : 'Airport',
+        fallbackName.isNotEmpty ? fallbackName : l10n.airport,
         style: TextStyle(
           fontSize: 17,
           fontWeight: FontWeight.bold,
@@ -179,7 +179,7 @@ class AirportDetailsDialog extends ConsumerWidget {
             _buildGeneralInfo(metadata, l10n, isDark),
             _buildWarnings(context, metadata, l10n),
             _buildFrequencies(context, metadata, l10n, isDark),
-            _buildRunways(metadata, l10n, isDark),
+            _buildRunways(context, metadata, l10n, isDark),
             _buildImages(ref, metadata, l10n),
           ],
         ),
@@ -479,7 +479,7 @@ class AirportDetailsDialog extends ConsumerWidget {
                           Row(
                             children: [
                               Text(
-                                'TUNE',
+                                l10n.tune,
                                 style: TextStyle(
                                   fontSize: 8.5,
                                   fontWeight: FontWeight.bold,
@@ -507,7 +507,7 @@ class AirportDetailsDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildRunways(AirportMetadata metadata, AppLocalizations l10n, bool isDark) {
+  Widget _buildRunways(BuildContext context, AirportMetadata metadata, AppLocalizations l10n, bool isDark) {
     if (metadata.runways.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -606,7 +606,7 @@ class AirportDetailsDialog extends ConsumerWidget {
                               const Icon(Icons.star, color: Colors.amber, size: 10),
                               const SizedBox(width: 4),
                               Text(
-                                l10n.localeName == 'sk' ? 'Hlavná dráha' : 'Main runway',
+                                l10n.mainRunway,
                                 style: const TextStyle(
                                   fontSize: 10,
                                   color: Colors.amber,

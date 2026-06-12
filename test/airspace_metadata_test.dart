@@ -42,37 +42,53 @@ void main() {
       expect(metadata.type, equals(AirspaceType.ctr));
       expect(metadata.country, equals('SK'));
       expect(metadata.limitLower.value, equals(0.0));
+      expect(metadata.limitLower.unit, equals(OpenAipUnit.meters));
+      expect(metadata.limitLower.referenceDatum, equals(ReferenceDatum.gnd));
       expect(metadata.limitUpper.value, equals(8000.0));
+      expect(metadata.limitUpper.unit, equals(OpenAipUnit.feet));
+      expect(metadata.limitUpper.referenceDatum, equals(ReferenceDatum.msl));
       expect(metadata.activity, equals(AirspaceActivity.parachuting));
       expect(metadata.byNotam, equals(true));
     });
 
-    test('AirspaceMetadata.fromJson parses airspace data with lowerLimit and upperLimit keys', () {
-      final json = {
-        'id': 'asp_123',
-        'name': 'Bratislava CTR',
-        'icaoClass': 3,
-        'type': 4,
-        'country': 'SK',
-        'lowerLimit': {'value': 0, 'unit': 0, 'referenceDatum': 0},
-        'upperLimit': {'value': 8000, 'unit': 1, 'referenceDatum': 1},
-        'activity': 1,
-        'byNotam': true,
-      };
+    test('AirspaceMetadata serialization and deserialization of unknown and unclassified classes', () {
+      final unclassifiedMetadata = AirspaceMetadata(
+        id: 'asp_unclassified',
+        name: 'Unclassified Airspace',
+        icaoClass: AirspaceClass.unclassified,
+        type: AirspaceType.ctr,
+        country: 'SK',
+        limitLower: AirspaceLimit(value: 0, unit: OpenAipUnit.meters, referenceDatum: ReferenceDatum.gnd),
+        limitUpper: AirspaceLimit(value: 8000, unit: OpenAipUnit.feet, referenceDatum: ReferenceDatum.msl),
+      );
 
-      final metadata = AirspaceMetadata.fromJson(json);
+      final unknownMetadata = AirspaceMetadata(
+        id: 'asp_unknown',
+        name: 'Unknown Airspace',
+        icaoClass: AirspaceClass.unknown,
+        type: AirspaceType.ctr,
+        country: 'SK',
+        limitLower: AirspaceLimit(value: 0, unit: OpenAipUnit.meters, referenceDatum: ReferenceDatum.gnd),
+        limitUpper: AirspaceLimit(value: 8000, unit: OpenAipUnit.feet, referenceDatum: ReferenceDatum.msl),
+      );
 
-      expect(metadata.id, equals('asp_123'));
-      expect(metadata.name, equals('Bratislava CTR'));
-      expect(metadata.icaoClass, equals(AirspaceClass.d));
-      expect(metadata.type, equals(AirspaceType.ctr));
-      expect(metadata.country, equals('SK'));
-      expect(metadata.limitLower.value, equals(0.0));
-      expect(metadata.limitLower.unit, equals(OpenAipUnit.meters));
-      expect(metadata.limitUpper.value, equals(8000.0));
-      expect(metadata.limitUpper.unit, equals(OpenAipUnit.feet));
-      expect(metadata.activity, equals(AirspaceActivity.parachuting));
-      expect(metadata.byNotam, equals(true));
+      // Serialize
+      final unclassifiedJson = unclassifiedMetadata.toJson();
+      final unknownJson = unknownMetadata.toJson();
+
+      expect(unclassifiedJson['icaoClass'], equals(8));
+      expect(unknownJson['icaoClass'], equals(9));
+
+      // Deserialize
+      final restoredUnclassified = AirspaceMetadata.fromJson(unclassifiedJson);
+      final restoredUnknown = AirspaceMetadata.fromJson(unknownJson);
+
+      expect(restoredUnclassified.icaoClass, equals(AirspaceClass.unclassified));
+      expect(restoredUnknown.icaoClass, equals(AirspaceClass.unknown));
+
+      // Verify no data loss on round-trip for limit values
+      expect(restoredUnclassified.limitLower.value, equals(0.0));
+      expect(restoredUnclassified.limitUpper.value, equals(8000.0));
     });
   });
 

@@ -371,6 +371,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get close => 'Close';
 
   @override
+  String get airport => 'Airport';
+
+  @override
+  String get tune => 'TUNE';
+
+  @override
+  String get mainRunway => 'Main runway';
+
+  @override
   String get airportLoadingDetails => 'Loading details...';
 
   @override
@@ -607,6 +616,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String surfaceUnknownType(String type) {
     return 'Unknown ($type)';
   }
+
+  @override
+  String get airspace => 'Airspace';
 
   @override
   String get airspacesTitle => 'Airspaces';

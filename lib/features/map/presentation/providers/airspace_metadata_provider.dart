@@ -52,7 +52,7 @@ class AirspaceMetadataCache extends _$AirspaceMetadataCache {
     }
 
     // 2. Check offline SQLite database
-    final dbFeature = await DatabaseService.getOpenAipFeature(airspaceId);
+    final dbFeature = await DatabaseService.getOpenAipFeature(airspaceId, 'asp');
     if (dbFeature != null) {
       final metadata = AirspaceMetadata.fromJson(dbFeature);
       _memoryCache[airspaceId] = metadata;

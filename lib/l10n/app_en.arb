@@ -216,6 +216,18 @@
   "terrainElevation": "Terrain Elevation",
   "terrainUnderPosition": "Terrain under position",
   "close": "Close",
+  "airport": "Airport",
+  "@airport": {
+    "description": "Fallback name for airport"
+  },
+  "tune": "TUNE",
+  "@tune": {
+    "description": "Label for frequency badge"
+  },
+  "mainRunway": "Main runway",
+  "@mainRunway": {
+    "description": "Label for the main runway"
+  },
   "airportLoadingDetails": "Loading details...",
   "airportFailedToLoad": "Failed to load airport details.",
   "airportNameLabel": "Name: {name}",
@@ -338,6 +350,10 @@
         "type": "String"
       }
     }
+  },
+  "airspace": "Airspace",
+  "@airspace": {
+    "description": "Fallback name for airspace"
   },
   "airspacesTitle": "Airspaces",
   "airspaceClass": "Class",

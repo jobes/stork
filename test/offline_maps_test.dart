@@ -10,6 +10,7 @@ import 'package:stork/features/map/presentation/providers/airport_metadata_provi
 import 'package:stork/features/map/presentation/providers/airspace_metadata_provider.dart';
 import 'package:stork/features/offline_maps/domain/tile_utils.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
+import 'package:stork/services/database/database_service.dart';
 
 void main() {
   group('TileUtils', () {
@@ -187,6 +188,56 @@ void main() {
         expect(airportRequestCount, equals(2));
         expect(airspaceRequestCount, equals(2));
       }, () => mockClient);
+    });
+
+    test('_storeFeatures handles non-Map properties gracefully', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await DatabaseService.resetDatabase();
+
+      final offlineNotifier = container.read(offlineMapsProvider.notifier);
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      final mixedFeatures = [
+        // 1. Valid feature
+        {
+          'type': 'Feature',
+          'properties': {
+            'id': 'valid_apt',
+            'name': 'Valid Airport',
+            'type': 1,
+            'country': 'US',
+          }
+        },
+        // 2. properties is a String (invalid)
+        {
+          'type': 'Feature',
+          'properties': 'not a map'
+        },
+        // 3. properties is null (invalid)
+        {
+          'type': 'Feature',
+          'properties': null
+        },
+        // 4. properties is missing (invalid)
+        {
+          'type': 'Feature'
+        },
+        // 5. feature is not a Map (invalid)
+        'not a map feature'
+      ];
+
+      // Call storeFeaturesForTesting and ensure it doesn't throw
+      await expectLater(
+        offlineNotifier.storeFeaturesForTesting(mixedFeatures, 'US', 'airport'),
+        completes,
+      );
+
+      // Verify that only the valid feature was inserted into the database
+      final validResult = await DatabaseService.getOpenAipFeature('valid_apt', 'airport');
+      expect(validResult, isNotNull);
+      expect(validResult!['name'], equals('Valid Airport'));
     });
   });
 }

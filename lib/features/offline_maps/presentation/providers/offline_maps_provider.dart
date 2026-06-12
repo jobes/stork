@@ -325,6 +325,13 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     return 0;
   }
 
+  @visibleForTesting
+  Future<void> storeFeaturesForTesting(
+    List<dynamic> features,
+    String country,
+    String type,
+  ) => _storeFeatures(features, country, type);
+
   Future<void> _storeFeatures(
     List<dynamic> features,
     String country,
@@ -333,8 +340,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     final dbFeatures = features
         .map((f) {
           if (f is Map<String, dynamic>) {
-            final props = f['properties'] as Map<String, dynamic>?;
-            if (props != null) {
+            if (f['properties'] case Map<String, dynamic> props) {
               final id = (props['_id'] ?? props['id'] ?? '').toString();
               if (id.isNotEmpty) {
                 return {

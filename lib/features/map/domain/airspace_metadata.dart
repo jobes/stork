@@ -21,6 +21,7 @@ enum AirspaceClass {
     5 => AirspaceClass.f,
     6 => AirspaceClass.g,
     8 => AirspaceClass.unclassified,
+    9 => AirspaceClass.unknown,
     _ => AirspaceClass.unknown,
   };
 
@@ -271,11 +272,13 @@ class AirspaceMetadata {
       'name': name,
       'icaoClass': icaoClass == AirspaceClass.unclassified
           ? 8
+          : icaoClass == AirspaceClass.unknown
+          ? 9
           : icaoClass.index,
       'type': type.index,
       'country': country,
-      'limitLower': limitLower.toJson(),
-      'limitUpper': limitUpper.toJson(),
+      'lowerLimit': limitLower.toJson(),
+      'upperLimit': limitUpper.toJson(),
       if (activity != null) 'activity': activity!.index,
       if (byNotam != null) 'byNotam': byNotam,
       if (onDemand != null) 'onDemand': onDemand,

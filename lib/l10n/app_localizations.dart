@@ -782,6 +782,24 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get close;
 
+  /// Fallback name for airport
+  ///
+  /// In en, this message translates to:
+  /// **'Airport'**
+  String get airport;
+
+  /// Label for frequency badge
+  ///
+  /// In en, this message translates to:
+  /// **'TUNE'**
+  String get tune;
+
+  /// Label for the main runway
+  ///
+  /// In en, this message translates to:
+  /// **'Main runway'**
+  String get mainRunway;
+
   /// No description provided for @airportLoadingDetails.
   ///
   /// In en, this message translates to:
@@ -1231,6 +1249,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown ({type})'**
   String surfaceUnknownType(String type);
+
+  /// Fallback name for airspace
+  ///
+  /// In en, this message translates to:
+  /// **'Airspace'**
+  String get airspace;
 
   /// No description provided for @airspacesTitle.
   ///

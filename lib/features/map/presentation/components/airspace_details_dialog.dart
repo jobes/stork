@@ -53,8 +53,8 @@ class AirspaceDetailsDialog extends StatelessWidget {
         final aNormLower = _normalizeLimit(aLowerVal, aLowerUnit);
         final bNormLower = _normalizeLimit(bLowerVal, bLowerUnit);
 
-        // Sort descending by lower limit
-        return bNormLower.compareTo(aNormLower);
+        // Sort ascending by lower limit (lower floor first)
+        return aNormLower.compareTo(bNormLower);
       });
 
     return BaseDetailsDialog(
@@ -139,7 +139,7 @@ class AirspaceDetailCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          fallbackName.isNotEmpty ? fallbackName : 'Airspace',
+          fallbackName.isNotEmpty ? fallbackName : l10n.airspace,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -317,19 +317,29 @@ class AirspaceDetailCard extends ConsumerWidget {
         children: [
           Icon(Icons.height, size: 16, color: isDark ? Colors.white54 : Colors.black45),
           const SizedBox(width: 8),
-          Text(
-            '${l10n.airspaceLimits}: ',
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark ? Colors.white60 : Colors.black54,
+          Flexible(
+            child: Text(
+              '${l10n.airspaceLimits}: ',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.white60 : Colors.black54,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              softWrap: false,
             ),
           ),
-          Text(
-            metadata.limitLower.formatLimit(l10n),
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.orangeAccent.shade200 : Colors.orange.shade800,
+          Flexible(
+            child: Text(
+              metadata.limitLower.formatLimit(l10n),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.orangeAccent.shade200 : Colors.orange.shade800,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              softWrap: false,
             ),
           ),
           Padding(
@@ -340,12 +350,17 @@ class AirspaceDetailCard extends ConsumerWidget {
               color: isDark ? Colors.white38 : Colors.black38,
             ),
           ),
-          Text(
-            metadata.limitUpper.formatLimit(l10n),
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.blueAccent.shade100 : Colors.blue.shade800,
+          Flexible(
+            child: Text(
+              metadata.limitUpper.formatLimit(l10n),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.blueAccent.shade100 : Colors.blue.shade800,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              softWrap: false,
             ),
           ),
         ],

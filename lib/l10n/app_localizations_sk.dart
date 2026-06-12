@@ -371,6 +371,15 @@ class AppLocalizationsSk extends AppLocalizations {
   String get close => 'Zavrieť';
 
   @override
+  String get airport => 'Letisko';
+
+  @override
+  String get tune => 'NALADIŤ';
+
+  @override
+  String get mainRunway => 'Hlavná dráha';
+
+  @override
   String get airportLoadingDetails => 'Načítavam detaily...';
 
   @override
@@ -608,6 +617,9 @@ class AppLocalizationsSk extends AppLocalizations {
   }
 
   @override
+  String get airspace => 'Letecký priestor';
+
+  @override
   String get airspacesTitle => 'Letecké priestory';
 
   @override
@@ -809,7 +821,7 @@ class AppLocalizationsSk extends AppLocalizations {
   String get airspaceActivityAeroclub => 'Aeroklub / Letecké práce';
 
   @override
-  String get airspaceActivityUlm => 'Plocha pre ULL';
+  String get airspaceActivityUlm => 'Plocha pre ULM';
 
   @override
   String get airspaceActivityGliding => 'Bezmotorové lietanie';

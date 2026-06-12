@@ -71,7 +71,7 @@ class DatabaseService {
     return 0;
   }
 
-  static Future<Map<String, dynamic>?> getOpenAipFeature(String id) async {
+  static Future<Map<String, dynamic>?> getOpenAipFeature(String id, String type) async {
     return null;
   }
 

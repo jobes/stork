@@ -75,7 +75,7 @@ class MapFeaturesBottomSheet extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return SafeArea(
       child: Column(
@@ -84,7 +84,7 @@ class MapFeaturesBottomSheet extends StatelessWidget {
           if (airportFeature != null)
             ListTile(
               leading: const Icon(Icons.flight_land),
-              title: Text(l10n?.airportDetails ?? 'Airport Details'),
+              title: Text(l10n.airportDetails),
               onTap: () {
                 Navigator.pop(context); // Close bottom sheet
                 _showAirportDetails(context, airportFeature);
@@ -93,7 +93,7 @@ class MapFeaturesBottomSheet extends StatelessWidget {
           if (airspaceFeatures.isNotEmpty)
             ListTile(
               leading: const Icon(Icons.public),
-              title: Text(l10n?.airspacesTitle ?? 'Airspaces'),
+              title: Text(l10n.airspacesTitle),
               onTap: () {
                 Navigator.pop(context); // Close bottom sheet
                 _showAirspaceDetails(context, airspaceFeatures);

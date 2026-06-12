@@ -50,7 +50,7 @@ class AirportMetadataCache extends _$AirportMetadataCache {
     }
 
     // 2. Check offline SQLite database
-    final dbFeature = await DatabaseService.getOpenAipFeature(airportId);
+    final dbFeature = await DatabaseService.getOpenAipFeature(airportId, 'apt');
     if (dbFeature != null) {
       final metadata = AirportMetadata.fromJson(dbFeature);
       // Add to memory cache for faster subsequent access
