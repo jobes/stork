@@ -42,7 +42,7 @@ final class AirspaceMetadataCacheProvider
 }
 
 String _$airspaceMetadataCacheHash() =>
-    r'1b86c2bdb2f2fff122abda377765c525cff62908';
+    r'6af9ccb9e4184f9b47c7b8c1b53d20265052cb71';
 
 abstract class _$AirspaceMetadataCache extends $Notifier<void> {
   void build();

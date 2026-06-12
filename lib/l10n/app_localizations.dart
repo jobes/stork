@@ -1669,6 +1669,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get airspaceActivityUnknown;
+
+  /// No description provided for @flightTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Time'**
+  String get flightTime;
+
+  /// No description provided for @flightDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Details'**
+  String get flightDetailsTitle;
+
+  /// No description provided for @flightDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Duration'**
+  String get flightDuration;
+
+  /// No description provided for @flightDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Distance'**
+  String get flightDistance;
+
+  /// No description provided for @flightStartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Start Time'**
+  String get flightStartTime;
 }
 
 class _AppLocalizationsDelegate
