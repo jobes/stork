@@ -338,6 +338,9 @@ class NavigationPage extends ConsumerWidget {
                           child: ReorderableListView.builder(
                             itemCount: points.length,
                             onReorderItem: (oldIndex, newIndex) {
+                              if (oldIndex < newIndex) {
+                                newIndex -= 1;
+                              }
                               ref.read(navigationProvider.notifier).reorderPoints(oldIndex, newIndex);
                             },
                             itemBuilder: (context, index) {

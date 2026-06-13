@@ -91,5 +91,47 @@ void main() {
     // 3. Verify ground speed is used: 50 m/s = 180 km/h
     expect(find.textContaining('Ground speed: 180 kph'), findsOneWidget);
   });
+
+  testWidgets('reordering items downwards adjusts indices correctly', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(buildTestWidget());
+    await tester.pumpAndSettle();
+
+    // 1. Setup telemetry coordinates so location is known
+    providerContainer.read(telemetryProvider.notifier).updateGPS(
+      latitude: 48.0,
+      longitude: 17.0,
+      groundSpeed: 0.0,
+    );
+    await tester.pumpAndSettle();
+
+    // 2. Add navigation points
+    final navNotifier = providerContainer.read(navigationProvider.notifier);
+    await navNotifier.addPoint(const NavigationPoint(
+      latitude: 49.0,
+      longitude: 18.0,
+      name: 'Waypoint 1',
+    ));
+    await navNotifier.addPoint(const NavigationPoint(
+      latitude: 50.0,
+      longitude: 19.0,
+      name: 'Waypoint 2',
+    ));
+    await tester.pumpAndSettle();
+
+    // 3. Find ReorderableListView and trigger onReorderItem
+    final listViewFinder = find.byType(ReorderableListView);
+    expect(listViewFinder, findsOneWidget);
+    final reorderableListView = tester.widget<ReorderableListView>(listViewFinder);
+    
+    // Drag index 0 to 2 (downwards). It should adjust to (0, 1).
+    reorderableListView.onReorderItem!(0, 2);
+    await tester.pumpAndSettle();
+
+    // 4. Verify points are reordered: Waypoint 1 (index 0 originally) should now be at index 1
+    final state = providerContainer.read(navigationProvider).value;
+    expect(state?.points[0].name, 'Waypoint 2');
+    expect(state?.points[1].name, 'Waypoint 1');
+  });
   });
 }
