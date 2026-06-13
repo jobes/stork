@@ -616,6 +616,10 @@ void main() {
     );
 
     test('updateAverageSpeed modifies the averageSpeed setting and persists it', () async {
+      mockRepository.currentSettings = mockRepository.currentSettings.copyWith(
+        speedUnit: SpeedUnit.kmh,
+      );
+
       final container = ProviderContainer(
         overrides: [
           settingsRepositoryProvider.overrideWith(
@@ -631,15 +635,22 @@ void main() {
       await container.read(appSettingsProvider.future);
       final notifier = container.read(appSettingsProvider.notifier);
 
+      final speedUnit = container.read(appSettingsProvider).value!.speedUnit;
+      final expectedSpeedMs = speedUnit.convertToMs(36.0);
+
       final result = await notifier.updateAverageSpeed(36.0);
       expect(result, isA<SettingsUpdateSuccess>());
-      expect(container.read(appSettingsProvider).value?.averageSpeed, equals(10.0));
-      expect(mockRepository.currentSettings.averageSpeed, equals(10.0));
+      expect(container.read(appSettingsProvider).value?.averageSpeed, equals(expectedSpeedMs));
+      expect(mockRepository.currentSettings.averageSpeed, equals(expectedSpeedMs));
     });
 
     test(
       'updateAverageSpeed defensive validation for invalid/NaN/infinite/negative/zero values',
       () async {
+        mockRepository.currentSettings = mockRepository.currentSettings.copyWith(
+          speedUnit: SpeedUnit.kmh,
+        );
+
         final container = ProviderContainer(
           overrides: [
             settingsRepositoryProvider.overrideWith(
@@ -655,7 +666,8 @@ void main() {
         await container.read(appSettingsProvider.future);
         final notifier = container.read(appSettingsProvider.notifier);
 
-        final expectedMinMs = SpeedUnit.kmh.convertToMs(0.001);
+        final speedUnit = container.read(appSettingsProvider).value!.speedUnit;
+        final expectedMinMs = speedUnit.convertToMs(0.001);
 
         final resNaN = await notifier.updateAverageSpeed(double.nan);
         expect(resNaN, isA<SettingsUpdateSuccess>());
@@ -690,7 +702,7 @@ void main() {
         expect(resValidSmall, isA<SettingsUpdateSuccess>());
         expect(
           container.read(appSettingsProvider).value?.averageSpeed,
-          closeTo(SpeedUnit.kmh.convertToMs(0.005), 1e-9),
+          closeTo(speedUnit.convertToMs(0.005), 1e-9),
         );
       },
     );
