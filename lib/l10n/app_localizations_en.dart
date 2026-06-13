@@ -841,4 +841,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get flightStartTime => 'Flight Start Time';
+
+  @override
+  String get navigation => 'Navigation';
+
+  @override
+  String get navigateToPoint => 'Navigate to point';
+
+  @override
+  String get addPointToNavigation => 'Add point to navigation';
+
+  @override
+  String get averageSpeed => 'Expected flight speed';
+
+  @override
+  String get groundSpeed => 'Ground speed';
+
+  @override
+  String get navigationRequiresLocation =>
+      'Navigation requires current location.';
+
+  @override
+  String get noNavigationPoints =>
+      'No navigation points. Tap on the map to add points.';
+
+  @override
+  String get leg => 'Leg';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get navigationActive => 'Active';
+
+  @override
+  String get navigationStopped => 'Stopped';
+
+  @override
+  String get startNavigation => 'Start';
+
+  @override
+  String get stopNavigation => 'Stop';
+
+  @override
+  String get clearNavigation => 'Clear route';
+
+  @override
+  String get clearNavigationConfirm =>
+      'Are you sure you want to clear the navigation route?';
+
+  @override
+  String get navigationDetailsTitle => 'Navigation Details';
+
+  @override
+  String get nearestPoint => 'Nearest Point';
+
+  @override
+  String get destinationPoint => 'Destination';
+
+  @override
+  String activeSpeedLabel(String value, String unit) {
+    return 'Speed for ETA: $value $unit';
+  }
+
+  @override
+  String get waypointsList => 'Waypoints List';
 }

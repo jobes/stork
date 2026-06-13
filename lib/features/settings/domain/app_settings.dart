@@ -38,6 +38,7 @@ abstract class AppSettings with _$AppSettings {
     @Default(true) bool autoQnh,
     @Default(AltitudeUnit.feet) AltitudeUnit altitudeUnit,
     @Default(AltitudeUnit.meters) AltitudeUnit heightUnit,
+    @Default(27.78) double averageSpeed,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>

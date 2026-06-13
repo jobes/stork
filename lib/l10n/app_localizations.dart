@@ -1699,6 +1699,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Flight Start Time'**
   String get flightStartTime;
+
+  /// No description provided for @navigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation'**
+  String get navigation;
+
+  /// No description provided for @navigateToPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to point'**
+  String get navigateToPoint;
+
+  /// No description provided for @addPointToNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add point to navigation'**
+  String get addPointToNavigation;
+
+  /// No description provided for @averageSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected flight speed'**
+  String get averageSpeed;
+
+  /// No description provided for @groundSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Ground speed'**
+  String get groundSpeed;
+
+  /// No description provided for @navigationRequiresLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation requires current location.'**
+  String get navigationRequiresLocation;
+
+  /// No description provided for @noNavigationPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'No navigation points. Tap on the map to add points.'**
+  String get noNavigationPoints;
+
+  /// No description provided for @leg.
+  ///
+  /// In en, this message translates to:
+  /// **'Leg'**
+  String get leg;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @navigationActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get navigationActive;
+
+  /// No description provided for @navigationStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get navigationStopped;
+
+  /// No description provided for @startNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get startNavigation;
+
+  /// No description provided for @stopNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get stopNavigation;
+
+  /// No description provided for @clearNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear route'**
+  String get clearNavigation;
+
+  /// No description provided for @clearNavigationConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear the navigation route?'**
+  String get clearNavigationConfirm;
+
+  /// No description provided for @navigationDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation Details'**
+  String get navigationDetailsTitle;
+
+  /// No description provided for @nearestPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest Point'**
+  String get nearestPoint;
+
+  /// No description provided for @destinationPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get destinationPoint;
+
+  /// No description provided for @activeSpeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed for ETA: {value} {unit}'**
+  String activeSpeedLabel(String value, String unit);
+
+  /// No description provided for @waypointsList.
+  ///
+  /// In en, this message translates to:
+  /// **'Waypoints List'**
+  String get waypointsList;
 }
 
 class _AppLocalizationsDelegate

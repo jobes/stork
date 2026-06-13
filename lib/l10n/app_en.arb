@@ -428,5 +428,35 @@
   "flightDetailsTitle": "Flight Details",
   "flightDuration": "Flight Duration",
   "flightDistance": "Flight Distance",
-  "flightStartTime": "Flight Start Time"
+  "flightStartTime": "Flight Start Time",
+  "navigation": "Navigation",
+  "navigateToPoint": "Navigate to point",
+  "addPointToNavigation": "Add point to navigation",
+  "averageSpeed": "Expected flight speed",
+  "groundSpeed": "Ground speed",
+  "navigationRequiresLocation": "Navigation requires current location.",
+  "noNavigationPoints": "No navigation points. Tap on the map to add points.",
+  "leg": "Leg",
+  "total": "Total",
+  "navigationActive": "Active",
+  "navigationStopped": "Stopped",
+  "startNavigation": "Start",
+  "stopNavigation": "Stop",
+  "clearNavigation": "Clear route",
+  "clearNavigationConfirm": "Are you sure you want to clear the navigation route?",
+  "navigationDetailsTitle": "Navigation Details",
+  "nearestPoint": "Nearest Point",
+  "destinationPoint": "Destination",
+  "activeSpeedLabel": "Speed for ETA: {value} {unit}",
+  "@activeSpeedLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "waypointsList": "Waypoints List"
 }

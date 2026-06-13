@@ -53,6 +53,7 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   heightUnit:
       $enumDecodeNullable(_$AltitudeUnitEnumMap, json['heightUnit']) ??
       AltitudeUnit.meters,
+  averageSpeed: (json['averageSpeed'] as num?)?.toDouble() ?? 27.78,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -75,6 +76,7 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'autoQnh': instance.autoQnh,
       'altitudeUnit': _$AltitudeUnitEnumMap[instance.altitudeUnit]!,
       'heightUnit': _$AltitudeUnitEnumMap[instance.heightUnit]!,
+      'averageSpeed': instance.averageSpeed,
     };
 
 const _$SpeedUnitEnumMap = {

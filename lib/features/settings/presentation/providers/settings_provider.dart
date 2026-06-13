@@ -353,4 +353,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   Future<SettingsUpdateResult> updateHeightUnit(AltitudeUnit heightUnit) =>
       _updateSettings((s) => s.copyWith(heightUnit: heightUnit));
+
+  Future<SettingsUpdateResult> updateAverageSpeed(double averageSpeed) {
+    return _updateSettings((s) {
+      final speedUnit = s.speedUnit;
+      final speedMs = speedUnit.convertToMs(averageSpeed);
+      return s.copyWith(averageSpeed: speedMs);
+    });
+  }
 }

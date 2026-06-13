@@ -14,10 +14,10 @@ class MapDrawer extends StatelessWidget {
 
     return Drawer(
       child: PointerInterceptor(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
             DrawerHeader(
+              margin: EdgeInsets.zero,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -87,6 +87,15 @@ class MapDrawer extends StatelessWidget {
                 ],
               ),
             ),
+            ListTile(
+              leading: const Icon(Icons.navigation_outlined),
+              title: Text(l10n.navigation),
+              onTap: () {
+                context.pop();
+                context.push('/navigation');
+              },
+            ),
+            const Spacer(),
             if (!kIsWeb)
               ListTile(
                 leading: const Icon(Icons.map),
@@ -105,6 +114,7 @@ class MapDrawer extends StatelessWidget {
                 context.push('/settings');
               },
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
