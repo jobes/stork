@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:clock/clock.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'telemetry_provider.dart';
 import '../../domain/models/telemetry_state.dart';
@@ -77,7 +76,7 @@ class FlightDuration extends _$FlightDuration {
       _distanceMeters = 0.0;
       _lastLatitude = next.latitude;
       _lastLongitude = next.longitude;
-      
+
       state = FlightSummary(
         duration: Duration.zero,
         distanceMeters: 0.0,
@@ -115,7 +114,7 @@ class FlightDuration extends _$FlightDuration {
         }
         _lastLatitude = next.latitude;
         _lastLongitude = next.longitude;
-        
+
         // Update the state with the new distance (and elapsed duration)
         final elapsed = _flightStartTime != null
             ? clock.now().difference(_flightStartTime!)
@@ -140,11 +139,17 @@ class FlightDuration extends _$FlightDuration {
     });
   }
 
-  double _calculateDistanceMeters(double lat1, double lon1, double lat2, double lon2) {
+  double _calculateDistanceMeters(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
     const earthRadius = 6371000.0; // in meters
     final dLat = (lat2 - lat1) * math.pi / 180.0;
     final dLon = (lon2 - lon1) * math.pi / 180.0;
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+    final a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
         math.cos(lat1 * math.pi / 180.0) *
             math.cos(lat2 * math.pi / 180.0) *
             math.sin(dLon / 2) *

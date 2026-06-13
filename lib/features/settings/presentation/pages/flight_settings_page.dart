@@ -284,6 +284,39 @@ class FlightSettingsPage extends ConsumerWidget {
                   ],
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.averageSpeed,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: speedUnit
+                          .convertFromMs(settings.averageSpeed)
+                          .roundToDouble(),
+                      min: 10,
+                      max: 500,
+                      step: 5,
+                      suffix: settings.speedUnit.getAbbreviation(l10n),
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateAverageSpeed(newValue),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
               CourseLineSettingsSection(settings: settings, l10n: l10n),
             ],
           );

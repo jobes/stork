@@ -4,6 +4,7 @@ import '../../features/map/presentation/pages/map_page.dart';
 import '../../features/offline_maps/presentation/pages/offline_maps_page_web.dart'
     if (dart.library.io) '../../features/offline_maps/presentation/pages/offline_maps_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/navigation/presentation/pages/navigation_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -17,6 +18,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsPage(),
+    ),
+    GoRoute(
+      path: '/navigation',
+      builder: (context, state) => const NavigationPage(),
     ),
   ],
 );

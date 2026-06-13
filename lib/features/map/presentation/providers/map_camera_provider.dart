@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -8,6 +10,7 @@ import '../../../../core/services/location_service.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
+import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../utils/geojson_builder.dart';
 
 part 'map_camera_provider.g.dart';
@@ -42,6 +45,12 @@ class MapCamera extends _$MapCamera {
     // Listen to telemetry updates to move camera
     ref.listen(telemetryProvider, (previous, next) {
       if (_mapController == null) return;
+
+      // Update navigation route on map if position changed
+      if (next.latitude != previous?.latitude ||
+          next.longitude != previous?.longitude) {
+        _updateNavigationRouteOnMap();
+      }
 
       // Update aircraft symbol if initialized
       if (_isAircraftSymbolInitialized &&
@@ -229,6 +238,11 @@ class MapCamera extends _$MapCamera {
           ref.read(telemetryProvider.notifier).updateGPS(heading: heading);
         }
       });
+    });
+
+    // Listen to navigation updates to redraw route on map
+    ref.listen(navigationProvider, (previous, next) {
+      _updateNavigationRouteOnMap();
     });
 
     // Clean up timer on dispose
@@ -504,6 +518,13 @@ class MapCamera extends _$MapCamera {
         ],
       );
 
+      final placeFeatures = _mapController!.featuresAtPoint(
+        event.screenPoint,
+        layerIds: [
+          'places_locality',
+        ],
+      );
+
       final featureMaps = <Map<String, dynamic>>[];
       for (final f in airportFeatures) {
         featureMaps.add({
@@ -519,13 +540,19 @@ class MapCamera extends _$MapCamera {
           'layerType': 'airspace',
         });
       }
-
-      if (featureMaps.isNotEmpty) {
-        debugPrint('Tapped features: $featureMaps');
-        onFeaturesTapped(featureMaps, event.point);
+      for (final f in placeFeatures) {
+        featureMaps.add({
+          'id': f.id,
+          'properties': f.properties,
+          'layerType': 'place',
+        });
       }
+
+      debugPrint('Tapped features: $featureMaps');
+      onFeaturesTapped(featureMaps, event.point);
     } catch (e) {
       debugPrint('Error querying map features: $e');
+      onFeaturesTapped(const [], event.point);
     }
   }
 
@@ -543,5 +570,131 @@ class MapCamera extends _$MapCamera {
       }
     }
     return false;
+  }
+
+  void _updateNavigationRouteOnMap() {
+    if (_mapController == null ||
+        !_isAircraftSymbolInitialized ||
+        _mapController?.style == null) {
+      return;
+    }
+
+    final telemetry = ref.read(telemetryProvider);
+    final navState = ref.read(navigationProvider).value;
+    final points = navState?.points ?? [];
+    final isActive = navState?.isActive ?? false;
+
+    if (!isActive ||
+        points.isEmpty ||
+        telemetry.latitude == null ||
+        telemetry.longitude == null ||
+        (telemetry.latitude == 0.0 && telemetry.longitude == 0.0)) {
+      _mapController!.style!.updateGeoJsonSource(
+        id: 'navigation-route-source',
+        data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
+      );
+      return;
+    }
+
+    final List<List<double>> interpolatedCoordinates = [];
+    double currentLat = telemetry.latitude!;
+    double currentLon = telemetry.longitude!;
+
+    for (final p in points) {
+      final legPath = _interpolateGreatCircle(currentLat, currentLon, p.latitude, p.longitude);
+      if (legPath != null) {
+        if (interpolatedCoordinates.isNotEmpty && legPath.isNotEmpty) {
+          interpolatedCoordinates.addAll(legPath.skip(1));
+        } else {
+          interpolatedCoordinates.addAll(legPath);
+        }
+      }
+      currentLat = p.latitude;
+      currentLon = p.longitude;
+    }
+
+    if (interpolatedCoordinates.length < 2) {
+      _mapController!.style!.updateGeoJsonSource(
+        id: 'navigation-route-source',
+        data: jsonEncode({
+          'type': 'FeatureCollection',
+          'features': [],
+        }),
+      );
+      return;
+    }
+
+    final geojson = jsonEncode({
+      'type': 'FeatureCollection',
+      'features': [
+        {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'LineString',
+            'coordinates': interpolatedCoordinates,
+          },
+        }
+      ],
+    });
+
+    _mapController!.style!.updateGeoJsonSource(
+      id: 'navigation-route-source',
+      data: geojson,
+    );
+  }
+
+  List<List<double>>? _interpolateGreatCircle(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    if (lat1 == lat2 && lon1 == lon2) {
+      return null;
+    }
+
+    final lat1Rad = lat1 * math.pi / 180.0;
+    final lon1Rad = lon1 * math.pi / 180.0;
+    final lat2Rad = lat2 * math.pi / 180.0;
+    final lon2Rad = lon2 * math.pi / 180.0;
+
+    final dLat = lat2Rad - lat1Rad;
+    final dLon = lon2Rad - lon1Rad;
+    final sinLatSq = math.sin(dLat / 2) * math.sin(dLat / 2);
+    final sinLonSq = math.sin(dLon / 2) * math.sin(dLon / 2);
+    final a = sinLatSq + math.cos(lat1Rad) * math.cos(lat2Rad) * sinLonSq;
+    final d = 2 * math.asin(math.sqrt(math.min(1.0, a)));
+
+    if (d < 1e-6) {
+      return [
+        [lon1, lat1],
+        [lon2, lat2],
+      ];
+    }
+
+    final distanceMeters = d * 6371000.0;
+    final segments = (distanceMeters / 50000.0).clamp(5, 100).toInt();
+
+    final List<List<double>> path = [];
+    final sinD = math.sin(d);
+
+    for (int i = 0; i <= segments; i++) {
+      final f = i / segments;
+      final weightA = math.sin((1.0 - f) * d) / sinD;
+      final weightB = math.sin(f * d) / sinD;
+
+      final x = weightA * math.cos(lat1Rad) * math.cos(lon1Rad) +
+          weightB * math.cos(lat2Rad) * math.cos(lon2Rad);
+      final y = weightA * math.cos(lat1Rad) * math.sin(lon1Rad) +
+          weightB * math.cos(lat2Rad) * math.sin(lon2Rad);
+      final z = weightA * math.sin(lat1Rad) + weightB * math.sin(lat2Rad);
+
+      final lat = math.atan2(z, math.sqrt(x * x + y * y));
+      final lon = math.atan2(y, x);
+
+      path.add([lon * 180.0 / math.pi, lat * 180.0 / math.pi]);
+    }
+
+    return path;
   }
 }

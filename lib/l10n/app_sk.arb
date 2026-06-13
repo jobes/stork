@@ -350,5 +350,38 @@
   "flightDetailsTitle": "Detaily letu",
   "flightDuration": "Trvanie letu",
   "flightDistance": "Dĺžka letu",
-  "flightStartTime": "Čas začiatku letu"
+  "flightStartTime": "Čas začiatku letu",
+  "navigation": "Navigácia",
+  "navigateToPoint": "Naviguj na bod",
+  "addPointToNavigation": "Pridať bod do navigácie",
+  "averageSpeed": "Predpokladaná rýchlosť letu",
+  "groundSpeed": "Rýchlosť voči zemi",
+  "navigationRequiresLocation": "Najprv potrebujem aktuálnu polohu.",
+  "noNavigationPoints": "Žiadne body navigácie. Pridajte body kliknutím na mapu.",
+  "leg": "Úsek",
+  "total": "Celkovo",
+  "navigationActive": "Aktívna",
+  "navigationStopped": "Zastavená",
+  "startNavigation": "Spustiť",
+  "stopNavigation": "Zastaviť",
+  "clearNavigation": "Zrušiť navigáciu",
+  "clearNavigationConfirm": "Naozaj chcete zrušiť navigáciu a vymazať celú trasu?",
+  "navigationDetailsTitle": "Detaily navigácie",
+  "nearestPoint": "Najbližší bod",
+  "destinationPoint": "Cieľ",
+  "activeSpeedLabel": "Rýchlosť pre ETA: {value} {unit}",
+  "@activeSpeedLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "waypointsList": "Zoznam bodov",
+  "placeholderDash": "---",
+  "minutesAbbrev": "min",
+  "etaLabel": "ETA"
 }

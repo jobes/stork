@@ -17,6 +17,8 @@ import '../components/altitude_telemetry_widget.dart';
 import '../components/flight_time_telemetry_widget.dart';
 import '../components/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
+import '../../../navigation/presentation/providers/navigation_provider.dart';
+import '../components/navigation_telemetry_widget.dart';
 import '../components/map_features_bottom_sheet.dart';
 
 class MapPage extends ConsumerStatefulWidget {
@@ -44,6 +46,7 @@ class _MapPageState extends ConsumerState<MapPage> {
     final telemetry = ref.watch(telemetryProvider);
     final l10n = AppLocalizations.of(context)!;
     final cameraController = ref.watch(mapCameraProvider.notifier);
+    final navigationAsync = ref.watch(navigationProvider);
 
     // Enable immersive mode on the map page
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
@@ -85,7 +88,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                       event,
                       onFeaturesTapped: (features, coordinate) {
                         if (!mounted) return;
-                        showMapFeaturesBottomSheet(context, features);
+                        showMapFeaturesBottomSheet(context, features, coordinate);
                       },
                     );
                   },
@@ -123,6 +126,14 @@ class _MapPageState extends ConsumerState<MapPage> {
                 defaultLeft: 334.0, // Vedľa altitude widgetu
                 child: FlightTimeTelemetryWidget(),
               ),
+              if (navigationAsync.value?.isActive == true &&
+                  navigationAsync.value?.points.isNotEmpty == true)
+                const MapWidgetWrapper(
+                  widgetId: 'navigation_widget',
+                  defaultTop: 120.0,
+                  defaultLeft: 16.0,
+                  child: NavigationTelemetryWidget(),
+                ),
             ],
             Builder(
               builder: (context) => MapControls(

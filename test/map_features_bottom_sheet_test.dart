@@ -2,6 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:maplibre/maplibre.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stork/core/providers/shared_preferences_provider.dart';
+import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/map/presentation/components/map_features_bottom_sheet.dart';
 import 'package:stork/features/map/presentation/components/airport_details_dialog.dart';
 import 'package:stork/features/map/presentation/components/airspace_details_dialog.dart';
@@ -33,14 +37,17 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: MapFeaturesBottomSheet(features: features),
+            body: MapFeaturesBottomSheet(
+              features: features,
+              coordinate: Geographic(lat: 0.0, lon: 0.0),
+            ),
           ),
         ),
       ),
     );
 
     // Tap on the ListTile to show dialog
-    await tester.tap(find.byType(ListTile));
+    await tester.tap(find.byType(ListTile).first);
     await tester.pumpAndSettle();
 
     final dialog = tester.widget<AirportDetailsDialog>(find.byType(AirportDetailsDialog));
@@ -69,13 +76,16 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: MapFeaturesBottomSheet(features: features),
+            body: MapFeaturesBottomSheet(
+              features: features,
+              coordinate: Geographic(lat: 0.0, lon: 0.0),
+            ),
           ),
         ),
       ),
     );
 
-    await tester.tap(find.byType(ListTile));
+    await tester.tap(find.byType(ListTile).first);
     await tester.pumpAndSettle();
 
     final dialog = tester.widget<AirportDetailsDialog>(find.byType(AirportDetailsDialog));
@@ -104,13 +114,16 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: MapFeaturesBottomSheet(features: features),
+            body: MapFeaturesBottomSheet(
+              features: features,
+              coordinate: Geographic(lat: 0.0, lon: 0.0),
+            ),
           ),
         ),
       ),
     );
 
-    await tester.tap(find.byType(ListTile));
+    await tester.tap(find.byType(ListTile).first);
     await tester.pumpAndSettle();
 
     final dialog = tester.widget<AirportDetailsDialog>(find.byType(AirportDetailsDialog));
@@ -139,13 +152,16 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: MapFeaturesBottomSheet(features: features),
+            body: MapFeaturesBottomSheet(
+              features: features,
+              coordinate: Geographic(lat: 0.0, lon: 0.0),
+            ),
           ),
         ),
       ),
     );
 
-    await tester.tap(find.byType(ListTile));
+    await tester.tap(find.byType(ListTile).first);
     await tester.pumpAndSettle();
 
     final dialog = tester.widget<AirportDetailsDialog>(find.byType(AirportDetailsDialog));
@@ -173,7 +189,10 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: MapFeaturesBottomSheet(features: features),
+            body: MapFeaturesBottomSheet(
+              features: features,
+              coordinate: Geographic(lat: 0.0, lon: 0.0),
+            ),
           ),
         ),
       ),
@@ -449,5 +468,203 @@ void main() {
     expect(limitUpperText.overflow, equals(TextOverflow.ellipsis));
     expect(limitUpperText.maxLines, equals(1));
     expect(limitUpperText.softWrap, isFalse);
+  });
+
+  testWidgets('MapFeaturesBottomSheet airport navigation option snaps to airport coordinates and formats name with ICAO', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final features = [
+      {
+        'layerType': 'airport',
+        'properties': {
+          'source_id': 'LKMK',
+          'country': 'SK',
+          'name_label': 'Martin',
+        }
+      }
+    ];
+
+    final mockAirportMetadata = AirportMetadata(
+      id: 'LKMK',
+      name: 'Martin',
+      icaoCode: 'LKMK',
+      type: AirportType.airport,
+      trafficType: [],
+      country: 'SK',
+      frequencies: [],
+      runways: [],
+      images: [],
+      latitude: 49.0683,
+      longitude: 18.9567,
+    );
+
+    late ProviderContainer providerContainer;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWith((ref) => SharedPreferences.getInstance()),
+          airportMetadataProvider('LKMK', 'SK').overrideWith((ref) async => mockAirportMetadata),
+          openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+        ],
+        child: Consumer(
+          builder: (context, ref, child) {
+            providerContainer = ProviderScope.containerOf(context);
+            return MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: MapFeaturesBottomSheet(
+                  features: features,
+                  coordinate: Geographic(lat: 49.0, lon: 18.0),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Martin (LKMK)'), findsOneWidget);
+
+    final navTile = find.byIcon(Icons.navigation_outlined);
+    expect(navTile, findsOneWidget);
+
+    await tester.tap(navTile);
+    await tester.pumpAndSettle();
+
+    final navState = await providerContainer.read(navigationProvider.future);
+    expect(navState.points, hasLength(1));
+    final pt = navState.points.first;
+    expect(pt.name, equals('Martin (LKMK)'));
+    expect(pt.latitude, equals(49.0683));
+    expect(pt.longitude, equals(18.9567));
+    expect(pt.isAirport, isTrue);
+  });
+
+  testWidgets('MapFeaturesBottomSheet airport navigation option ignores 24-character hex source_id and uses name only', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final features = [
+      {
+        'layerType': 'airport',
+        'properties': {
+          'source_id': '609c13be06ec7f3c4c93540c',
+          'country': 'SK',
+          'name_label': 'Martin Site',
+        }
+      }
+    ];
+
+    final mockAirportMetadata = AirportMetadata(
+      id: '609c13be06ec7f3c4c93540c',
+      name: 'Martin Site',
+      icaoCode: null,
+      type: AirportType.airport,
+      trafficType: [],
+      country: 'SK',
+      frequencies: [],
+      runways: [],
+      images: [],
+      latitude: 49.0683,
+      longitude: 18.9567,
+    );
+
+    late ProviderContainer providerContainer;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWith((ref) => SharedPreferences.getInstance()),
+          airportMetadataProvider('609c13be06ec7f3c4c93540c', 'SK').overrideWith((ref) async => mockAirportMetadata),
+          openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+        ],
+        child: Consumer(
+          builder: (context, ref, child) {
+            providerContainer = ProviderScope.containerOf(context);
+            return MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: MapFeaturesBottomSheet(
+                  features: features,
+                  coordinate: Geographic(lat: 49.0, lon: 18.0),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Martin Site'), findsOneWidget);
+
+    final navTile = find.byIcon(Icons.navigation_outlined);
+    expect(navTile, findsOneWidget);
+
+    await tester.tap(navTile);
+    await tester.pumpAndSettle();
+
+    final navState = await providerContainer.read(navigationProvider.future);
+    expect(navState.points, hasLength(1));
+    final pt = navState.points.first;
+    expect(pt.name, equals('Martin Site'));
+    expect(pt.isAirport, isTrue);
+  });
+
+  testWidgets('MapFeaturesBottomSheet place navigation option uses city name as the waypoint name', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final features = [
+      {
+        'layerType': 'place',
+        'properties': {
+          'name': 'Bratislava',
+        }
+      }
+    ];
+
+    late ProviderContainer providerContainer;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWith((ref) => SharedPreferences.getInstance()),
+          openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+        ],
+        child: Consumer(
+          builder: (context, ref, child) {
+            providerContainer = ProviderScope.containerOf(context);
+            return MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: MapFeaturesBottomSheet(
+                  features: features,
+                  coordinate: Geographic(lat: 48.1486, lon: 17.1077),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bratislava'), findsOneWidget);
+
+    final navTile = find.byIcon(Icons.navigation_outlined);
+    expect(navTile, findsOneWidget);
+
+    await tester.tap(navTile);
+    await tester.pumpAndSettle();
+
+    final navState = await providerContainer.read(navigationProvider.future);
+    expect(navState.points, hasLength(1));
+    final pt = navState.points.first;
+    expect(pt.name, equals('Bratislava'));
+    expect(pt.isAirport, isFalse);
   });
 }

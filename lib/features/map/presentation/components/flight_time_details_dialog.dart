@@ -9,8 +9,8 @@ import 'base_details_dialog.dart';
 class FlightTimeDetailsDialog extends ConsumerWidget {
   const FlightTimeDetailsDialog({super.key});
 
-  String _formatStartTime(DateTime? dateTime) {
-    if (dateTime == null) return '---';
+  String _formatStartTime(BuildContext context, DateTime? dateTime) {
+    if (dateTime == null) return AppLocalizations.of(context)!.placeholderDash;
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
     final second = dateTime.second.toString().padLeft(2, '0');
@@ -48,7 +48,7 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
               icon: Icons.today,
               iconColor: Colors.orangeAccent,
               label: l10n.flightStartTime,
-              value: _formatStartTime(flightSummary.startTime),
+              value: _formatStartTime(context, flightSummary.startTime),
               isDark: isDark,
             ),
             const Divider(height: 24),

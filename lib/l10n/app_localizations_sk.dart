@@ -843,4 +843,77 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get flightStartTime => 'Čas začiatku letu';
+
+  @override
+  String get navigation => 'Navigácia';
+
+  @override
+  String get navigateToPoint => 'Naviguj na bod';
+
+  @override
+  String get addPointToNavigation => 'Pridať bod do navigácie';
+
+  @override
+  String get averageSpeed => 'Predpokladaná rýchlosť letu';
+
+  @override
+  String get groundSpeed => 'Rýchlosť voči zemi';
+
+  @override
+  String get navigationRequiresLocation => 'Najprv potrebujem aktuálnu polohu.';
+
+  @override
+  String get noNavigationPoints =>
+      'Žiadne body navigácie. Pridajte body kliknutím na mapu.';
+
+  @override
+  String get leg => 'Úsek';
+
+  @override
+  String get total => 'Celkovo';
+
+  @override
+  String get navigationActive => 'Aktívna';
+
+  @override
+  String get navigationStopped => 'Zastavená';
+
+  @override
+  String get startNavigation => 'Spustiť';
+
+  @override
+  String get stopNavigation => 'Zastaviť';
+
+  @override
+  String get clearNavigation => 'Zrušiť navigáciu';
+
+  @override
+  String get clearNavigationConfirm =>
+      'Naozaj chcete zrušiť navigáciu a vymazať celú trasu?';
+
+  @override
+  String get navigationDetailsTitle => 'Detaily navigácie';
+
+  @override
+  String get nearestPoint => 'Najbližší bod';
+
+  @override
+  String get destinationPoint => 'Cieľ';
+
+  @override
+  String activeSpeedLabel(String value, String unit) {
+    return 'Rýchlosť pre ETA: $value $unit';
+  }
+
+  @override
+  String get waypointsList => 'Zoznam bodov';
+
+  @override
+  String get placeholderDash => '---';
+
+  @override
+  String get minutesAbbrev => 'min';
+
+  @override
+  String get etaLabel => 'ETA';
 }

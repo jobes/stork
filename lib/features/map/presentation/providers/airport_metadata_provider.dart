@@ -19,7 +19,19 @@ Map<String, AirportMetadata> _parseAirportFeatures(String responseBody) {
   if (features != null) {
     for (final f in features) {
       if (f is Map<String, dynamic>) {
-        final feature = GeoJsonFeature.fromJson(f);
+        final Map<String, dynamic> properties = Map<String, dynamic>.from(f['properties'] as Map? ?? {});
+        final geometry = f['geometry'] as Map<String, dynamic>?;
+        if (geometry != null && geometry['type'] == 'Point') {
+          final coordinates = geometry['coordinates'] as List<dynamic>?;
+          if (coordinates != null && coordinates.length >= 2) {
+            properties['latitude'] = (coordinates[1] as num).toDouble();
+            properties['longitude'] = (coordinates[0] as num).toDouble();
+          }
+        }
+        final feature = GeoJsonFeature.fromJson({
+          ...f,
+          'properties': properties,
+        });
         if (feature.properties.id.isNotEmpty) {
           result[feature.properties.id] = feature.properties;
         }
@@ -53,9 +65,11 @@ class AirportMetadataCache extends _$AirportMetadataCache {
     final dbFeature = await DatabaseService.getOpenAipFeature(airportId, 'apt');
     if (dbFeature != null) {
       final metadata = AirportMetadata.fromJson(dbFeature);
-      // Add to memory cache for faster subsequent access
-      _memoryCache[airportId] = metadata;
-      return metadata;
+      if (metadata.latitude != null && metadata.longitude != null) {
+        // Add to memory cache for faster subsequent access
+        _memoryCache[airportId] = metadata;
+        return metadata;
+      }
     }
 
     // 3. If the country has not been downloaded in this session, fetch it

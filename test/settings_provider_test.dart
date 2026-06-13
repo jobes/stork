@@ -614,5 +614,97 @@ void main() {
         expect(mockRepository.currentSettings.qnh, equals(AviationMath.maxQnhHpa));
       },
     );
+
+    test('updateAverageSpeed modifies the averageSpeed setting and persists it', () async {
+      mockRepository.currentSettings = mockRepository.currentSettings.copyWith(
+        speedUnit: SpeedUnit.kmh,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      final speedUnit = container.read(appSettingsProvider).value!.speedUnit;
+      final expectedSpeedMs = speedUnit.convertToMs(36.0);
+
+      final result = await notifier.updateAverageSpeed(36.0);
+      expect(result, isA<SettingsUpdateSuccess>());
+      expect(container.read(appSettingsProvider).value?.averageSpeed, equals(expectedSpeedMs));
+      expect(mockRepository.currentSettings.averageSpeed, equals(expectedSpeedMs));
+    });
+
+    test(
+      'updateAverageSpeed defensive validation for invalid/NaN/infinite/negative/zero values',
+      () async {
+        mockRepository.currentSettings = mockRepository.currentSettings.copyWith(
+          speedUnit: SpeedUnit.kmh,
+        );
+
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
+
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
+
+        final speedUnit = container.read(appSettingsProvider).value!.speedUnit;
+        final expectedMinMs = speedUnit.convertToMs(0.001);
+
+        final resNaN = await notifier.updateAverageSpeed(double.nan);
+        expect(resNaN, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.averageSpeed,
+          closeTo(expectedMinMs, 1e-9),
+        );
+        expect(mockRepository.currentSettings.averageSpeed, closeTo(expectedMinMs, 1e-9));
+
+        final resInf = await notifier.updateAverageSpeed(double.infinity);
+        expect(resInf, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.averageSpeed,
+          closeTo(expectedMinMs, 1e-9),
+        );
+
+        final resZero = await notifier.updateAverageSpeed(0.0);
+        expect(resZero, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.averageSpeed,
+          closeTo(expectedMinMs, 1e-9),
+        );
+
+        final resNeg = await notifier.updateAverageSpeed(-10.0);
+        expect(resNeg, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.averageSpeed,
+          closeTo(expectedMinMs, 1e-9),
+        );
+
+        final resValidSmall = await notifier.updateAverageSpeed(0.005);
+        expect(resValidSmall, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.averageSpeed,
+          closeTo(speedUnit.convertToMs(0.005), 1e-9),
+        );
+      },
+    );
   });
 }

@@ -41,6 +41,32 @@ extension MapCameraStyle on MapCamera {
 
       await style.addSource(
         GeoJsonSource(
+          id: 'navigation-route-source',
+          data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        LineStyleLayer(
+          id: 'navigation-route-border',
+          sourceId: 'navigation-route-source',
+          paint: {'line-color': '#000000', 'line-width': 6.0},
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        LineStyleLayer(
+          id: 'navigation-route-line',
+          sourceId: 'navigation-route-source',
+          paint: {'line-color': '#FF9800', 'line-width': 3.5},
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addSource(
+        GeoJsonSource(
           id: 'aircraft-source',
           data: GeoJsonBuilder.buildAircraftGeoJson(
             telemetry.latitude,
@@ -69,6 +95,7 @@ extension MapCameraStyle on MapCamera {
       if (!refAccess.mounted) return;
 
       _isAircraftSymbolInitialized = true;
+      _updateNavigationRouteOnMap();
       debugPrint('Aircraft symbol initialized 😎');
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');

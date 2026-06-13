@@ -452,6 +452,8 @@ class AirportMetadata {
   final List<AirportFrequency> frequencies;
   final List<AirportRunway> runways;
   final List<AirportImage> images;
+  final double? latitude;
+  final double? longitude;
 
   AirportMetadata({
     required this.id,
@@ -469,6 +471,8 @@ class AirportMetadata {
     required this.frequencies,
     required this.runways,
     required this.images,
+    this.latitude,
+    this.longitude,
   });
 
   factory AirportMetadata.fromJson(Map<String, Object?> json) {
@@ -518,6 +522,8 @@ class AirportMetadata {
                 .map((e) => AirportImage.fromJson(Map<String, Object?>.from(e)))
                 .toList()
           : const [],
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
     );
   }
 
@@ -539,6 +545,8 @@ class AirportMetadata {
       'frequencies': frequencies.map((e) => e.toJson()).toList(),
       'runways': runways.map((e) => e.toJson()).toList(),
       'images': images.map((e) => e.toJson()).toList(),
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
     };
   }
 }
