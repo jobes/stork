@@ -181,7 +181,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
       );
     } else {
       columnChildren.add(
-        _buildSpeedRow('---', unitLabel, speedValueColor, defaultTextColor, fontScale),
+        _buildSpeedRow(l10n.placeholderDash, unitLabel, speedValueColor, defaultTextColor, fontScale),
       );
     }
 

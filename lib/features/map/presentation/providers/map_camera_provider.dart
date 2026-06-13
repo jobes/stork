@@ -602,13 +602,26 @@ class MapCamera extends _$MapCamera {
 
     for (final p in points) {
       final legPath = _interpolateGreatCircle(currentLat, currentLon, p.latitude, p.longitude);
-      if (interpolatedCoordinates.isNotEmpty && legPath.isNotEmpty) {
-        interpolatedCoordinates.addAll(legPath.skip(1));
-      } else {
-        interpolatedCoordinates.addAll(legPath);
+      if (legPath != null) {
+        if (interpolatedCoordinates.isNotEmpty && legPath.isNotEmpty) {
+          interpolatedCoordinates.addAll(legPath.skip(1));
+        } else {
+          interpolatedCoordinates.addAll(legPath);
+        }
       }
       currentLat = p.latitude;
       currentLon = p.longitude;
+    }
+
+    if (interpolatedCoordinates.length < 2) {
+      _mapController!.style!.updateGeoJsonSource(
+        id: 'navigation-route-source',
+        data: jsonEncode({
+          'type': 'FeatureCollection',
+          'features': [],
+        }),
+      );
+      return;
     }
 
     final geojson = jsonEncode({
@@ -630,16 +643,14 @@ class MapCamera extends _$MapCamera {
     );
   }
 
-  List<List<double>> _interpolateGreatCircle(
+  List<List<double>>? _interpolateGreatCircle(
     double lat1,
     double lon1,
     double lat2,
     double lon2,
   ) {
     if (lat1 == lat2 && lon1 == lon2) {
-      return [
-        [lon1, lat1]
-      ];
+      return null;
     }
 
     final lat1Rad = lat1 * math.pi / 180.0;

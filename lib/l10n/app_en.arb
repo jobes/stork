@@ -458,5 +458,8 @@
       }
     }
   },
-  "waypointsList": "Waypoints List"
+  "waypointsList": "Waypoints List",
+  "placeholderDash": "---",
+  "minutesAbbrev": "min",
+  "etaLabel": "ETA"
 }

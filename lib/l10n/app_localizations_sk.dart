@@ -907,4 +907,13 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get waypointsList => 'Zoznam bodov';
+
+  @override
+  String get placeholderDash => '---';
+
+  @override
+  String get minutesAbbrev => 'min';
+
+  @override
+  String get etaLabel => 'ETA';
 }

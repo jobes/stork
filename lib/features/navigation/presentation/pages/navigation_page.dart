@@ -9,14 +9,14 @@ import '../providers/navigation_provider.dart';
 class NavigationPage extends ConsumerWidget {
   const NavigationPage({super.key});
 
-  String _formatDurationNoSeconds(Duration duration) {
+  String _formatDurationNoSeconds(BuildContext context, Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final minStr = minutes.toString().padLeft(2, '0');
     if (hours > 0) {
       return '$hours:$minStr';
     } else {
-      return '$minutes min';
+      return '$minutes ${AppLocalizations.of(context)!.minutesAbbrev}';
     }
   }
 
@@ -249,7 +249,7 @@ class NavigationPage extends ConsumerWidget {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          _formatDurationNoSeconds(totalDuration),
+                                          _formatDurationNoSeconds(context, totalDuration),
                                           style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
@@ -405,7 +405,7 @@ class NavigationPage extends ConsumerWidget {
                                               ),
                                             ),
                                             Text(
-                                              '${legDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(leg.legDuration)}',
+                                              '${legDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(context, leg.legDuration)}',
                                               style: const TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
@@ -424,7 +424,7 @@ class NavigationPage extends ConsumerWidget {
                                               ),
                                             ),
                                             Text(
-                                              '${cumulativeDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(leg.cumulativeDuration)}',
+                                              '${cumulativeDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(context, leg.cumulativeDuration)}',
                                               style: const TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,

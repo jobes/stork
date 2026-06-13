@@ -12,21 +12,21 @@ import 'base_details_dialog.dart';
 class NavigationDetailsDialog extends ConsumerWidget {
   const NavigationDetailsDialog({super.key});
 
-  String _formatEta(DateTime? dateTime) {
-    if (dateTime == null) return '---';
+  String _formatEta(BuildContext context, DateTime? dateTime) {
+    if (dateTime == null) return AppLocalizations.of(context)!.placeholderDash;
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
 
-  String _formatDurationNoSeconds(Duration duration) {
+  String _formatDurationNoSeconds(BuildContext context, Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final minStr = minutes.toString().padLeft(2, '0');
     if (hours > 0) {
       return '$hours:$minStr';
     } else {
-      return '$minutes min';
+      return '$minutes ${AppLocalizations.of(context)!.minutesAbbrev}';
     }
   }
 
@@ -99,7 +99,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
             final legDuration = leg.legDuration;
             final cumulativeDistanceKm = leg.cumulativeDistanceMeters / 1000.0;
             final cumulativeDuration = leg.cumulativeDuration;
-            final etaWaypointFormatted = _formatEta(leg.eta);
+            final etaWaypointFormatted = _formatEta(context, leg.eta);
 
             waypointWidgets.add(
               Container(
@@ -159,14 +159,14 @@ class NavigationDetailsDialog extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${l10n.leg}: ${legDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(legDuration)}',
+                            '${l10n.leg}: ${legDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(context, legDuration)}',
                             style: TextStyle(
                               fontSize: 11,
                               color: defaultTextColor,
                             ),
                           ),
                           Text(
-                            '${l10n.total}: ${cumulativeDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(cumulativeDuration)} (ETA: $etaWaypointFormatted)',
+                            '${l10n.total}: ${cumulativeDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(context, cumulativeDuration)} (${l10n.etaLabel}: $etaWaypointFormatted)',
                             style: TextStyle(
                               fontSize: 11,
                               color: defaultTextColor,
@@ -249,14 +249,14 @@ class NavigationDetailsDialog extends ConsumerWidget {
         final nearestPointName = points.first.name;
         final destPointName = points.last.name;
 
-        final distToNearestStr = distToNearest != null ? '${(distToNearest / 1000.0).toStringAsFixed(2)} km' : '---';
-        final distToDestStr = distToDest != null ? '${(distToDest / 1000.0).toStringAsFixed(2)} km' : '---';
+        final distToNearestStr = distToNearest != null ? '${(distToNearest / 1000.0).toStringAsFixed(2)} km' : l10n.placeholderDash;
+        final distToDestStr = distToDest != null ? '${(distToDest / 1000.0).toStringAsFixed(2)} km' : l10n.placeholderDash;
 
-        final timeToNearestStr = timeToNearest != null ? _formatDurationNoSeconds(timeToNearest) : '---';
-        final timeToDestStr = timeToDest != null ? _formatDurationNoSeconds(timeToDest) : '---';
+        final timeToNearestStr = timeToNearest != null ? _formatDurationNoSeconds(context, timeToNearest) : l10n.placeholderDash;
+        final timeToDestStr = timeToDest != null ? _formatDurationNoSeconds(context, timeToDest) : l10n.placeholderDash;
 
-        final etaNearestStr = timeToNearest != null ? _formatEta(now.add(timeToNearest)) : null;
-        final etaDestStr = timeToDest != null ? _formatEta(now.add(timeToDest)) : null;
+        final etaNearestStr = timeToNearest != null ? _formatEta(context, now.add(timeToNearest)) : null;
+        final etaDestStr = timeToDest != null ? _formatEta(context, now.add(timeToDest)) : null;
 
         return BaseDetailsDialog(
           titleText: l10n.navigationDetailsTitle,
@@ -282,6 +282,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
                       children: [
                         if (hasMultiplePoints) ...[
                           _buildDetailRow(
+                            context: context,
                             icon: Icons.arrow_right_alt,
                             iconColor: Colors.orangeAccent,
                             label: '${l10n.nearestPoint} ($nearestPointName)',
@@ -293,6 +294,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
                           const Divider(height: 20),
                         ],
                         _buildDetailRow(
+                          context: context,
                           icon: Icons.flag_outlined,
                           iconColor: Colors.green,
                           label: '${l10n.destinationPoint} ($destPointName)',
@@ -362,6 +364,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
   }
 
   Widget _buildDetailRow({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String label,
@@ -371,6 +374,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
     required bool isDark,
   }) {
     final defaultTextColor = isDark ? Colors.white70 : Colors.black87;
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -422,7 +426,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
                 if (eta != null) ...[
                   const SizedBox(height: 2),
                   Text(
-                    'ETA: $eta',
+                    '${l10n.etaLabel}: $eta',
                     style: TextStyle(
                       fontSize: 11,
                       fontFamily: 'monospace',

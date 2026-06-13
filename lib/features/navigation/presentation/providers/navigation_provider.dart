@@ -29,12 +29,22 @@ class NavigationPoint {
         'isAirport': isAirport,
       };
 
-  factory NavigationPoint.fromJson(Map<String, dynamic> json) => NavigationPoint(
-        latitude: (json['latitude'] as num).toDouble(),
-        longitude: (json['longitude'] as num).toDouble(),
-        name: json['name'] as String,
-        isAirport: json['isAirport'] as bool? ?? false,
+  factory NavigationPoint.fromJson(Map<String, dynamic> json) {
+    if (json case {
+      'latitude': num latitude,
+      'longitude': num longitude,
+      'name': String name,
+    }) {
+      final isAirport = json['isAirport'];
+      return NavigationPoint(
+        latitude: latitude.toDouble(),
+        longitude: longitude.toDouble(),
+        name: name,
+        isAirport: isAirport is bool ? isAirport : false,
       );
+    }
+    throw FormatException('Invalid JSON for NavigationPoint: $json');
+  }
 
   double distanceTo(double otherLat, double otherLon) {
     const earthRadius = 6371000.0; // in meters
@@ -75,13 +85,26 @@ class NavigationState {
         'isActive': isActive,
       };
 
-  factory NavigationState.fromJson(Map<String, dynamic> json) => NavigationState(
-        points: (json['points'] as List<dynamic>?)
-                ?.map((item) => NavigationPoint.fromJson(item))
-                .toList() ??
-            const [],
-        isActive: json['isActive'] as bool? ?? false,
-      );
+  factory NavigationState.fromJson(Map<String, dynamic> json) {
+    final points = <NavigationPoint>[];
+    if (json['points'] case List<dynamic> list) {
+      for (final item in list) {
+        if (item case Map<String, dynamic> map) {
+          points.add(NavigationPoint.fromJson(map));
+        } else {
+          throw FormatException('Invalid waypoint in points list: $item');
+        }
+      }
+    } else if (json['points'] != null) {
+      throw FormatException('Invalid points format');
+    }
+
+    final isActive = json['isActive'];
+    return NavigationState(
+      points: points,
+      isActive: isActive is bool ? isActive : false,
+    );
+  }
 }
 
 class NavigationLeg {
@@ -300,9 +323,11 @@ class NavigationNotifier extends _$NavigationNotifier {
     final current = state.value ?? const NavigationState();
     final updatedPoints = List<NavigationPoint>.from(current.points);
     if (oldIndex < 0 || oldIndex >= updatedPoints.length) return;
-    if (newIndex < 0 || newIndex >= updatedPoints.length) return;
+    if (newIndex < 0 || newIndex > updatedPoints.length) return;
+
     final item = updatedPoints.removeAt(oldIndex);
     updatedPoints.insert(newIndex, item);
+
     final updated = current.copyWith(points: updatedPoints);
     state = AsyncData(updated);
     await _save(updated);

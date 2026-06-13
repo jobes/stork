@@ -85,7 +85,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
     );
   }
 
-  String _getPointName() {
+  String _getPointName(BuildContext context) {
     final airport = _findAirportFeature();
     if (airport != null) {
       final properties = airport['properties'] as Map;
@@ -100,7 +100,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
       if (airportId.isNotEmpty && !isHex) {
         return name.isNotEmpty ? '$name ($airportId)' : airportId;
       }
-      return name.isNotEmpty ? name : 'Airport';
+      return name.isNotEmpty ? name : AppLocalizations.of(context)!.airport;
     }
 
     final place = _findPlaceFeature();
@@ -156,7 +156,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
               children: [
                 Flexible(
                   child: Text(
-                    _getPointName(),
+                    _getPointName(context),
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -176,7 +176,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
             ),
             onTap: () async {
               final airport = _findAirportFeature();
-              String name = _getPointName();
+              String name = _getPointName(context);
               double lat = coordinate.lat;
               double lon = coordinate.lon;
               bool isAirport = false;

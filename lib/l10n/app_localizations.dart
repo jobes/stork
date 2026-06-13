@@ -1819,6 +1819,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Waypoints List'**
   String get waypointsList;
+
+  /// No description provided for @placeholderDash.
+  ///
+  /// In en, this message translates to:
+  /// **'---'**
+  String get placeholderDash;
+
+  /// No description provided for @minutesAbbrev.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get minutesAbbrev;
+
+  /// No description provided for @etaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'ETA'**
+  String get etaLabel;
 }
 
 class _AppLocalizationsDelegate

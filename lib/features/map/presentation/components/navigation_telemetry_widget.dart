@@ -5,20 +5,21 @@ import 'package:clock/clock.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'navigation_details_dialog.dart';
 import 'telemetry_card.dart';
 
 class NavigationTelemetryWidget extends ConsumerWidget {
   const NavigationTelemetryWidget({super.key});
 
-  String _formatDurationNoSeconds(Duration duration) {
+  String _formatDurationNoSeconds(BuildContext context, Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final minStr = minutes.toString().padLeft(2, '0');
     if (hours > 0) {
       return '$hours:$minStr';
     } else {
-      return '$minutes min';
+      return '$minutes ${AppLocalizations.of(context)!.minutesAbbrev}';
     }
   }
 
@@ -59,8 +60,9 @@ class NavigationTelemetryWidget extends ConsumerWidget {
 
         final hasMultiplePoints = points.length > 1;
 
-        final timeToNearestStr = timeToNearest != null ? _formatDurationNoSeconds(timeToNearest) : '---';
-        final timeToDestStr = timeToDest != null ? _formatDurationNoSeconds(timeToDest) : '---';
+        final l10n = AppLocalizations.of(context)!;
+        final timeToNearestStr = timeToNearest != null ? _formatDurationNoSeconds(context, timeToNearest) : l10n.placeholderDash;
+        final timeToDestStr = timeToDest != null ? _formatDurationNoSeconds(context, timeToDest) : l10n.placeholderDash;
 
         return TelemetryCard(
           onTap: () {

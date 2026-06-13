@@ -906,4 +906,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get waypointsList => 'Waypoints List';
+
+  @override
+  String get placeholderDash => '---';
+
+  @override
+  String get minutesAbbrev => 'min';
+
+  @override
+  String get etaLabel => 'ETA';
 }

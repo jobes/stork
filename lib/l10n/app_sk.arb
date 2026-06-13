@@ -380,5 +380,8 @@
       }
     }
   },
-  "waypointsList": "Zoznam bodov"
+  "waypointsList": "Zoznam bodov",
+  "placeholderDash": "---",
+  "minutesAbbrev": "min",
+  "etaLabel": "ETA"
 }

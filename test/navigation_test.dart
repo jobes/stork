@@ -148,13 +148,20 @@ void main() {
       await notifier.addPoint(point2);
       await notifier.addPoint(point3);
 
-      // Reorder: Move Point 1 (index 0) to after Point 2 (newIndex 1)
+      // Reorder: Move Point 1 (index 0) to after Point 2 (newIndex 1 under onReorderItem semantics)
       await notifier.reorderPoints(0, 1);
 
-      final state = await container.read(navigationProvider.future);
+      var state = await container.read(navigationProvider.future);
       expect(state.points[0].name, 'Point 2');
       expect(state.points[1].name, 'Point 1');
       expect(state.points[2].name, 'Point 3');
+
+      // Reorder: Move Point 2 (index 0) to the very end (newIndex 2 under onReorderItem semantics)
+      await notifier.reorderPoints(0, 2);
+      state = await container.read(navigationProvider.future);
+      expect(state.points[0].name, 'Point 1');
+      expect(state.points[1].name, 'Point 3');
+      expect(state.points[2].name, 'Point 2');
     });
 
     test('clearNavigation removes all points and deactivates', () async {
@@ -224,6 +231,36 @@ void main() {
       };
       final fromLegacyJson = NavigationPoint.fromJson(legacyJson);
       expect(fromLegacyJson.isAirport, isFalse);
+    });
+
+    test('NavigationPoint.fromJson throws FormatException on invalid/missing fields', () {
+      expect(() => NavigationPoint.fromJson({}), throwsA(isA<FormatException>()));
+      expect(() => NavigationPoint.fromJson({'latitude': 48.0, 'longitude': 17.0}), throwsA(isA<FormatException>()));
+      expect(() => NavigationPoint.fromJson({'latitude': 'invalid', 'longitude': 17.0, 'name': 'Point'}), throwsA(isA<FormatException>()));
+    });
+
+    test('NavigationState.fromJson parses correctly and throws FormatException on invalid types', () {
+      final validJson = {
+        'points': [
+          {'latitude': 48.0, 'longitude': 17.0, 'name': 'Point 1'},
+        ],
+        'isActive': true,
+      };
+      final state = NavigationState.fromJson(validJson);
+      expect(state.points, hasLength(1));
+      expect(state.isActive, isTrue);
+
+      final invalidPointsJson = {
+        'points': 'not_a_list',
+      };
+      expect(() => NavigationState.fromJson(invalidPointsJson), throwsA(isA<FormatException>()));
+
+      final invalidItemJson = {
+        'points': [
+          'not_a_map',
+        ],
+      };
+      expect(() => NavigationState.fromJson(invalidItemJson), throwsA(isA<FormatException>()));
     });
   });
 }
