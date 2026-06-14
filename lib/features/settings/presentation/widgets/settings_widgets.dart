@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/cannelloni_device.dart';
+import '../../domain/models/cannelloni_device.dart';
 
 class SliderSetting extends StatelessWidget {
   final String label;

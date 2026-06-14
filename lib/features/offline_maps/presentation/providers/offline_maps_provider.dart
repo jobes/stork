@@ -10,7 +10,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:vector_tile/vector_tile.dart';
 
-import '../../../../services/database/database_service.dart';
+import '../../../../core/services/database/database_service.dart';
 import '../../../../core/services/tile_download_service.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../domain/tile_utils.dart';

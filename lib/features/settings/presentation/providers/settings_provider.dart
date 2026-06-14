@@ -2,13 +2,12 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/mdns_service.dart';
 import '../../data/repositories/settings_repository.dart';
-import '../../domain/app_settings.dart';
-import '../../domain/cannelloni_device.dart';
-import '../../domain/range_thresholds.dart';
-import '../../domain/speed_unit.dart';
-import '../../domain/altitude_unit.dart';
-import '../../domain/widget_position.dart';
-import '../../../../core/utils/aviation_math.dart';
+import '../../domain/models/app_settings.dart';
+import '../../domain/models/cannelloni_device.dart';
+import '../../domain/models/range_thresholds.dart';
+import '../../domain/models/speed_unit.dart';
+import '../../domain/models/altitude_unit.dart';
+import '../../domain/models/widget_position.dart';
 
 part 'settings_provider.g.dart';
 
@@ -215,65 +214,17 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   }
 
   Future<SettingsUpdateResult> updateFlightSpeedMaxRange(double maxRange) {
-    return _updateSettings((s) {
-      final speedUnit = s.speedUnit;
-
-      double clampedMaxRangeActive = maxRange;
-      if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
-        clampedMaxRangeActive = speedUnit.convertFromMs(_defaultMaxRangeMs);
-      } else {
-        clampedMaxRangeActive = clampedMaxRangeActive.clamp(
-          _minRangeLimit,
-          _maxRangeLimit,
-        );
-      }
-
-      final normalizedMaxRangeMs = speedUnit.convertToMs(clampedMaxRangeActive);
-
-      final thresholds = s.flightSpeedThresholds;
-      final inactiveMaxActive = speedUnit.convertFromMs(
-        thresholds.inactiveMax ?? _defaultInactiveMaxMs,
-      );
-      final minErrorActive = speedUnit.convertFromMs(
-        thresholds.minError ?? _defaultMinErrorMs,
-      );
-      final minWarningActive = speedUnit.convertFromMs(
-        thresholds.minWarning ?? _defaultMinWarningMs,
-      );
-      final maxWarningActive = speedUnit.convertFromMs(
-        thresholds.maxWarning ?? _defaultMaxWarningMs,
-      );
-      final maxErrorActive = speedUnit.convertFromMs(
-        thresholds.maxError ?? _defaultMaxErrorMs,
-      );
-
-      final newMaxErrorActive = maxErrorActive
-          .clamp(0.0, clampedMaxRangeActive)
-          .roundToDouble();
-      final newMaxWarningActive = maxWarningActive
-          .clamp(0.0, newMaxErrorActive)
-          .roundToDouble();
-      final newMinWarningActive = minWarningActive
-          .clamp(0.0, newMaxWarningActive)
-          .roundToDouble();
-      final newMinErrorActive = minErrorActive
-          .clamp(0.0, newMinWarningActive)
-          .roundToDouble();
-      final newInactiveMaxActive = inactiveMaxActive
-          .clamp(0.0, newMinErrorActive)
-          .roundToDouble();
-
-      return s.copyWith(
-        flightSpeedMaxRange: normalizedMaxRangeMs,
-        flightSpeedThresholds: thresholds.copyWith(
-          inactiveMax: speedUnit.convertToMs(newInactiveMaxActive),
-          minError: speedUnit.convertToMs(newMinErrorActive),
-          minWarning: speedUnit.convertToMs(newMinWarningActive),
-          maxWarning: speedUnit.convertToMs(newMaxWarningActive),
-          maxError: speedUnit.convertToMs(newMaxErrorActive),
-        ),
-      );
-    });
+    return _updateSettings((s) => s.copyWithValidatedFlightSpeedMaxRange(
+          maxRange,
+          defaultMaxRangeMs: _defaultMaxRangeMs,
+          defaultInactiveMaxMs: _defaultInactiveMaxMs,
+          defaultMinErrorMs: _defaultMinErrorMs,
+          defaultMinWarningMs: _defaultMinWarningMs,
+          defaultMaxWarningMs: _defaultMaxWarningMs,
+          defaultMaxErrorMs: _defaultMaxErrorMs,
+          minRangeLimit: _minRangeLimit,
+          maxRangeLimit: _maxRangeLimit,
+        ));
   }
 
   /// Updates the auto-select device setting and, if enabled, performs auto-selection immediately.
@@ -331,15 +282,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       _updateSettings((s) => s.copyWith(selectedDevice: device));
 
   Future<SettingsUpdateResult> updateQnh(double qnh) {
-    return _updateSettings((s) {
-      double validatedQnh = qnh;
-      if (!validatedQnh.isFinite || validatedQnh <= 0.0) {
-        validatedQnh = AviationMath.standardPressureHpa;
-      } else {
-        validatedQnh = validatedQnh.clamp(AviationMath.minQnhHpa, AviationMath.maxQnhHpa);
-      }
-      return s.copyWith(qnh: validatedQnh);
-    });
+    return _updateSettings((s) => s.copyWithValidatedQnh(qnh));
   }
 
   Future<SettingsUpdateResult> updateQfe(double qfe) =>
@@ -355,14 +298,6 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       _updateSettings((s) => s.copyWith(heightUnit: heightUnit));
 
   Future<SettingsUpdateResult> updateAverageSpeed(double averageSpeed) {
-    return _updateSettings((s) {
-      final speedUnit = s.speedUnit;
-      double validatedSpeed = averageSpeed;
-      if (!validatedSpeed.isFinite || validatedSpeed < 0.001) {
-        validatedSpeed = 0.001;
-      }
-      final speedMs = speedUnit.convertToMs(validatedSpeed);
-      return s.copyWith(averageSpeed: speedMs);
-    });
+    return _updateSettings((s) => s.copyWithValidatedAverageSpeed(averageSpeed));
   }
 }

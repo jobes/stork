@@ -1,199 +1,17 @@
-import 'dart:convert';
-import 'dart:math' as math;
-import 'package:clock/clock.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../../../core/providers/shared_preferences_provider.dart';
+import '../../data/repositories/navigation_repository.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/domain/models/telemetry_state.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../domain/models/navigation_point.dart';
+import '../../domain/models/navigation_state.dart';
+
+export '../../domain/models/navigation_point.dart';
+export '../../domain/models/navigation_state.dart';
+export '../../domain/models/navigation_leg.dart';
+export '../../domain/models/navigation_calculations.dart';
 
 part 'navigation_provider.g.dart';
-
-class NavigationPoint {
-  final double latitude;
-  final double longitude;
-  final String name;
-  final bool isAirport;
-
-  const NavigationPoint({
-    required this.latitude,
-    required this.longitude,
-    required this.name,
-    this.isAirport = false,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'latitude': latitude,
-        'longitude': longitude,
-        'name': name,
-        'isAirport': isAirport,
-      };
-
-  factory NavigationPoint.fromJson(Map<String, dynamic> json) {
-    if (json case {
-      'latitude': num latitude,
-      'longitude': num longitude,
-      'name': String name,
-    }) {
-      final isAirport = json['isAirport'];
-      return NavigationPoint(
-        latitude: latitude.toDouble(),
-        longitude: longitude.toDouble(),
-        name: name,
-        isAirport: isAirport is bool ? isAirport : false,
-      );
-    }
-    throw FormatException('Invalid JSON for NavigationPoint: $json');
-  }
-
-  double distanceTo(double otherLat, double otherLon) {
-    const earthRadius = 6371000.0; // in meters
-    final dLat = (otherLat - latitude) * math.pi / 180.0;
-    final dLon = (otherLon - longitude) * math.pi / 180.0;
-    final a =
-        math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(latitude * math.pi / 180.0) *
-            math.cos(otherLat * math.pi / 180.0) *
-            math.sin(dLon / 2) *
-            math.sin(dLon / 2);
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    return earthRadius * c;
-  }
-}
-
-class NavigationState {
-  final List<NavigationPoint> points;
-  final bool isActive;
-
-  const NavigationState({
-    this.points = const [],
-    this.isActive = false,
-  });
-
-  NavigationState copyWith({
-    List<NavigationPoint>? points,
-    bool? isActive,
-  }) {
-    return NavigationState(
-      points: points ?? this.points,
-      isActive: isActive ?? this.isActive,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'points': points.map((p) => p.toJson()).toList(),
-        'isActive': isActive,
-      };
-
-  factory NavigationState.fromJson(Map<String, dynamic> json) {
-    final points = <NavigationPoint>[];
-    if (json['points'] case List<dynamic> list) {
-      for (final item in list) {
-        if (item case Map<String, dynamic> map) {
-          points.add(NavigationPoint.fromJson(map));
-        } else {
-          throw FormatException('Invalid waypoint in points list: $item');
-        }
-      }
-    } else if (json['points'] != null) {
-      throw FormatException('Invalid points format');
-    }
-
-    final isActive = json['isActive'];
-    return NavigationState(
-      points: points,
-      isActive: isActive is bool ? isActive : false,
-    );
-  }
-}
-
-class NavigationLeg {
-  final NavigationPoint point;
-  final double legDistanceMeters;
-  final Duration legDuration;
-  final double cumulativeDistanceMeters;
-  final Duration cumulativeDuration;
-  final DateTime? eta;
-
-  const NavigationLeg({
-    required this.point,
-    required this.legDistanceMeters,
-    required this.legDuration,
-    required this.cumulativeDistanceMeters,
-    required this.cumulativeDuration,
-    this.eta,
-  });
-}
-
-class NavigationCalculations {
-  final List<NavigationLeg> legs;
-  final double totalDistanceMeters;
-  final Duration totalDuration;
-
-  const NavigationCalculations({
-    required this.legs,
-    required this.totalDistanceMeters,
-    required this.totalDuration,
-  });
-
-  factory NavigationCalculations.calculate({
-    required List<NavigationPoint> points,
-    required double? currentLatitude,
-    required double? currentLongitude,
-    required double activeSpeedMs,
-    DateTime? now,
-  }) {
-    if (points.isEmpty ||
-        currentLatitude == null ||
-        currentLongitude == null ||
-        currentLatitude == 0.0 ||
-        currentLongitude == 0.0) {
-      return const NavigationCalculations(
-        legs: [],
-        totalDistanceMeters: 0.0,
-        totalDuration: Duration.zero,
-      );
-    }
-
-    final effectiveNow = now ?? clock.now();
-    final List<NavigationLeg> computedLegs = [];
-    double accumulatedDistance = 0.0;
-    double accumulatedSeconds = 0.0;
-
-    double lastLat = currentLatitude;
-    double lastLon = currentLongitude;
-
-    for (final p in points) {
-      final dist = p.distanceTo(lastLat, lastLon);
-      accumulatedDistance += dist;
-
-      final legSecs = activeSpeedMs > 0 ? dist / activeSpeedMs : 0.0;
-      accumulatedSeconds += legSecs;
-
-      final cumulativeDuration = Duration(seconds: accumulatedSeconds.round());
-
-      computedLegs.add(
-        NavigationLeg(
-          point: p,
-          legDistanceMeters: dist,
-          legDuration: Duration(seconds: legSecs.round()),
-          cumulativeDistanceMeters: accumulatedDistance,
-          cumulativeDuration: cumulativeDuration,
-          eta: effectiveNow.add(cumulativeDuration),
-        ),
-      );
-
-      lastLat = p.latitude;
-      lastLon = p.longitude;
-    }
-
-    return NavigationCalculations(
-      legs: computedLegs,
-      totalDistanceMeters: accumulatedDistance,
-      totalDuration: Duration(seconds: accumulatedSeconds.round()),
-    );
-  }
-}
 
 @Riverpod(keepAlive: true)
 void navigationAutoAdvance(Ref ref) {
@@ -208,21 +26,14 @@ void navigationAutoAdvance(Ref ref) {
 
 @Riverpod(keepAlive: true)
 class NavigationNotifier extends _$NavigationNotifier {
-  static const _prefsKey = 'navigation_state_json';
   bool _isAutoAdvancing = false;
 
   @override
   FutureOr<NavigationState> build() async {
     ref.read(navigationAutoAdvanceProvider);
 
-    final prefs = await ref.watch(sharedPreferencesProvider.future);
-    final jsonStr = prefs.getString(_prefsKey);
-    if (jsonStr == null) return const NavigationState();
-    try {
-      return NavigationState.fromJson(json.decode(jsonStr));
-    } catch (_) {
-      return const NavigationState();
-    }
+    final repository = await ref.watch(navigationRepositoryProvider.future);
+    return repository.loadNavigationState();
   }
 
   void checkAutoAdvance(TelemetryState telemetry) {
@@ -276,11 +87,8 @@ class NavigationNotifier extends _$NavigationNotifier {
   }
 
   Future<void> _save(NavigationState stateVal) async {
-    final prefs = await ref.read(sharedPreferencesProvider.future);
-    await prefs.setString(
-      _prefsKey,
-      json.encode(stateVal.toJson()),
-    );
+    final repository = await ref.read(navigationRepositoryProvider.future);
+    await repository.saveNavigationState(stateVal);
   }
 
   Future<void> addPoint(NavigationPoint point) async {

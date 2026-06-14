@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/telemetry_state.dart';
 import '../../domain/models/map_view_state.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
+import 'package:stork/core/services/location_provider.dart';
 import 'decayable_field.dart';
 
 part 'telemetry_provider.g.dart';
@@ -214,4 +215,40 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       state = state.copyWith(isFlying: isFlying);
     }
   }
+}
+
+@riverpod
+void gpsListener(Ref ref) {
+  // Listen to high-frequency GPS stream
+  ref.listen(positionStreamProvider, (previous, next) {
+    next.whenData((location) {
+      final telemetry = ref.read(telemetryProvider);
+      if (telemetry.mapViewState != MapViewState.init) {
+        ref.read(telemetryProvider.notifier).updateGPS(
+              latitude: location.lat,
+              longitude: location.lon,
+              groundSpeed: location.groundSpeed,
+              gpsSatelliteCount: null,
+              gpsHorizontalAccuracy: location.horizontalAccuracy,
+              gpsVerticalAccuracy: location.verticalAccuracy,
+              gpsAltitude: location.altitude,
+            );
+
+        if (telemetry.isFlying) {
+          ref.read(telemetryProvider.notifier).updateGPS(heading: location.heading);
+        }
+      }
+    });
+  });
+
+  // Listen to device compass for low-speed heading
+  ref.listen(compassStreamProvider, (previous, next) {
+    next.whenData((heading) {
+      if (heading == null) return;
+      final telemetry = ref.read(telemetryProvider);
+      if (telemetry.mapViewState != MapViewState.init && !telemetry.isFlying) {
+        ref.read(telemetryProvider.notifier).updateGPS(heading: heading);
+      }
+    });
+  });
 }

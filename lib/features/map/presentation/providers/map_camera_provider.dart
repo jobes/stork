@@ -42,6 +42,8 @@ class MapCamera extends _$MapCamera {
 
   @override
   void build() {
+    ref.watch(gpsListenerProvider);
+
     // Listen to telemetry updates to move camera
     ref.listen(telemetryProvider, (previous, next) {
       if (_mapController == null) return;
@@ -194,48 +196,6 @@ class MapCamera extends _$MapCamera {
               ),
             );
           }
-        }
-      });
-    });
-
-    // Listen to high-frequency GPS stream
-    ref.listen(positionStreamProvider, (previous, next) {
-      next.whenData((location) {
-        final telemetry = ref.read(telemetryProvider);
-        if (telemetry.mapViewState != MapViewState.init) {
-          // Update position and groundSpeed first to let telemetry update isFlying state
-          ref
-              .read(telemetryProvider.notifier)
-              .updateGPS(
-                latitude: location.lat,
-                longitude: location.lon,
-                groundSpeed: location.groundSpeed,
-                gpsSatelliteCount:
-                    null, // Phone GPS satellites set to null as per requirement
-                gpsHorizontalAccuracy: location.horizontalAccuracy,
-                gpsVerticalAccuracy: location.verticalAccuracy,
-                gpsAltitude: location.altitude,
-              );
-
-          // Use GPS heading only if we are flying (according to telemetry logic)
-          if (ref.read(telemetryProvider).isFlying) {
-            ref
-                .read(telemetryProvider.notifier)
-                .updateGPS(heading: location.heading);
-          }
-        }
-      });
-    });
-
-    // Listen to device compass for low-speed heading
-    ref.listen(compassStreamProvider, (previous, next) {
-      next.whenData((heading) {
-        if (heading == null) return;
-
-        final telemetry = ref.read(telemetryProvider);
-        if (telemetry.mapViewState != MapViewState.init &&
-            !telemetry.isFlying) {
-          ref.read(telemetryProvider.notifier).updateGPS(heading: heading);
         }
       });
     });

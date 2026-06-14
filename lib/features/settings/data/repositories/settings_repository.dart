@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../domain/app_settings.dart';
+import '../../domain/models/app_settings.dart';
 
 import '../../../../core/providers/shared_preferences_provider.dart';
 

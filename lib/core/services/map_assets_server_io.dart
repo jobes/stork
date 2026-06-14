@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:pmtiles/pmtiles.dart';
 
-import '../../services/database/database_service.dart';
+import 'database/database_service.dart';
 import 'protomaps_resolver.dart';
 
 class MapAssetsServer {

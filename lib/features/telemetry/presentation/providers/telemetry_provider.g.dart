@@ -60,3 +60,43 @@ abstract class _$TelemetryNotifier extends $Notifier<TelemetryState> {
     element.handleCreate(ref, build);
   }
 }
+
+@ProviderFor(gpsListener)
+final gpsListenerProvider = GpsListenerProvider._();
+
+final class GpsListenerProvider extends $FunctionalProvider<void, void, void>
+    with $Provider<void> {
+  GpsListenerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'gpsListenerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$gpsListenerHash();
+
+  @$internal
+  @override
+  $ProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  void create(Ref ref) {
+    return gpsListener(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
+  }
+}
+
+String _$gpsListenerHash() => r'd5297a80cfa2dedee64dda69f7c59784d5737c45';

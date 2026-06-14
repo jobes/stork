@@ -21,6 +21,10 @@ Stork is a high-performance aeronautical navigation application built with Flutt
 - **Maps**: [MapLibre](https://pub.dev/packages/maplibre), [PMTiles](https://pub.dev/packages/pmtiles)
 - **Styling**: MapLibre vector styles with OpenAIP assets.
 
+## 📚 Technical Documentation
+
+Detailed technical documentation covering the system architecture, mathematical equations, and key features can be found in the [documentation](documentation/README.md) directory.
+
 ## ⚙️ Getting Started
 
 ### Prerequisites
@@ -68,7 +72,7 @@ git submodule update --init --recursive
 - `lib/core`: Core utilities, themes, and routing.
 - `lib/features/map`: Map visualization logic and providers.
 - `lib/features/offline_maps`: Offline region management and download services.
-- `lib/services/database`: SQLite database implementation and DAOs.
+- `lib/core/services/database`: SQLite database implementation and DAOs.
 - `assets/openaip`: Vector styles and sprites for aeronautical visualization.
 
 ## 📄 License
