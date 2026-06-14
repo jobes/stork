@@ -1,35 +1,9 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../services/database/database_service.dart';
-import '../../../../core/constants/api_constants.dart';
+import '../../data/repositories/map_metadata_repository.dart';
 import '../../domain/airspace_metadata.dart';
 
 part 'airspace_metadata_provider.g.dart';
-
-// Top-level function for compute to parse JSON in a background isolate
-Map<String, AirspaceMetadata> _parseAirspaceFeatures(String responseBody) {
-  final data = json.decode(responseBody);
-  final features = data['features'] as List<dynamic>?;
-  final result = <String, AirspaceMetadata>{};
-
-  if (features != null) {
-    for (final f in features) {
-      if (f is Map<String, dynamic>) {
-        final props = f['properties'] as Map<String, dynamic>?;
-        if (props != null) {
-          final id = (props['_id'] ?? props['id'] ?? '').toString();
-          if (id.isNotEmpty) {
-            result[id] = AirspaceMetadata.fromJson(props);
-          }
-        }
-      }
-    }
-  }
-  return result;
-}
 
 @Riverpod(keepAlive: true)
 class AirspaceMetadataCache extends _$AirspaceMetadataCache {
@@ -51,8 +25,10 @@ class AirspaceMetadataCache extends _$AirspaceMetadataCache {
       return _memoryCache[airspaceId];
     }
 
+    final repo = ref.read(mapMetadataRepositoryProvider);
+
     // 2. Check offline SQLite database
-    final dbFeature = await DatabaseService.getOpenAipFeature(airspaceId, 'asp');
+    final dbFeature = await repo.fetchFeatureFromDb(airspaceId, 'asp');
     if (dbFeature != null) {
       final metadata = AirspaceMetadata.fromJson(dbFeature);
       _memoryCache[airspaceId] = metadata;
@@ -75,21 +51,7 @@ class AirspaceMetadataCache extends _$AirspaceMetadataCache {
       }
 
       final future = () async {
-        final url =
-            '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_asp.geojson?alt=media';
-        final response = await http
-            .get(Uri.parse(url))
-            .timeout(const Duration(seconds: 15));
-
-        if (response.statusCode != 200) {
-          throw Exception('HTTP status ${response.statusCode}');
-        }
-
-        // Use compute to parse large JSON in a separate isolate to prevent UI jank
-        final parsedFeatures = await compute(
-          _parseAirspaceFeatures,
-          utf8.decode(response.bodyBytes),
-        );
+        final parsedFeatures = await repo.fetchAirspacesFromNetwork(lowerCountryCode);
         _memoryCache.addAll(parsedFeatures);
         _downloadedCountries.add(lowerCountryCode);
       }();

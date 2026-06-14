@@ -1,45 +1,10 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../services/database/database_service.dart';
-import '../../../../core/constants/api_constants.dart';
+import '../../data/repositories/map_metadata_repository.dart';
 import '../../domain/airport_metadata.dart';
 
 part 'airport_metadata_provider.g.dart';
-
-// Top-level function for compute to parse JSON in a background isolate
-Map<String, AirportMetadata> _parseAirportFeatures(String responseBody) {
-  final data = json.decode(responseBody);
-  final features = data['features'] as List<dynamic>?;
-  final result = <String, AirportMetadata>{};
-
-  if (features != null) {
-    for (final f in features) {
-      if (f is Map<String, dynamic>) {
-        final Map<String, dynamic> properties = Map<String, dynamic>.from(f['properties'] as Map? ?? {});
-        final geometry = f['geometry'] as Map<String, dynamic>?;
-        if (geometry != null && geometry['type'] == 'Point') {
-          final coordinates = geometry['coordinates'] as List<dynamic>?;
-          if (coordinates != null && coordinates.length >= 2) {
-            properties['latitude'] = (coordinates[1] as num).toDouble();
-            properties['longitude'] = (coordinates[0] as num).toDouble();
-          }
-        }
-        final feature = GeoJsonFeature.fromJson({
-          ...f,
-          'properties': properties,
-        });
-        if (feature.properties.id.isNotEmpty) {
-          result[feature.properties.id] = feature.properties;
-        }
-      }
-    }
-  }
-  return result;
-}
 
 @Riverpod(keepAlive: true)
 class AirportMetadataCache extends _$AirportMetadataCache {
@@ -61,8 +26,10 @@ class AirportMetadataCache extends _$AirportMetadataCache {
       return _memoryCache[airportId];
     }
 
+    final repo = ref.read(mapMetadataRepositoryProvider);
+
     // 2. Check offline SQLite database
-    final dbFeature = await DatabaseService.getOpenAipFeature(airportId, 'apt');
+    final dbFeature = await repo.fetchFeatureFromDb(airportId, 'apt');
     if (dbFeature != null) {
       final metadata = AirportMetadata.fromJson(dbFeature);
       if (metadata.latitude != null && metadata.longitude != null) {
@@ -88,21 +55,7 @@ class AirportMetadataCache extends _$AirportMetadataCache {
       }
 
       final future = () async {
-        final url =
-            '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_apt.geojson?alt=media';
-        final response = await http
-            .get(Uri.parse(url))
-            .timeout(const Duration(seconds: 15));
-
-        if (response.statusCode != 200) {
-          throw Exception('HTTP status ${response.statusCode}');
-        }
-
-        // Use compute to parse large JSON in a separate isolate to prevent UI jank
-        final parsedFeatures = await compute(
-          _parseAirportFeatures,
-          utf8.decode(response.bodyBytes),
-        );
+        final parsedFeatures = await repo.fetchAirportsFromNetwork(lowerCountryCode);
         _memoryCache.addAll(parsedFeatures);
         _downloadedCountries.add(lowerCountryCode);
       }();

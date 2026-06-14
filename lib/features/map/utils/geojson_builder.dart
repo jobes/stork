@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:maplibre/maplibre.dart';
 
 import '../../../../core/utils/geo_utils.dart';
-import '../../settings/domain/app_settings.dart';
+import '../../settings/domain/models/app_settings.dart';
 import '../../telemetry/domain/models/telemetry_state.dart';
 
 /// A utility class for constructing GeoJSON strings required by MapLibre sources.

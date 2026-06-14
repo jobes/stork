@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:multicast_dns/multicast_dns.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../features/settings/domain/cannelloni_device.dart';
+import '../../features/settings/domain/models/cannelloni_device.dart';
 
 part 'mdns_service.g.dart';
 

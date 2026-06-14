@@ -8,18 +8,18 @@ import '../../../../core/services/style_provider.dart';
 
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
-import '../components/map_drawer.dart';
-import '../components/map_controls.dart';
-import '../components/aircraft_map.dart';
-import '../components/compass_bar.dart';
-import '../components/speed_telemetry_widget.dart';
-import '../components/altitude_telemetry_widget.dart';
-import '../components/flight_time_telemetry_widget.dart';
-import '../components/map_widget_wrapper.dart';
+import '../components/controls/map_drawer.dart';
+import '../components/controls/map_controls.dart';
+import '../components/controls/aircraft_map.dart';
+import '../components/controls/compass_bar.dart';
+import '../../../telemetry/presentation/widgets/speed_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/altitude_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/flight_time_telemetry_widget.dart';
+import '../components/controls/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
-import '../components/navigation_telemetry_widget.dart';
-import '../components/map_features_bottom_sheet.dart';
+import '../../../navigation/presentation/widgets/navigation_telemetry_widget.dart';
+import '../components/controls/map_features_bottom_sheet.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});

@@ -1,4 +1,4 @@
-import '../../../settings/domain/app_settings.dart';
+import '../../../settings/domain/models/app_settings.dart';
 import '../../../../core/utils/aviation_math.dart';
 
 /// Represents the source of active altitude data.

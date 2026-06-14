@@ -2,12 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/app_settings.dart';
-import '../../domain/range_thresholds.dart';
-import '../../domain/speed_unit.dart';
-import '../../domain/altitude_unit.dart';
+import '../../domain/models/app_settings.dart';
+import '../../domain/models/range_thresholds.dart';
+import '../../domain/models/speed_unit.dart';
+import '../../domain/models/altitude_unit.dart';
 import '../providers/settings_provider.dart';
-import '../threshold_state_extension.dart';
+import '../utils/threshold_state_extension.dart';
 import '../widgets/number_input.dart';
 import '../widgets/thresholds_slider.dart';
 

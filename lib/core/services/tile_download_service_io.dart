@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:pmtiles/pmtiles.dart';
-import '../../services/database/database_service.dart';
+import 'database/database_service.dart';
 import 'map_assets_server.dart';
 
 /// Service responsible for downloading map tiles for offline use.
