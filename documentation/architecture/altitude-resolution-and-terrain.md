@@ -43,7 +43,7 @@ graph TD
 
 ## 3. Altitude Source Resolution
 
-Because sensors can fail or drop offline, the `AltitudeResolver` dynamically selects the best available source according to a strict precedence chain.
+Because sensors can fail or drop offline, the [AltitudeResolver](../../lib/features/telemetry/domain/models/resolved_altitude.dart) dynamically selects the best available source according to a strict precedence chain.
 
 ### Precedence Rules
 
@@ -56,7 +56,7 @@ Because sensors can fail or drop offline, the `AltitudeResolver` dynamically sel
 
 ### Mathematical Calculations
 
-The barometric altitude formula is implemented in [AviationMath](../lib/core/utils/aviation_math.dart) based on the **US Standard Atmosphere** model:
+The barometric altitude formula is implemented in [AviationMath](../../lib/core/utils/aviation_math.dart) based on the **US Standard Atmosphere** model:
 
 #### 1. Pressure to Altitude (MSL / FL)
 Calculates altitude $h$ (in meters) for a measured air pressure $p$ (in Pa) and reference sea-level pressure $p_0$ (in hPa, e.g., QNH):
@@ -74,7 +74,7 @@ $$p_0 = \frac{p / 100.0}{\left(1.0 - \frac{h}{44330.77}\right)^{5.255877}}$$
 
 ## 4. Terrain Elevation Engine
 
-To support AGL calculations, Stork queries local terrain maps using `TerrainElevationService`. 
+To support AGL calculations, Stork queries local terrain maps using [TerrainElevationService](../../lib/core/services/terrain_elevation_service.dart). 
 
 ### Tile Coordinate Mapping
 Terrain data is indexed at **Web Mercator zoom level 12**. Longitude and latitude are converted to tile indices $(X, Y)$ and fractional pixel coordinates within the standard $256 \times 256$ pixel boundary using:
@@ -84,7 +84,7 @@ $$x_{\text{decimal}} = \frac{\text{lon} + 180}{360} \times 4096$$
 $$y_{\text{decimal}} = \frac{1.0 - \ln\left(\tan(\text{lat}_{\text{rad}}) + \sec(\text{lat}_{\text{rad}})\right) / \pi}{2} \times 4096$$
 
 ### Mapzen Terrarium Format Decoding
-Tiles are loaded as PNG images from the local SQLite database (`DatabaseService`) or the remote PMTiles archive fallback (`MapAssetsServer`). The RGB channels encode elevation in the Mapzen Terrarium specification:
+Tiles are loaded as PNG images from the local SQLite database ([DatabaseService](../../lib/core/services/database/database_service_io.dart)) or the remote PMTiles archive fallback ([MapAssetsServer](../../lib/core/services/map_assets_server_io.dart)). The RGB channels encode elevation in the Mapzen Terrarium specification:
 
 $$\text{elevation} = (R \times 256 + G + B / 256) - 32768$$
 
@@ -102,13 +102,13 @@ final double elevation = h0 + ty * (h1 - h0);
 ### Performance & Cache Optimizations
 
 1. **Tile Cache:** A lightweight Least-Recently-Used (LRU) `TileCache` (capacity: 4 tiles) is used. It caches both decoded pixel arrays and **failed requests (as `null`)** to prevent repeating database/network lookups for areas without elevation data.
-2. **Coordinate Rounding:** Telemetry coordinates are rounded to **5 decimal places (~1.1m precision)** by `telemetryCoordinatesProvider`. This filters out high-frequency GPS noise fluctuations, preventing redundant cache inquiries and tile-reloading cycles.
+2. **Coordinate Rounding:** Telemetry coordinates are rounded to **5 decimal places (~1.1m precision)** by [telemetryCoordinatesProvider](../../lib/features/telemetry/presentation/providers/agl_provider.dart). This filters out high-frequency GPS noise fluctuations, preventing redundant cache inquiries and tile-reloading cycles.
 
 ---
 
 ## 5. Dynamic AGL Calculation
 
-The `aglProvider` integrates the MSL altitude and the terrain elevation underneath the aircraft to construct the `AglState`:
+The [aglProvider](../../lib/features/telemetry/presentation/providers/agl_provider.dart) integrates the MSL altitude and the terrain elevation underneath the aircraft to construct the [AglState](../../lib/features/telemetry/presentation/providers/agl_provider.dart):
 
 $$\text{Height Above Ground (AGL)} = \text{MSL Altitude} - \text{Terrain Elevation}$$
 
@@ -124,7 +124,7 @@ Altimeter settings can drift due to weather transitions. Stork features dual-mod
 When the aircraft is stationary on the ground (`isFlying == false`), the calibrator computes the target QNH using the measured barometric pressure and the terrain elevation directly under the aircraft. It applies a **2-second debounce** before saving the QNH value to `AppSettings`.
 
 ### 6.2. In-Flight Calibration (2D Extended Kalman Filter)
-In flight, terrain cannot be assumed as a fixed reference. Instead, the `AutoQnhCalibrator` deploys a **2D Extended Kalman Filter (EKF)** that continuously estimates both the true altitude ($H$) and sea-level pressure ($QNH$) simultaneously.
+In flight, terrain cannot be assumed as a fixed reference. Instead, the [AutoQnhCalibrator](../../lib/features/telemetry/presentation/providers/agl_provider.dart) deploys a **2D Extended Kalman Filter (EKF)** that continuously estimates both the true altitude ($H$) and sea-level pressure ($QNH$) simultaneously.
 
 #### 1. State Variables
 The state vector is $x = [H, QNH]^T$.
@@ -175,13 +175,13 @@ The frontend exposes altitude options cleanly using modern typography, glassmorp
 
 ### UI Components
 
-1. **`TelemetryCard`:** A reusable, glassmorphic layout container featuring 10px backdrop filters (`ImageFilter.blur`) and dynamic borders that adapt to the dark/light mode context.
-2. **`AltitudeTelemetryWidget`:** Positioned on the map, it shows MSL (or FL) in monospace font, and shows a secondary AGL reading (e.g. `240 ft AGL`) when terrain data is resolved.
-3. **`AltitudeDetailsDialog`:** Tap gesture on the card opens this dialog, containing:
+1. **[TelemetryCard](../../lib/features/telemetry/presentation/widgets/telemetry_card.dart):** A reusable, glassmorphic layout container featuring 10px backdrop filters (`ImageFilter.blur`) and dynamic borders that adapt to the dark/light mode context.
+2. **[AltitudeTelemetryWidget](../../lib/features/telemetry/presentation/widgets/altitude_telemetry_widget.dart):** Positioned on the map, it shows MSL (or FL) in monospace font, and shows a secondary AGL reading (e.g. `240 ft AGL`) when terrain data is resolved.
+3. **[AltitudeDetailsDialog](../../lib/features/telemetry/presentation/dialogs/altitude_details_dialog.dart):** Tap gesture on the card opens this dialog, containing:
    - Visual source indicator (Barometer, GPS receiver, or Phone GPS).
    - Terrain elevation readouts.
    - Auto-QNH toggle. When disabled, manual adjustment spinners and numeric inputs appear, allowing exact hPa overrides bounded by $[800.0, 1200.0]$ hPa.
-4. **`FlightSettingsPage`:** Provides selectors for units:
+4. **[FlightSettingsPage](../../lib/features/settings/presentation/pages/flight_settings_page.dart):** Provides selectors for units:
    - **Altitude Units:** `Meters MSL`, `Feet MSL`, or `Flight Level (FL)`.
    - **Height Units (AGL):** `Meters GND` or `Feet GND`.
 
@@ -189,7 +189,7 @@ The frontend exposes altitude options cleanly using modern typography, glassmorp
 
 ## 8. Test Coverage and Verification
 
-The system is validated under [terrain_elevation_test.dart](../test/terrain_elevation_test.dart) across multiple domains:
+The system is validated under [terrain_elevation_test.dart](../../test/core/services/terrain_elevation_test.dart) across multiple domains:
 
 1. **Projection Math:** Verifies Web Mercator conversion at coordinates $(0,0)$ matching zoom level 12 boundaries.
 2. **Terrarium Decode:** Simulates raw color arrays and verifies height values for sea level, Mt. Everest ($8848.0\text{ m}$), and negative heights (Dead Sea).

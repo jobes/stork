@@ -34,19 +34,19 @@ sequenceDiagram
 
 The architecture is divided into three layers to ensure separation of concerns:
 
-1. **`DraggableWidget` (Presentation/Interaction)**
+1. **[DraggableWidget](../../lib/features/map/presentation/components/controls/draggable_widget.dart) (Presentation/Interaction)**
    - A standalone `StatefulWidget` managing touch gestures and physical viewport constraints.
    - It intercepts pan movements using `GestureDetector` and calculates pixel-based coordinate shifts.
    - Provides a premium visual indicator (moving scale effect, subtle opacity decay, and an edit-mode border with a multi-directional arrow icon) when the edit mode is active.
 
-2. **`MapWidgetWrapper` (State Integration)**
+2. **[MapWidgetWrapper](../../lib/features/map/presentation/components/controls/map_widget_wrapper.dart) (State Integration)**
    - A generic glue widget that acts as an adapter. It watches Riverpod's `appSettingsProvider` to determine:
      - Whether edit/move mode is active (`areWidgetsDraggable`).
      - The stored coordinates for its unique `widgetId`.
-   - When a drag completes, it calls the `AppSettingsNotifier` to persist the new coordinates.
+   - When a drag completes, it calls the [AppSettingsNotifier](../../lib/features/settings/presentation/providers/settings_provider.dart) to persist the new coordinates.
 
-3. **`AppSettings` & Persistence (Domain/Data)**
-   - Coordinates are modeled in `WidgetPosition` (containing double `top` and `left`).
+3. **[AppSettings](../../lib/features/settings/domain/models/app_settings.dart) & Persistence (Domain/Data)**
+   - Coordinates are modeled in [WidgetPosition](../../lib/features/settings/domain/models/widget_position.dart) (containing double `top` and `left`).
    - The settings state contains `widgetPositions` modeled as a `Map<String, WidgetPosition>`, enabling an infinite number of independent overlay widgets to coexist.
    - The settings are automatically serialized to JSON and persisted locally.
 
@@ -73,7 +73,7 @@ if (_top + size.height > screenSize.height) {
 Since rendering sizes might not be fully initialized or may change dynamically, Stork registers a post-frame callback (`WidgetsBinding.instance.addPostFrameCallback`) after constraint updates to snap the widget safely back within the viewport boundaries and trigger a persistence update if boundaries were violated.
 
 ### Viewport Metrics Listener
-`DraggableWidget` observes `WidgetsBindingObserver` and listens to `didChangeMetrics()`. When a screen rotation or device resizing occurs:
+[DraggableWidget](../../lib/features/map/presentation/components/controls/draggable_widget.dart) observes `WidgetsBindingObserver` and listens to `didChangeMetrics()`. When a screen rotation or device resizing occurs:
 1. Active dragging coordinates are flagged as invalid.
 2. Viewport dimensions are queried anew.
 3. Coordinates are automatically re-clamped to fit the new viewport limits.
@@ -83,7 +83,7 @@ Since rendering sizes might not be fully initialized or may change dynamically, 
 
 ## 3. Built-in Implementation: Telemetry & Alert States
 
-The primary built-in implementation of this customizable system is the `SpeedTelemetryWidget`. However, the underlying domain logic (`ThresholdState` and `RangeThresholds`) is completely generic and designed to be reused for any scalar telemetry metric (e.g., engine temperature, battery voltage).
+The primary built-in implementation of this customizable system is the [SpeedTelemetryWidget](../../lib/features/telemetry/presentation/widgets/speed_telemetry_widget.dart). However, the underlying domain logic ([ThresholdState](../../lib/features/settings/domain/models/range_thresholds.dart) and [RangeThresholds](../../lib/features/settings/domain/models/range_thresholds.dart)) is completely generic and designed to be reused for any scalar telemetry metric (e.g., engine temperature, battery voltage).
 
 ### Dynamic Connection States
 The widget automatically adapts its interface depending on network status (`isConnected` from `cannelloniServiceProvider`) and GPS availability:
@@ -131,7 +131,7 @@ To notify pilots without cluttering the screen, state changes animate smoothly (
 
 ## 4. Range Thresholds Safety & Boundary Assertions
 
-To guarantee mathematical consistency in safety settings (e.g., warning levels cannot be set higher than error levels), the `RangeThresholds` domain model enforces strict invariants at runtime.
+To guarantee mathematical consistency in safety settings (e.g., warning levels cannot be set higher than error levels), the [RangeThresholds](../../lib/features/settings/domain/models/range_thresholds.dart) domain model enforces strict invariants at runtime.
 
 ### Boundary Constraints
 Instead of relying on compile-time Freezed `@Assert` annotations, `RangeThresholds` validation is performed in the custom factory constructor `RangeThresholds(...)`. If the provided thresholds are out of order, the factory throws an `ArgumentError`.
@@ -152,7 +152,7 @@ if (inactiveMax != null && minError != null && inactiveMax > minError) {
 }
 ```
 
-For the complete list of validation conditions and exact error messages, please refer directly to the factory implementation in [range_thresholds.dart](file:///home/vjoba/Develop/stork/lib/features/settings/domain/range_thresholds.dart).
+For the complete list of validation conditions and exact error messages, please refer directly to the factory implementation in [range_thresholds.dart](../../lib/features/settings/domain/models/range_thresholds.dart).
 
 ### Settings Clamping and Cascading Sanitization
 When the maximum slider scale (`flightSpeedMaxRange`) is updated, the `AppSettingsNotifier` performs a cascading clamping routine to sanitize all warning boundaries automatically. This prevents any out-of-bounds assertions from throwing runtime exceptions:
@@ -169,7 +169,7 @@ final newInactiveMax = (thresholds.inactiveMax ?? 10.0).clamp(0.0, newMinError).
 
 ## 5. ThresholdsSlider & Custom Painting
 
-The boundaries are configured in settings using a custom-engineered **`ThresholdsSlider`** component. Because native Flutter sliders only support single or double-range inputs, Stork utilizes a custom multi-thumb paint widget.
+The boundaries are configured in settings using a custom-engineered **[ThresholdsSlider](../../lib/features/settings/presentation/widgets/thresholds_slider.dart)** component. Because native Flutter sliders only support single or double-range inputs, Stork utilizes a custom multi-thumb paint widget.
 
 ### Touch Interception & Stacked Dragging Logic
 The slider receives a `List<double>` representing the thumbs and an `evaluate` function to dynamically determine the track colors. It manages user interactions using a `GestureDetector`:
@@ -192,7 +192,7 @@ The custom painter dynamically renders the track as variable-sized color blocks 
 
 ## 6. Split Settings Page Navigation
 
-To accommodate the growing configuration settings without cluttering the screen, the settings panel has been reorganized. The central `SettingsPage` now acts as a high-level list routing to three specialized sub-panels:
+To accommodate the growing configuration settings without cluttering the screen, the settings panel has been reorganized. The central [SettingsPage](../../lib/features/settings/presentation/pages/settings_page.dart) now acts as a high-level list routing to three specialized sub-panels:
 
 ```mermaid
 graph TD
@@ -229,8 +229,13 @@ graph TD
   @override
   bool shouldRepaint(covariant _MultiThumbPainter oldDelegate) {
     return !listEquals(oldDelegate.values, values) ||
+        oldDelegate.min != min ||
+        oldDelegate.max != max ||
         oldDelegate.evaluate != evaluate ||
-        oldDelegate.activeThumbIndex != activeThumbIndex;
+        oldDelegate.activeThumbIndex != activeThumbIndex ||
+        oldDelegate.textColor != textColor ||
+        oldDelegate.localeTag != localeTag ||
+        oldDelegate.unitLabel != unitLabel;
   }
   ```
 - **Immersive Mode Stability**: While dragging or rendering customizable widgets, `SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky)` keeps system task bars hidden, ensuring the interactive drag bounding boxes align perfectly with physical glass dimensions.

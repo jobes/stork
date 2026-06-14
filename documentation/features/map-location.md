@@ -11,11 +11,11 @@ The system uses a tiered approach to location fetching to ensure a smooth user e
 - **GeoIP Fallback**: Used ONLY for initial map centering (centering the camera on the user's general area) when GPS is not yet available or permission is denied.
 
 ### Providers
-- `currentLocationProvider`: A one-time fetch used for initial map setup.
-- `positionStreamProvider`: A continuous `StreamProvider` that listens for GPS updates. 
+- [currentLocationProvider](../../lib/core/services/location_provider.dart): A one-time fetch used for initial map setup.
+- [positionStreamProvider](../../lib/core/services/location_provider.dart): A continuous `StreamProvider` that listens for GPS updates. 
     - **Optimization**: It remains idle in `init` mode to prevent unnecessary permission prompts or background battery drain.
 
-## 2. Map View States (`MapViewState`)
+## 2. Map View States ([MapViewState](../../lib/features/telemetry/domain/models/map_view_state.dart))
 
 The map operates in four distinct modes, each with specific camera and UI behaviors.
 
@@ -50,7 +50,7 @@ If the user manually interacts with the map (pan/zoom/rotate) while in Follow Mo
 3. After 5 seconds of inactivity, the camera **snaps back** to the aircraft and tracking resumes.
 
 ### Programmatic Movement Handling
-To prevent the map from thinking its own automatic movements are "user interactions," we use an `_isMovingProgrammatically` flag. This ensures the 5-second timer is only triggered by actual user gestures.
+To prevent the map from thinking its own automatic movements are "user interactions," we use an `_isMovingProgrammatically` flag inside the [MapCamera](../../lib/features/map/presentation/providers/map_camera_provider.dart) class. This ensures the 5-second timer is only triggered by actual user gestures.
 
 ## 4. Platform-Specific Optimizations
 

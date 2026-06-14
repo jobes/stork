@@ -12,13 +12,13 @@ The Course Line feature is designed to visualize the aircraft's predicted flight
 The calculation relies on live data provided by the `TelemetryState`:
 - **Current Position:** `telemetry.latitude` and `telemetry.longitude`.
 - **Heading:** `telemetry.heading` (geographic bearing).
-- **Speed:** The distance of the projected flight path is primarily based on GPS speed (`telemetry.speed`). If GPS speed is unavailable or reads as zero, the system seamlessly falls back to the indicated airspeed (`telemetry.indicatedAirSpeed`).
+- **Speed:** The distance of the projected flight path is primarily based on GPS ground speed (`telemetry.groundSpeed`). If ground speed is unavailable or reads as zero, the system seamlessly falls back to the indicated airspeed (`telemetry.indicatedAirSpeed`).
 
 The course line is conditionally rendered **only when the aircraft is moving** (`telemetry.isFlying == true`). If the speed drops below the user-defined `inactiveMax` threshold, the line is removed from the map to reduce visual clutter when stationary or taxiing.
 
 ### 2. Map Rendering Engine
-The drawing logic is handled within the `map_camera_provider.dart`.
-The `_getCourseLineGeoJson` method is responsible for generating the line geometry. It recalculates the path whenever a relevant telemetry event (position, speed, or heading change) or settings update occurs, ensuring the trend vector smoothly follows the aircraft's trajectory.
+The drawing logic is handled within the [map_camera_provider.dart](../../lib/features/map/presentation/providers/map_camera_provider.dart).
+The [GeoJsonBuilder.buildCourseLineGeoJson](../../lib/features/map/utils/geojson_builder.dart) method is responsible for generating the line geometry. It recalculates the path whenever a relevant telemetry event (position, speed, or heading change) or settings update occurs, ensuring the trend vector smoothly follows the aircraft's trajectory.
 
 The line is generated as a `GeoJSON` `FeatureCollection` composed of individual `LineString` segments. Each segment is assigned an `"isEven": true/false` property.
 
@@ -37,4 +37,4 @@ Using the default configuration, the map displays a 5-minute prediction of the f
 
 ### 4. Geographic Mathematics
 The mathematical foundation of the trajectory projection is encapsulated within the `GeoUtils` class (`lib/core/utils/geo_utils.dart`).
-Specifically, the `calculateDestination()` method leverages the **Haversine formula** to project destination coordinates across the spherical surface of the Earth (using a mean radius of 6371 km). This guarantees high geographic accuracy, properly accounting for earth curvature over long predictive distances.
+Specifically, the [calculateDestination](../../lib/core/utils/geo_utils.dart) method leverages the **Haversine formula** to project destination coordinates across the spherical surface of the Earth (using a mean radius of 6371 km). This guarantees high geographic accuracy, properly accounting for earth curvature over long predictive distances.
