@@ -202,27 +202,48 @@ class CompassPainter extends CustomPainter {
       );
 
       if (showText && label != null) {
+        final baseStyle = TextStyle(
+          color: color,
+          fontSize: _CompassLayout.labelFontSizeBase * fontScale,
+          fontWeight: normalizedDegree % 90 == 0
+              ? FontWeight.bold
+              : FontWeight.normal,
+          fontFamily: 'Roboto',
+        );
+
+        final double textY = size.height -
+            markerHeight -
+            (_CompassLayout.labelOffsetBase * fontScale);
+
+        // NOTE: We draw the text shadow/outline manually in 4 diagonal directions.
+        // We do not use standard TextStyle(shadows: [...]) here because of a known Flutter
+        // graphics engine (Skia/Impeller) caching bug inside CustomPainters, where text shadows
+        // could remain static on the screen during fast repaints/canvas translations while the
+        // foreground text moves. Drawing the shadow manually as text at offset coordinates
+        // guarantees the shadow moves in perfect sync with the foreground label.
         textPainter.text = TextSpan(
           text: label,
-          style: TextStyle(
-            color: color,
-            fontSize: _CompassLayout.labelFontSizeBase * fontScale,
-            fontWeight: normalizedDegree % 90 == 0
-                ? FontWeight.bold
-                : FontWeight.normal,
-            fontFamily: 'Roboto',
-            shadows: [Shadow(blurRadius: 2, color: shadowColor)],
-          ),
+          style: baseStyle.copyWith(color: shadowColor),
+        );
+        textPainter.layout();
+
+        final double shadowOffset = 1.2 * fontScale;
+        final double textX = x - textPainter.width / 2;
+
+        textPainter.paint(canvas, Offset(textX - shadowOffset, textY - shadowOffset));
+        textPainter.paint(canvas, Offset(textX + shadowOffset, textY - shadowOffset));
+        textPainter.paint(canvas, Offset(textX - shadowOffset, textY + shadowOffset));
+        textPainter.paint(canvas, Offset(textX + shadowOffset, textY + shadowOffset));
+
+        // Draw main text
+        textPainter.text = TextSpan(
+          text: label,
+          style: baseStyle,
         );
         textPainter.layout();
         textPainter.paint(
           canvas,
-          Offset(
-            x - textPainter.width / 2,
-            size.height -
-                markerHeight -
-                (_CompassLayout.labelOffsetBase * fontScale),
-          ),
+          Offset(textX, textY),
         );
       }
     }

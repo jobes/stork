@@ -64,3 +64,20 @@ To prevent the map from thinking its own automatic movements are "user interacti
 ## 5. Safety Features
 - **0,0 Filter**: The aircraft symbol GeoJSON is designed to return an empty feature collection if coordinates are `(0, 0)`. This prevents the "phantom aircraft" from appearing off the coast of Africa during initialization.
 - **Quiet Permission Checks**: Initial location attempts use `requestPermission: false` to avoid annoying the user with system dialogs until they explicitly request tracking or the app is ready for high-accuracy mode.
+
+## 6. Compass Bar UI & Rendering Workaround
+
+The map screen features a custom horizontal scrolling compass tape ([CompassBar](../../lib/features/map/presentation/components/controls/compass_bar.dart)) that represents the aircraft's current heading.
+
+### High-Contrast Label Outline
+To maintain legibility against a variety of map background colors, the cardinal direction labels (N, E, S, W) and degree markers require a high-contrast shadow/outline.
+
+### Flutter Text Shadow Rendering Bug
+During fast canvas translations/repaints (e.g., when rotating the device/map), standard Flutter text shadows (`TextStyle(shadows: [...])`) can suffer from a rendering caching bug under hardware acceleration (Skia/Impeller). This bug results in the shadows remaining static/frozen on the screen while the foreground letters move.
+
+To resolve this and ensure perfect visual synchrony, the outline is painted manually:
+1. The label is first painted 4 times in the computed shadow/outline color at small diagonal offsets (`-offset`, `+offset` in X and Y directions) scaled by the current font scale factor.
+2. The main foreground label is then painted on top at the exact target coordinates.
+
+This manual double-painting approach produces a crisp border/outline around the characters that is guaranteed to animate smoothly without caching artifacts.
+
