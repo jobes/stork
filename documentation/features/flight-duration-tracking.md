@@ -34,7 +34,7 @@ stateDiagram-v2
         AccumulateDistance --> TrackDistance
     }
     Flying --> OnBlock : Landing Detected (isFlying transitions true -> false)
-    OnBlock --> OffBlock : Summary Saved / Reset
+    OnBlock --> OffBlock : Reset Internal State (Summary Retained)
 ```
 
 ### 2.1. Takeoff Detection (Start Flight)
@@ -50,8 +50,8 @@ When the `TelemetryState.isFlying` flag transitions from `false` to `true`:
 When `TelemetryState.isFlying` transitions from `true` to `false`:
 1.  The periodic update timer is canceled.
 2.  The final duration is computed.
-3.  The final `FlightSummary` is emitted to reflect the complete flight data.
-4.  State variables (`_flightStartTime`, `_lastLatitude`, `_lastLongitude`) are reset to `null`.
+3.  The final `FlightSummary` is emitted and retained in the provider state (it is not discarded) to reflect the complete flight data.
+4.  Internal tracking variables (`_flightStartTime`, `_lastLatitude`, `_lastLongitude`) are reset to `null`.
 
 ---
 
