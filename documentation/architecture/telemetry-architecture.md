@@ -32,7 +32,7 @@ The system is managed by [CannelloniService](../../lib/core/services/cannelloni_
 - **Dynamic Connection**: It listens to settings changes ([appSettingsProvider](../../lib/features/settings/presentation/providers/settings_provider.dart)). When a target device is selected, it binds to a local UDP socket on an ephemeral port and connects to the target IP and port.
 - **Bi-Directional Sockets**: Using a `RawDatagramSocket`, it listens asynchronously for incoming packets, extracts payload chunks, and immediately forwards them to the native C layer for processing.
 
-### TX Processing Queue (50Hz)
+### TX Processing Queue (10Hz)
 To ensure reliable frame delivery and prevent network congestion, outbound messages are processed in a periodic loop:
 - A `Timer` runs at **10Hz** (every 100ms on IO platforms).
 - In each tick, the service invokes the native [storkCanardGenerateTxPacket](../../src/native/stork_canard.c) to check if any outbound DroneCAN frames are queued in the native heap.
@@ -66,7 +66,7 @@ DroneCAN requires each node on the bus to have a unique numeric ID (1 to 127). N
    - **T_request**: The initial request is sent after a random delay between 600 ms and 1000 ms to prevent network startup collisions.
    - **T_followup**: If a partial matching confirmation is received from the allocation server, a follow-up request is scheduled quickly (between 0 ms and 400 ms) to claim the ID.
 4. **Collision Avoidance (Rule C)**: If the app detects DNA activity or allocation messages belonging to *other* nodes on the bus, it backs off and restarts its request timer to avoid colliding with other initializing devices.
-5. **Confirmation**: Once the server allocates a Node ID and confirms the full 16-byte UUID, the handler switches `CannelloniService` to the allocated ID via [storkCanardInit](../../src/native/stork_canard.c)`(allocatedNodeId)` and begins active broadcasting.
+5. **Confirmation**: Once the server allocates a Node ID and confirms the full 16-byte UUID, the handler switches `CannelloniService` to the allocated ID via [storkCanardInit(allocatedNodeId)](../../src/native/stork_canard.c) and begins active broadcasting.
 
 ---
 

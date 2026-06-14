@@ -23,7 +23,10 @@ class NavigationRepository {
   }
 
   Future<void> saveNavigationState(NavigationState state) async {
-    await _prefs.setString(_prefsKey, json.encode(state.toJson()));
+    final success = await _prefs.setString(_prefsKey, json.encode(state.toJson()));
+    if (!success) {
+      throw StateError('Failed to save navigation state to SharedPreferences.');
+    }
   }
 }
 

@@ -50,7 +50,7 @@ If the user manually interacts with the map (pan/zoom/rotate) while in Follow Mo
 3. After 5 seconds of inactivity, the camera **snaps back** to the aircraft and tracking resumes.
 
 ### Programmatic Movement Handling
-To prevent the map from thinking its own automatic movements are "user interactions," we use an `_isMovingProgrammatically` flag inside the [MapCamera](../../lib/features/map/presentation/providers/map_camera_provider.dart) class. This ensures the 5-second timer is only triggered by actual user gestures.
+To prevent the map from thinking its own automatic movements are "user interactions," we use an `isMovingProgrammatically` flag inside the [MapCamera](../../lib/features/map/presentation/providers/map_camera_provider.dart) class. This ensures the 5-second timer is only triggered by actual user gestures.
 
 ## 4. Platform-Specific Optimizations
 

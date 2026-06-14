@@ -26,7 +26,7 @@ class AirportMetadataCache extends _$AirportMetadataCache {
       return _memoryCache[airportId];
     }
 
-    final repo = ref.read(mapMetadataRepositoryProvider);
+    final repo = ref.watch(mapMetadataRepositoryProvider);
 
     // 2. Check offline SQLite database
     final dbFeature = await repo.fetchFeatureFromDb(airportId, 'apt');

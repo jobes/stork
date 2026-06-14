@@ -1,13 +1,13 @@
 # Flight Duration and Distance Tracking
 
-This document outlines the design and technical implementation of the automated flight time (block time) and distance tracking systems in the Stork application.
+This document outlines the design and technical implementation of the automated flight time and distance tracking systems in the Stork application.
 
 ---
 
 ## 1. System Overview
 
 Stork features an automatic flight duration tracker that requires no manual start or stop interactions from the pilot. The system monitors live telemetry to detect when the aircraft takes off and lands, and records:
-- **Flight Duration (Block Time)**: The elapsed time since the takeoff event occurred, updated at 1Hz.
+- **Flight Duration**: The elapsed time since the takeoff event occurred, updated at 1Hz.
 - **Flight Distance**: The accumulated geographic distance flown by the aircraft, filtering out static GPS drift.
 - **Flight Start Time**: The exact timestamp when the flight started.
 
@@ -100,5 +100,5 @@ A floating card positioned on the map view:
 ### 4.2. Flight Time Details Dialog ([FlightTimeDetailsDialog](../../lib/features/telemetry/presentation/dialogs/flight_time_details_dialog.dart))
 Tapping on the `FlightTimeTelemetryWidget` displays a detail panel showing:
 - **Takeoff Time**: The exact timestamp when flight tracking was triggered, formatted to the local timezone.
-- **Active Duration**: The total elapsed block time.
+- **Active Duration**: The total elapsed flight time.
 - **Flight Distance**: The accumulated distance flown, converted and formatted in kilometers (e.g. `12.34 km`).

@@ -249,7 +249,7 @@ class CannelloniService extends _$CannelloniService {
       // Start the DNA allocation process
       _startDnaAllocation(uniqueId);
 
-      // Start processing the TX queue at 50Hz
+      // Start processing the TX queue at 10Hz
       _startTxProcessing();
     } catch (e) {
       debugPrint('CannelloniService: Failed to connect: $e');

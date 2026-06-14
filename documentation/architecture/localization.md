@@ -46,4 +46,4 @@ To add a new language to Stork:
 1. Create a new `.arb` file in the `lib/l10n/` directory (e.g., `app_de.arb` for German).
 2. Copy the keys from `app_en.arb` and provide the translated strings.
 3. Add the language code to the supported locales list in `main.dart` or the root `MaterialApp` configuration.
-4. Run `flutter gen-l10n` (or trigger a hot reload, which often automatically generates the new classes depending on IDE configuration).
+4. Run `flutter gen-l10n` (explicitly run this command after adding or modifying ARB files to ensure localization classes are properly regenerated, as this is the primary and reliable method for regenerating localization code).
