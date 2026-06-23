@@ -54,7 +54,13 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
   List<Map<dynamic, dynamic>> _findNotamFeatures() {
     final list = <Map<dynamic, dynamic>>[];
     for (final f in features) {
-      if (f is Map && f['layerType'] == 'notam') {
+      if (f case {
+        'layerType': 'notam',
+        'properties': {
+          'id': Object _,
+          'title': Object _,
+        }
+      }) {
         list.add(f);
       }
     }
@@ -109,6 +115,10 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
         .whereType<String>()
         .toSet();
     final matchedNotams = notamsState.where((n) => notamIds.contains(n.id)).toList();
+
+    if (matchedNotams.isEmpty) {
+      return;
+    }
 
     showDialog(
       context: context,

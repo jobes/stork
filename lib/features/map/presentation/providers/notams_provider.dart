@@ -41,7 +41,11 @@ String? currentFir(Ref ref) {
     return null;
   }
 
-  // Read telemetry coordinates
+  // Read telemetry coordinates.
+  // We intentionally use ref.read here instead of ref.watch to avoid
+  // recalculating the FIR on every coordinate change. The FIR only
+  // recalculates when GPS validity or route changes (which are watched
+  // above), optimizing performance.
   final telemetry = ref.read(telemetryProvider);
   final lat = telemetry.latitude!;
   final lon = telemetry.longitude!;

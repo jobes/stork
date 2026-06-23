@@ -9,10 +9,13 @@ import 'package:stork/features/navigation/presentation/providers/navigation_prov
 import 'package:stork/features/map/presentation/components/controls/map_features_bottom_sheet.dart';
 import 'package:stork/features/map/presentation/components/dialogs/airport_details_dialog.dart';
 import 'package:stork/features/map/presentation/components/dialogs/airspace_details_dialog.dart';
+import 'package:stork/features/map/presentation/components/dialogs/notam_details_dialog.dart';
 import 'package:stork/features/map/presentation/providers/airport_metadata_provider.dart';
 import 'package:stork/features/map/presentation/providers/airspace_metadata_provider.dart';
 import 'package:stork/features/map/domain/airspace_metadata.dart';
 import 'package:stork/features/map/domain/airport_metadata.dart';
+import 'package:stork/features/map/domain/models/notam.dart';
+import 'package:stork/features/map/presentation/providers/notams_provider.dart';
 import 'package:stork/l10n/app_localizations.dart';
 
 void main() {
@@ -667,4 +670,202 @@ void main() {
     expect(pt.name, equals('Bratislava'));
     expect(pt.isAirport, isFalse);
   });
+
+  testWidgets('MapFeaturesBottomSheet validates and filters NOTAM features using Dart 3 pattern matching', (WidgetTester tester) async {
+    final features = [
+      // Valid NOTAM
+      {
+        'layerType': 'notam',
+        'properties': {
+          'id': 'NOTAM-001',
+          'title': 'Obstacle Active',
+        }
+      },
+      // Missing properties
+      {
+        'layerType': 'notam',
+      },
+      // Missing id
+      {
+        'layerType': 'notam',
+        'properties': {
+          'title': 'Obstacle Active',
+        }
+      },
+      // Missing title
+      {
+        'layerType': 'notam',
+        'properties': {
+          'id': 'NOTAM-002',
+        }
+      },
+    ];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notamsProvider.overrideWith(() => MockNotams()),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: MapFeaturesBottomSheet(
+              features: features,
+              coordinate: Geographic(lat: 0.0, lon: 0.0),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // The list should filter out the 3 invalid NOTAMs, leaving only 1 valid NOTAM.
+    // Thus, it should show the tile for the single valid NOTAM containing its id and title.
+    expect(find.textContaining('NOTAM-001'), findsOneWidget);
+    expect(find.text('Obstacle Active'), findsOneWidget);
+    expect(find.textContaining('NOTAM-002'), findsNothing);
+  });
+
+  testWidgets('MapFeaturesBottomSheet shows NotamDetailsDialog when matching NOTAM is found', (WidgetTester tester) async {
+    final features = [
+      {
+        'layerType': 'notam',
+        'properties': {
+          'id': 'NOTAM-001',
+          'title': 'Obstacle Active',
+        }
+      }
+    ];
+
+    final notamObj = Notam(
+      facilityDesignator: 'LZIB',
+      notamNumber: 'A1234/26',
+      featureName: 'BRATISLAVA',
+      issueDate: '2026-03-25T13:00:00Z',
+      startDate: '2026-03-25T13:15:00Z',
+      endDate: '2026-06-25T18:00:00Z',
+      icaoMessage: '',
+      id: 'NOTAM-001',
+      type: 'NOTAMN',
+      issuer: 'LZIB',
+      from: DateTime.utc(2026, 3, 25),
+      to: DateTime.utc(2026, 6, 25),
+      msg: 'Obstacle Active',
+      fir: 'LZBB',
+      latitude: 48.17,
+      longitude: 17.17,
+      radius: 5000,
+      flightLevelLowerLimit: 0,
+      flightLevelUpperLimit: 999,
+    );
+
+    late ProviderContainer providerContainer;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notamsProvider.overrideWith(() => MockMatchedNotams([notamObj])),
+        ],
+        child: Consumer(
+          builder: (context, ref, child) {
+            providerContainer = ProviderScope.containerOf(context);
+            return MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('en'),
+              home: Scaffold(
+                body: MapFeaturesBottomSheet(
+                  features: features,
+                  coordinate: Geographic(lat: 0.0, lon: 0.0),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    await providerContainer.read(notamsProvider.future);
+    await tester.pumpAndSettle();
+
+    // Tap on the NOTAM list tile to open details dialog
+    await tester.tap(find.textContaining('NOTAM-001'));
+    await tester.pumpAndSettle();
+
+    // Verify dialog is shown
+    expect(find.byType(NotamDetailsDialog), findsOneWidget);
+  });
+
+  testWidgets('MapFeaturesBottomSheet does not show NotamDetailsDialog when matchedNotams is empty', (WidgetTester tester) async {
+    final features = [
+      {
+        'layerType': 'notam',
+        'properties': {
+          'id': 'NOTAM-001',
+          'title': 'Obstacle Active',
+        }
+      }
+    ];
+
+    late ProviderContainer providerContainer;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notamsProvider.overrideWith(() => MockNotams()), // returns empty
+        ],
+        child: Consumer(
+          builder: (context, ref, child) {
+            providerContainer = ProviderScope.containerOf(context);
+            return MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: const Locale('en'),
+              home: Scaffold(
+                body: MapFeaturesBottomSheet(
+                  features: features,
+                  coordinate: Geographic(lat: 0.0, lon: 0.0),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    await providerContainer.read(notamsProvider.future);
+    await tester.pumpAndSettle();
+
+    // Tap on the NOTAM list tile to trigger showNotamsDetails
+    await tester.tap(find.textContaining('NOTAM-001'));
+    await tester.pump();
+
+    // Verify dialog is NOT shown
+    expect(find.byType(NotamDetailsDialog), findsNothing);
+
+    // Verify snackbar is NOT shown
+    expect(find.byType(SnackBar), findsNothing);
+  });
+}
+
+class MockMatchedNotams extends Notams {
+  final List<Notam> _list;
+  MockMatchedNotams(this._list);
+
+  @override
+  Future<List<Notam>> build() async {
+    return _list;
+  }
+}
+
+class MockNotams extends Notams {
+  @override
+  Future<List<Notam>> build() async {
+    return [];
+  }
 }

@@ -715,7 +715,7 @@ class MapCamera extends _$MapCamera {
 
       features.add({
         'type': 'Feature',
-        'id': notam.id.hashCode,
+        'id': notam.id,
         'properties': {
           'id': notam.id,
           'fir': notam.fir,

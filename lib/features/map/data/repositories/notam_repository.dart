@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:maplibre/maplibre.dart';
@@ -22,24 +24,32 @@ class HttpNotamRepository implements NotamRepository {
         ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(ApiConstants.faaNotamSearchUrl)}'
         : ApiConstants.faaNotamSearchUrl;
 
-    final response = await _client.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'searchType': '0',
-        'designatorsForLocation': firs.join(','),
-        'offset': '0',
-        'notamsOnly': 'false',
-      },
-    );
+    try {
+      final response = await _client.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'searchType': '0',
+          'designatorsForLocation': firs.join(','),
+          'offset': '0',
+          'notamsOnly': 'false',
+        },
+      ).timeout(const Duration(seconds: 30));
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to load NOTAMs for FIRs: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load NOTAMs for FIRs: ${response.statusCode}');
+      }
+
+      final data = json.decode(utf8.decode(response.bodyBytes));
+      final list = data['notamList'] as List<dynamic>? ?? [];
+      return _decodeRawNotams(list);
+    } on TimeoutException catch (e) {
+      debugPrint('NOTAMS: Timeout fetching NOTAMs for FIRs: $e');
+      return [];
+    } on SocketException catch (e) {
+      debugPrint('NOTAMS: Network error fetching NOTAMs for FIRs: $e');
+      return [];
     }
-
-    final data = json.decode(utf8.decode(response.bodyBytes));
-    final list = data['notamList'] as List<dynamic>? ?? [];
-    return _decodeRawNotams(list);
   }
 
   @override
@@ -66,35 +76,43 @@ class HttpNotamRepository implements NotamRepository {
 
     final radiusNm = (radiusMeters / 1852.0).ceil();
 
-    final response = await _client.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'searchType': '3',
-        'latDegrees': latDeg.toString(),
-        'latMinutes': latMin.toString(),
-        'latSeconds': latSec.toString(),
-        'latitudeDirection': latDir,
-        'longDegrees': lonDeg.toString(),
-        'longMinutes': lonMin.toString(),
-        'longSeconds': lonSec.toString(),
-        'longitudeDirection': lonDir,
-        'radius': radiusNm.toString(),
-        'offset': '0',
-        'notamsOnly': 'false',
-        'radiusSearchOnDesignator': 'false',
-      },
-    );
+    try {
+      final response = await _client.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'searchType': '3',
+          'latDegrees': latDeg.toString(),
+          'latMinutes': latMin.toString(),
+          'latSeconds': latSec.toString(),
+          'latitudeDirection': latDir,
+          'longDegrees': lonDeg.toString(),
+          'longMinutes': lonMin.toString(),
+          'longSeconds': lonSec.toString(),
+          'longitudeDirection': lonDir,
+          'radius': radiusNm.toString(),
+          'offset': '0',
+          'notamsOnly': 'false',
+          'radiusSearchOnDesignator': 'false',
+        },
+      ).timeout(const Duration(seconds: 30));
 
-    if (response.statusCode != 200) {
-      throw Exception(
-        'Failed to load NOTAMs around coordinate: ${response.statusCode}',
-      );
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to load NOTAMs around coordinate: ${response.statusCode}',
+        );
+      }
+
+      final data = json.decode(utf8.decode(response.bodyBytes));
+      final list = data['notamList'] as List<dynamic>? ?? [];
+      return _decodeRawNotams(list);
+    } on TimeoutException catch (e) {
+      debugPrint('NOTAMS: Timeout fetching NOTAMs around point: $e');
+      return [];
+    } on SocketException catch (e) {
+      debugPrint('NOTAMS: Network error fetching NOTAMs around point: $e');
+      return [];
     }
-
-    final data = json.decode(utf8.decode(response.bodyBytes));
-    final list = data['notamList'] as List<dynamic>? ?? [];
-    return _decodeRawNotams(list);
   }
 
   List<Notam> _decodeRawNotams(List<dynamic> list) {

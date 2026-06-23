@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,7 +89,7 @@ void main() {
         async.flushMicrotasks();
 
         // Keep notamsProvider alive
-        final sub = container.listen(notamsProvider, (_, __) {});
+        final sub = container.listen(notamsProvider, (_, _) {});
         addTearDown(sub.close);
 
         // Initially telemetry coordinates are not set (latitude=null, longitude=null), currentFir is null
@@ -186,7 +185,7 @@ void main() {
         async.elapse(const Duration(milliseconds: 100));
 
         // Keep notamsProvider alive
-        final sub = container.listen(notamsProvider, (_, __) {});
+        final sub = container.listen(notamsProvider, (_, _) {});
         addTearDown(sub.close);
         async.elapse(const Duration(milliseconds: 100));
 

@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -66,6 +68,26 @@ void main() {
       expect(() => repository.fetchNotamsByFirs(['LZBB']), throwsException);
     });
 
+    test('fetchNotamsByFirs returns empty list on SocketException', () async {
+      final mockClient = MockClient((request) async {
+        throw const SocketException('Connection failed');
+      });
+
+      final repository = HttpNotamRepository(client: mockClient);
+      final result = await repository.fetchNotamsByFirs(['LZBB']);
+      expect(result, isEmpty);
+    });
+
+    test('fetchNotamsByFirs returns empty list on TimeoutException', () async {
+      final mockClient = MockClient((request) async {
+        throw TimeoutException('Request timed out');
+      });
+
+      final repository = HttpNotamRepository(client: mockClient);
+      final result = await repository.fetchNotamsByFirs(['LZBB']);
+      expect(result, isEmpty);
+    });
+
     test(
       'fetchNotamsAroundPoint formats DMS correctly and calls API',
       () async {
@@ -98,5 +120,31 @@ void main() {
         expect(result, isEmpty);
       },
     );
+
+    test('fetchNotamsAroundPoint returns empty list on SocketException', () async {
+      final mockClient = MockClient((request) async {
+        throw const SocketException('Connection failed');
+      });
+
+      final repository = HttpNotamRepository(client: mockClient);
+      final result = await repository.fetchNotamsAroundPoint(
+        Geographic(lat: 48.16666, lon: 17.16666),
+        50000,
+      );
+      expect(result, isEmpty);
+    });
+
+    test('fetchNotamsAroundPoint returns empty list on TimeoutException', () async {
+      final mockClient = MockClient((request) async {
+        throw TimeoutException('Request timed out');
+      });
+
+      final repository = HttpNotamRepository(client: mockClient);
+      final result = await repository.fetchNotamsAroundPoint(
+        Geographic(lat: 48.16666, lon: 17.16666),
+        50000,
+      );
+      expect(result, isEmpty);
+    });
   });
 }

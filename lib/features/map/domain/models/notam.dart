@@ -58,33 +58,33 @@ class Notam {
   });
 
   Map<String, dynamic> toJson() => {
-        'facilityDesignator': facilityDesignator,
-        'notamNumber': notamNumber,
-        'featureName': featureName,
-        'issueDate': issueDate,
-        'startDate': startDate,
-        'endDate': endDate,
-        'icaoMessage': icaoMessage,
-        'status': status,
-        'keyword': keyword,
-        'airportName': airportName,
-        'id': id,
-        'type': type,
-        'linkedNotam': linkedNotam,
-        'issuer': issuer,
-        'from': from.toIso8601String(),
-        'to': to.toIso8601String(),
-        'schedule': schedule,
-        'msg': msg,
-        'lowerLimit2': lowerLimit2,
-        'upperLimit2': upperLimit2,
-        'fir': fir,
-        'latitude': latitude,
-        'longitude': longitude,
-        'radius': radius,
-        'flightLevelLowerLimit': flightLevelLowerLimit,
-        'flightLevelUpperLimit': flightLevelUpperLimit,
-      };
+    'facilityDesignator': facilityDesignator,
+    'notamNumber': notamNumber,
+    'featureName': featureName,
+    'issueDate': issueDate,
+    'startDate': startDate,
+    'endDate': endDate,
+    'icaoMessage': icaoMessage,
+    'status': status,
+    'keyword': keyword,
+    'airportName': airportName,
+    'id': id,
+    'type': type,
+    'linkedNotam': linkedNotam,
+    'issuer': issuer,
+    'from': from.toIso8601String(),
+    'to': to.toIso8601String(),
+    'schedule': schedule,
+    'msg': msg,
+    'lowerLimit2': lowerLimit2,
+    'upperLimit2': upperLimit2,
+    'fir': fir,
+    'latitude': latitude,
+    'longitude': longitude,
+    'radius': radius,
+    'flightLevelLowerLimit': flightLevelLowerLimit,
+    'flightLevelUpperLimit': flightLevelUpperLimit,
+  };
 
   factory Notam.fromJson(Map<String, dynamic> json) {
     return Notam(
@@ -102,8 +102,14 @@ class Notam {
       type: json['type'] as String? ?? '',
       linkedNotam: json['linkedNotam'] as String?,
       issuer: json['issuer'] as String? ?? '',
-      from: DateTime.parse(json['from'] as String),
-      to: DateTime.parse(json['to'] as String),
+      from:
+          (DateTime.tryParse(json['from'] as String? ?? '') ??
+                  DateTime.fromMillisecondsSinceEpoch(0, isUtc: true))
+              .toUtc(),
+      to:
+          (DateTime.tryParse(json['to'] as String? ?? '') ??
+                  DateTime.fromMillisecondsSinceEpoch(0, isUtc: true))
+              .toUtc(),
       schedule: json['schedule'] as String?,
       msg: json['msg'] as String? ?? '',
       lowerLimit2: json['lowerLimit2'] as String?,
@@ -112,10 +118,10 @@ class Notam {
       latitude: (json['latitude'] as num? ?? 0.0).toDouble(),
       longitude: (json['longitude'] as num? ?? 0.0).toDouble(),
       radius: (json['radius'] as num? ?? 0.0).toDouble(),
-      flightLevelLowerLimit:
-          (json['flightLevelLowerLimit'] as num? ?? 0).toInt(),
-      flightLevelUpperLimit:
-          (json['flightLevelUpperLimit'] as num? ?? 999).toInt(),
+      flightLevelLowerLimit: (json['flightLevelLowerLimit'] as num? ?? 0)
+          .toInt(),
+      flightLevelUpperLimit: (json['flightLevelUpperLimit'] as num? ?? 999)
+          .toInt(),
     );
   }
 }

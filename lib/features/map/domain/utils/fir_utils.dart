@@ -86,8 +86,9 @@ class FirUtils {
         );
       }
       _features = parsedFeatures;
-    } catch (e) {
-      _features = [];
+    } catch (_) {
+      _features = null;
+      rethrow;
     }
   }
 
@@ -120,27 +121,35 @@ class FirUtils {
     if (routePoints.isEmpty) return result;
 
     result.add(routePoints.first);
+    if (routePoints.length == 1) return result;
+
+    double distanceToNextChunk = chunkDistanceMeters;
 
     for (int i = 0; i < routePoints.length - 1; i++) {
       final p1 = routePoints[i];
       final p2 = routePoints[i + 1];
 
-      // Calculate distance between p1 and p2 using GeoUtils
-      final dist = GeoUtils.distanceBetween(p1.lat, p1.lon, p2.lat, p2.lon);
+      final segmentDist = GeoUtils.distanceBetween(p1.lat, p1.lon, p2.lat, p2.lon);
+      if (segmentDist == 0) continue;
 
-      if (dist > chunkDistanceMeters) {
-        int steps = (dist / chunkDistanceMeters).floor();
-        for (int s = 1; s <= steps; s++) {
-          double fraction = s / (steps + 1);
-          double interpolatedLat = p1.lat + (p2.lat - p1.lat) * fraction;
-          double interpolatedLon = p1.lon + (p2.lon - p1.lon) * fraction;
-          result.add(Geographic(lat: interpolatedLat, lon: interpolatedLon));
-        }
+      double coveredDist = 0;
+      while (segmentDist - coveredDist >= distanceToNextChunk) {
+        coveredDist += distanceToNextChunk;
+        double fraction = coveredDist / segmentDist;
+        double interpolatedLat = p1.lat + (p2.lat - p1.lat) * fraction;
+        double interpolatedLon = p1.lon + (p2.lon - p1.lon) * fraction;
+        result.add(Geographic(lat: interpolatedLat, lon: interpolatedLon));
+        distanceToNextChunk = chunkDistanceMeters;
       }
+      distanceToNextChunk -= (segmentDist - coveredDist);
     }
 
-    if (routePoints.length > 1) {
-      result.add(routePoints.last);
+    // Always add the last point if it is not already very close to the last added point
+    final lastPoint = routePoints.last;
+    final lastAdded = result.last;
+    final finalDist = GeoUtils.distanceBetween(lastAdded.lat, lastAdded.lon, lastPoint.lat, lastPoint.lon);
+    if (finalDist > 1000) {
+      result.add(lastPoint);
     }
 
     return result;

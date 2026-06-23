@@ -9,7 +9,7 @@ class NotamDecoder {
     });
   }
 
-  static Map<String, String> separateToParts(String rawMessage) {
+  static Map<String, String?> separateToParts(String rawMessage) {
     final qStart = rawMessage.indexOf('Q)');
     final aStart = rawMessage.indexOf('A)');
     final bStart = rawMessage.indexOf('B)');
@@ -56,10 +56,10 @@ class NotamDecoder {
       'a': aStr,
       'b': bStr,
       'c': cStr,
-      'd': ?dStr,
+      'd': dStr,
       'e': eStr,
-      'f': ?fStr,
-      'g': ?gStr,
+      'f': fStr,
+      'g': gStr,
     };
   }
 
