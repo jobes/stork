@@ -116,6 +116,7 @@ flutter:
     - assets/openaip/sprite.json
     - assets/openaip/sprite@2x.png
     - assets/openaip/sprite@2x.json
+    - assets/geojson/fir.geojson
     - assets/fonts/Roboto Bold,Noto Sans Bold/
     - assets/fonts/Roboto Italic,Noto Sans Regular/
     - assets/fonts/Roboto Medium,Noto Sans Regular/

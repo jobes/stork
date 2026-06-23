@@ -915,4 +915,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get etaLabel => 'ETA';
+
+  @override
+  String get notamsTitle => 'NOTAMs';
+
+  @override
+  String get notamDetails => 'NOTAM Details';
+
+  @override
+  String get notamStart => 'Start Time';
+
+  @override
+  String get notamEnd => 'End Time';
+
+  @override
+  String get notamFir => 'FIR';
+
+  @override
+  String get notamLimits => 'Vertical Limits';
+
+  @override
+  String get hideNotam => 'Hide';
 }

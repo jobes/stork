@@ -916,4 +916,25 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get etaLabel => 'ETA';
+
+  @override
+  String get notamsTitle => 'NOTAMy';
+
+  @override
+  String get notamDetails => 'Detaily NOTAMu';
+
+  @override
+  String get notamStart => 'Začiatok platnosti';
+
+  @override
+  String get notamEnd => 'Koniec platnosti';
+
+  @override
+  String get notamFir => 'FIR';
+
+  @override
+  String get notamLimits => 'Vertikálne limity';
+
+  @override
+  String get hideNotam => 'Skryť';
 }

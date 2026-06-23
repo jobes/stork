@@ -11,6 +11,7 @@ import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
+import 'notams_provider.dart';
 import '../../utils/geojson_builder.dart';
 
 part 'map_camera_provider.g.dart';
@@ -203,6 +204,13 @@ class MapCamera extends _$MapCamera {
     // Listen to navigation updates to redraw route on map
     ref.listen(navigationProvider, (previous, next) {
       _updateNavigationRouteOnMap();
+    });
+
+    // Listen to NOTAMs updates to redraw NOTAMs on map
+    ref.listen(notamsProvider, (previous, next) {
+      if (next.hasValue) {
+        updateNotamsOnMap();
+      }
     });
 
     // Clean up timer on dispose
@@ -485,6 +493,13 @@ class MapCamera extends _$MapCamera {
         ],
       );
 
+      final notamFeatures = _mapController!.featuresAtPoint(
+        event.screenPoint,
+        layerIds: [
+          'notams-fill-layer',
+        ],
+      );
+
       final featureMaps = <Map<String, dynamic>>[];
       for (final f in airportFeatures) {
         featureMaps.add({
@@ -505,6 +520,13 @@ class MapCamera extends _$MapCamera {
           'id': f.id,
           'properties': f.properties,
           'layerType': 'place',
+        });
+      }
+      for (final f in notamFeatures) {
+        featureMaps.add({
+          'id': f.id,
+          'properties': f.properties,
+          'layerType': 'notam',
         });
       }
 
@@ -656,5 +678,69 @@ class MapCamera extends _$MapCamera {
     }
 
     return path;
+    }
+
+  void updateNotamsOnMap() {
+    if (_mapController == null ||
+        !_isAircraftSymbolInitialized ||
+        _mapController?.style == null) {
+      return;
+    }
+
+    final notamsAsync = ref.read(notamsProvider);
+    final notams = notamsAsync.value ?? [];
+
+    final List<Map<String, dynamic>> features = [];
+
+    for (final notam in notams) {
+      // Generate circle polygon coordinates
+      final List<List<double>> ring = [];
+      const int segments = 32;
+      final latRad = notam.latitude * math.pi / 180.0;
+      final lonRad = notam.longitude * math.pi / 180.0;
+      final dRad = notam.radius / 6371000.0; // Radius in meters divided by Earth's radius
+
+      for (int i = 0; i <= segments; i++) {
+        final double angle = i * 2.0 * math.pi / segments;
+        final double destLatRad = math.asin(
+          math.sin(latRad) * math.cos(dRad) +
+          math.cos(latRad) * math.sin(dRad) * math.cos(angle)
+        );
+        final double destLonRad = lonRad + math.atan2(
+          math.sin(angle) * math.sin(dRad) * math.cos(latRad),
+          math.cos(dRad) - math.sin(latRad) * math.sin(destLatRad)
+        );
+        ring.add([destLonRad * 180.0 / math.pi, destLatRad * 180.0 / math.pi]);
+      }
+
+      features.add({
+        'type': 'Feature',
+        'id': notam.id.hashCode,
+        'properties': {
+          'id': notam.id,
+          'fir': notam.fir,
+          'title': notam.featureName,
+          'description': notam.msg,
+          'startTime': notam.startDate,
+          'endTime': notam.endDate,
+          'lowerLimit': notam.lowerLimit2 ?? 'GND',
+          'upperLimit': notam.upperLimit2 ?? 'UNL',
+        },
+        'geometry': {
+          'type': 'Polygon',
+          'coordinates': [ring],
+        },
+      });
+    }
+
+    final geojson = jsonEncode({
+      'type': 'FeatureCollection',
+      'features': features,
+    });
+
+    _mapController!.style!.updateGeoJsonSource(
+      id: 'notams-source',
+      data: geojson,
+    );
   }
 }

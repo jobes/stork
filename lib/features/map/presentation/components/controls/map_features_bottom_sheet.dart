@@ -6,6 +6,8 @@ import '../../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../providers/airport_metadata_provider.dart';
 import '../dialogs/airport_details_dialog.dart';
 import '../dialogs/airspace_details_dialog.dart';
+import '../dialogs/notam_details_dialog.dart';
+import '../../providers/notams_provider.dart';
 
 class MapFeaturesBottomSheet extends ConsumerWidget {
   final List<dynamic> features;
@@ -48,6 +50,17 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
     return null;
   }
 
+  /// Helper method to find NOTAM features in the features list
+  List<Map<dynamic, dynamic>> _findNotamFeatures() {
+    final list = <Map<dynamic, dynamic>>[];
+    for (final f in features) {
+      if (f is Map && f['layerType'] == 'notam') {
+        list.add(f);
+      }
+    }
+    return list;
+  }
+
   void _showAirportDetails(
     BuildContext context,
     Map<dynamic, dynamic> feature,
@@ -81,6 +94,26 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
       context: context,
       builder: (context) => AirspaceDetailsDialog(
         features: airspaceFeatures,
+      ),
+    );
+  }
+
+  void _showNotamsDetails(
+    BuildContext context,
+    List<Map<dynamic, dynamic>> notamFeatures,
+    WidgetRef ref,
+  ) {
+    final notamsState = ref.read(notamsProvider).value ?? [];
+    final notamIds = notamFeatures
+        .map((f) => f['properties']?['id']?.toString())
+        .whereType<String>()
+        .toSet();
+    final matchedNotams = notamsState.where((n) => notamIds.contains(n.id)).toList();
+
+    showDialog(
+      context: context,
+      builder: (context) => NotamDetailsDialog(
+        notams: matchedNotams,
       ),
     );
   }
@@ -119,6 +152,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final airportFeature = _findAirportFeature();
     final airspaceFeatures = _findAirspaceFeatures();
+    final notamFeatures = _findNotamFeatures();
     final l10n = AppLocalizations.of(context)!;
 
     final navigationAsync = ref.watch(navigationProvider);
@@ -144,6 +178,26 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(context); // Close bottom sheet
                 _showAirspaceDetails(context, airspaceFeatures);
+              },
+            ),
+          if (notamFeatures.isNotEmpty)
+            ListTile(
+              leading: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              title: Text(
+                notamFeatures.length > 1
+                    ? '${l10n.notamsTitle} (${notamFeatures.length})'
+                    : '${l10n.notamDetails} ${notamFeatures.first['properties']['id']}',
+              ),
+              subtitle: Text(
+                notamFeatures.length > 1
+                    ? notamFeatures.map((n) => n['properties']['id']).join(', ')
+                    : (notamFeatures.first['properties']['title'] ?? ''),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () {
+                Navigator.pop(context); // Close bottom sheet
+                _showNotamsDetails(context, notamFeatures, ref);
               },
             ),
           ListTile(

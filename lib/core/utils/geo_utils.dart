@@ -82,4 +82,54 @@ class GeoUtils {
   static double _radiansToDegrees(double radians) {
     return radians * 180.0 / math.pi;
   }
+
+  /// Checks if a point ([lon], [lat]) is inside any of the given [polygons].
+  ///
+  /// Each polygon is represented as a list of rings (`List<List<double>>`),
+  /// where the first ring is the exterior boundary and subsequent rings are holes.
+  /// A point is inside if it is inside the exterior boundary and NOT inside any holes.
+  static bool isPointInPolygons(double lon, double lat, List<List<List<List<double>>>> polygons) {
+    for (final List<List<List<double>>> polygon in polygons) {
+      if (polygon.isEmpty) continue;
+      // Check exterior ring
+      if (isPointInRing(lon, lat, polygon[0])) {
+        // Check interior rings (holes)
+        bool insideHole = false;
+        for (int i = 1; i < polygon.length; i++) {
+          if (isPointInRing(lon, lat, polygon[i])) {
+            insideHole = true;
+            break;
+          }
+        }
+        if (!insideHole) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Checks if a point ([lon], [lat]) is inside a single [ring] using the ray-casting algorithm.
+  ///
+  /// The [ring] is a list of points where each point is `[lon, lat]`.
+  static bool isPointInRing(double lon, double lat, List<List<double>> ring) {
+    bool inside = false;
+    final int len = ring.length;
+    if (len < 3) return false;
+    int j = len - 1;
+    for (int i = 0; i < len; i++) {
+      final List<double> pi = ring[i];
+      final List<double> pj = ring[j];
+      final double xi = pi[0];
+      final double yi = pi[1];
+      final double xj = pj[0];
+      final double yj = pj[1];
+
+      final bool intersect = ((yi > lat) != (yj > lat)) &&
+          (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+      j = i;
+    }
+    return inside;
+  }
 }

@@ -461,5 +461,12 @@
   "waypointsList": "Waypoints List",
   "placeholderDash": "---",
   "minutesAbbrev": "min",
-  "etaLabel": "ETA"
+  "etaLabel": "ETA",
+  "notamsTitle": "NOTAMs",
+  "notamDetails": "NOTAM Details",
+  "notamStart": "Start Time",
+  "notamEnd": "End Time",
+  "notamFir": "FIR",
+  "notamLimits": "Vertical Limits",
+  "hideNotam": "Hide"
 }
