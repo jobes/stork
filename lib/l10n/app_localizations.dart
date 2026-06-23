@@ -1837,6 +1837,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ETA'**
   String get etaLabel;
+
+  /// No description provided for @notamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTAMs'**
+  String get notamsTitle;
+
+  /// No description provided for @notamDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTAM Details'**
+  String get notamDetails;
+
+  /// No description provided for @notamStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Time'**
+  String get notamStart;
+
+  /// No description provided for @notamEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End Time'**
+  String get notamEnd;
+
+  /// No description provided for @notamFir.
+  ///
+  /// In en, this message translates to:
+  /// **'FIR'**
+  String get notamFir;
+
+  /// No description provided for @notamLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical Limits'**
+  String get notamLimits;
+
+  /// No description provided for @hideNotam.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get hideNotam;
 }
 
 class _AppLocalizationsDelegate

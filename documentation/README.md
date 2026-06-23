@@ -37,5 +37,7 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Describes the offline-first architecture with PMTiles, tile local caching proxies using an embedded local HTTP server, dynamic MapLibre style rewriting, and openAIP country-based metadata fetching/syncing.*
 *   [Aeronautical Metadata and Map Interaction](features/aeronautical-metadata.md)
     *   *Explains how OpenAIP airport and airspace metadata is synchronized, cached in the local SQLite database, queried on map tap coordinates, and presented in the interactive details dialogs.*
+*   [NOTAM (Notice to Airmen) Alerts](features/notams.md)
+    *   *Describes how NOTAMs are fetched from the FAA API, decoded and expanded from contractions to English, managed through performance-optimized Riverpod providers, rendered as map layers with mathematical circle polygon projection, and controlled with user hide mechanisms.*
 *   [Settings and Configuration](features/settings.md)
     *   *Details the settings architecture, encompassing the domain models (units, range thresholds, cannelloni devices) and the modular user interface.*

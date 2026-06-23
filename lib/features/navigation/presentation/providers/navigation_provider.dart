@@ -78,7 +78,7 @@ class NavigationNotifier extends _$NavigationNotifier {
 
     if (removeCount > 0) {
       _isAutoAdvancing = true;
-      removePoints(removeCount).then((_) {
+      removePoints(removeCount, isAutoAdvance: true).then((_) {
         _isAutoAdvancing = false;
       }).catchError((_) {
         _isAutoAdvancing = false;
@@ -98,18 +98,20 @@ class NavigationNotifier extends _$NavigationNotifier {
     final updated = current.copyWith(
       points: updatedPoints,
       isActive: isFirst ? true : current.isActive,
+      wasAutoAdvanced: false,
     );
     state = AsyncData(updated);
     await _save(updated);
   }
 
-  Future<void> removePoints(int count) async {
+  Future<void> removePoints(int count, {bool isAutoAdvance = false}) async {
     final current = state.value ?? const NavigationState();
     if (count <= 0 || count > current.points.length) return;
     final updatedPoints = List<NavigationPoint>.from(current.points)..removeRange(0, count);
     final updated = current.copyWith(
       points: updatedPoints,
       isActive: updatedPoints.isEmpty ? false : current.isActive,
+      wasAutoAdvanced: isAutoAdvance,
     );
     state = AsyncData(updated);
     await _save(updated);
@@ -122,6 +124,7 @@ class NavigationNotifier extends _$NavigationNotifier {
     final updated = current.copyWith(
       points: updatedPoints,
       isActive: updatedPoints.isEmpty ? false : current.isActive,
+      wasAutoAdvanced: false,
     );
     state = AsyncData(updated);
     await _save(updated);
@@ -136,20 +139,26 @@ class NavigationNotifier extends _$NavigationNotifier {
     final item = updatedPoints.removeAt(oldIndex);
     updatedPoints.insert(newIndex, item);
 
-    final updated = current.copyWith(points: updatedPoints);
+    final updated = current.copyWith(
+      points: updatedPoints,
+      wasAutoAdvanced: false,
+    );
     state = AsyncData(updated);
     await _save(updated);
   }
 
   Future<void> clearNavigation() async {
-    const updated = NavigationState(points: [], isActive: false);
+    const updated = NavigationState(points: [], isActive: false, wasAutoAdvanced: false);
     state = const AsyncData(updated);
     await _save(updated);
   }
 
   Future<void> toggleActive() async {
     final current = state.value ?? const NavigationState();
-    final updated = current.copyWith(isActive: !current.isActive);
+    final updated = current.copyWith(
+      isActive: !current.isActive,
+      wasAutoAdvanced: false,
+    );
     state = AsyncData(updated);
     await _save(updated);
   }

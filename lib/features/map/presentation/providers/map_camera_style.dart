@@ -67,6 +67,41 @@ extension MapCameraStyle on MapCamera {
 
       await style.addSource(
         GeoJsonSource(
+          id: 'notams-source',
+          data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        FillStyleLayer(
+          id: 'notams-fill-layer',
+          sourceId: 'notams-source',
+          paint: {
+            'fill-color': '#FF5722',
+            'fill-opacity': 0.25,
+          },
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        LineStyleLayer(
+          id: 'notams-line-layer',
+          sourceId: 'notams-source',
+          paint: {
+            'line-color': '#FF5722',
+            'line-width': 2.0,
+            'line-dasharray': [2.0, 2.0],
+          },
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+
+
+      await style.addSource(
+        GeoJsonSource(
           id: 'aircraft-source',
           data: GeoJsonBuilder.buildAircraftGeoJson(
             telemetry.latitude,
@@ -96,6 +131,7 @@ extension MapCameraStyle on MapCamera {
 
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();
+      updateNotamsOnMap();
       debugPrint('Aircraft symbol initialized 😎');
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');

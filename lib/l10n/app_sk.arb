@@ -383,5 +383,12 @@
   "waypointsList": "Zoznam bodov",
   "placeholderDash": "---",
   "minutesAbbrev": "min",
-  "etaLabel": "ETA"
+  "etaLabel": "ETA",
+  "notamsTitle": "NOTAMy",
+  "notamDetails": "Detaily NOTAMu",
+  "notamStart": "Začiatok platnosti",
+  "notamEnd": "Koniec platnosti",
+  "notamFir": "FIR",
+  "notamLimits": "Vertikálne limity",
+  "hideNotam": "Skryť"
 }
