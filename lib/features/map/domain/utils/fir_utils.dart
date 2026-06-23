@@ -117,6 +117,9 @@ class FirUtils {
     List<Geographic> routePoints,
     double chunkDistanceMeters,
   ) {
+    if (chunkDistanceMeters <= 0) {
+      throw ArgumentError('chunkDistanceMeters must be greater than zero.');
+    }
     final List<Geographic> result = [];
     if (routePoints.isEmpty) return result;
 

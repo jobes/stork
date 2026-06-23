@@ -105,5 +105,17 @@ void main() {
       expect(result[0].lat, 48.0);
       expect(result[5].lat, 50.0);
     });
+
+    test('Throws ArgumentError if chunk distance is zero or negative', () {
+      final pts = [Geographic(lat: 48.0, lon: 17.0)];
+      expect(
+        () => FirUtils.getRouteChunkPoints(pts, 0.0),
+        throwsArgumentError,
+      );
+      expect(
+        () => FirUtils.getRouteChunkPoints(pts, -100.0),
+        throwsArgumentError,
+      );
+    });
   });
 }
