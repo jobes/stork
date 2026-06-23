@@ -42,6 +42,8 @@ abstract class AppSettings with _$AppSettings {
     @Default(AltitudeUnit.feet) AltitudeUnit altitudeUnit,
     @Default(AltitudeUnit.meters) AltitudeUnit heightUnit,
     @Default(27.78) double averageSpeed,
+    String? pilotId,
+    String? airplaneId,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>

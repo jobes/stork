@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'map_camera_provider.dart';
+part of 'black_box_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,27 +9,28 @@ part of 'map_camera_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(MapCamera)
-final mapCameraProvider = MapCameraProvider._();
+@ProviderFor(BlackBoxService)
+final blackBoxServiceProvider = BlackBoxServiceProvider._();
 
-final class MapCameraProvider extends $NotifierProvider<MapCamera, void> {
-  MapCameraProvider._()
+final class BlackBoxServiceProvider
+    extends $NotifierProvider<BlackBoxService, void> {
+  BlackBoxServiceProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'mapCameraProvider',
-        isAutoDispose: true,
+        name: r'blackBoxServiceProvider',
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$mapCameraHash();
+  String debugGetCreateSourceHash() => _$blackBoxServiceHash();
 
   @$internal
   @override
-  MapCamera create() => MapCamera();
+  BlackBoxService create() => BlackBoxService();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(void value) {
@@ -40,9 +41,9 @@ final class MapCameraProvider extends $NotifierProvider<MapCamera, void> {
   }
 }
 
-String _$mapCameraHash() => r'9d9b547c0090bd979cd601886b4aeab5e4a09157';
+String _$blackBoxServiceHash() => r'7b3d185bb025c2dca37b476fe34d503e7c096d1b';
 
-abstract class _$MapCamera extends $Notifier<void> {
+abstract class _$BlackBoxService extends $Notifier<void> {
   void build();
   @$mustCallSuper
   @override

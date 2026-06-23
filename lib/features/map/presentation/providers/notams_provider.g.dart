@@ -160,7 +160,7 @@ final class NotamsProvider extends $AsyncNotifierProvider<Notams, List<Notam>> {
   Notams create() => Notams();
 }
 
-String _$notamsHash() => r'b0f01711c9404bf540c56398b3cafb5383dbdc73';
+String _$notamsHash() => r'557e7b45395ed868f9dab40feb02fdfa04b943a9';
 
 abstract class _$Notams extends $AsyncNotifier<List<Notam>> {
   FutureOr<List<Notam>> build();
