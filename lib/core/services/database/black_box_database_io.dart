@@ -177,6 +177,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       flight.airplaneId,
     ]);
     stmt.close();
+    db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
   }
 
   @override
@@ -187,6 +188,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     ''');
     stmt.execute([endTime.toIso8601String(), uuid]);
     stmt.close();
+    db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
   }
 
   @override
@@ -391,12 +393,14 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     final stmt = db.prepare('DELETE FROM flights WHERE uuid = ?');
     stmt.execute([uuid]);
     stmt.close();
+    db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
   }
 
   @override
   Future<void> clearAll() async {
     final db = await database;
     db.execute('DELETE FROM flights');
+    db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
   }
 
   @override
@@ -473,6 +477,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     ''');
     stmt.execute([name, pilotId, airplaneId, uuid]);
     stmt.close();
+    db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
   }
 
   @override
@@ -544,6 +549,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       stats.avgEngineRPM,
     ]);
     stmt.close();
+    db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
   }
 
   @override
@@ -712,6 +718,7 @@ void _calculateAndSaveStatsIsolate(String dbPath, String flightUuid) {
       stats.avgEngineRPM,
     ]);
     stmt.close();
+    db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
   } finally {
     db.close();
   }
