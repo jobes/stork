@@ -35,17 +35,21 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     if (dbPathOverride != null) return dbPathOverride!;
     if (Platform.isAndroid) {
       try {
-        final extDir = await getExternalStorageDirectory();
-        if (extDir != null) {
-          return p.join(extDir.path, 'black_box.db');
+        final dirs = await getExternalStorageDirectories();
+        if (dirs != null && dirs.isNotEmpty) {
+          final sdCardDir = dirs.firstWhere(
+            (dir) => !dir.path.contains('emulated'),
+            orElse: () => dirs.first,
+          );
+          return p.join(sdCardDir.path, 'stork_blackbox.db');
         }
       } catch (e) {
-        debugPrint('Failed to resolve external directory: $e');
+        debugPrint('Failed to resolve external storage directories: $e');
       }
     }
 
     final docs = await getApplicationDocumentsDirectory();
-    return p.join(docs.path, 'black_box.db');
+    return p.join(docs.path, 'stork_blackbox.db');
   }
 
   Future<Database> _initDatabase() async {

@@ -12,7 +12,7 @@ Stork integrates an automated flight recording system ("Black Box") that runs co
 graph TD
     subgraph Core App
         TP[telemetryProvider] -->|Telemetry Updates| BBS[BlackBoxService]
-        BBS -->|Accumulates Buffers| DB[(black_box.db SQLite)]
+        BBS -->|Accumulates Buffers| DB[(stork_blackbox.db SQLite)]
     end
 
     subgraph Operations & Export
@@ -27,10 +27,10 @@ graph TD
 
 ## 2. Platform-Specific Database Implementations
 
-To maintain database isolation and optimal read/write concurrency, the Black Box records are stored in a dedicated database file (`black_box.db`). The layer is defined by the abstract interface [BlackBoxDatabase](../../lib/core/services/database/black_box_database.dart) and conditional imports:
+To maintain database isolation and optimal read/write concurrency, the Black Box records are stored in a dedicated database file (`stork_blackbox.db`). The layer is defined by the abstract interface [BlackBoxDatabase](../../lib/core/services/database/black_box_database.dart) and conditional imports:
 
 - **IO Platforms (Android, iOS, Desktop)**: Implemented in [IoBlackBoxDatabase](../../lib/core/services/database/black_box_database_io.dart) using the native `sqlite3` driver bindings. The database file is placed in:
-  - On Android: `ExternalStorageDirectory` (e.g., `/storage/emulated/0/Android/data/com.example.stork/files/black_box.db`) if available.
+  - On Android: SD card storage if a physical removable SD card is present, otherwise falls back to the primary external storage directory (unprotected/accessible shared storage).
   - On iOS/Desktop: `ApplicationDocumentsDirectory` (system documents folder).
   
   **SQLite Performance Configurations:**
