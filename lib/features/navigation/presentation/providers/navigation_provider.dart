@@ -40,7 +40,9 @@ class NavigationNotifier extends _$NavigationNotifier {
     if (_isAutoAdvancing) return;
     if (state.isLoading || state.hasError) return;
     final navState = state.value;
-    if (navState == null || !navState.isActive || navState.points.isEmpty) return;
+    if (navState == null || !navState.isActive || navState.points.isEmpty) {
+      return;
+    }
 
     if (telemetry.latitude == null ||
         telemetry.longitude == null ||
@@ -54,8 +56,13 @@ class NavigationNotifier extends _$NavigationNotifier {
     final settings = settingsAsync.value;
     if (settings == null) return;
 
-    final useRealSpeed = telemetry.isFlying && telemetry.groundSpeed != null && telemetry.groundSpeed! > 0;
-    final activeSpeedMs = useRealSpeed ? telemetry.groundSpeed! : settings.averageSpeed;
+    final useRealSpeed =
+        telemetry.isFlying &&
+        telemetry.groundSpeed != null &&
+        telemetry.groundSpeed! > 0;
+    final activeSpeedMs = useRealSpeed
+        ? telemetry.groundSpeed!
+        : settings.averageSpeed;
 
     if (activeSpeedMs <= 0) return;
 
@@ -78,11 +85,13 @@ class NavigationNotifier extends _$NavigationNotifier {
 
     if (removeCount > 0) {
       _isAutoAdvancing = true;
-      removePoints(removeCount, isAutoAdvance: true).then((_) {
-        _isAutoAdvancing = false;
-      }).catchError((_) {
-        _isAutoAdvancing = false;
-      });
+      removePoints(removeCount, isAutoAdvance: true)
+          .then((_) {
+            _isAutoAdvancing = false;
+          })
+          .catchError((_) {
+            _isAutoAdvancing = false;
+          });
     }
   }
 
@@ -107,7 +116,8 @@ class NavigationNotifier extends _$NavigationNotifier {
   Future<void> removePoints(int count, {bool isAutoAdvance = false}) async {
     final current = state.value ?? const NavigationState();
     if (count <= 0 || count > current.points.length) return;
-    final updatedPoints = List<NavigationPoint>.from(current.points)..removeRange(0, count);
+    final updatedPoints = List<NavigationPoint>.from(current.points)
+      ..removeRange(0, count);
     final updated = current.copyWith(
       points: updatedPoints,
       isActive: updatedPoints.isEmpty ? false : current.isActive,
@@ -120,7 +130,8 @@ class NavigationNotifier extends _$NavigationNotifier {
   Future<void> removePoint(int index) async {
     final current = state.value ?? const NavigationState();
     if (index < 0 || index >= current.points.length) return;
-    final updatedPoints = List<NavigationPoint>.from(current.points)..removeAt(index);
+    final updatedPoints = List<NavigationPoint>.from(current.points)
+      ..removeAt(index);
     final updated = current.copyWith(
       points: updatedPoints,
       isActive: updatedPoints.isEmpty ? false : current.isActive,
@@ -148,7 +159,11 @@ class NavigationNotifier extends _$NavigationNotifier {
   }
 
   Future<void> clearNavigation() async {
-    const updated = NavigationState(points: [], isActive: false, wasAutoAdvanced: false);
+    const updated = NavigationState(
+      points: [],
+      isActive: false,
+      wasAutoAdvanced: false,
+    );
     state = const AsyncData(updated);
     await _save(updated);
   }

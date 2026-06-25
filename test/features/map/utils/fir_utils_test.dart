@@ -68,50 +68,53 @@ void main() {
       expect(result[0].lon, 17.0);
     });
 
-    test('Segments shorter than chunk distance are optimized to avoid redundant overlapping checks', () {
-      // A route with 3 points, short distances (roughly 111 meters per 0.001 degree)
-      final pts = [
-        Geographic(lat: 48.0, lon: 17.0),
-        Geographic(lat: 48.001, lon: 17.0),
-        Geographic(lat: 48.002, lon: 17.0),
-      ];
-      // Chunk distance is 50,000 meters (much larger than the actual distance between points)
-      final result = FirUtils.getRouteChunkPoints(pts, 50000.0);
+    test(
+      'Segments shorter than chunk distance are optimized to avoid redundant overlapping checks',
+      () {
+        // A route with 3 points, short distances (roughly 111 meters per 0.001 degree)
+        final pts = [
+          Geographic(lat: 48.0, lon: 17.0),
+          Geographic(lat: 48.001, lon: 17.0),
+          Geographic(lat: 48.002, lon: 17.0),
+        ];
+        // Chunk distance is 50,000 meters (much larger than the actual distance between points)
+        final result = FirUtils.getRouteChunkPoints(pts, 50000.0);
 
-      // Under optimization, the 50km circle around the start point covers the entire 222-meter route,
-      // so no additional points are added.
-      expect(result.length, 1);
-      expect(result[0].lat, 48.0);
-    });
+        // Under optimization, the 50km circle around the start point covers the entire 222-meter route,
+        // so no additional points are added.
+        expect(result.length, 1);
+        expect(result[0].lat, 48.0);
+      },
+    );
 
-    test('Segments longer than chunk distance are interpolated with optimal spacing', () {
-      // Distance between 48.0 and 49.0 lat at 17.0 lon is ~111,000 meters
-      final pts = [
-        Geographic(lat: 48.0, lon: 17.0),
-        Geographic(lat: 49.0, lon: 17.0),
-        Geographic(lat: 50.0, lon: 17.0),
-      ];
-      // Chunk distance is 50,000 meters.
-      final result = FirUtils.getRouteChunkPoints(pts, 50000.0);
+    test(
+      'Segments longer than chunk distance are interpolated with optimal spacing',
+      () {
+        // Distance between 48.0 and 49.0 lat at 17.0 lon is ~111,000 meters
+        final pts = [
+          Geographic(lat: 48.0, lon: 17.0),
+          Geographic(lat: 49.0, lon: 17.0),
+          Geographic(lat: 50.0, lon: 17.0),
+        ];
+        // Chunk distance is 50,000 meters.
+        final result = FirUtils.getRouteChunkPoints(pts, 50000.0);
 
-      // Points:
-      // 1. A (48.0)
-      // 2. P1 (interpolated at ~48.45)
-      // 3. P2 (interpolated at ~48.90)
-      // 4. P3 (interpolated at ~49.35)
-      // 5. P4 (interpolated at ~49.80)
-      // 6. C (50.0) - last point added because distance from P4 to C (~22km) is > 1000m.
-      expect(result.length, 6);
-      expect(result[0].lat, 48.0);
-      expect(result[5].lat, 50.0);
-    });
+        // Points:
+        // 1. A (48.0)
+        // 2. P1 (interpolated at ~48.45)
+        // 3. P2 (interpolated at ~48.90)
+        // 4. P3 (interpolated at ~49.35)
+        // 5. P4 (interpolated at ~49.80)
+        // 6. C (50.0) - last point added because distance from P4 to C (~22km) is > 1000m.
+        expect(result.length, 6);
+        expect(result[0].lat, 48.0);
+        expect(result[5].lat, 50.0);
+      },
+    );
 
     test('Throws ArgumentError if chunk distance is zero or negative', () {
       final pts = [Geographic(lat: 48.0, lon: 17.0)];
-      expect(
-        () => FirUtils.getRouteChunkPoints(pts, 0.0),
-        throwsArgumentError,
-      );
+      expect(() => FirUtils.getRouteChunkPoints(pts, 0.0), throwsArgumentError);
       expect(
         () => FirUtils.getRouteChunkPoints(pts, -100.0),
         throwsArgumentError,

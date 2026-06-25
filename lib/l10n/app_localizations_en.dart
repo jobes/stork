@@ -936,4 +936,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hideNotam => 'Hide';
+
+  @override
+  String get flightRecords => 'Flight Records';
+
+  @override
+  String get flightRecordsTitle => 'Flight Records';
+
+  @override
+  String get flightName => 'Flight Name';
+
+  @override
+  String get pilotId => 'Pilot ID';
+
+  @override
+  String get airplaneId => 'Aircraft ID';
+
+  @override
+  String get editFlight => 'Edit Flight';
+
+  @override
+  String get shareGpx => 'Share GPX';
+
+  @override
+  String get downloadGpx => 'Download GPX';
+
+  @override
+  String get flightRecordsEmpty => 'No flight records found';
+
+  @override
+  String get flightDate => 'Date';
+
+  @override
+  String get startTime => 'Start Time';
+
+  @override
+  String get endTime => 'End Time';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get shareError => 'Failed to share GPX file';
+
+  @override
+  String get shareSuccess => 'GPX file shared successfully';
+
+  @override
+  String get maxAltitudeLabel => 'Max altitude';
+
+  @override
+  String get totalAscentLabel => 'Total ascent';
+
+  @override
+  String get totalDescentLabel => 'Total descent';
+
+  @override
+  String get avgAltitudeLabel => 'Average altitude';
+
+  @override
+  String get maxSpeedLabel => 'Max speed';
+
+  @override
+  String get avgSpeedLabel => 'Average speed';
+
+  @override
+  String get flownDistanceLabel => 'Flown distance';
+
+  @override
+  String get maxDistanceTakeoffLabel => 'Max distance from takeoff';
+
+  @override
+  String get avgRpmLabel => 'Average engine RPM';
 }

@@ -14,11 +14,11 @@ class NavigationPoint {
   });
 
   Map<String, dynamic> toJson() => {
-        'latitude': latitude,
-        'longitude': longitude,
-        'name': name,
-        'isAirport': isAirport,
-      };
+    'latitude': latitude,
+    'longitude': longitude,
+    'name': name,
+    'isAirport': isAirport,
+  };
 
   factory NavigationPoint.fromJson(Map<String, dynamic> json) {
     if (json case {

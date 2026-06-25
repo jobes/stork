@@ -62,15 +62,23 @@ class NavigationDetailsDialog extends ConsumerWidget {
           );
         }
 
-        final currentPositionKnown = telemetry.latitude != null &&
+        final currentPositionKnown =
+            telemetry.latitude != null &&
             telemetry.longitude != null &&
             telemetry.latitude != 0.0 &&
             telemetry.longitude != 0.0;
 
-        final useRealSpeed = telemetry.isFlying && telemetry.groundSpeed != null && telemetry.groundSpeed! > 0;
-        final activeSpeedMs = useRealSpeed ? telemetry.groundSpeed! : (settings?.averageSpeed ?? 27.78);
+        final useRealSpeed =
+            telemetry.isFlying &&
+            telemetry.groundSpeed != null &&
+            telemetry.groundSpeed! > 0;
+        final activeSpeedMs = useRealSpeed
+            ? telemetry.groundSpeed!
+            : (settings?.averageSpeed ?? 27.78);
         final speedUnit = settings?.speedUnit ?? SpeedUnit.kmh;
-        final speedValFormatted = speedUnit.convertFromMs(activeSpeedMs).toStringAsFixed(0);
+        final speedValFormatted = speedUnit
+            .convertFromMs(activeSpeedMs)
+            .toStringAsFixed(0);
         final speedUnitAbbr = speedUnit.getAbbreviation(l10n);
 
         final calculations = NavigationCalculations.calculate(
@@ -82,9 +90,13 @@ class NavigationDetailsDialog extends ConsumerWidget {
         );
 
         final hasLegs = calculations.legs.isNotEmpty;
-        final distToNearest = hasLegs ? calculations.legs.first.legDistanceMeters : null;
+        final distToNearest = hasLegs
+            ? calculations.legs.first.legDistanceMeters
+            : null;
         final distToDest = hasLegs ? calculations.totalDistanceMeters : null;
-        final timeToNearest = hasLegs ? calculations.legs.first.legDuration : null;
+        final timeToNearest = hasLegs
+            ? calculations.legs.first.legDuration
+            : null;
         final timeToDest = hasLegs ? calculations.totalDuration : null;
 
         final hasMultiplePoints = points.length > 1;
@@ -106,7 +118,9 @@ class NavigationDetailsDialog extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withAlpha(8) : Colors.black.withAlpha(5),
+                  color: isDark
+                      ? Colors.white.withAlpha(8)
+                      : Colors.black.withAlpha(5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isDark ? Colors.white12 : Colors.black12,
@@ -190,7 +204,9 @@ class NavigationDetailsDialog extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withAlpha(8) : Colors.black.withAlpha(5),
+                  color: isDark
+                      ? Colors.white.withAlpha(8)
+                      : Colors.black.withAlpha(5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isDark ? Colors.white12 : Colors.black12,
@@ -249,14 +265,26 @@ class NavigationDetailsDialog extends ConsumerWidget {
         final nearestPointName = points.first.name;
         final destPointName = points.last.name;
 
-        final distToNearestStr = distToNearest != null ? '${(distToNearest / 1000.0).toStringAsFixed(2)} km' : l10n.placeholderDash;
-        final distToDestStr = distToDest != null ? '${(distToDest / 1000.0).toStringAsFixed(2)} km' : l10n.placeholderDash;
+        final distToNearestStr = distToNearest != null
+            ? '${(distToNearest / 1000.0).toStringAsFixed(2)} km'
+            : l10n.placeholderDash;
+        final distToDestStr = distToDest != null
+            ? '${(distToDest / 1000.0).toStringAsFixed(2)} km'
+            : l10n.placeholderDash;
 
-        final timeToNearestStr = timeToNearest != null ? _formatDurationNoSeconds(context, timeToNearest) : l10n.placeholderDash;
-        final timeToDestStr = timeToDest != null ? _formatDurationNoSeconds(context, timeToDest) : l10n.placeholderDash;
+        final timeToNearestStr = timeToNearest != null
+            ? _formatDurationNoSeconds(context, timeToNearest)
+            : l10n.placeholderDash;
+        final timeToDestStr = timeToDest != null
+            ? _formatDurationNoSeconds(context, timeToDest)
+            : l10n.placeholderDash;
 
-        final etaNearestStr = timeToNearest != null ? _formatEta(context, now.add(timeToNearest)) : null;
-        final etaDestStr = timeToDest != null ? _formatEta(context, now.add(timeToDest)) : null;
+        final etaNearestStr = timeToNearest != null
+            ? _formatEta(context, now.add(timeToNearest))
+            : null;
+        final etaDestStr = timeToDest != null
+            ? _formatEta(context, now.add(timeToDest))
+            : null;
 
         return BaseDetailsDialog(
           titleText: l10n.navigationDetailsTitle,
@@ -272,7 +300,9 @@ class NavigationDetailsDialog extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withAlpha(15) : Colors.black.withAlpha(10),
+                      color: isDark
+                          ? Colors.white.withAlpha(15)
+                          : Colors.black.withAlpha(10),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isDark ? Colors.white12 : Colors.black12,
@@ -314,7 +344,10 @@ class NavigationDetailsDialog extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                l10n.activeSpeedLabel(speedValFormatted, speedUnitAbbr),
+                                l10n.activeSpeedLabel(
+                                  speedValFormatted,
+                                  speedUnitAbbr,
+                                ),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,

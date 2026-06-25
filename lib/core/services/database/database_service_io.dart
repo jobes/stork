@@ -306,13 +306,16 @@ class DatabaseService {
     );
   }
 
-  static Future<Map<String, dynamic>?> getOpenAipFeature(String id, String type) async {
+  static Future<Map<String, dynamic>?> getOpenAipFeature(
+    String id,
+    String type,
+  ) async {
     if (kIsWeb) return null;
     final db = await database;
-    final result = db.select('SELECT json FROM openaip_features WHERE id = ? AND type = ?', [
-      id,
-      type,
-    ]);
+    final result = db.select(
+      'SELECT json FROM openaip_features WHERE id = ? AND type = ?',
+      [id, type],
+    );
     if (result.isEmpty) return null;
     try {
       final decoded = json.decode(result.first['json'] as String);

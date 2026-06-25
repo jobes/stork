@@ -21,4 +21,3 @@ extension DurationFormatter on Duration {
     }
   }
 }
-

@@ -74,7 +74,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   );
 
   late final DecayableField<int> _gpsSatelliteCount = DecayableField<int>(
-    timeout: const Duration(seconds: 1),
+    timeout: const Duration(seconds: 2),
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.gpsSatelliteCount)
@@ -142,31 +142,46 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     }
 
     final oldState = state;
-    state = state.copyWith(isGpsDroneCan: isDroneCan);
 
-    if (latitude != null) _latitude.update(latitude);
-    if (longitude != null) _longitude.update(longitude);
-    if (heading != null) _heading.update(heading);
-    if (groundSpeed != null) _groundSpeed.update(groundSpeed);
-
-    if (gpsSatelliteCount != null) _gpsSatelliteCount.update(gpsSatelliteCount);
-
+    if (latitude != null) _latitude.sync(latitude);
+    if (longitude != null) _longitude.sync(longitude);
+    if (heading != null) _heading.sync(heading);
+    if (groundSpeed != null) _groundSpeed.sync(groundSpeed);
+    if (gpsSatelliteCount != null) _gpsSatelliteCount.sync(gpsSatelliteCount);
     if (gpsHorizontalAccuracy != null) {
-      _gpsHorizontalAccuracy.update(gpsHorizontalAccuracy);
+      _gpsHorizontalAccuracy.sync(gpsHorizontalAccuracy);
     }
     if (gpsVerticalAccuracy != null) {
-      _gpsVerticalAccuracy.update(gpsVerticalAccuracy);
+      _gpsVerticalAccuracy.sync(gpsVerticalAccuracy);
     }
+    if (gpsAltitude != null) _gpsAltitude.sync(gpsAltitude);
 
-    if (gpsAltitude != null) _gpsAltitude.update(gpsAltitude);
+    var newState = state.copyWith(
+      isGpsDroneCan: isDroneCan,
+      latitude: latitude ?? state.latitude,
+      longitude: longitude ?? state.longitude,
+      heading: heading ?? state.heading,
+      groundSpeed: groundSpeed ?? state.groundSpeed,
+      gpsSatelliteCount: gpsSatelliteCount ?? state.gpsSatelliteCount,
+      gpsHorizontalAccuracy:
+          gpsHorizontalAccuracy ?? state.gpsHorizontalAccuracy,
+      gpsVerticalAccuracy: gpsVerticalAccuracy ?? state.gpsVerticalAccuracy,
+      gpsAltitude: gpsAltitude ?? state.gpsAltitude,
+    );
 
     // Auto-transition to overview if GPS is filled and we are in init/waiting state
     if ((oldState.mapViewState == MapViewState.init ||
             oldState.mapViewState == MapViewState.waitingForGps) &&
-        state.latitude != null &&
-        state.longitude != null &&
-        (state.latitude != 0.0 && state.longitude != 0.0)) {
-      state = state.copyWith(mapViewState: MapViewState.overview);
+        newState.latitude != null &&
+        newState.longitude != null &&
+        (newState.latitude != 0.0 && newState.longitude != 0.0)) {
+      newState = newState.copyWith(mapViewState: MapViewState.overview);
+    }
+
+    state = newState;
+
+    if (groundSpeed != null) {
+      _updateIsFlying();
     }
   }
 
@@ -224,7 +239,9 @@ void gpsListener(Ref ref) {
     next.whenData((location) {
       final telemetry = ref.read(telemetryProvider);
       if (telemetry.mapViewState != MapViewState.init) {
-        ref.read(telemetryProvider.notifier).updateGPS(
+        ref
+            .read(telemetryProvider.notifier)
+            .updateGPS(
               latitude: location.lat,
               longitude: location.lon,
               groundSpeed: location.groundSpeed,
@@ -235,7 +252,9 @@ void gpsListener(Ref ref) {
             );
 
         if (telemetry.isFlying) {
-          ref.read(telemetryProvider.notifier).updateGPS(heading: location.heading);
+          ref
+              .read(telemetryProvider.notifier)
+              .updateGPS(heading: location.heading);
         }
       }
     });

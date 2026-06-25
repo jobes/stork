@@ -51,7 +51,9 @@ class AirspaceMetadataCache extends _$AirspaceMetadataCache {
       }
 
       final future = () async {
-        final parsedFeatures = await repo.fetchAirspacesFromNetwork(lowerCountryCode);
+        final parsedFeatures = await repo.fetchAirspacesFromNetwork(
+          lowerCountryCode,
+        );
         _memoryCache.addAll(parsedFeatures);
         _downloadedCountries.add(lowerCountryCode);
       }();

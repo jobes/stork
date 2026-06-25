@@ -343,13 +343,17 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
             if (f['properties'] case Map<String, dynamic> props) {
               final id = (props['_id'] ?? props['id'] ?? '').toString();
               if (id.isNotEmpty) {
-                final Map<String, dynamic> propsWithGeo = Map<String, dynamic>.from(props);
+                final Map<String, dynamic> propsWithGeo =
+                    Map<String, dynamic>.from(props);
                 if (f['geometry'] case Map<String, dynamic> geometry) {
                   if (geometry['type'] == 'Point') {
-                    if (geometry['coordinates'] case List<dynamic> coordinates) {
+                    if (geometry['coordinates']
+                        case List<dynamic> coordinates) {
                       if (coordinates.length >= 2) {
-                        propsWithGeo['latitude'] = (coordinates[1] as num).toDouble();
-                        propsWithGeo['longitude'] = (coordinates[0] as num).toDouble();
+                        propsWithGeo['latitude'] = (coordinates[1] as num)
+                            .toDouble();
+                        propsWithGeo['longitude'] = (coordinates[0] as num)
+                            .toDouble();
                       }
                     }
                   }

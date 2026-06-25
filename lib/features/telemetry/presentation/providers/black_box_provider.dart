@@ -4,7 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/services/database/black_box_database.dart';
+import 'black_box_repository_provider.dart';
+import '../../domain/repositories/black_box_repository.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/flight.dart';
 import '../../domain/models/telemetry_entry.dart';
@@ -23,12 +24,22 @@ class BlackBoxService extends _$BlackBoxService {
 
   TelemetryState? _lastBufferedState;
   DateTime _lastKeyframeTime = DateTime.fromMillisecondsSinceEpoch(0);
+  Future<void>? _activeFlushFuture;
 
   @override
   void build() {
+    final repo = ref.read(blackBoxRepositoryProvider);
+
+    // Recover unfinished flights in the background
+    unawaited(
+      repo.recoverUnfinishedFlights().catchError((e) {
+        debugPrint('Error recovering unfinished flights: $e');
+      }),
+    );
+
     ref.onDispose(() {
       _flushTimer?.cancel();
-      _flush();
+      _flush(forceRepo: repo);
     });
 
     ref.listen<TelemetryState>(telemetryProvider, (previous, next) {
@@ -51,7 +62,7 @@ class BlackBoxService extends _$BlackBoxService {
     if (isFlying && !wasFlying) {
       _startFlight(next);
     } else if (!isFlying && wasFlying) {
-      _endFlight();
+      unawaited(_endFlight());
     } else if (isFlying) {
       _bufferTelemetry(next);
     }
@@ -62,7 +73,8 @@ class BlackBoxService extends _$BlackBoxService {
 
     final uuid = _uuidGen.v4();
     final now = DateTime.now().toUtc();
-    final flightName = 'Flight ${DateFormat('yyyy-MM-dd HH:mm:ss').format(now.toLocal())}';
+    final flightName =
+        'Flight ${DateFormat('yyyy-MM-dd HH:mm:ss').format(now.toLocal())}';
 
     // Retrieve active pilot and airplane from AppSettings
     final settings = ref.read(appSettingsProvider).value;
@@ -83,43 +95,48 @@ class BlackBoxService extends _$BlackBoxService {
     _buffer.clear();
 
     // Persist flight metadata asynchronously
-    unawaited(BlackBoxDatabase.saveFlight(flight).catchError((e) {
-      debugPrint('Error starting flight in database: $e');
-    }));
+    final repo = ref.read(blackBoxRepositoryProvider);
+    unawaited(
+      repo.saveFlight(flight).catchError((e) {
+        debugPrint('Error starting flight in database: $e');
+      }),
+    );
 
     // Record the initial keyframe
     _bufferTelemetry(state);
 
     // Setup periodic database flusher (every 1 second)
     _flushTimer?.cancel();
-    _flushTimer = Timer.periodic(const Duration(seconds: 1), (_) => _flush());
+    _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
   }
 
-  void _endFlight() {
+  void _onTick(Timer timer) {
+    if (_activeFlushFuture != null) return;
+    unawaited(_flush());
+  }
+
+  Future<void> _endFlight() async {
     final uuid = _activeFlightUuid;
     if (uuid == null) return;
+
+    _activeFlightUuid = null; // Set null synchronously
 
     _flushTimer?.cancel();
     _flushTimer = null;
 
     // Flush any remaining entries in the buffer
-    _flush();
+    await _flush();
 
     final now = DateTime.now().toUtc();
-    unawaited(BlackBoxDatabase.updateFlightEndTime(uuid, now).catchError((e) {
+    final repo = ref.read(blackBoxRepositoryProvider);
+    try {
+      await repo.updateFlightEndTime(uuid, now);
+      await repo.calculateAndSaveFlightStatistics(uuid);
+    } catch (e) {
       debugPrint('Error updating flight end time: $e');
-    }));
-
-    _activeFlightUuid = null;
-    _lastBufferedState = null;
-  }
-
-  Map<String, dynamic> _stateToMap(TelemetryState state) {
-    final map = <String, dynamic>{};
-    for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
-      map[field.dbColumnName] = state.getFieldValue(field);
     }
-    return map;
+
+    _lastBufferedState = null;
   }
 
   void _bufferTelemetry(TelemetryState next) {
@@ -129,38 +146,33 @@ class BlackBoxService extends _$BlackBoxService {
     final now = DateTime.now().toUtc();
 
     // Determine if we need to record this state update
-    if (_lastBufferedState != null && !_hasStateChanged(_lastBufferedState!, next)) {
+    if (_lastBufferedState != null &&
+        !_hasStateChanged(_lastBufferedState!, next)) {
       return;
     }
 
     final isKeyframe = _shouldForceKeyframe(_lastBufferedState, next, now);
-    final currentMap = _stateToMap(next);
     final Map<String, dynamic> data = {};
 
     if (isKeyframe) {
       // Keyframe: save all non-null values
-      currentMap.forEach((key, value) {
-        if (value != null) {
-          data[key] = value;
+      for (final field in TelemetryField.blackBoxFields) {
+        final val = next.getFieldValue(field);
+        if (val != null) {
+          data[field.dbColumnName] = val;
         }
-      });
+      }
       _lastKeyframeTime = now;
       _lastBufferedState = next;
     } else {
       // Delta frame: compare with previously buffered state
-      final prevMap = _stateToMap(_lastBufferedState!);
-      currentMap.forEach((key, value) {
-        if (value != prevMap[key]) {
-          data[key] = value; // stores new value (even null, meaning offline!)
-        }
-      });
-
-      // Keep our buffered state tracker in sync with the database values
       var updatedState = _lastBufferedState!;
-      for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
-        final key = field.dbColumnName;
-        if (data.containsKey(key)) {
-          updatedState = updatedState.copyWithField(field, data[key]);
+      for (final field in TelemetryField.blackBoxFields) {
+        final prevVal = _lastBufferedState!.getFieldValue(field);
+        final nextVal = next.getFieldValue(field);
+        if (prevVal != nextVal) {
+          data[field.dbColumnName] = nextVal;
+          updatedState = updatedState.copyWithField(field, nextVal);
         }
       }
       _lastBufferedState = updatedState.copyWith(
@@ -180,19 +192,39 @@ class BlackBoxService extends _$BlackBoxService {
     _buffer.add(entry);
   }
 
-  void _flush() {
+  Future<void> _flush({BlackBoxRepository? forceRepo}) async {
+    if (_buffer.isEmpty && _activeFlushFuture == null) return;
+
+    if (_activeFlushFuture != null) {
+      try {
+        await _activeFlushFuture;
+      } catch (_) {}
+    }
+
     if (_buffer.isEmpty) return;
 
     final batch = List<TelemetryEntry>.from(_buffer);
     _buffer.clear();
 
-    unawaited(BlackBoxDatabase.insertTelemetryEntries(batch).catchError((e) {
+    final repo = forceRepo ?? ref.read(blackBoxRepositoryProvider);
+    final flushCompleter = Completer<void>();
+    _activeFlushFuture = flushCompleter.future;
+
+    try {
+      if (repo != null) {
+        await repo.insertTelemetryEntries(batch);
+      }
+      flushCompleter.complete();
+    } catch (e) {
       debugPrint('Error inserting black box telemetry: $e');
-    }));
+      flushCompleter.completeError(e);
+    } finally {
+      _activeFlushFuture = null;
+    }
   }
 
   bool _hasStateChanged(TelemetryState prev, TelemetryState next) {
-    for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+    for (final field in TelemetryField.blackBoxFields) {
       if (prev.getFieldValue(field) != next.getFieldValue(field)) {
         return true;
       }
@@ -200,11 +232,15 @@ class BlackBoxService extends _$BlackBoxService {
     return false;
   }
 
-  bool _shouldForceKeyframe(TelemetryState? prev, TelemetryState next, DateTime now) {
+  bool _shouldForceKeyframe(
+    TelemetryState? prev,
+    TelemetryState next,
+    DateTime now,
+  ) {
     if (prev == null) return true;
 
     // Force keyframe if a sensor status changed (connected or disconnected / null transitions)
-    for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+    for (final field in TelemetryField.blackBoxFields) {
       final prevVal = prev.getFieldValue(field);
       final nextVal = next.getFieldValue(field);
       if ((prevVal == null) != (nextVal == null)) {

@@ -211,7 +211,8 @@ class CompassPainter extends CustomPainter {
           fontFamily: 'Roboto',
         );
 
-        final double textY = size.height -
+        final double textY =
+            size.height -
             markerHeight -
             (_CompassLayout.labelOffsetBase * fontScale);
 
@@ -230,21 +231,27 @@ class CompassPainter extends CustomPainter {
         final double shadowOffset = 1.2 * fontScale;
         final double textX = x - textPainter.width / 2;
 
-        textPainter.paint(canvas, Offset(textX - shadowOffset, textY - shadowOffset));
-        textPainter.paint(canvas, Offset(textX + shadowOffset, textY - shadowOffset));
-        textPainter.paint(canvas, Offset(textX - shadowOffset, textY + shadowOffset));
-        textPainter.paint(canvas, Offset(textX + shadowOffset, textY + shadowOffset));
-
-        // Draw main text
-        textPainter.text = TextSpan(
-          text: label,
-          style: baseStyle,
-        );
-        textPainter.layout();
         textPainter.paint(
           canvas,
-          Offset(textX, textY),
+          Offset(textX - shadowOffset, textY - shadowOffset),
         );
+        textPainter.paint(
+          canvas,
+          Offset(textX + shadowOffset, textY - shadowOffset),
+        );
+        textPainter.paint(
+          canvas,
+          Offset(textX - shadowOffset, textY + shadowOffset),
+        );
+        textPainter.paint(
+          canvas,
+          Offset(textX + shadowOffset, textY + shadowOffset),
+        );
+
+        // Draw main text
+        textPainter.text = TextSpan(text: label, style: baseStyle);
+        textPainter.layout();
+        textPainter.paint(canvas, Offset(textX, textY));
       }
     }
   }

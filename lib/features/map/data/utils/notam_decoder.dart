@@ -19,8 +19,14 @@ class NotamDecoder {
     final fStart = rawMessage.indexOf('F)');
     final gStart = rawMessage.indexOf('G)');
 
-    if (qStart == -1 || aStart == -1 || bStart == -1 || cStart == -1 || eStart == -1) {
-      throw FormatException('Invalid ICAO NOTAM format: missing standard fields');
+    if (qStart == -1 ||
+        aStart == -1 ||
+        bStart == -1 ||
+        cStart == -1 ||
+        eStart == -1) {
+      throw FormatException(
+        'Invalid ICAO NOTAM format: missing standard fields',
+      );
     }
 
     final idStr = rawMessage.substring(0, qStart).trim();
@@ -78,7 +84,10 @@ class NotamDecoder {
   }
 
   static Notam decode(Map<String, dynamic> rawNotam) {
-    final rawMessage = rawNotam['icaoMessage'] as String? ?? rawNotam['traditionalMessage'] as String? ?? '';
+    final rawMessage =
+        rawNotam['icaoMessage'] as String? ??
+        rawNotam['traditionalMessage'] as String? ??
+        '';
     final parts = separateToParts(rawMessage);
 
     final idParts = parts['id']!.split(RegExp(r'\s+'));

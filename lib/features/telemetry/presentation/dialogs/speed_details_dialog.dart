@@ -94,7 +94,9 @@ class SpeedDetailsDialog extends ConsumerWidget {
                   context: context,
                   title: l10n.iasShortTitle,
                   subTitle: l10n.indicatedAirSpeedShort,
-                  value: ias != null ? ias.toStringAsFixed(0) : l10n.placeholderDash,
+                  value: ias != null
+                      ? ias.toStringAsFixed(0)
+                      : l10n.placeholderDash,
                   unit: unitLabel,
                   isAvailable: isIasAvailable,
                   state: iasState,
@@ -111,7 +113,9 @@ class SpeedDetailsDialog extends ConsumerWidget {
                   context: context,
                   title: l10n.gsShortTitle,
                   subTitle: l10n.groundSpeedShort,
-                  value: gs != null ? gs.toStringAsFixed(0) : l10n.placeholderDash,
+                  value: gs != null
+                      ? gs.toStringAsFixed(0)
+                      : l10n.placeholderDash,
                   unit: unitLabel,
                   isAvailable: isGsAvailable,
                   state: gsState,

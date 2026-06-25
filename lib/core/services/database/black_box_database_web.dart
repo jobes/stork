@@ -1,48 +1,119 @@
 import '../../../features/telemetry/domain/models/flight.dart';
+import '../../../features/telemetry/domain/models/flight_statistics.dart';
 import '../../../features/telemetry/domain/models/telemetry_entry.dart';
 
-class BlackBoxDatabase {
-  static Future<dynamic> get database async =>
+import 'black_box_database.dart';
+
+BlackBoxDatabase getDatabase() => WebBlackBoxDatabase();
+
+class WebBlackBoxDatabase implements BlackBoxDatabase {
+  Future<dynamic> get database async =>
       throw UnsupportedError('SQLite is not supported on web.');
 
-  static set database(dynamic db) {
+  set database(dynamic db) {
     // No-op on web
   }
 
-  static void setupTables(dynamic db) {
+  void setupTables(dynamic db) {
     // No-op on web
   }
 
-
-  static Future<void> resetDatabase() async {
+  @override
+  Future<void> resetDatabase() async {
     // No-op on web
   }
 
-  static Future<void> saveFlight(Flight flight) async {
+  @override
+  Future<void> saveFlight(Flight flight) async {
     // No-op on web
   }
 
-  static Future<void> updateFlightEndTime(String uuid, DateTime endTime) async {
+  @override
+  Future<void> updateFlightEndTime(String uuid, DateTime endTime) async {
     // No-op on web
   }
 
-  static Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
+  @override
+  Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
     // No-op on web
   }
 
-  static Future<List<Flight>> getFlights() async {
+  @override
+  Future<List<Flight>> getFlights() async {
     return [];
   }
 
-  static Future<List<TelemetryEntry>> getTelemetryForFlight(String flightUuid) async {
+  @override
+  Future<List<Flight>> getUnfinishedFlights() async {
     return [];
   }
 
-  static Future<void> deleteFlight(String uuid) async {
+  @override
+  Future<List<TelemetryEntry>> getTelemetryForFlight(String flightUuid) async {
+    return [];
+  }
+
+  @override
+  Future<TelemetryEntry?> getLastTelemetryForFlight(String flightUuid) async {
+    return null;
+  }
+
+  @override
+  Future<void> saveFlightStatistics(
+    String flightUuid,
+    FlightStatistics stats,
+  ) async {
     // No-op on web
   }
 
-  static Future<void> clearAll() async {
+  @override
+  Future<List<TelemetryEntry>> getTelemetryForFlightPaginated(
+    String flightUuid,
+    int limit,
+    int? lastId,
+  ) async {
+    return [];
+  }
+
+  @override
+  Future<List<TelemetryEntry>> getGpxTelemetryForFlight(
+    String flightUuid,
+  ) async {
+    return [];
+  }
+
+  @override
+  Future<void> deleteFlight(String uuid) async {
+    // No-op on web
+  }
+
+  @override
+  Future<void> clearAll() async {
+    // No-op on web
+  }
+
+  @override
+  Future<List<Flight>> getFlightsPaginated(int limit, int offset) async {
+    return [];
+  }
+
+  @override
+  Future<int> getFlightsCount() async {
+    return 0;
+  }
+
+  @override
+  Future<void> updateFlightDetails({
+    required String uuid,
+    required String name,
+    String? pilotId,
+    String? airplaneId,
+  }) async {
+    // No-op on web
+  }
+
+  @override
+  Future<void> calculateAndSaveFlightStatistics(String flightUuid) async {
     // No-op on web
   }
 }

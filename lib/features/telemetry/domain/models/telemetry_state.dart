@@ -26,6 +26,9 @@ enum TelemetryField {
     }
   }
 
+  static final List<TelemetryField> blackBoxFields =
+      TelemetryField.values.where((f) => f.isBlackBoxField).toList(growable: false);
+
   String get dbColumnName {
     return name
         .replaceAllMapped(
@@ -153,7 +156,9 @@ class TelemetryState {
       case TelemetryField.isGpsDroneCan:
         return copyWith(isGpsDroneCan: value as bool? ?? false);
       case TelemetryField.mapViewState:
-        return copyWith(mapViewState: value as MapViewState? ?? MapViewState.init);
+        return copyWith(
+          mapViewState: value as MapViewState? ?? MapViewState.init,
+        );
     }
   }
 

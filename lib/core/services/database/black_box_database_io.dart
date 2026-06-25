@@ -1,40 +1,66 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import '../../../features/telemetry/domain/models/flight.dart';
+import '../../../features/telemetry/domain/models/flight_statistics.dart';
 import '../../../features/telemetry/domain/models/telemetry_entry.dart';
 import '../../../features/telemetry/domain/models/telemetry_state.dart';
+import '../../../features/telemetry/domain/utils/flight_statistics_calculator.dart';
+import '../../utils/geo_utils.dart';
 
-class BlackBoxDatabase {
-  static Database? _db;
+import 'black_box_database.dart';
+
+BlackBoxDatabase getDatabase() => IoBlackBoxDatabase();
+
+class IoBlackBoxDatabase implements BlackBoxDatabase {
+  Database? _db;
+  
+  @visibleForTesting
+  String? dbPathOverride;
 
   @visibleForTesting
-  static set database(Database? db) => _db = db;
+  set database(Database? db) => _db = db;
 
-  static Future<Database> get database async {
+  Future<Database> get database async {
     if (_db != null) return _db!;
     _db = await _initDatabase();
     return _db!;
   }
 
-  static Future<String> get _dbPath async {
+  Future<String> get _dbPath async {
+    if (dbPathOverride != null) return dbPathOverride!;
+    if (Platform.isAndroid) {
+      try {
+        final extDir = await getExternalStorageDirectory();
+        if (extDir != null) {
+          return p.join(extDir.path, 'black_box.db');
+        }
+      } catch (e) {
+        debugPrint('Failed to resolve external directory: $e');
+      }
+    }
+
     final docs = await getApplicationDocumentsDirectory();
     return p.join(docs.path, 'black_box.db');
   }
 
-  static Future<Database> _initDatabase() async {
+  Future<Database> _initDatabase() async {
     final path = await _dbPath;
     final db = sqlite3.open(path);
     db.execute('PRAGMA foreign_keys = ON;');
+    db.execute('PRAGMA journal_mode = WAL;');
+    db.execute('PRAGMA busy_timeout = 5000;');
     db.execute('PRAGMA synchronous = NORMAL;');
     setupTables(db);
     return db;
   }
 
-  static Future<void> resetDatabase() async {
+  @override
+  Future<void> resetDatabase() async {
     if (_db != null) {
       _db!.close();
       _db = null;
@@ -44,10 +70,18 @@ class BlackBoxDatabase {
     if (await file.exists()) {
       await file.delete();
     }
+    final walFile = File('$path-wal');
+    if (await walFile.exists()) {
+      await walFile.delete();
+    }
+    final shmFile = File('$path-shm');
+    if (await shmFile.exists()) {
+      await shmFile.delete();
+    }
     await database;
   }
 
-  static void setupTables(Database db) {
+  void setupTables(Database db) {
     db.execute('''
       CREATE TABLE IF NOT EXISTS flights (
           uuid TEXT PRIMARY KEY,
@@ -63,7 +97,7 @@ class BlackBoxDatabase {
       'id INTEGER PRIMARY KEY AUTOINCREMENT',
       'flight_uuid TEXT NOT NULL',
       'timestamp TEXT NOT NULL',
-      'is_snapshot INTEGER NOT NULL DEFAULT 0'
+      'is_snapshot INTEGER NOT NULL DEFAULT 0',
     ];
 
     for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
@@ -77,25 +111,55 @@ class BlackBoxDatabase {
       );
     ''');
 
-    db.execute('CREATE INDEX IF NOT EXISTS idx_telemetry_flight ON flight_telemetry (flight_uuid);');
-    db.execute('CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON flight_telemetry (timestamp);');
+    db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_telemetry_flight_id ON flight_telemetry (flight_uuid, id);',
+    );
+    db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON flight_telemetry (timestamp);',
+    );
+    db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_flights_start_time ON flights (start_time DESC);',
+    );
+
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS flight_statistics (
+          flight_uuid TEXT PRIMARY KEY,
+          max_altitude REAL,
+          total_ascent REAL,
+          total_descent REAL,
+          avg_altitude REAL,
+          max_ground_speed REAL,
+          max_indicated_air_speed REAL,
+          avg_ground_speed REAL,
+          avg_indicated_air_speed REAL,
+          total_distance REAL,
+          max_distance_from_takeoff REAL,
+          avg_engine_rpm REAL,
+          FOREIGN KEY (flight_uuid) REFERENCES flights(uuid) ON DELETE CASCADE
+      );
+    ''');
 
     _migrateSchema(db);
   }
 
-  static void _migrateSchema(Database db) {
+  void _migrateSchema(Database db) {
     final pragmaResults = db.select('PRAGMA table_info(flight_telemetry)');
-    final existingColumns = pragmaResults.map((row) => row['name'] as String).toSet();
+    final existingColumns = pragmaResults
+        .map((row) => row['name'] as String)
+        .toSet();
 
     for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
       final colName = field.dbColumnName;
       if (!existingColumns.contains(colName)) {
-        db.execute('ALTER TABLE flight_telemetry ADD COLUMN $colName ${field.dbType}');
+        db.execute(
+          'ALTER TABLE flight_telemetry ADD COLUMN $colName ${field.dbType}',
+        );
       }
     }
   }
 
-  static Future<void> saveFlight(Flight flight) async {
+  @override
+  Future<void> saveFlight(Flight flight) async {
     final db = await database;
     final stmt = db.prepare('''
       INSERT OR REPLACE INTO flights (uuid, name, start_time, end_time, pilot_id, airplane_id)
@@ -112,7 +176,8 @@ class BlackBoxDatabase {
     stmt.close();
   }
 
-  static Future<void> updateFlightEndTime(String uuid, DateTime endTime) async {
+  @override
+  Future<void> updateFlightEndTime(String uuid, DateTime endTime) async {
     final db = await database;
     final stmt = db.prepare('''
       UPDATE flights SET end_time = ? WHERE uuid = ?
@@ -121,7 +186,8 @@ class BlackBoxDatabase {
     stmt.close();
   }
 
-  static Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
+  @override
+  Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
     if (entries.isEmpty) return;
     final db = await database;
     db.execute('BEGIN TRANSACTION');
@@ -129,38 +195,43 @@ class BlackBoxDatabase {
       final columns = ['flight_uuid', 'timestamp', 'is_snapshot'];
       final placeholders = ['?', '?', '?'];
 
-      for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+      for (final field in TelemetryField.values.where(
+        (f) => f.isBlackBoxField,
+      )) {
         columns.add(field.dbColumnName);
         placeholders.add('?');
       }
 
-      final query = 'INSERT INTO flight_telemetry (${columns.join(', ')}) VALUES (${placeholders.join(', ')})';
+      final query =
+          'INSERT INTO flight_telemetry (${columns.join(', ')}) VALUES (${placeholders.join(', ')})';
       final stmt = db.prepare(query);
 
       for (final entry in entries) {
-        final params = <Object?>[
+        final queryParams = <Object?>[
           entry.flightUuid,
           entry.timestamp.toIso8601String(),
           entry.isSnapshot ? 1 : 0,
         ];
 
-        for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+        for (final field in TelemetryField.values.where(
+          (f) => f.isBlackBoxField,
+        )) {
           final colName = field.dbColumnName;
           if (entry.data.containsKey(colName)) {
             final val = entry.data[colName];
             if (val is bool) {
-              params.add(val ? 1 : 0);
+              queryParams.add(val ? 1 : 0);
             } else if (val is Enum) {
-              params.add(val.name);
+              queryParams.add(val.name);
             } else {
-              params.add(val);
+              queryParams.add(val);
             }
           } else {
-            params.add(null);
+            queryParams.add(null);
           }
         }
 
-        stmt.execute(params);
+        stmt.execute(queryParams);
       }
       stmt.close();
       db.execute('COMMIT');
@@ -170,24 +241,105 @@ class BlackBoxDatabase {
     }
   }
 
-  static Future<List<Flight>> getFlights() async {
-    if (kIsWeb) return [];
+  @override
+  Future<List<Flight>> getFlights() async {
     final db = await database;
-    final results = db.select('SELECT uuid, name, start_time, end_time, pilot_id, airplane_id FROM flights ORDER BY start_time DESC');
+    final results = db.select('''
+      SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id,
+             s.max_altitude, s.total_ascent, s.total_descent, s.avg_altitude,
+             s.max_ground_speed, s.max_indicated_air_speed, s.avg_ground_speed, s.avg_indicated_air_speed,
+             s.total_distance, s.max_distance_from_takeoff, s.avg_engine_rpm
+      FROM flights f
+      LEFT JOIN flight_statistics s ON f.uuid = s.flight_uuid
+      ORDER BY f.start_time DESC
+    ''');
     return results.map((row) {
+      FlightStatistics? stats;
+      if (row['max_altitude'] != null ||
+          row['total_distance'] != null ||
+          row['max_ground_speed'] != null ||
+          row['avg_altitude'] != null ||
+          row['avg_engine_rpm'] != null ||
+          row['avg_ground_speed'] != null) {
+        stats = FlightStatistics(
+          maxAltitude: row['max_altitude'] as double?,
+          totalAscent: row['total_ascent'] as double?,
+          totalDescent: row['total_descent'] as double?,
+          avgAltitude: row['avg_altitude'] as double?,
+          maxGroundSpeed: row['max_ground_speed'] as double?,
+          maxIndicatedAirSpeed: row['max_indicated_air_speed'] as double?,
+          avgGroundSpeed: row['avg_ground_speed'] as double?,
+          avgIndicatedAirSpeed: row['avg_indicated_air_speed'] as double?,
+          totalDistance: row['total_distance'] as double?,
+          maxDistanceFromTakeoff: row['max_distance_from_takeoff'] as double?,
+          avgEngineRPM: row['avg_engine_rpm'] as double?,
+        );
+      }
       return Flight(
         uuid: row['uuid'] as String,
         name: row['name'] as String,
         startTime: DateTime.parse(row['start_time'] as String).toUtc(),
-        endTime: row['end_time'] != null ? DateTime.parse(row['end_time'] as String).toUtc() : null,
+        endTime: row['end_time'] != null
+            ? DateTime.parse(row['end_time'] as String).toUtc()
+            : null,
         pilotId: row['pilot_id'] as String?,
         airplaneId: row['airplane_id'] as String?,
+        statistics: stats,
       );
     }).toList();
   }
 
-  static Future<List<TelemetryEntry>> getTelemetryForFlight(String flightUuid) async {
-    if (kIsWeb) return [];
+  @override
+  Future<List<Flight>> getUnfinishedFlights() async {
+    final db = await database;
+    final results = db.select('''
+      SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id,
+             s.max_altitude, s.total_ascent, s.total_descent, s.avg_altitude,
+             s.max_ground_speed, s.max_indicated_air_speed, s.avg_ground_speed, s.avg_indicated_air_speed,
+             s.total_distance, s.max_distance_from_takeoff, s.avg_engine_rpm
+      FROM flights f
+      LEFT JOIN flight_statistics s ON f.uuid = s.flight_uuid
+      WHERE f.end_time IS NULL
+      ORDER BY f.start_time ASC
+    ''');
+    return results.map((row) {
+      FlightStatistics? stats;
+      if (row['max_altitude'] != null ||
+          row['total_distance'] != null ||
+          row['max_ground_speed'] != null ||
+          row['avg_altitude'] != null ||
+          row['avg_engine_rpm'] != null ||
+          row['avg_ground_speed'] != null) {
+        stats = FlightStatistics(
+          maxAltitude: row['max_altitude'] as double?,
+          totalAscent: row['total_ascent'] as double?,
+          totalDescent: row['total_descent'] as double?,
+          avgAltitude: row['avg_altitude'] as double?,
+          maxGroundSpeed: row['max_ground_speed'] as double?,
+          maxIndicatedAirSpeed: row['max_indicated_air_speed'] as double?,
+          avgGroundSpeed: row['avg_ground_speed'] as double?,
+          avgIndicatedAirSpeed: row['avg_indicated_air_speed'] as double?,
+          totalDistance: row['total_distance'] as double?,
+          maxDistanceFromTakeoff: row['max_distance_from_takeoff'] as double?,
+          avgEngineRPM: row['avg_engine_rpm'] as double?,
+        );
+      }
+      return Flight(
+        uuid: row['uuid'] as String,
+        name: row['name'] as String,
+        startTime: DateTime.parse(row['start_time'] as String).toUtc(),
+        endTime: row['end_time'] != null
+            ? DateTime.parse(row['end_time'] as String).toUtc()
+            : null,
+        pilotId: row['pilot_id'] as String?,
+        airplaneId: row['airplane_id'] as String?,
+        statistics: stats,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<List<TelemetryEntry>> getTelemetryForFlight(String flightUuid) async {
     final db = await database;
 
     final columns = ['id', 'flight_uuid', 'timestamp', 'is_snapshot'];
@@ -195,17 +347,20 @@ class BlackBoxDatabase {
       columns.add(field.dbColumnName);
     }
 
-    final query = '''
+    final query =
+        '''
       SELECT ${columns.join(', ')} 
       FROM flight_telemetry 
       WHERE flight_uuid = ? 
-      ORDER BY timestamp ASC
+      ORDER BY id ASC
     ''';
 
     final results = db.select(query, [flightUuid]);
     return results.map((row) {
       final telemetryData = <String, dynamic>{};
-      for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+      for (final field in TelemetryField.values.where(
+        (f) => f.isBlackBoxField,
+      )) {
         final colName = field.dbColumnName;
         final val = row[colName];
         if (val != null) {
@@ -223,15 +378,373 @@ class BlackBoxDatabase {
     }).toList();
   }
 
-  static Future<void> deleteFlight(String uuid) async {
+  @override
+  Future<TelemetryEntry?> getLastTelemetryForFlight(String flightUuid) async {
+    final db = await database;
+
+    final columns = ['id', 'flight_uuid', 'timestamp', 'is_snapshot'];
+    for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+      columns.add(field.dbColumnName);
+    }
+
+    final query = '''
+      SELECT ${columns.join(', ')} 
+      FROM flight_telemetry 
+      WHERE flight_uuid = ? 
+      ORDER BY id DESC
+      LIMIT 1
+    ''';
+
+    final results = db.select(query, [flightUuid]);
+    if (results.isEmpty) return null;
+
+    final row = results.first;
+    final telemetryData = <String, dynamic>{};
+    for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+      final colName = field.dbColumnName;
+      final val = row[colName];
+      if (val != null) {
+        telemetryData[colName] = field.deserialize(val);
+      }
+    }
+
+    return TelemetryEntry(
+      id: row['id'] as int?,
+      flightUuid: row['flight_uuid'] as String,
+      timestamp: DateTime.parse(row['timestamp'] as String).toUtc(),
+      isSnapshot: (row['is_snapshot'] as int? ?? 0) == 1,
+      data: telemetryData,
+    );
+  }
+
+  @override
+  Future<void> deleteFlight(String uuid) async {
     final db = await database;
     final stmt = db.prepare('DELETE FROM flights WHERE uuid = ?');
     stmt.execute([uuid]);
     stmt.close();
   }
 
-  static Future<void> clearAll() async {
+  @override
+  Future<void> clearAll() async {
     final db = await database;
     db.execute('DELETE FROM flights');
+  }
+
+  @override
+  Future<List<Flight>> getFlightsPaginated(int limit, int offset) async {
+    final db = await database;
+    final results = db.select(
+      '''
+      SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id,
+             s.max_altitude, s.total_ascent, s.total_descent, s.avg_altitude,
+             s.max_ground_speed, s.max_indicated_air_speed, s.avg_ground_speed, s.avg_indicated_air_speed,
+             s.total_distance, s.max_distance_from_takeoff, s.avg_engine_rpm
+      FROM flights f
+      LEFT JOIN flight_statistics s ON f.uuid = s.flight_uuid
+      ORDER BY f.start_time DESC LIMIT ? OFFSET ?
+    ''',
+      [limit, offset],
+    );
+    return results.map((row) {
+      FlightStatistics? stats;
+      if (row['max_altitude'] != null ||
+          row['total_distance'] != null ||
+          row['max_ground_speed'] != null ||
+          row['avg_altitude'] != null ||
+          row['avg_engine_rpm'] != null ||
+          row['avg_ground_speed'] != null) {
+        stats = FlightStatistics(
+          maxAltitude: row['max_altitude'] as double?,
+          totalAscent: row['total_ascent'] as double?,
+          totalDescent: row['total_descent'] as double?,
+          avgAltitude: row['avg_altitude'] as double?,
+          maxGroundSpeed: row['max_ground_speed'] as double?,
+          maxIndicatedAirSpeed: row['max_indicated_air_speed'] as double?,
+          avgGroundSpeed: row['avg_ground_speed'] as double?,
+          avgIndicatedAirSpeed: row['avg_indicated_air_speed'] as double?,
+          totalDistance: row['total_distance'] as double?,
+          maxDistanceFromTakeoff: row['max_distance_from_takeoff'] as double?,
+          avgEngineRPM: row['avg_engine_rpm'] as double?,
+        );
+      }
+      return Flight(
+        uuid: row['uuid'] as String,
+        name: row['name'] as String,
+        startTime: DateTime.parse(row['start_time'] as String).toUtc(),
+        endTime: row['end_time'] != null
+            ? DateTime.parse(row['end_time'] as String).toUtc()
+            : null,
+        pilotId: row['pilot_id'] as String?,
+        airplaneId: row['airplane_id'] as String?,
+        statistics: stats,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<int> getFlightsCount() async {
+    final db = await database;
+    final results = db.select('SELECT COUNT(*) as count FROM flights');
+    if (results.isEmpty) return 0;
+    return results.first['count'] as int;
+  }
+
+  @override
+  Future<void> updateFlightDetails({
+    required String uuid,
+    required String name,
+    String? pilotId,
+    String? airplaneId,
+  }) async {
+    final db = await database;
+    final stmt = db.prepare('''
+      UPDATE flights 
+      SET name = ?, pilot_id = ?, airplane_id = ? 
+      WHERE uuid = ?
+    ''');
+    stmt.execute([name, pilotId, airplaneId, uuid]);
+    stmt.close();
+  }
+
+  @override
+  Future<List<TelemetryEntry>> getGpxTelemetryForFlight(
+    String flightUuid,
+  ) async {
+    final db = await database;
+
+    final latCol = TelemetryField.latitude.dbColumnName;
+    final lonCol = TelemetryField.longitude.dbColumnName;
+    final altCol = TelemetryField.gpsAltitude.dbColumnName;
+
+    final query = '''
+      SELECT id, flight_uuid, timestamp, is_snapshot, $latCol, $lonCol, $altCol
+      FROM flight_telemetry 
+      WHERE flight_uuid = ? 
+      ORDER BY id ASC
+    ''';
+
+    final results = db.select(query, [flightUuid]);
+    return results.map((row) {
+      final telemetryData = <String, dynamic>{};
+
+      final lat = row[latCol];
+      if (lat != null) telemetryData[latCol] = lat;
+
+      final lon = row[lonCol];
+      if (lon != null) telemetryData[lonCol] = lon;
+
+      final alt = row[altCol];
+      if (alt != null) telemetryData[altCol] = alt;
+
+      return TelemetryEntry(
+        id: row['id'] as int?,
+        flightUuid: row['flight_uuid'] as String,
+        timestamp: DateTime.parse(row['timestamp'] as String).toUtc(),
+        isSnapshot: (row['is_snapshot'] as int? ?? 0) == 1,
+        data: telemetryData,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<void> saveFlightStatistics(
+    String flightUuid,
+    FlightStatistics stats,
+  ) async {
+    final db = await database;
+    final stmt = db.prepare('''
+      INSERT OR REPLACE INTO flight_statistics (
+        flight_uuid, max_altitude, total_ascent, total_descent, avg_altitude,
+        max_ground_speed, max_indicated_air_speed, avg_ground_speed, avg_indicated_air_speed,
+        total_distance, max_distance_from_takeoff, avg_engine_rpm
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''');
+
+    stmt.execute([
+      flightUuid,
+      stats.maxAltitude,
+      stats.totalAscent,
+      stats.totalDescent,
+      stats.avgAltitude,
+      stats.maxGroundSpeed,
+      stats.maxIndicatedAirSpeed,
+      stats.avgGroundSpeed,
+      stats.avgIndicatedAirSpeed,
+      stats.totalDistance,
+      stats.maxDistanceFromTakeoff,
+      stats.avgEngineRPM,
+    ]);
+    stmt.close();
+  }
+
+  @override
+  Future<List<TelemetryEntry>> getTelemetryForFlightPaginated(
+    String flightUuid,
+    int limit,
+    int? lastId,
+  ) async {
+    final db = await database;
+
+    final columns = ['id', 'flight_uuid', 'timestamp', 'is_snapshot'];
+    for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+      columns.add(field.dbColumnName);
+    }
+
+    String query;
+    List<Object?> params;
+    if (lastId != null) {
+      query = '''
+        SELECT ${columns.join(', ')} 
+        FROM flight_telemetry 
+        WHERE flight_uuid = ? AND id > ?
+        ORDER BY id ASC
+        LIMIT ?
+      ''';
+      params = [flightUuid, lastId, limit];
+    } else {
+      query = '''
+        SELECT ${columns.join(', ')} 
+        FROM flight_telemetry 
+        WHERE flight_uuid = ? 
+        ORDER BY id ASC
+        LIMIT ?
+      ''';
+      params = [flightUuid, limit];
+    }
+
+    final results = db.select(query, params);
+    return results.map((row) {
+      final telemetryData = <String, dynamic>{};
+      for (final field in TelemetryField.values.where(
+        (f) => f.isBlackBoxField,
+      )) {
+        final colName = field.dbColumnName;
+        final val = row[colName];
+        if (val != null) {
+          telemetryData[colName] = field.deserialize(val);
+        }
+      }
+
+      return TelemetryEntry(
+        id: row['id'] as int?,
+        flightUuid: row['flight_uuid'] as String,
+        timestamp: DateTime.parse(row['timestamp'] as String).toUtc(),
+        isSnapshot: (row['is_snapshot'] as int? ?? 0) == 1,
+        data: telemetryData,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<void> calculateAndSaveFlightStatistics(String flightUuid) async {
+    final path = await _dbPath;
+    await Isolate.run(() => _calculateAndSaveStatsIsolate(path, flightUuid));
+  }
+}
+
+void _calculateAndSaveStatsIsolate(String dbPath, String flightUuid) {
+  final db = sqlite3.open(dbPath);
+  db.execute('PRAGMA foreign_keys = ON;');
+  db.execute('PRAGMA journal_mode = WAL;');
+  db.execute('PRAGMA busy_timeout = 5000;');
+  try {
+    const int limit = 5000;
+    int? lastId;
+    bool hasMore = true;
+
+    final calculator = FlightStatisticsCalculator();
+
+    while (hasMore) {
+      final columns = ['id', 'flight_uuid', 'timestamp', 'is_snapshot'];
+      for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+        columns.add(field.dbColumnName);
+      }
+
+      String query;
+      List<Object?> params;
+      if (lastId != null) {
+        query = '''
+          SELECT ${columns.join(', ')} 
+          FROM flight_telemetry 
+          WHERE flight_uuid = ? AND id > ?
+          ORDER BY id ASC
+          LIMIT ?
+        ''';
+        params = [flightUuid, lastId, limit];
+      } else {
+        query = '''
+          SELECT ${columns.join(', ')} 
+          FROM flight_telemetry 
+          WHERE flight_uuid = ? 
+          ORDER BY id ASC
+          LIMIT ?
+        ''';
+        params = [flightUuid, limit];
+      }
+
+      final seqResult = db.select(query, params);
+
+      if (seqResult.isEmpty) {
+        break;
+      }
+
+      final entries = seqResult.map((row) {
+        final telemetryData = <String, dynamic>{};
+        for (final field in TelemetryField.values.where(
+          (f) => f.isBlackBoxField,
+        )) {
+          final colName = field.dbColumnName;
+          final val = row[colName];
+          if (val != null) {
+            telemetryData[colName] = field.deserialize(val);
+          }
+        }
+
+        return TelemetryEntry(
+          id: row['id'] as int?,
+          flightUuid: row['flight_uuid'] as String,
+          timestamp: DateTime.parse(row['timestamp'] as String).toUtc(),
+          isSnapshot: (row['is_snapshot'] as int? ?? 0) == 1,
+          data: telemetryData,
+        );
+      }).toList();
+
+      calculator.addEntries(entries);
+
+      lastId = entries.last.id;
+      if (entries.length < limit) {
+        hasMore = false;
+      }
+    }
+
+    final stats = calculator.getStatistics();
+
+    // Insert or Replace into flight_statistics
+    final stmt = db.prepare('''
+      INSERT OR REPLACE INTO flight_statistics (
+        flight_uuid, max_altitude, total_ascent, total_descent, avg_altitude,
+        max_ground_speed, max_indicated_air_speed, avg_ground_speed, avg_indicated_air_speed,
+        total_distance, max_distance_from_takeoff, avg_engine_rpm
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''');
+
+    stmt.execute([
+      flightUuid,
+      stats.maxAltitude,
+      stats.totalAscent,
+      stats.totalDescent,
+      stats.avgAltitude,
+      stats.maxGroundSpeed,
+      stats.maxIndicatedAirSpeed,
+      stats.avgGroundSpeed,
+      stats.avgIndicatedAirSpeed,
+      stats.totalDistance,
+      stats.maxDistanceFromTakeoff,
+      stats.avgEngineRPM,
+    ]);
+    stmt.close();
+  } finally {
+    db.close();
   }
 }

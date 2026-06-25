@@ -27,7 +27,8 @@ class NavigationPage extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Check if the current position is known (analogous to map camera initialization/rendering criteria)
-    final currentPositionKnown = telemetry.latitude != null &&
+    final currentPositionKnown =
+        telemetry.latitude != null &&
         telemetry.longitude != null &&
         telemetry.latitude != 0.0 &&
         telemetry.longitude != 0.0;
@@ -89,20 +90,28 @@ class NavigationPage extends ConsumerWidget {
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+                            child: Text(
+                              MaterialLocalizations.of(
+                                context,
+                              ).cancelButtonLabel,
+                            ),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
                             child: Text(
                               l10n.clearNavigation,
-                              style: TextStyle(color: Theme.of(context).colorScheme.error),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     );
                     if (confirm == true) {
-                      await ref.read(navigationProvider.notifier).clearNavigation();
+                      await ref
+                          .read(navigationProvider.notifier)
+                          .clearNavigation();
                     }
                   },
                 ),
@@ -143,7 +152,9 @@ class NavigationPage extends ConsumerWidget {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -153,8 +164,13 @@ class NavigationPage extends ConsumerWidget {
               : settingsAsync.when(
                   data: (settings) {
                     final speedUnit = settings.speedUnit;
-                    final useRealSpeed = telemetry.isFlying && telemetry.groundSpeed != null && telemetry.groundSpeed! > 0;
-                    final activeSpeedMs = useRealSpeed ? telemetry.groundSpeed! : settings.averageSpeed;
+                    final useRealSpeed =
+                        telemetry.isFlying &&
+                        telemetry.groundSpeed != null &&
+                        telemetry.groundSpeed! > 0;
+                    final activeSpeedMs = useRealSpeed
+                        ? telemetry.groundSpeed!
+                        : settings.averageSpeed;
 
                     final calculations = NavigationCalculations.calculate(
                       points: points,
@@ -164,9 +180,12 @@ class NavigationPage extends ConsumerWidget {
                       now: clock.now(),
                     );
 
-                    final totalDistanceKm = calculations.totalDistanceMeters / 1000.0;
+                    final totalDistanceKm =
+                        calculations.totalDistanceMeters / 1000.0;
                     final totalDuration = calculations.totalDuration;
-                    final formattedSpeed = speedUnit.convertFromMs(activeSpeedMs).toStringAsFixed(0);
+                    final formattedSpeed = speedUnit
+                        .convertFromMs(activeSpeedMs)
+                        .toStringAsFixed(0);
 
                     return Column(
                       children: [
@@ -179,12 +198,23 @@ class NavigationPage extends ConsumerWidget {
                               gradient: LinearGradient(
                                 colors: isDark
                                     ? [
-                                        Theme.of(context).colorScheme.primaryContainer.withAlpha(200),
-                                        Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(150),
+                                        Theme.of(context)
+                                            .colorScheme
+                                            .primaryContainer
+                                            .withAlpha(200),
+                                        Theme.of(context)
+                                            .colorScheme
+                                            .surfaceContainerHighest
+                                            .withAlpha(150),
                                       ]
                                     : [
-                                        Theme.of(context).colorScheme.primaryContainer,
-                                        Theme.of(context).colorScheme.primaryContainer.withAlpha(180),
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer,
+                                        Theme.of(context)
+                                            .colorScheme
+                                            .primaryContainer
+                                            .withAlpha(180),
                                       ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -192,7 +222,9 @@ class NavigationPage extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withAlpha(isDark ? 50 : 20),
+                                  color: Colors.black.withAlpha(
+                                    isDark ? 50 : 20,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -201,13 +233,16 @@ class NavigationPage extends ConsumerWidget {
                             child: Column(
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
                                   children: [
                                     Column(
                                       children: [
                                         Icon(
                                           Icons.map_outlined,
-                                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
                                           size: 28,
                                         ),
                                         const SizedBox(height: 8),
@@ -217,7 +252,9 @@ class NavigationPage extends ConsumerWidget {
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                             fontFamily: 'monospace',
-                                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
                                           ),
                                         ),
                                         Text(
@@ -244,17 +281,24 @@ class NavigationPage extends ConsumerWidget {
                                       children: [
                                         Icon(
                                           Icons.access_time,
-                                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
                                           size: 28,
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          _formatDurationNoSeconds(context, totalDuration),
+                                          _formatDurationNoSeconds(
+                                            context,
+                                            totalDuration,
+                                          ),
                                           style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
                                             fontFamily: 'monospace',
-                                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
                                           ),
                                         ),
                                         Text(
@@ -278,7 +322,10 @@ class NavigationPage extends ConsumerWidget {
                                     Icon(
                                       Icons.speed_outlined,
                                       size: 16,
-                                      color: Theme.of(context).colorScheme.onPrimaryContainer.withAlpha(180),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer
+                                          .withAlpha(180),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
@@ -286,21 +333,33 @@ class NavigationPage extends ConsumerWidget {
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer.withAlpha(200),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer
+                                            .withAlpha(200),
                                       ),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: isActive
-                                        ? Colors.green.withAlpha(isDark ? 40 : 30)
-                                        : Colors.grey.withAlpha(isDark ? 40 : 30),
+                                        ? Colors.green.withAlpha(
+                                            isDark ? 40 : 30,
+                                          )
+                                        : Colors.grey.withAlpha(
+                                            isDark ? 40 : 30,
+                                          ),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: isActive ? Colors.green : Colors.grey,
+                                      color: isActive
+                                          ? Colors.green
+                                          : Colors.grey,
                                       width: 1,
                                     ),
                                   ),
@@ -311,19 +370,27 @@ class NavigationPage extends ConsumerWidget {
                                         width: 8,
                                         height: 8,
                                         decoration: BoxDecoration(
-                                          color: isActive ? Colors.green : Colors.grey,
+                                          color: isActive
+                                              ? Colors.green
+                                              : Colors.grey,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        isActive ? l10n.navigationActive : l10n.navigationStopped,
+                                        isActive
+                                            ? l10n.navigationActive
+                                            : l10n.navigationStopped,
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                           color: isActive
-                                              ? (isDark ? Colors.greenAccent : Colors.green.shade800)
-                                              : (isDark ? Colors.white70 : Colors.black54),
+                                              ? (isDark
+                                                    ? Colors.greenAccent
+                                                    : Colors.green.shade800)
+                                              : (isDark
+                                                    ? Colors.white70
+                                                    : Colors.black54),
                                         ),
                                       ),
                                     ],
@@ -341,17 +408,26 @@ class NavigationPage extends ConsumerWidget {
                               if (oldIndex < newIndex) {
                                 newIndex -= 1;
                               }
-                              ref.read(navigationProvider.notifier).reorderPoints(oldIndex, newIndex);
+                              ref
+                                  .read(navigationProvider.notifier)
+                                  .reorderPoints(oldIndex, newIndex);
                             },
                             itemBuilder: (context, index) {
                               final leg = calculations.legs[index];
                               final point = leg.point;
-                              final legDistanceKm = leg.legDistanceMeters / 1000.0;
-                              final cumulativeDistanceKm = leg.cumulativeDistanceMeters / 1000.0;
+                              final legDistanceKm =
+                                  leg.legDistanceMeters / 1000.0;
+                              final cumulativeDistanceKm =
+                                  leg.cumulativeDistanceMeters / 1000.0;
 
                               return Card(
-                                key: Key('${point.latitude}_${point.longitude}_$index'),
-                                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                                key: Key(
+                                  '${point.latitude}_${point.longitude}_$index',
+                                ),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 6.0,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -363,13 +439,17 @@ class NavigationPage extends ConsumerWidget {
                                         index: index,
                                         child: Icon(
                                           Icons.drag_handle,
-                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                         ),
                                       ),
                                       const SizedBox(width: 8),
                                       Icon(
                                         Icons.adjust,
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                       ),
                                     ],
                                   ),
@@ -379,7 +459,10 @@ class NavigationPage extends ConsumerWidget {
                                       Flexible(
                                         child: Text(
                                           point.name,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -388,7 +471,9 @@ class NavigationPage extends ConsumerWidget {
                                         Icon(
                                           Icons.local_airport,
                                           size: 16,
-                                          color: Theme.of(context).colorScheme.primary,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                         ),
                                       ],
                                     ],
@@ -396,7 +481,8 @@ class NavigationPage extends ConsumerWidget {
                                   subtitle: Padding(
                                     padding: const EdgeInsets.only(top: 6.0),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
@@ -404,7 +490,9 @@ class NavigationPage extends ConsumerWidget {
                                               '${l10n.leg}: ',
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
                                               ),
                                             ),
                                             Text(
@@ -423,7 +511,9 @@ class NavigationPage extends ConsumerWidget {
                                               '${l10n.total}: ',
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
                                               ),
                                             ),
                                             Text(
@@ -441,10 +531,14 @@ class NavigationPage extends ConsumerWidget {
                                   trailing: IconButton(
                                     icon: Icon(
                                       Icons.delete_outline,
-                                      color: Theme.of(context).colorScheme.error,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
                                     ),
                                     onPressed: () {
-                                      ref.read(navigationProvider.notifier).removePoint(index);
+                                      ref
+                                          .read(navigationProvider.notifier)
+                                          .removePoint(index);
                                     },
                                   ),
                                 ),
@@ -455,7 +549,8 @@ class NavigationPage extends ConsumerWidget {
                       ],
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (e, st) => Center(child: Text(e.toString())),
                 ),
         );

@@ -93,7 +93,11 @@ extension MapCameraInterpolation on MapCamera {
 
     _mapController!.style!.updateGeoJsonSource(
       id: 'aircraft-source',
-      data: GeoJsonBuilder.buildAircraftGeoJson(aircraftLat, aircraftLon, aircraftBearing),
+      data: GeoJsonBuilder.buildAircraftGeoJson(
+        aircraftLat,
+        aircraftLon,
+        aircraftBearing,
+      ),
     );
 
     final telemetry = refAccess.read(telemetryProvider);

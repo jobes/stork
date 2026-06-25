@@ -46,7 +46,10 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         ),
         if (unit.isNotEmpty) ...[
           SizedBox(width: 4 * fontScale),
-          Text(unit, style: TextStyle(fontSize: 12 * fontScale, color: unitColor)),
+          Text(
+            unit,
+            style: TextStyle(fontSize: 12 * fontScale, color: unitColor),
+          ),
         ],
       ],
     );
@@ -142,7 +145,10 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         );
       },
       borderColor: borderColor,
-      padding: EdgeInsets.symmetric(horizontal: 12 * fontScale, vertical: 8 * fontScale),
+      padding: EdgeInsets.symmetric(
+        horizontal: 12 * fontScale,
+        vertical: 8 * fontScale,
+      ),
       child: IntrinsicWidth(
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),

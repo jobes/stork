@@ -17,7 +17,9 @@ Map<String, AirportMetadata> parseAirportFeatures(String responseBody) {
   if (features != null) {
     for (final f in features) {
       if (f is Map<String, dynamic>) {
-        final Map<String, dynamic> properties = Map<String, dynamic>.from(f['properties'] as Map? ?? {});
+        final Map<String, dynamic> properties = Map<String, dynamic>.from(
+          f['properties'] as Map? ?? {},
+        );
         final geometry = f['geometry'] as Map<String, dynamic>?;
         if (geometry != null && geometry['type'] == 'Point') {
           final coordinates = geometry['coordinates'] as List<dynamic>?;
@@ -63,31 +65,42 @@ Map<String, AirspaceMetadata> parseAirspaceFeatures(String responseBody) {
 class MapMetadataRepository {
   final http.Client _client;
 
-  MapMetadataRepository({http.Client? client}) : _client = client ?? http.Client();
+  MapMetadataRepository({http.Client? client})
+    : _client = client ?? http.Client();
 
-  Future<Map<String, dynamic>?> fetchFeatureFromDb(String id, String type) async {
+  Future<Map<String, dynamic>?> fetchFeatureFromDb(
+    String id,
+    String type,
+  ) async {
     return await DatabaseService.getOpenAipFeature(id, type);
   }
 
-  Future<Map<String, AirportMetadata>> fetchAirportsFromNetwork(String countryCode) async {
+  Future<Map<String, AirportMetadata>> fetchAirportsFromNetwork(
+    String countryCode,
+  ) async {
     final lowerCountryCode = countryCode.toLowerCase();
-    final url = '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_apt.geojson?alt=media';
-    final response = await _client.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
+    final url =
+        '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_apt.geojson?alt=media';
+    final response = await _client
+        .get(Uri.parse(url))
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception('HTTP status ${response.statusCode}');
     }
 
-    return await compute(
-      parseAirportFeatures,
-      utf8.decode(response.bodyBytes),
-    );
+    return await compute(parseAirportFeatures, utf8.decode(response.bodyBytes));
   }
 
-  Future<Map<String, AirspaceMetadata>> fetchAirspacesFromNetwork(String countryCode) async {
+  Future<Map<String, AirspaceMetadata>> fetchAirspacesFromNetwork(
+    String countryCode,
+  ) async {
     final lowerCountryCode = countryCode.toLowerCase();
-    final url = '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_asp.geojson?alt=media';
-    final response = await _client.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
+    final url =
+        '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_asp.geojson?alt=media';
+    final response = await _client
+        .get(Uri.parse(url))
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
       throw Exception('HTTP status ${response.statusCode}');

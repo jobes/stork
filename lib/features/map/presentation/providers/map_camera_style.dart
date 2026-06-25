@@ -77,10 +77,7 @@ extension MapCameraStyle on MapCamera {
         FillStyleLayer(
           id: 'notams-fill-layer',
           sourceId: 'notams-source',
-          paint: {
-            'fill-color': '#FF5722',
-            'fill-opacity': 0.25,
-          },
+          paint: {'fill-color': '#FF5722', 'fill-opacity': 0.25},
         ),
       );
       if (!refAccess.mounted) return;
@@ -97,8 +94,6 @@ extension MapCameraStyle on MapCamera {
         ),
       );
       if (!refAccess.mounted) return;
-
-
 
       await style.addSource(
         GeoJsonSource(

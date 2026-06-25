@@ -937,4 +937,76 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get hideNotam => 'Skryť';
+
+  @override
+  String get flightRecords => 'Záznamy letov';
+
+  @override
+  String get flightRecordsTitle => 'Záznamy letov';
+
+  @override
+  String get flightName => 'Názov letu';
+
+  @override
+  String get pilotId => 'ID pilota';
+
+  @override
+  String get airplaneId => 'ID lietadla';
+
+  @override
+  String get editFlight => 'Upraviť let';
+
+  @override
+  String get shareGpx => 'Zdieľať GPX';
+
+  @override
+  String get downloadGpx => 'Stiahnuť GPX';
+
+  @override
+  String get flightRecordsEmpty => 'Nenašli sa žiadne záznamy letov';
+
+  @override
+  String get flightDate => 'Dátum';
+
+  @override
+  String get startTime => 'Čas štartu';
+
+  @override
+  String get endTime => 'Čas pristátia';
+
+  @override
+  String get save => 'Uložiť';
+
+  @override
+  String get shareError => 'Nepodarilo sa zdieľať GPX súbor';
+
+  @override
+  String get shareSuccess => 'GPX súbor bol úspešne zdieľaný';
+
+  @override
+  String get maxAltitudeLabel => 'Maximálna dosiahnutá výška';
+
+  @override
+  String get totalAscentLabel => 'Nastúpaná výška';
+
+  @override
+  String get totalDescentLabel => 'Naklesaná výška';
+
+  @override
+  String get avgAltitudeLabel => 'Priemerná výška';
+
+  @override
+  String get maxSpeedLabel => 'Maximálna rýchlosť';
+
+  @override
+  String get avgSpeedLabel => 'Priemerná rýchlosť';
+
+  @override
+  String get flownDistanceLabel => 'Nalietaná vzdialenosť';
+
+  @override
+  String get maxDistanceTakeoffLabel => 'Najvzdialenejší bod od vzletu';
+
+  @override
+  String get avgRpmLabel => 'Priemerné RPM motora';
 }

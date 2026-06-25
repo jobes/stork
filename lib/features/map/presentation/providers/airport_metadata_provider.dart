@@ -55,7 +55,9 @@ class AirportMetadataCache extends _$AirportMetadataCache {
       }
 
       final future = () async {
-        final parsedFeatures = await repo.fetchAirportsFromNetwork(lowerCountryCode);
+        final parsedFeatures = await repo.fetchAirportsFromNetwork(
+          lowerCountryCode,
+        );
         _memoryCache.addAll(parsedFeatures);
         _downloadedCountries.add(lowerCountryCode);
       }();

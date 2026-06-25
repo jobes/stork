@@ -36,9 +36,7 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
               ? Colors.white.withAlpha(15)
               : Colors.black.withAlpha(10),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark ? Colors.white12 : Colors.black12,
-          ),
+          border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

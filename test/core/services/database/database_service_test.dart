@@ -13,14 +13,14 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        (MethodCall methodCall) async {
-          if (methodCall.method == 'getApplicationSupportDirectory') {
-            return tempDir.path;
-          }
-          return null;
-        },
-      );
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (MethodCall methodCall) async {
+              if (methodCall.method == 'getApplicationSupportDirectory') {
+                return tempDir.path;
+              }
+              return null;
+            },
+          );
     });
 
     tearDownAll(() {
@@ -34,7 +34,10 @@ void main() {
     });
 
     test('getOpenAipFeature returns null if feature not found', () async {
-      final result = await DatabaseService.getOpenAipFeature('non_existent', 'airport');
+      final result = await DatabaseService.getOpenAipFeature(
+        'non_existent',
+        'airport',
+      );
       expect(result, isNull);
     });
 
@@ -45,60 +48,69 @@ void main() {
         'type': 1,
         'country': 'US',
       };
-      
+
       await DatabaseService.insertOpenAipFeatures([
         {
           'id': 'apt123',
           'json': json.encode(validJson),
           'country': 'US',
           'type': 'airport',
-        }
+        },
       ]);
 
-      final result = await DatabaseService.getOpenAipFeature('apt123', 'airport');
+      final result = await DatabaseService.getOpenAipFeature(
+        'apt123',
+        'airport',
+      );
       expect(result, isNotNull);
       final nonNull = result!;
       expect(nonNull['id'], equals('apt123'));
       expect(nonNull['name'], equals('Valid Airport'));
     });
 
-    test('getOpenAipFeature returns null and swallows exception for malformed JSON string', () async {
-      await DatabaseService.insertOpenAipFeatures([
-        {
-          'id': 'apt_malformed',
-          'json': '{invalid_json',
-          'country': 'US',
-          'type': 'airport',
-        }
-      ]);
+    test(
+      'getOpenAipFeature returns null and swallows exception for malformed JSON string',
+      () async {
+        await DatabaseService.insertOpenAipFeatures([
+          {
+            'id': 'apt_malformed',
+            'json': '{invalid_json',
+            'country': 'US',
+            'type': 'airport',
+          },
+        ]);
 
-      final result = await DatabaseService.getOpenAipFeature('apt_malformed', 'airport');
-      expect(result, isNull);
-    });
+        final result = await DatabaseService.getOpenAipFeature(
+          'apt_malformed',
+          'airport',
+        );
+        expect(result, isNull);
+      },
+    );
 
-    test('getOpenAipFeature returns null when decoded JSON is not a Map', () async {
-      await DatabaseService.insertOpenAipFeatures([
-        {
-          'id': 'apt_list',
-          'json': '[1, 2, 3]',
-          'country': 'US',
-          'type': 'airport',
-        }
-      ]);
+    test(
+      'getOpenAipFeature returns null when decoded JSON is not a Map',
+      () async {
+        await DatabaseService.insertOpenAipFeatures([
+          {
+            'id': 'apt_list',
+            'json': '[1, 2, 3]',
+            'country': 'US',
+            'type': 'airport',
+          },
+        ]);
 
-      final result = await DatabaseService.getOpenAipFeature('apt_list', 'airport');
-      expect(result, isNull);
-    });
+        final result = await DatabaseService.getOpenAipFeature(
+          'apt_list',
+          'airport',
+        );
+        expect(result, isNull);
+      },
+    );
 
     test('composite primary key allows same id with different types', () async {
-      final aptJson = {
-        'id': 'feat123',
-        'name': 'Airport Feature',
-      };
-      final aspJson = {
-        'id': 'feat123',
-        'name': 'Airspace Feature',
-      };
+      final aptJson = {'id': 'feat123', 'name': 'Airport Feature'};
+      final aspJson = {'id': 'feat123', 'name': 'Airspace Feature'};
 
       await DatabaseService.insertOpenAipFeatures([
         {
@@ -112,11 +124,17 @@ void main() {
           'json': json.encode(aspJson),
           'country': 'US',
           'type': 'asp',
-        }
+        },
       ]);
 
-      final aptResult = await DatabaseService.getOpenAipFeature('feat123', 'apt');
-      final aspResult = await DatabaseService.getOpenAipFeature('feat123', 'asp');
+      final aptResult = await DatabaseService.getOpenAipFeature(
+        'feat123',
+        'apt',
+      );
+      final aspResult = await DatabaseService.getOpenAipFeature(
+        'feat123',
+        'asp',
+      );
 
       expect(aptResult, isNotNull);
       expect(aptResult!['name'], equals('Airport Feature'));
@@ -135,14 +153,20 @@ void main() {
           'json': json.encode(updatedAptJson),
           'country': 'US',
           'type': 'apt',
-        }
+        },
       ]);
 
-      final updatedAptResult = await DatabaseService.getOpenAipFeature('feat123', 'apt');
+      final updatedAptResult = await DatabaseService.getOpenAipFeature(
+        'feat123',
+        'apt',
+      );
       expect(updatedAptResult!['name'], equals('Updated Airport Feature'));
 
       // Airspace feature remains unchanged
-      final unchangedAspResult = await DatabaseService.getOpenAipFeature('feat123', 'asp');
+      final unchangedAspResult = await DatabaseService.getOpenAipFeature(
+        'feat123',
+        'asp',
+      );
       expect(unchangedAspResult!['name'], equals('Airspace Feature'));
     });
   });

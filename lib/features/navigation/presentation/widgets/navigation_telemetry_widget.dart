@@ -31,7 +31,9 @@ class NavigationTelemetryWidget extends ConsumerWidget {
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade700;
+    final defaultTextColor = isDark
+        ? Colors.grey.shade400
+        : Colors.grey.shade700;
     final valueColor = isDark ? Colors.white : Colors.black;
 
     return navigationAsync.when(
@@ -43,8 +45,13 @@ class NavigationTelemetryWidget extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        final useRealSpeed = telemetry.isFlying && telemetry.groundSpeed != null && telemetry.groundSpeed! > 0;
-        final activeSpeedMs = useRealSpeed ? telemetry.groundSpeed! : (settings?.averageSpeed ?? 27.78);
+        final useRealSpeed =
+            telemetry.isFlying &&
+            telemetry.groundSpeed != null &&
+            telemetry.groundSpeed! > 0;
+        final activeSpeedMs = useRealSpeed
+            ? telemetry.groundSpeed!
+            : (settings?.averageSpeed ?? 27.78);
 
         final calculations = NavigationCalculations.calculate(
           points: points,
@@ -55,14 +62,20 @@ class NavigationTelemetryWidget extends ConsumerWidget {
         );
 
         final hasLegs = calculations.legs.isNotEmpty;
-        final timeToNearest = hasLegs ? calculations.legs.first.legDuration : null;
+        final timeToNearest = hasLegs
+            ? calculations.legs.first.legDuration
+            : null;
         final timeToDest = hasLegs ? calculations.totalDuration : null;
 
         final hasMultiplePoints = points.length > 1;
 
         final l10n = AppLocalizations.of(context)!;
-        final timeToNearestStr = timeToNearest != null ? _formatDurationNoSeconds(context, timeToNearest) : l10n.placeholderDash;
-        final timeToDestStr = timeToDest != null ? _formatDurationNoSeconds(context, timeToDest) : l10n.placeholderDash;
+        final timeToNearestStr = timeToNearest != null
+            ? _formatDurationNoSeconds(context, timeToNearest)
+            : l10n.placeholderDash;
+        final timeToDestStr = timeToDest != null
+            ? _formatDurationNoSeconds(context, timeToDest)
+            : l10n.placeholderDash;
 
         return TelemetryCard(
           onTap: () {
@@ -71,7 +84,10 @@ class NavigationTelemetryWidget extends ConsumerWidget {
               builder: (context) => const NavigationDetailsDialog(),
             );
           },
-          padding: EdgeInsets.symmetric(horizontal: 12.0 * fontScale, vertical: 8.0 * fontScale),
+          padding: EdgeInsets.symmetric(
+            horizontal: 12.0 * fontScale,
+            vertical: 8.0 * fontScale,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +96,11 @@ class NavigationTelemetryWidget extends ConsumerWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.arrow_right_alt, size: 20 * fontScale, color: defaultTextColor),
+                    Icon(
+                      Icons.arrow_right_alt,
+                      size: 20 * fontScale,
+                      color: defaultTextColor,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       timeToNearestStr,
@@ -106,7 +126,11 @@ class NavigationTelemetryWidget extends ConsumerWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.flag_outlined, size: 24 * fontScale, color: defaultTextColor),
+                  Icon(
+                    Icons.flag_outlined,
+                    size: 24 * fontScale,
+                    color: defaultTextColor,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     timeToDestStr,

@@ -59,17 +59,20 @@ void main() {
       flightLevelUpperLimit: 999,
     );
 
-    test('fetchInitialNotams queries repository for matching FIR of coordinate', () async {
-      final repository = FakeNotamRepository(mockNotamsToReturn: [testNotam]);
-      final service = NotamService(repository);
+    test(
+      'fetchInitialNotams queries repository for matching FIR of coordinate',
+      () async {
+        final repository = FakeNotamRepository(mockNotamsToReturn: [testNotam]);
+        final service = NotamService(repository);
 
-      // Bratislava coordinate lies within LZBB FIR
-      final result = await service.fetchInitialNotams(48.17, 17.17);
+        // Bratislava coordinate lies within LZBB FIR
+        final result = await service.fetchInitialNotams(48.17, 17.17);
 
-      expect(repository.queriedFirs, contains('LZBB'));
-      expect(result.length, equals(1));
-      expect(result.first.id, equals('A1234/26'));
-    });
+        expect(repository.queriedFirs, contains('LZBB'));
+        expect(result.length, equals(1));
+        expect(result.first.id, equals('A1234/26'));
+      },
+    );
 
     test('fetchNotamsForFirs queries repository directly', () async {
       final repository = FakeNotamRepository(mockNotamsToReturn: [testNotam]);
@@ -81,38 +84,50 @@ void main() {
       expect(result.length, equals(1));
     });
 
-    test('fetchRouteNotams fetches both FIR and segment points and deduplicates results', () async {
-      final repository = FakeNotamRepository(mockNotamsToReturn: [testNotam]);
-      final service = NotamService(repository);
+    test(
+      'fetchRouteNotams fetches both FIR and segment points and deduplicates results',
+      () async {
+        final repository = FakeNotamRepository(mockNotamsToReturn: [testNotam]);
+        final service = NotamService(repository);
 
-      final routePoints = [
-        Geographic(lat: 48.17, lon: 17.17), // Bratislava (LZBB FIR)
-        Geographic(lat: 48.17, lon: 17.5),
-      ];
+        final routePoints = [
+          Geographic(lat: 48.17, lon: 17.17), // Bratislava (LZBB FIR)
+          Geographic(lat: 48.17, lon: 17.5),
+        ];
 
-      final result = await service.fetchRouteNotams(routePoints);
+        final result = await service.fetchRouteNotams(routePoints);
 
-      // Check that it queried FIRs and points along the route
-      expect(repository.queriedFirs, contains('LZBB'));
-      expect(repository.queriedPoints, isNotEmpty);
+        // Check that it queried FIRs and points along the route
+        expect(repository.queriedFirs, contains('LZBB'));
+        expect(repository.queriedPoints, isNotEmpty);
 
-      // Check that the duplicate NOTAMs returned from parallel calls are correctly deduplicated
-      expect(result.length, equals(1));
-      expect(result.first.id, equals('A1234/26'));
-    });
+        // Check that the duplicate NOTAMs returned from parallel calls are correctly deduplicated
+        expect(result.length, equals(1));
+        expect(result.first.id, equals('A1234/26'));
+      },
+    );
 
     test('fetchRouteNotams with extraFir queries extra FIR as well', () async {
-      final repository = FakeNotamRepository(mockNotamsToReturn: [
-        testNotam,
-        Notam.fromJson(testNotam.toJson()..['id'] = 'B5678/26'..['fir'] = 'LHCC'),
-      ]);
+      final repository = FakeNotamRepository(
+        mockNotamsToReturn: [
+          testNotam,
+          Notam.fromJson(
+            testNotam.toJson()
+              ..['id'] = 'B5678/26'
+              ..['fir'] = 'LHCC',
+          ),
+        ],
+      );
       final service = NotamService(repository);
 
       final routePoints = [
         Geographic(lat: 48.17, lon: 17.17), // Bratislava (LZBB FIR)
       ];
 
-      final result = await service.fetchRouteNotams(routePoints, extraFir: 'LHCC');
+      final result = await service.fetchRouteNotams(
+        routePoints,
+        extraFir: 'LHCC',
+      );
 
       expect(repository.queriedFirs, containsAll(['LHCC', 'LZBB']));
       expect(result.length, equals(2));

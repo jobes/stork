@@ -93,7 +93,10 @@ class SpeedTelemetryWidget extends ConsumerWidget {
           ),
         ),
         SizedBox(width: 4 * fontScale),
-        Text(unit, style: TextStyle(fontSize: 12 * fontScale, color: unitColor)),
+        Text(
+          unit,
+          style: TextStyle(fontSize: 12 * fontScale, color: unitColor),
+        ),
       ],
     );
   }
@@ -181,7 +184,13 @@ class SpeedTelemetryWidget extends ConsumerWidget {
       );
     } else {
       columnChildren.add(
-        _buildSpeedRow(l10n.placeholderDash, unitLabel, speedValueColor, defaultTextColor, fontScale),
+        _buildSpeedRow(
+          l10n.placeholderDash,
+          unitLabel,
+          speedValueColor,
+          defaultTextColor,
+          fontScale,
+        ),
       );
     }
 
@@ -195,7 +204,10 @@ class SpeedTelemetryWidget extends ConsumerWidget {
       boxShadow: _getBoxShadow(speedState, isDark),
       borderColor: _getBorderColor(speedState, isDark),
       borderWidth: _getBorderWidth(speedState),
-      padding: EdgeInsets.symmetric(horizontal: 12.0 * fontScale, vertical: 8.0 * fontScale),
+      padding: EdgeInsets.symmetric(
+        horizontal: 12.0 * fontScale,
+        vertical: 8.0 * fontScale,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
