@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'black_box_repository_provider.dart';
-import '../../domain/repositories/black_box_repository.dart';
 import '../../domain/models/flight.dart';
 
 part 'flight_records_provider.g.dart';

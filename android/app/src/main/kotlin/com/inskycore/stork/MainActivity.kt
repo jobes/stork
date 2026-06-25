@@ -1,4 +1,4 @@
-package com.example.stork
+package com.inskycore.stork
 
 import io.flutter.embedding.android.FlutterActivity
 

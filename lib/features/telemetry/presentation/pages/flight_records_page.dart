@@ -10,7 +10,6 @@ import '../../domain/models/flight_statistics.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/altitude_unit.dart';
 import '../providers/black_box_repository_provider.dart';
-import '../../domain/repositories/black_box_repository.dart';
 import '../dialogs/edit_flight_dialog.dart';
 import '../providers/flight_records_provider.dart';
 

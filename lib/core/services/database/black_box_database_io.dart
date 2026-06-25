@@ -10,7 +10,6 @@ import '../../../features/telemetry/domain/models/flight_statistics.dart';
 import '../../../features/telemetry/domain/models/telemetry_entry.dart';
 import '../../../features/telemetry/domain/models/telemetry_state.dart';
 import '../../../features/telemetry/domain/utils/flight_statistics_calculator.dart';
-import '../../utils/geo_utils.dart';
 
 import 'black_box_database.dart';
 
