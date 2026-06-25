@@ -36,7 +36,7 @@ To maintain database isolation and optimal read/write concurrency, the Black Box
   **SQLite Performance Configurations:**
   - `PRAGMA foreign_keys = ON;` (Ensures cascade deletion of telemetry and statistics).
   - `PRAGMA journal_mode = WAL;` (Write-Ahead Logging to support concurrent reads while writing).
-  - `PRAGMA synchronous = NORMAL;` (Reduces disk write sync frequency for faster batch inserting).
+  - `PRAGMA synchronous = FULL;` (Ensures that committed transactions are physically written/sync'd to disk immediately, preventing telemetry loss in a crash).
   - `PRAGMA busy_timeout = 5000;` (Avoids database lock failures under quick continuous transactions).
   
 - **Web Platform**: Implemented in [WebBlackBoxDatabase](../../lib/core/services/database/black_box_database_web.dart) as a set of stubs/no-op functions, returning empty collections. Flight records are disabled on the web.
@@ -130,8 +130,11 @@ The telemetry data is stored as a series of frames:
 - **Keyframe (Snapshot)**: Emitted when a flight starts, every **10 seconds**, or when a sensor connection status changes (e.g. coordinates changing from `null` to a valid coordinate). Keyframes store the full state of all non-null telemetry fields (`is_snapshot = 1`).
 - **Delta Frame**: Emitted when the telemetry state changes. Only fields whose values have *mutated* since the last buffered state are written to the database column; unchanged fields are inserted as `NULL` (`is_snapshot = 0`). This significantly reduces database size during stable, steady flights.
 
-### 4.2. Buffering & Batch Flush
-To minimize disk writes and keep the UI thread responsive, telemetry entries are accumulated in a memory list (`_buffer`). A periodic timer ticks every **1 second**, flushing the memory buffer into the database using a single SQLite batch transaction (`BEGIN TRANSACTION` and `COMMIT`).
+### 4.2. Buffering, Batch Flush & Background Offloading
+To prevent data loss and keep the UI thread responsive:
+- Telemetry entries are accumulated in a memory list (`_buffer`).
+- A periodic timer ticks every **1 second**, flushing the memory buffer.
+- To guarantee crash safety without blocking the main UI thread (due to the synchronous disk sync forced by `PRAGMA synchronous = FULL`), the flush operation (`insertTelemetryEntries`) is offloaded to a background Dart Isolate via `Isolate.run`. In unit tests, a synchronous fallback is used to stay compatible with `fakeAsync`.
 
 ---
 

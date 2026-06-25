@@ -54,7 +54,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     db.execute('PRAGMA foreign_keys = ON;');
     db.execute('PRAGMA journal_mode = WAL;');
     db.execute('PRAGMA busy_timeout = 5000;');
-    db.execute('PRAGMA synchronous = NORMAL;');
+    db.execute('PRAGMA synchronous = FULL;');
     setupTables(db);
     return db;
   }
@@ -189,56 +189,21 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   @override
   Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
     if (entries.isEmpty) return;
-    final db = await database;
-    db.execute('BEGIN TRANSACTION');
-    try {
-      final columns = ['flight_uuid', 'timestamp', 'is_snapshot'];
-      final placeholders = ['?', '?', '?'];
-
-      for (final field in TelemetryField.values.where(
-        (f) => f.isBlackBoxField,
-      )) {
-        columns.add(field.dbColumnName);
-        placeholders.add('?');
-      }
-
-      final query =
-          'INSERT INTO flight_telemetry (${columns.join(', ')}) VALUES (${placeholders.join(', ')})';
-      final stmt = db.prepare(query);
-
-      for (final entry in entries) {
-        final queryParams = <Object?>[
-          entry.flightUuid,
-          entry.timestamp.toIso8601String(),
-          entry.isSnapshot ? 1 : 0,
-        ];
-
-        for (final field in TelemetryField.values.where(
-          (f) => f.isBlackBoxField,
-        )) {
-          final colName = field.dbColumnName;
-          if (entry.data.containsKey(colName)) {
-            final val = entry.data[colName];
-            if (val is bool) {
-              queryParams.add(val ? 1 : 0);
-            } else if (val is Enum) {
-              queryParams.add(val.name);
-            } else {
-              queryParams.add(val);
-            }
-          } else {
-            queryParams.add(null);
-          }
-        }
-
-        stmt.execute(queryParams);
-      }
-      stmt.close();
-      db.execute('COMMIT');
-    } catch (e) {
-      db.execute('ROLLBACK');
-      rethrow;
+    
+    // In unit tests, run synchronously to prevent conflicts with fakeAsync 
+    // and to support pre-injected mocked/in-memory database connections.
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      final db = await database;
+      _insertTelemetryEntriesSync(db, entries);
+      return;
     }
+    
+    // In production, offload writes to a background Isolate.
+    // Since we use PRAGMA synchronous = FULL to ensure flight data is physically
+    // committed to disk (preventing data loss during crashes), the commit operation
+    // performs a blocking fsync. Offloading keeps the main UI thread completely fluid.
+    final path = await _dbPath;
+    await Isolate.run(() => _insertTelemetryEntriesIsolate(path, entries));
   }
 
   @override
@@ -746,5 +711,74 @@ void _calculateAndSaveStatsIsolate(String dbPath, String flightUuid) {
     stmt.close();
   } finally {
     db.close();
+  }
+}
+
+// Runs on a background isolate. It must open a separate connection to the SQLite database
+// since raw sqlite3 pointers cannot be safely shared across Isolates.
+void _insertTelemetryEntriesIsolate(String dbPath, List<TelemetryEntry> entries) {
+  final db = sqlite3.open(dbPath);
+  db.execute('PRAGMA foreign_keys = ON;');
+  db.execute('PRAGMA journal_mode = WAL;');
+  db.execute('PRAGMA busy_timeout = 5000;');
+  // Set synchronous = FULL on this background connection to force fsync calls
+  // on commits, ensuring flight logs are physically safe on the storage medium.
+  db.execute('PRAGMA synchronous = FULL;');
+  try {
+    _insertTelemetryEntriesSync(db, entries);
+  } finally {
+    db.close();
+  }
+}
+
+void _insertTelemetryEntriesSync(Database db, List<TelemetryEntry> entries) {
+  db.execute('BEGIN TRANSACTION');
+  try {
+    final columns = ['flight_uuid', 'timestamp', 'is_snapshot'];
+    final placeholders = ['?', '?', '?'];
+
+    for (final field in TelemetryField.values.where(
+      (f) => f.isBlackBoxField,
+    )) {
+      columns.add(field.dbColumnName);
+      placeholders.add('?');
+    }
+
+    final query =
+        'INSERT INTO flight_telemetry (${columns.join(', ')}) VALUES (${placeholders.join(', ')})';
+    final stmt = db.prepare(query);
+
+    for (final entry in entries) {
+      final queryParams = <Object?>[
+        entry.flightUuid,
+        entry.timestamp.toIso8601String(),
+        entry.isSnapshot ? 1 : 0,
+      ];
+
+      for (final field in TelemetryField.values.where(
+        (f) => f.isBlackBoxField,
+      )) {
+        final colName = field.dbColumnName;
+        if (entry.data.containsKey(colName)) {
+          final val = entry.data[colName];
+          if (val is bool) {
+            queryParams.add(val ? 1 : 0);
+          } else if (val is Enum) {
+            queryParams.add(val.name);
+          } else {
+            queryParams.add(val);
+          }
+        } else {
+          queryParams.add(null);
+        }
+      }
+
+      stmt.execute(queryParams);
+    }
+    stmt.close();
+    db.execute('COMMIT');
+  } catch (e) {
+    db.execute('ROLLBACK');
+    rethrow;
   }
 }
