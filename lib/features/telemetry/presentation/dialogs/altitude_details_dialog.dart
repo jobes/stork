@@ -82,8 +82,8 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final resolved = ref.watch(resolvedAltitudeProvider);
     final aglState = ref.watch(aglProvider);
+    final resolved = aglState.resolvedAltitude;
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;

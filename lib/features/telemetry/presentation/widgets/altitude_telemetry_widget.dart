@@ -57,8 +57,8 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final resolved = ref.watch(resolvedAltitudeProvider);
     final aglState = ref.watch(aglProvider);
+    final resolved = aglState.resolvedAltitude;
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();

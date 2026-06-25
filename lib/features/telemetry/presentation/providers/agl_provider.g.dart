@@ -126,7 +126,7 @@ final class ResolvedAltitudeProvider
         argument: null,
         retry: null,
         name: r'resolvedAltitudeProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -153,7 +153,7 @@ final class ResolvedAltitudeProvider
   }
 }
 
-String _$resolvedAltitudeHash() => r'e5a4a66771240ed07d4678f0521ebc550bc7b656';
+String _$resolvedAltitudeHash() => r'ff61771fba35c63c45306625842cb328d938578a';
 
 @ProviderFor(recommendedQnh)
 final recommendedQnhProvider = RecommendedQnhProvider._();
@@ -288,4 +288,4 @@ final class AglProvider
   }
 }
 
-String _$aglHash() => r'29f684e9da65ae972412be9bcd3cff742291588b';
+String _$aglHash() => r'57b2956ab47ada9512aaf54c277340b4b0974b00';
