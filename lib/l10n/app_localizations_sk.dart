@@ -1009,4 +1009,7 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get avgRpmLabel => 'Priemerné RPM motora';
+
+  @override
+  String get failedToAddNavigationPoint => 'Nepodarilo sa pridať navigačný bod';
 }

@@ -20,42 +20,42 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
 
   @override
   Future<void> resetDatabase() async {
-    // No-op on web
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<void> saveFlight(Flight flight) async {
-    // No-op on web
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<void> updateFlightEndTime(String uuid, DateTime endTime) async {
-    // No-op on web
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
-    // No-op on web
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<List<Flight>> getFlights() async {
-    return [];
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<List<Flight>> getUnfinishedFlights() async {
-    return [];
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<List<TelemetryEntry>> getTelemetryForFlight(String flightUuid) async {
-    return [];
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<TelemetryEntry?> getLastTelemetryForFlight(String flightUuid) async {
-    return null;
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
@@ -63,7 +63,7 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
     String flightUuid,
     FlightStatistics stats,
   ) async {
-    // No-op on web
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
@@ -72,34 +72,34 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
     int limit,
     int? lastId,
   ) async {
-    return [];
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<List<TelemetryEntry>> getGpxTelemetryForFlight(
     String flightUuid,
   ) async {
-    return [];
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<void> deleteFlight(String uuid) async {
-    // No-op on web
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<void> clearAll() async {
-    // No-op on web
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<List<Flight>> getFlightsPaginated(int limit, int offset) async {
-    return [];
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<int> getFlightsCount() async {
-    return 0;
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
@@ -109,11 +109,11 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
     String? pilotId,
     String? airplaneId,
   }) async {
-    // No-op on web
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
   Future<void> calculateAndSaveFlightStatistics(String flightUuid) async {
-    // No-op on web
+    throw UnsupportedError('SQLite is not supported on web.');
   }
 }

@@ -47,18 +47,26 @@ class TelemetryEntry {
   }
 
   factory TelemetryEntry.fromMap(Map<String, dynamic> map) {
+    final {
+      'id': int? id,
+      'flight_uuid': String flightUuid,
+      'timestamp': String timestamp,
+      'is_snapshot': int? isSnapshotInt,
+    } = map;
+
     final telemetryData = <String, dynamic>{};
     for (final field in TelemetryField.values) {
       final colName = field.dbColumnName;
-      if (map.containsKey(colName) && map[colName] != null) {
+      if (map[colName] != null) {
         telemetryData[colName] = map[colName];
       }
     }
+
     return TelemetryEntry(
-      id: map['id'] as int?,
-      flightUuid: map['flight_uuid'] as String,
-      timestamp: DateTime.parse(map['timestamp'] as String).toUtc(),
-      isSnapshot: (map['is_snapshot'] as int? ?? 0) == 1,
+      id: id,
+      flightUuid: flightUuid,
+      timestamp: DateTime.parse(timestamp).toUtc(),
+      isSnapshot: (isSnapshotInt ?? 0) == 1,
       data: telemetryData,
     );
   }

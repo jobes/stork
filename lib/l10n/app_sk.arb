@@ -414,5 +414,6 @@
   "avgSpeedLabel": "Priemerná rýchlosť",
   "flownDistanceLabel": "Nalietaná vzdialenosť",
   "maxDistanceTakeoffLabel": "Najvzdialenejší bod od vzletu",
-  "avgRpmLabel": "Priemerné RPM motora"
+  "avgRpmLabel": "Priemerné RPM motora",
+  "failedToAddNavigationPoint": "Nepodarilo sa pridať navigačný bod"
 }

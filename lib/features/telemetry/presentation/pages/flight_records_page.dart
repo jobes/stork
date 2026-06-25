@@ -116,7 +116,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
 
       await SharePlus.instance.share(
         ShareParams(
-          files: [XFile(file.path, mimeType: 'application/gpx+xml')],
+          files: [file],
           subject: flight.name,
         ),
       );

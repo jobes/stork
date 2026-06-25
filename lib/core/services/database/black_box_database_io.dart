@@ -17,17 +17,30 @@ BlackBoxDatabase getDatabase() => IoBlackBoxDatabase();
 
 class IoBlackBoxDatabase implements BlackBoxDatabase {
   Database? _db;
+  Future<Database>? _initFuture;
   
   @visibleForTesting
   String? dbPathOverride;
 
   @visibleForTesting
-  set database(Database? db) => _db = db;
+  set database(Database? db) {
+    _db = db;
+    _initFuture = null;
+  }
 
   Future<Database> get database async {
     if (_db != null) return _db!;
-    _db = await _initDatabase();
-    return _db!;
+    if (_initFuture != null) return _initFuture!;
+
+    _initFuture = _initDatabase().then((db) {
+      _db = db;
+      return db;
+    }).catchError((Object e, StackTrace s) {
+      _initFuture = null;
+      throw e;
+    });
+
+    return _initFuture!;
   }
 
   Future<String> get _dbPath async {
@@ -68,6 +81,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       _db!.close();
       _db = null;
     }
+    _initFuture = null;
     final path = await _dbPath;
     final file = File(path);
     if (await file.exists()) {
@@ -165,8 +179,14 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   Future<void> saveFlight(Flight flight) async {
     final db = await database;
     final stmt = db.prepare('''
-      INSERT OR REPLACE INTO flights (uuid, name, start_time, end_time, pilot_id, airplane_id)
+      INSERT INTO flights (uuid, name, start_time, end_time, pilot_id, airplane_id)
       VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(uuid) DO UPDATE SET
+        name = excluded.name,
+        start_time = excluded.start_time,
+        end_time = excluded.end_time,
+        pilot_id = excluded.pilot_id,
+        airplane_id = excluded.airplane_id
     ''');
     stmt.execute([
       flight.uuid,

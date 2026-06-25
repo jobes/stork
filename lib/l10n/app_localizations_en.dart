@@ -1008,4 +1008,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get avgRpmLabel => 'Average engine RPM';
+
+  @override
+  String get failedToAddNavigationPoint => 'Failed to add navigation point';
 }

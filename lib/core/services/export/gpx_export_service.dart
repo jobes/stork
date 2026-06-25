@@ -1,13 +1,13 @@
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../features/telemetry/domain/repositories/black_box_repository.dart';
 import '../../../features/telemetry/domain/models/flight.dart';
 import '../../../features/telemetry/domain/models/telemetry_entry.dart';
 import '../../../features/telemetry/domain/models/telemetry_state.dart';
+import 'gpx_platform_helper.dart';
 
 class GpxExportService {
-  static Future<File?> generateFlightGpx(
+  static Future<XFile?> generateFlightGpx(
     Flight flight,
     BlackBoxRepository repo,
   ) async {
@@ -17,11 +17,8 @@ class GpxExportService {
     }
 
     final gpxString = _generateGpx(flight, entries);
-    final tempDir = await getTemporaryDirectory();
     final safeName = flight.name.replaceAll(RegExp(r'[^\w\-_]'), '_');
-    final file = File('${tempDir.path}/$safeName.gpx');
-    await file.writeAsString(gpxString);
-    return file;
+    return GpxPlatformHelper.saveGpx(gpxString, '$safeName.gpx');
   }
 
   static String _generateGpx(Flight flight, List<TelemetryEntry> entries) {

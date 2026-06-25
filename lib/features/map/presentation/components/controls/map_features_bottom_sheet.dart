@@ -284,16 +284,25 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
                 }
               }
 
-              ref
-                  .read(navigationProvider.notifier)
-                  .addPoint(
-                    NavigationPoint(
-                      latitude: lat,
-                      longitude: lon,
-                      name: name,
-                      isAirport: isAirport,
-                    ),
+              try {
+                await ref
+                    .read(navigationProvider.notifier)
+                    .addPoint(
+                      NavigationPoint(
+                        latitude: lat,
+                        longitude: lon,
+                        name: name,
+                        isAirport: isAirport,
+                      ),
+                    );
+              } catch (e) {
+                debugPrint('Failed to add navigation point: $e');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.failedToAddNavigationPoint)),
                   );
+                }
+              }
               if (context.mounted) {
                 Navigator.pop(context); // Close bottom sheet
               }

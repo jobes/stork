@@ -2023,6 +2023,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Average engine RPM'**
   String get avgRpmLabel;
+
+  /// No description provided for @failedToAddNavigationPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add navigation point'**
+  String get failedToAddNavigationPoint;
 }
 
 class _AppLocalizationsDelegate

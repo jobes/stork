@@ -492,5 +492,6 @@
   "avgSpeedLabel": "Average speed",
   "flownDistanceLabel": "Flown distance",
   "maxDistanceTakeoffLabel": "Max distance from takeoff",
-  "avgRpmLabel": "Average engine RPM"
+  "avgRpmLabel": "Average engine RPM",
+  "failedToAddNavigationPoint": "Failed to add navigation point"
 }
