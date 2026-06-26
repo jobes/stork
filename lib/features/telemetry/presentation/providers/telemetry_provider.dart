@@ -7,6 +7,11 @@ import 'decayable_field.dart';
 
 part 'telemetry_provider.g.dart';
 
+// A unique sentinel object used in updateGPS to distinguish between:
+// - Omit: Parameter is omitted (defaults to _sentinel), keeping the existing value.
+// - Clear: Parameter is explicitly passed as null, resetting the value.
+const Object _sentinel = Object();
+
 @Riverpod(keepAlive: true)
 class TelemetryNotifier extends _$TelemetryNotifier {
   late final DecayableField<double> _latitude = DecayableField<double>(
@@ -122,14 +127,14 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   }
 
   void updateGPS({
-    double? latitude,
-    double? longitude,
-    double? heading,
-    double? groundSpeed,
-    int? gpsSatelliteCount,
-    double? gpsHorizontalAccuracy,
-    double? gpsVerticalAccuracy,
-    double? gpsAltitude,
+    Object? latitude = _sentinel,
+    Object? longitude = _sentinel,
+    Object? heading = _sentinel,
+    Object? groundSpeed = _sentinel,
+    Object? gpsSatelliteCount = _sentinel,
+    Object? gpsHorizontalAccuracy = _sentinel,
+    Object? gpsVerticalAccuracy = _sentinel,
+    Object? gpsAltitude = _sentinel,
     bool isDroneCan = false,
   }) {
     if (isDroneCan) {
@@ -143,30 +148,31 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
     final oldState = state;
 
-    if (latitude != null) _latitude.sync(latitude);
-    if (longitude != null) _longitude.sync(longitude);
-    if (heading != null) _heading.sync(heading);
-    if (groundSpeed != null) _groundSpeed.sync(groundSpeed);
-    if (gpsSatelliteCount != null) _gpsSatelliteCount.sync(gpsSatelliteCount);
-    if (gpsHorizontalAccuracy != null) {
-      _gpsHorizontalAccuracy.sync(gpsHorizontalAccuracy);
+    if (latitude != _sentinel) _latitude.sync(latitude as double?);
+    if (longitude != _sentinel) _longitude.sync(longitude as double?);
+    if (heading != _sentinel) _heading.sync(heading as double?);
+    if (groundSpeed != _sentinel) _groundSpeed.sync(groundSpeed as double?);
+    if (gpsSatelliteCount != _sentinel) {
+      _gpsSatelliteCount.sync(gpsSatelliteCount as int?);
     }
-    if (gpsVerticalAccuracy != null) {
-      _gpsVerticalAccuracy.sync(gpsVerticalAccuracy);
+    if (gpsHorizontalAccuracy != _sentinel) {
+      _gpsHorizontalAccuracy.sync(gpsHorizontalAccuracy as double?);
     }
-    if (gpsAltitude != null) _gpsAltitude.sync(gpsAltitude);
+    if (gpsVerticalAccuracy != _sentinel) {
+      _gpsVerticalAccuracy.sync(gpsVerticalAccuracy as double?);
+    }
+    if (gpsAltitude != _sentinel) _gpsAltitude.sync(gpsAltitude as double?);
 
     var newState = state.copyWith(
       isGpsDroneCan: isDroneCan,
-      latitude: latitude ?? state.latitude,
-      longitude: longitude ?? state.longitude,
-      heading: heading ?? state.heading,
-      groundSpeed: groundSpeed ?? state.groundSpeed,
-      gpsSatelliteCount: gpsSatelliteCount ?? state.gpsSatelliteCount,
-      gpsHorizontalAccuracy:
-          gpsHorizontalAccuracy ?? state.gpsHorizontalAccuracy,
-      gpsVerticalAccuracy: gpsVerticalAccuracy ?? state.gpsVerticalAccuracy,
-      gpsAltitude: gpsAltitude ?? state.gpsAltitude,
+      latitude: latitude,
+      longitude: longitude,
+      heading: heading,
+      groundSpeed: groundSpeed,
+      gpsSatelliteCount: gpsSatelliteCount,
+      gpsHorizontalAccuracy: gpsHorizontalAccuracy,
+      gpsVerticalAccuracy: gpsVerticalAccuracy,
+      gpsAltitude: gpsAltitude,
     );
 
     // Auto-transition to overview if GPS is filled and we are in init/waiting state
@@ -180,7 +186,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
     state = newState;
 
-    if (groundSpeed != null) {
+    if (groundSpeed != _sentinel && groundSpeed != null) {
       _updateIsFlying();
     }
   }
@@ -245,7 +251,6 @@ void gpsListener(Ref ref) {
               latitude: location.lat,
               longitude: location.lon,
               groundSpeed: location.groundSpeed,
-              gpsSatelliteCount: null,
               gpsHorizontalAccuracy: location.horizontalAccuracy,
               gpsVerticalAccuracy: location.verticalAccuracy,
               gpsAltitude: location.altitude,

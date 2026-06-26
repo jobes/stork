@@ -1,5 +1,10 @@
 import 'map_view_state.dart';
 
+// A unique sentinel object used in copyWith to distinguish between:
+// - Omit: Parameter is omitted (defaults to _sentinel), keeping the existing value.
+// - Clear: Parameter is explicitly passed as null, resetting/clearing the value to null.
+const Object _sentinel = Object();
+
 enum TelemetryField {
   latitude,
   longitude,
@@ -175,35 +180,34 @@ class TelemetryState {
   }
 
   TelemetryState copyWith({
-    double? latitude,
-    double? longitude,
-    double? heading,
-    double? groundSpeed,
-    double? indicatedAirSpeed,
+    Object? latitude = _sentinel,
+    Object? longitude = _sentinel,
+    Object? heading = _sentinel,
+    Object? groundSpeed = _sentinel,
+    Object? indicatedAirSpeed = _sentinel,
     bool? isFlying,
-    double? engineRPM,
-    double? airPressure,
-    double? gpsAltitude,
-    int? gpsSatelliteCount,
-    double? gpsHorizontalAccuracy,
-    double? gpsVerticalAccuracy,
+    Object? engineRPM = _sentinel,
+    Object? airPressure = _sentinel,
+    Object? gpsAltitude = _sentinel,
+    Object? gpsSatelliteCount = _sentinel,
+    Object? gpsHorizontalAccuracy = _sentinel,
+    Object? gpsVerticalAccuracy = _sentinel,
     bool? isGpsDroneCan,
     MapViewState? mapViewState,
   }) {
     return TelemetryState(
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      heading: heading ?? this.heading,
-      groundSpeed: groundSpeed ?? this.groundSpeed,
-      indicatedAirSpeed: indicatedAirSpeed ?? this.indicatedAirSpeed,
+      latitude: latitude == _sentinel ? this.latitude : (latitude as double?),
+      longitude: longitude == _sentinel ? this.longitude : (longitude as double?),
+      heading: heading == _sentinel ? this.heading : (heading as double?),
+      groundSpeed: groundSpeed == _sentinel ? this.groundSpeed : (groundSpeed as double?),
+      indicatedAirSpeed: indicatedAirSpeed == _sentinel ? this.indicatedAirSpeed : (indicatedAirSpeed as double?),
       isFlying: isFlying ?? this.isFlying,
-      engineRPM: engineRPM ?? this.engineRPM,
-      airPressure: airPressure ?? this.airPressure,
-      gpsAltitude: gpsAltitude ?? this.gpsAltitude,
-      gpsSatelliteCount: gpsSatelliteCount ?? this.gpsSatelliteCount,
-      gpsHorizontalAccuracy:
-          gpsHorizontalAccuracy ?? this.gpsHorizontalAccuracy,
-      gpsVerticalAccuracy: gpsVerticalAccuracy ?? this.gpsVerticalAccuracy,
+      engineRPM: engineRPM == _sentinel ? this.engineRPM : (engineRPM as double?),
+      airPressure: airPressure == _sentinel ? this.airPressure : (airPressure as double?),
+      gpsAltitude: gpsAltitude == _sentinel ? this.gpsAltitude : (gpsAltitude as double?),
+      gpsSatelliteCount: gpsSatelliteCount == _sentinel ? this.gpsSatelliteCount : (gpsSatelliteCount as int?),
+      gpsHorizontalAccuracy: gpsHorizontalAccuracy == _sentinel ? this.gpsHorizontalAccuracy : (gpsHorizontalAccuracy as double?),
+      gpsVerticalAccuracy: gpsVerticalAccuracy == _sentinel ? this.gpsVerticalAccuracy : (gpsVerticalAccuracy as double?),
       isGpsDroneCan: isGpsDroneCan ?? this.isGpsDroneCan,
       mapViewState: mapViewState ?? this.mapViewState,
     );

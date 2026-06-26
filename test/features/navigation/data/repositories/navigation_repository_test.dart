@@ -84,8 +84,8 @@ void main() {
           isActive: true,
         );
 
-        expect(
-          () => repository.saveNavigationState(stateToSave),
+        await expectLater(
+          repository.saveNavigationState(stateToSave),
           throwsA(isA<StateError>()),
         );
       },

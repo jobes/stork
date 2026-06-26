@@ -86,17 +86,22 @@ class FlightRecords extends _$FlightRecords {
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
+    try {
       final repo = ref.read(blackBoxRepositoryProvider);
       final count = await repo.getFlightsCount();
+      if (!ref.mounted) return;
       final flights = await repo.getFlightsPaginated(_pageSize);
-      return FlightRecordsState(
+      if (!ref.mounted) return;
+      state = AsyncData(FlightRecordsState(
         flights: flights,
         totalCount: count,
         isLoadingMore: false,
         hasMore: flights.length < count,
-      );
-    });
+      ));
+    } catch (e, st) {
+      if (!ref.mounted) return;
+      state = AsyncError(e, st);
+    }
   }
 
   Future<void> updateFlightDetails({
@@ -112,6 +117,8 @@ class FlightRecords extends _$FlightRecords {
       pilotId: pilotId,
       airplaneId: airplaneId,
     );
+
+    if (!ref.mounted) return;
 
     final currentState = state.value;
     if (currentState != null) {
@@ -132,6 +139,7 @@ class FlightRecords extends _$FlightRecords {
   Future<void> deleteFlight(String uuid) async {
     final repo = ref.read(blackBoxRepositoryProvider);
     await repo.deleteFlight(uuid);
+    if (!ref.mounted) return;
     await refresh();
   }
 }
