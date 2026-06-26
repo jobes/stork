@@ -19,7 +19,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.latitude)
-          : state.copyWith(latitude: val);
+          : state.copyWith(latitude: TelemetryValue(val));
     },
   );
   late final DecayableField<double> _longitude = DecayableField<double>(
@@ -27,7 +27,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.longitude)
-          : state.copyWith(longitude: val);
+          : state.copyWith(longitude: TelemetryValue(val));
     },
   );
   late final DecayableField<double> _heading = DecayableField<double>(
@@ -35,7 +35,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.heading)
-          : state.copyWith(heading: val);
+          : state.copyWith(heading: TelemetryValue(val));
     },
   );
   late final DecayableField<double> _groundSpeed = DecayableField<double>(
@@ -43,7 +43,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.groundSpeed)
-          : state.copyWith(groundSpeed: val);
+          : state.copyWith(groundSpeed: TelemetryValue(val));
       _updateIsFlying();
     },
   );
@@ -51,7 +51,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.indicatedAirSpeed)
-          : state.copyWith(indicatedAirSpeed: val);
+          : state.copyWith(indicatedAirSpeed: TelemetryValue(val));
       _updateIsFlying();
     },
   );
@@ -59,14 +59,14 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.engineRPM)
-          : state.copyWith(engineRPM: val);
+          : state.copyWith(engineRPM: TelemetryValue(val));
     },
   );
   late final DecayableField<double> _airPressure = DecayableField<double>(
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.airPressure)
-          : state.copyWith(airPressure: val);
+          : state.copyWith(airPressure: TelemetryValue(val));
     },
   );
   late final DecayableField<double> _gpsAltitude = DecayableField<double>(
@@ -74,7 +74,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.gpsAltitude)
-          : state.copyWith(gpsAltitude: val);
+          : state.copyWith(gpsAltitude: TelemetryValue(val));
     },
   );
 
@@ -83,7 +83,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.gpsSatelliteCount)
-          : state.copyWith(gpsSatelliteCount: val);
+          : state.copyWith(gpsSatelliteCount: TelemetryValue(val));
     },
   );
   late final DecayableField<double> _gpsHorizontalAccuracy =
@@ -92,7 +92,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
         onChanged: (val) {
           state = val == null
               ? state.resetField(TelemetryField.gpsHorizontalAccuracy)
-              : state.copyWith(gpsHorizontalAccuracy: val);
+              : state.copyWith(gpsHorizontalAccuracy: TelemetryValue(val));
         },
       );
   late final DecayableField<double> _gpsVerticalAccuracy =
@@ -101,7 +101,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
         onChanged: (val) {
           state = val == null
               ? state.resetField(TelemetryField.gpsVerticalAccuracy)
-              : state.copyWith(gpsVerticalAccuracy: val);
+              : state.copyWith(gpsVerticalAccuracy: TelemetryValue(val));
         },
       );
 
@@ -165,14 +165,14 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
     var newState = state.copyWith(
       isGpsDroneCan: isDroneCan,
-      latitude: latitude,
-      longitude: longitude,
-      heading: heading,
-      groundSpeed: groundSpeed,
-      gpsSatelliteCount: gpsSatelliteCount,
-      gpsHorizontalAccuracy: gpsHorizontalAccuracy,
-      gpsVerticalAccuracy: gpsVerticalAccuracy,
-      gpsAltitude: gpsAltitude,
+      latitude: latitude == _sentinel ? null : TelemetryValue(latitude as double?),
+      longitude: longitude == _sentinel ? null : TelemetryValue(longitude as double?),
+      heading: heading == _sentinel ? null : TelemetryValue(heading as double?),
+      groundSpeed: groundSpeed == _sentinel ? null : TelemetryValue(groundSpeed as double?),
+      gpsSatelliteCount: gpsSatelliteCount == _sentinel ? null : TelemetryValue(gpsSatelliteCount as int?),
+      gpsHorizontalAccuracy: gpsHorizontalAccuracy == _sentinel ? null : TelemetryValue(gpsHorizontalAccuracy as double?),
+      gpsVerticalAccuracy: gpsVerticalAccuracy == _sentinel ? null : TelemetryValue(gpsVerticalAccuracy as double?),
+      gpsAltitude: gpsAltitude == _sentinel ? null : TelemetryValue(gpsAltitude as double?),
     );
 
     // Auto-transition to overview if GPS is filled and we are in init/waiting state

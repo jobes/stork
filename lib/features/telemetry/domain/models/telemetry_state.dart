@@ -1,9 +1,6 @@
 import 'map_view_state.dart';
 
-// A unique sentinel object used in copyWith to distinguish between:
-// - Omit: Parameter is omitted (defaults to _sentinel), keeping the existing value.
-// - Clear: Parameter is explicitly passed as null, resetting/clearing the value to null.
-const Object _sentinel = Object();
+
 
 enum TelemetryField {
   latitude,
@@ -78,6 +75,11 @@ enum TelemetryField {
   }
 }
 
+class TelemetryValue<T> {
+  final T value;
+  const TelemetryValue(this.value);
+}
+
 class TelemetryState {
   final double? latitude;
   final double? longitude;
@@ -147,27 +149,27 @@ class TelemetryState {
   TelemetryState copyWithField(TelemetryField field, dynamic value) {
     switch (field) {
       case TelemetryField.latitude:
-        return copyWith(latitude: value as double?);
+        return copyWith(latitude: TelemetryValue(value as double?));
       case TelemetryField.longitude:
-        return copyWith(longitude: value as double?);
+        return copyWith(longitude: TelemetryValue(value as double?));
       case TelemetryField.heading:
-        return copyWith(heading: value as double?);
+        return copyWith(heading: TelemetryValue(value as double?));
       case TelemetryField.groundSpeed:
-        return copyWith(groundSpeed: value as double?);
+        return copyWith(groundSpeed: TelemetryValue(value as double?));
       case TelemetryField.indicatedAirSpeed:
-        return copyWith(indicatedAirSpeed: value as double?);
+        return copyWith(indicatedAirSpeed: TelemetryValue(value as double?));
       case TelemetryField.engineRPM:
-        return copyWith(engineRPM: value as double?);
+        return copyWith(engineRPM: TelemetryValue(value as double?));
       case TelemetryField.airPressure:
-        return copyWith(airPressure: value as double?);
+        return copyWith(airPressure: TelemetryValue(value as double?));
       case TelemetryField.gpsAltitude:
-        return copyWith(gpsAltitude: value as double?);
+        return copyWith(gpsAltitude: TelemetryValue(value as double?));
       case TelemetryField.gpsSatelliteCount:
-        return copyWith(gpsSatelliteCount: value as int?);
+        return copyWith(gpsSatelliteCount: TelemetryValue(value as int?));
       case TelemetryField.gpsHorizontalAccuracy:
-        return copyWith(gpsHorizontalAccuracy: value as double?);
+        return copyWith(gpsHorizontalAccuracy: TelemetryValue(value as double?));
       case TelemetryField.gpsVerticalAccuracy:
-        return copyWith(gpsVerticalAccuracy: value as double?);
+        return copyWith(gpsVerticalAccuracy: TelemetryValue(value as double?));
       case TelemetryField.isFlying:
         return copyWith(isFlying: value as bool? ?? false);
       case TelemetryField.isGpsDroneCan:
@@ -180,34 +182,34 @@ class TelemetryState {
   }
 
   TelemetryState copyWith({
-    Object? latitude = _sentinel,
-    Object? longitude = _sentinel,
-    Object? heading = _sentinel,
-    Object? groundSpeed = _sentinel,
-    Object? indicatedAirSpeed = _sentinel,
+    TelemetryValue<double?>? latitude,
+    TelemetryValue<double?>? longitude,
+    TelemetryValue<double?>? heading,
+    TelemetryValue<double?>? groundSpeed,
+    TelemetryValue<double?>? indicatedAirSpeed,
     bool? isFlying,
-    Object? engineRPM = _sentinel,
-    Object? airPressure = _sentinel,
-    Object? gpsAltitude = _sentinel,
-    Object? gpsSatelliteCount = _sentinel,
-    Object? gpsHorizontalAccuracy = _sentinel,
-    Object? gpsVerticalAccuracy = _sentinel,
+    TelemetryValue<double?>? engineRPM,
+    TelemetryValue<double?>? airPressure,
+    TelemetryValue<double?>? gpsAltitude,
+    TelemetryValue<int?>? gpsSatelliteCount,
+    TelemetryValue<double?>? gpsHorizontalAccuracy,
+    TelemetryValue<double?>? gpsVerticalAccuracy,
     bool? isGpsDroneCan,
     MapViewState? mapViewState,
   }) {
     return TelemetryState(
-      latitude: latitude == _sentinel ? this.latitude : (latitude as double?),
-      longitude: longitude == _sentinel ? this.longitude : (longitude as double?),
-      heading: heading == _sentinel ? this.heading : (heading as double?),
-      groundSpeed: groundSpeed == _sentinel ? this.groundSpeed : (groundSpeed as double?),
-      indicatedAirSpeed: indicatedAirSpeed == _sentinel ? this.indicatedAirSpeed : (indicatedAirSpeed as double?),
+      latitude: latitude != null ? latitude.value : this.latitude,
+      longitude: longitude != null ? longitude.value : this.longitude,
+      heading: heading != null ? heading.value : this.heading,
+      groundSpeed: groundSpeed != null ? groundSpeed.value : this.groundSpeed,
+      indicatedAirSpeed: indicatedAirSpeed != null ? indicatedAirSpeed.value : this.indicatedAirSpeed,
       isFlying: isFlying ?? this.isFlying,
-      engineRPM: engineRPM == _sentinel ? this.engineRPM : (engineRPM as double?),
-      airPressure: airPressure == _sentinel ? this.airPressure : (airPressure as double?),
-      gpsAltitude: gpsAltitude == _sentinel ? this.gpsAltitude : (gpsAltitude as double?),
-      gpsSatelliteCount: gpsSatelliteCount == _sentinel ? this.gpsSatelliteCount : (gpsSatelliteCount as int?),
-      gpsHorizontalAccuracy: gpsHorizontalAccuracy == _sentinel ? this.gpsHorizontalAccuracy : (gpsHorizontalAccuracy as double?),
-      gpsVerticalAccuracy: gpsVerticalAccuracy == _sentinel ? this.gpsVerticalAccuracy : (gpsVerticalAccuracy as double?),
+      engineRPM: engineRPM != null ? engineRPM.value : this.engineRPM,
+      airPressure: airPressure != null ? airPressure.value : this.airPressure,
+      gpsAltitude: gpsAltitude != null ? gpsAltitude.value : this.gpsAltitude,
+      gpsSatelliteCount: gpsSatelliteCount != null ? gpsSatelliteCount.value : this.gpsSatelliteCount,
+      gpsHorizontalAccuracy: gpsHorizontalAccuracy != null ? gpsHorizontalAccuracy.value : this.gpsHorizontalAccuracy,
+      gpsVerticalAccuracy: gpsVerticalAccuracy != null ? gpsVerticalAccuracy.value : this.gpsVerticalAccuracy,
       isGpsDroneCan: isGpsDroneCan ?? this.isGpsDroneCan,
       mapViewState: mapViewState ?? this.mapViewState,
     );

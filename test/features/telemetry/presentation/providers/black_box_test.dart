@@ -437,8 +437,13 @@ void main() {
 
         // Initial keyframe should be buffered/saved now (after flush timer fires)
         async.elapse(const Duration(seconds: 1));
-        final countAfterInit = db.select('SELECT COUNT(*) as count FROM flight_telemetry').first['count'] as int;
+        final allTelemetry = db.select('SELECT * FROM flight_telemetry');
+        final countAfterInit = allTelemetry.length;
         expect(countAfterInit, greaterThan(0));
+
+        // Assert the engine RPM sample of 2500 is eventually persisted
+        final hasRPM2500 = allTelemetry.any((row) => (row['engine_rpm'] as num?)?.toDouble() == 2500.0);
+        expect(hasRPM2500, isTrue);
 
         serviceSub.close();
       });

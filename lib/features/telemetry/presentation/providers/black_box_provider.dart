@@ -95,12 +95,13 @@ class BlackBoxService extends _$BlackBoxService {
     _lastBufferedState = null;
     _buffer.clear();
 
+    // Record the initial keyframe immediately in the memory buffer
+    _bufferTelemetry(state);
+
     // Persist flight metadata asynchronously
     final repo = ref.read(blackBoxRepositoryProvider);
     _flightCreationFuture = repo.saveFlight(flight).then((_) {
       _flightCreationFuture = null;
-      // Record the initial keyframe only after saveFlight succeeds
-      _bufferTelemetry(state);
 
       // Setup periodic database flusher (every 1 second)
       _flushTimer?.cancel();
@@ -108,6 +109,7 @@ class BlackBoxService extends _$BlackBoxService {
     }).catchError((e) {
       _flightCreationFuture = null;
       _activeFlightUuid = null;
+      _buffer.clear(); // Clear memory buffer on database initialization failure
       debugPrint('Error starting flight in database: $e');
       throw e;
     });
@@ -150,7 +152,7 @@ class BlackBoxService extends _$BlackBoxService {
 
   void _bufferTelemetry(TelemetryState next) {
     final uuid = _activeFlightUuid;
-    if (uuid == null || _flightCreationFuture != null) return;
+    if (uuid == null) return;
 
     final now = DateTime.now().toUtc();
 
