@@ -26,8 +26,9 @@ enum TelemetryField {
     }
   }
 
-  static final List<TelemetryField> blackBoxFields =
-      TelemetryField.values.where((f) => f.isBlackBoxField).toList(growable: false);
+  static final List<TelemetryField> blackBoxFields = TelemetryField.values
+      .where((f) => f.isBlackBoxField)
+      .toList(growable: false);
 
   String get dbColumnName {
     return name
@@ -55,6 +56,17 @@ enum TelemetryField {
     switch (this) {
       case TelemetryField.isGpsDroneCan:
         return (dbValue as int) == 1;
+      case TelemetryField.latitude:
+      case TelemetryField.longitude:
+      case TelemetryField.heading:
+      case TelemetryField.groundSpeed:
+      case TelemetryField.indicatedAirSpeed:
+      case TelemetryField.engineRPM:
+      case TelemetryField.airPressure:
+      case TelemetryField.gpsAltitude:
+      case TelemetryField.gpsHorizontalAccuracy:
+      case TelemetryField.gpsVerticalAccuracy:
+        return (dbValue as num).toDouble();
       default:
         return dbValue;
     }

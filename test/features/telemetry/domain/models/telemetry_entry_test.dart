@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/telemetry/domain/models/telemetry_entry.dart';
-import 'package:stork/features/telemetry/domain/models/telemetry_state.dart';
 
 void main() {
   group('TelemetryEntry', () {

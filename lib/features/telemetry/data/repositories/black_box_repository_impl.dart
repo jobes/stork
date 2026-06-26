@@ -68,8 +68,8 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
     for (final flight in unfinishedFlights) {
       final lastEntry = await _database.getLastTelemetryForFlight(flight.uuid);
       final endTime = lastEntry?.timestamp ?? flight.startTime;
-      await _database.updateFlightEndTime(flight.uuid, endTime);
       await calculateAndSaveFlightStatistics(flight.uuid);
+      await _database.updateFlightEndTime(flight.uuid, endTime);
     }
   }
 }

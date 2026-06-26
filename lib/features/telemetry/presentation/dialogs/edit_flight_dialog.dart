@@ -66,7 +66,7 @@ class _EditFlightDialogState extends State<EditFlightDialog> {
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a name';
+                  return l10n.pleaseEnterName;
                 }
                 return null;
               },

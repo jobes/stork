@@ -2029,6 +2029,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to add navigation point'**
   String get failedToAddNavigationPoint;
+
+  /// No description provided for @pleaseEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get pleaseEnterName;
+
+  /// No description provided for @deleteFlightConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"?'**
+  String deleteFlightConfirmation(String name);
+
+  /// No description provided for @noTelemetryRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No telemetry records found for this flight.'**
+  String get noTelemetryRecords;
+
+  /// No description provided for @durationHoursSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get durationHoursSuffix;
+
+  /// No description provided for @durationMinutesSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'m'**
+  String get durationMinutesSuffix;
+
+  /// No description provided for @durationSecondsSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'s'**
+  String get durationSecondsSuffix;
+
+  /// No description provided for @flightRecordsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load flight records'**
+  String get flightRecordsLoadError;
 }
 
 class _AppLocalizationsDelegate

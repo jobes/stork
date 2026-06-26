@@ -1,4 +1,5 @@
 {
+  "@@locale": "sk",
   "appTitle": "Stork nav",
   "mapLoadingError": "Chyba pri načítavaní štýlu mapy",
   "menu": "Menu",
@@ -415,5 +416,19 @@
   "flownDistanceLabel": "Nalietaná vzdialenosť",
   "maxDistanceTakeoffLabel": "Najvzdialenejší bod od vzletu",
   "avgRpmLabel": "Priemerné RPM motora",
-  "failedToAddNavigationPoint": "Nepodarilo sa pridať navigačný bod"
+  "failedToAddNavigationPoint": "Nepodarilo sa pridať navigačný bod",
+  "pleaseEnterName": "Prosím, zadajte názov",
+  "deleteFlightConfirmation": "Naozaj chcete vymazať \"{name}\"?",
+  "@deleteFlightConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noTelemetryRecords": "Pre tento let sa nenašli žiadne záznamy telemetrie.",
+  "durationHoursSuffix": "h",
+  "durationMinutesSuffix": "m",
+  "durationSecondsSuffix": "s",
+  "flightRecordsLoadError": "Nepodarilo sa načítať záznamy letov"
 }

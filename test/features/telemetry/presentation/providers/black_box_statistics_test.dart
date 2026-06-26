@@ -233,5 +233,83 @@ void main() {
     // Path distance should match segment sums.
     expect(stats.totalDistance!, greaterThan(30000.0));
   });
+
+  test('recoverUnfinishedFlights keeps flight retryable if stats calculation fails', () async {
+    final tempDir = Directory.systemTemp.createTempSync('blackbox_recovery_test_');
+    final recoveryDbPath = p.join(tempDir.path, 'test_recovery_db.sqlite');
+    
+    final rDb = sqlite3.open(recoveryDbPath);
+    rDb.execute('PRAGMA foreign_keys = ON;');
+    rDb.execute('PRAGMA journal_mode = WAL;');
+    rDb.execute('PRAGMA busy_timeout = 5000;');
+    
+    final failDb = FailureDatabase();
+    failDb.dbPathOverride = recoveryDbPath;
+    failDb.database = rDb;
+    failDb.setupTables(rDb);
+    final recoveryRepository = BlackBoxRepositoryImpl(failDb);
+
+    final flightUuid = 'recovery-test-flight';
+    final startTime = DateTime.parse('2026-06-25T12:00:00Z').toUtc();
+    final flight = Flight(
+      uuid: flightUuid,
+      name: 'Recovery Test Flight',
+      startTime: startTime,
+    );
+    await failDb.saveFlight(flight);
+
+    // Save one telemetry entry
+    await failDb.insertTelemetryEntries([
+      TelemetryEntry(
+        flightUuid: flightUuid,
+        timestamp: startTime,
+        isSnapshot: true,
+        data: {'gps_altitude': 1000.0},
+      )
+    ]);
+
+    // Enable failure on stats calculation
+    failDb.failStats = true;
+
+    // Run recovery - should fail
+    try {
+      await recoveryRepository.recoverUnfinishedFlights();
+      fail('Should have thrown an exception');
+    } catch (e) {
+      expect(e, isA<Exception>());
+    }
+
+    // Verify flight end_time is still null (retryable)
+    var flights = await failDb.getFlights();
+    expect(flights.first.endTime, isNull);
+
+    // Disable failure
+    failDb.failStats = false;
+
+    // Run recovery - should succeed now
+    await recoveryRepository.recoverUnfinishedFlights();
+
+    // Verify flight end_time is now set
+    flights = await failDb.getFlights();
+    expect(flights.first.endTime, isNotNull);
+
+    // Clean up
+    rDb.close();
+    try {
+      File(recoveryDbPath).parent.deleteSync(recursive: true);
+    } catch (_) {}
+  });
+}
+
+class FailureDatabase extends IoBlackBoxDatabase {
+  bool failStats = false;
+
+  @override
+  Future<void> calculateAndSaveFlightStatistics(String flightUuid) async {
+    if (failStats) {
+      throw Exception('Simulated stats calculation failure');
+    }
+    return super.calculateAndSaveFlightStatistics(flightUuid);
+  }
 }
 

@@ -1,4 +1,5 @@
 {
+  "@@locale": "en",
   "appTitle": "Stork nav",
   "@appTitle": {
     "description": "The title of the application"
@@ -493,5 +494,19 @@
   "flownDistanceLabel": "Flown distance",
   "maxDistanceTakeoffLabel": "Max distance from takeoff",
   "avgRpmLabel": "Average engine RPM",
-  "failedToAddNavigationPoint": "Failed to add navigation point"
+  "failedToAddNavigationPoint": "Failed to add navigation point",
+  "pleaseEnterName": "Please enter a name",
+  "deleteFlightConfirmation": "Are you sure you want to delete \"{name}\"?",
+  "@deleteFlightConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noTelemetryRecords": "No telemetry records found for this flight.",
+  "durationHoursSuffix": "h",
+  "durationMinutesSuffix": "m",
+  "durationSecondsSuffix": "s",
+  "flightRecordsLoadError": "Failed to load flight records"
 }

@@ -1012,4 +1012,28 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get failedToAddNavigationPoint => 'Nepodarilo sa pridať navigačný bod';
+
+  @override
+  String get pleaseEnterName => 'Prosím, zadajte názov';
+
+  @override
+  String deleteFlightConfirmation(String name) {
+    return 'Naozaj chcete vymazať \"$name\"?';
+  }
+
+  @override
+  String get noTelemetryRecords =>
+      'Pre tento let sa nenašli žiadne záznamy telemetrie.';
+
+  @override
+  String get durationHoursSuffix => 'h';
+
+  @override
+  String get durationMinutesSuffix => 'm';
+
+  @override
+  String get durationSecondsSuffix => 's';
+
+  @override
+  String get flightRecordsLoadError => 'Nepodarilo sa načítať záznamy letov';
 }

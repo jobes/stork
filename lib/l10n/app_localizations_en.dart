@@ -1011,4 +1011,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToAddNavigationPoint => 'Failed to add navigation point';
+
+  @override
+  String get pleaseEnterName => 'Please enter a name';
+
+  @override
+  String deleteFlightConfirmation(String name) {
+    return 'Are you sure you want to delete \"$name\"?';
+  }
+
+  @override
+  String get noTelemetryRecords =>
+      'No telemetry records found for this flight.';
+
+  @override
+  String get durationHoursSuffix => 'h';
+
+  @override
+  String get durationMinutesSuffix => 'm';
+
+  @override
+  String get durationSecondsSuffix => 's';
+
+  @override
+  String get flightRecordsLoadError => 'Failed to load flight records';
 }

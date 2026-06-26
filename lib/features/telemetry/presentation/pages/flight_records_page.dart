@@ -42,15 +42,16 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
     }
   }
 
-  String _formatDuration(Duration duration) {
+  String _formatDuration(Duration duration, AppLocalizations l10n) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);
 
     final parts = <String>[];
-    if (hours > 0) parts.add('${hours}h');
-    if (minutes > 0 || hours > 0) parts.add('${minutes}m');
-    parts.add('${seconds}s');
+    if (hours > 0) parts.add('$hours${l10n.durationHoursSuffix}');
+    if (minutes > 0 || hours > 0)
+      parts.add('$minutes${l10n.durationMinutesSuffix}');
+    parts.add('$seconds${l10n.durationSecondsSuffix}');
     return parts.join(' ');
   }
 
@@ -79,7 +80,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.delete),
-        content: Text('Are you sure you want to delete "${flight.name}"?'),
+        content: Text(l10n.deleteFlightConfirmation(flight.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -106,19 +107,14 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
       final file = await GpxExportService.generateFlightGpx(flight, repo);
       if (!context.mounted) return;
       if (file == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No telemetry records found for this flight.'),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.noTelemetryRecords)));
         return;
       }
 
       await SharePlus.instance.share(
-        ShareParams(
-          files: [file],
-          subject: flight.name,
-        ),
+        ShareParams(files: [file], subject: flight.name),
       );
     } catch (e) {
       if (context.mounted) {
@@ -179,11 +175,11 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                 }
 
                 final flight = state.flights[index];
-                final startTimeStr = DateFormat(
-                  'dd.MM.yyyy HH:mm',
-                ).format(flight.startTime.toLocal());
+                final startTimeStr = DateFormat.yMd(l10n.localeName)
+                    .add_Hm()
+                    .format(flight.startTime.toLocal());
                 final endTimeStr = flight.endTime != null
-                    ? DateFormat('HH:mm').format(flight.endTime!.toLocal())
+                    ? DateFormat.Hm(l10n.localeName).format(flight.endTime!.toLocal())
                     : l10n.placeholderDash;
 
                 final duration = flight.endTime != null
@@ -193,6 +189,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                 final isRecording = flight.endTime == null;
 
                 return Card(
+                  key: ValueKey(flight.uuid),
                   elevation: 2,
                   margin: const EdgeInsets.symmetric(vertical: 6),
                   shape: RoundedRectangleBorder(
@@ -229,7 +226,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        '$startTimeStr - $endTimeStr (${_formatDuration(duration)})',
+                        '$startTimeStr - $endTimeStr (${_formatDuration(duration, l10n)})',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       children: [
@@ -279,7 +276,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                                   const Spacer(),
                                   TextButton.icon(
                                     icon: const Icon(Icons.edit_outlined),
-                                    label: Text(l10n.editSettings),
+                                    label: Text(l10n.editFlight),
                                     onPressed: () =>
                                         _editFlightDetails(context, flight),
                                   ),
@@ -303,7 +300,8 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(child: Text('Error: $err')),
+          error: (err, stack) =>
+              Center(child: Text(l10n.flightRecordsLoadError)),
         ),
       ),
     );
