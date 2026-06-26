@@ -38,8 +38,14 @@ class DraggableOverlayState extends State<DraggableOverlay> {
     final overlaySize = box.size;
     final screenSize = MediaQuery.sizeOf(context);
 
-    final maxDx = ((screenSize.width - overlaySize.width) / 2).clamp(0.0, double.infinity);
-    final maxDy = ((screenSize.height - overlaySize.height) / 2).clamp(0.0, double.infinity);
+    final maxDx = ((screenSize.width - overlaySize.width) / 2).clamp(
+      0.0,
+      double.infinity,
+    );
+    final maxDy = ((screenSize.height - overlaySize.height) / 2).clamp(
+      0.0,
+      double.infinity,
+    );
 
     _offset = Offset(
       _offset.dx.clamp(-maxDx, maxDx),
@@ -75,10 +81,7 @@ class DraggableOverlayState extends State<DraggableOverlay> {
           Transform.translate(
             offset: _offset,
             child: Center(
-              child: Container(
-                key: _childKey,
-                child: widget.child,
-              ),
+              child: Container(key: _childKey, child: widget.child),
             ),
           ),
         ],
@@ -90,10 +93,7 @@ class DraggableOverlayState extends State<DraggableOverlay> {
 class DraggableOverlayGestureDetector extends StatefulWidget {
   final Widget child;
 
-  const DraggableOverlayGestureDetector({
-    super.key,
-    required this.child,
-  });
+  const DraggableOverlayGestureDetector({super.key, required this.child});
 
   @override
   State<DraggableOverlayGestureDetector> createState() =>
@@ -115,8 +115,9 @@ class _DraggableOverlayGestureDetectorState
       onPanEnd: (_) => setState(() => _isDragging = false),
       onPanCancel: () => setState(() => _isDragging = false),
       child: MouseRegion(
-        cursor:
-            _isDragging ? SystemMouseCursors.grabbing : SystemMouseCursors.grab,
+        cursor: _isDragging
+            ? SystemMouseCursors.grabbing
+            : SystemMouseCursors.grab,
         child: widget.child,
       ),
     );

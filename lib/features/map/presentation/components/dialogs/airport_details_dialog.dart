@@ -93,7 +93,9 @@ class AirportDetailsDialog extends ConsumerWidget {
                 color: isDark ? Colors.white70 : Colors.black54,
               ),
               onPressed: () async {
-                final url = Uri.parse('${ApiConstants.openAipWebBaseUrl}/${metadata.id}');
+                final url = Uri.parse(
+                  '${ApiConstants.openAipWebBaseUrl}/${metadata.id}',
+                );
                 try {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
                 } catch (_) {}
@@ -133,9 +135,7 @@ class AirportDetailsDialog extends ConsumerWidget {
           const SizedBox(height: 16),
           Text(
             l10n.airportLoadingDetails,
-            style: TextStyle(
-              color: isDark ? Colors.white70 : Colors.black87,
-            ),
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
           ),
         ],
       ),
@@ -150,9 +150,7 @@ class AirportDetailsDialog extends ConsumerWidget {
         children: [
           Text(
             l10n.airportFailedToLoad,
-            style: TextStyle(
-              color: isDark ? Colors.white70 : Colors.black87,
-            ),
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
@@ -187,7 +185,11 @@ class AirportDetailsDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildGeneralInfo(AirportMetadata metadata, AppLocalizations l10n, bool isDark) {
+  Widget _buildGeneralInfo(
+    AirportMetadata metadata,
+    AppLocalizations l10n,
+    bool isDark,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -204,7 +206,8 @@ class AirportDetailsDialog extends ConsumerWidget {
             child: _buildInfoCard(
               icon: Icons.height,
               label: l10n.airportElevation,
-              value: '${metadata.elevation!.value.round()} ${metadata.elevation!.unit.symbol}',
+              value:
+                  '${metadata.elevation!.value.round()} ${metadata.elevation!.unit.symbol}',
               isDark: isDark,
             ),
           ),
@@ -228,11 +231,7 @@ class AirportDetailsDialog extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 18,
-            color: isDark ? Colors.white60 : Colors.black54,
-          ),
+          Icon(icon, size: 18, color: isDark ? Colors.white60 : Colors.black54),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -267,7 +266,11 @@ class AirportDetailsDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildWarnings(BuildContext context, AirportMetadata metadata, AppLocalizations l10n) {
+  Widget _buildWarnings(
+    BuildContext context,
+    AirportMetadata metadata,
+    AppLocalizations l10n,
+  ) {
     final List<Widget> chips = [];
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -397,15 +400,24 @@ class AirportDetailsDialog extends ConsumerWidget {
               child: InkWell(
                 onTap: () {
                   // Debug print requested by user
-                  debugPrint('Setting radio frequency: $radioName - $freqValue');
+                  debugPrint(
+                    'Setting radio frequency: $radioName - $freqValue',
+                  );
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Ink(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: f.primary
-                        ? (isDark ? Colors.blue.withAlpha(20) : Colors.blue.withAlpha(12))
-                        : (isDark ? Colors.white.withAlpha(10) : Colors.black.withAlpha(6)),
+                        ? (isDark
+                              ? Colors.blue.withAlpha(20)
+                              : Colors.blue.withAlpha(12))
+                        : (isDark
+                              ? Colors.white.withAlpha(10)
+                              : Colors.black.withAlpha(6)),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: f.primary
@@ -421,13 +433,17 @@ class AirportDetailsDialog extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: f.primary
                               ? Colors.blueAccent.withAlpha(30)
-                              : (isDark ? Colors.white.withAlpha(12) : Colors.black.withAlpha(10)),
+                              : (isDark
+                                    ? Colors.white.withAlpha(12)
+                                    : Colors.black.withAlpha(10)),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.radio,
                           size: 15,
-                          color: f.primary ? Colors.blueAccent : (isDark ? Colors.white60 : Colors.black54),
+                          color: f.primary
+                              ? Colors.blueAccent
+                              : (isDark ? Colors.white60 : Colors.black54),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -445,16 +461,23 @@ class AirportDetailsDialog extends ConsumerWidget {
                             ),
                             const SizedBox(height: 2),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1.5,
+                              ),
                               decoration: BoxDecoration(
-                                color: isDark ? Colors.white12 : Colors.black.withAlpha(15),
+                                color: isDark
+                                    ? Colors.white12
+                                    : Colors.black.withAlpha(15),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 f.type.toLocalizedName(l10n),
                                 style: TextStyle(
                                   fontSize: 9,
-                                  color: isDark ? Colors.white60 : Colors.black54,
+                                  color: isDark
+                                      ? Colors.white60
+                                      : Colors.black54,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -483,14 +506,22 @@ class AirportDetailsDialog extends ConsumerWidget {
                                 style: TextStyle(
                                   fontSize: 8.5,
                                   fontWeight: FontWeight.bold,
-                                  color: f.primary ? Colors.blueAccent : (isDark ? Colors.white38 : Colors.black38),
+                                  color: f.primary
+                                      ? Colors.blueAccent
+                                      : (isDark
+                                            ? Colors.white38
+                                            : Colors.black38),
                                 ),
                               ),
                               const SizedBox(width: 2),
                               Icon(
                                 Icons.tune,
                                 size: 9,
-                                color: f.primary ? Colors.blueAccent : (isDark ? Colors.white38 : Colors.black38),
+                                color: f.primary
+                                    ? Colors.blueAccent
+                                    : (isDark
+                                          ? Colors.white38
+                                          : Colors.black38),
                               ),
                             ],
                           ),
@@ -507,7 +538,12 @@ class AirportDetailsDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildRunways(BuildContext context, AirportMetadata metadata, AppLocalizations l10n, bool isDark) {
+  Widget _buildRunways(
+    BuildContext context,
+    AirportMetadata metadata,
+    AppLocalizations l10n,
+    bool isDark,
+  ) {
     if (metadata.runways.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -545,13 +581,16 @@ class AirportDetailsDialog extends ConsumerWidget {
                 : l10n.surfaceUnknown;
             String dimensions = '';
             if (r.dimension != null) {
-              dimensions = '${r.dimension!.length.value.round()}x${r.dimension!.width.value.round()} ${r.dimension!.length.unit.symbol}';
+              dimensions =
+                  '${r.dimension!.length.value.round()}x${r.dimension!.width.value.round()} ${r.dimension!.length.unit.symbol}';
             }
 
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withAlpha(10) : Colors.black.withAlpha(6),
+                color: isDark
+                    ? Colors.white.withAlpha(10)
+                    : Colors.black.withAlpha(6),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isDark ? Colors.white10 : Colors.black12,
@@ -561,9 +600,14 @@ class AirportDetailsDialog extends ConsumerWidget {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withAlpha(12) : Colors.black.withAlpha(10),
+                      color: isDark
+                          ? Colors.white.withAlpha(12)
+                          : Colors.black.withAlpha(10),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -603,7 +647,11 @@ class AirportDetailsDialog extends ConsumerWidget {
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              const Icon(Icons.star, color: Colors.amber, size: 10),
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 10,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 l10n.mainRunway,
@@ -661,7 +709,13 @@ class AirportDetailsDialog extends ConsumerWidget {
               final img = metadata.images[index];
               final smallUrl = img.getThumbnailUrl(apiKey);
               return GestureDetector(
-                onTap: () => _showLargeImage(context, metadata.images, index, apiKey, l10n),
+                onTap: () => _showLargeImage(
+                  context,
+                  metadata.images,
+                  index,
+                  apiKey,
+                  l10n,
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
@@ -721,12 +775,18 @@ class AirportDetailsDialog extends ConsumerWidget {
                       initialScale: PhotoViewComputedScale.contained,
                       minScale: PhotoViewComputedScale.contained * 0.8,
                       maxScale: PhotoViewComputedScale.covered * 2,
-                      heroAttributes: PhotoViewHeroAttributes(tag: img.filename),
+                      heroAttributes: PhotoViewHeroAttributes(
+                        tag: img.filename,
+                      ),
                       errorBuilder: (context, error, stackTrace) => Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.broken_image, color: Colors.white, size: 48),
+                            const Icon(
+                              Icons.broken_image,
+                              color: Colors.white,
+                              size: 48,
+                            ),
                             const SizedBox(height: 16),
                             Text(
                               l10n.airportFailedToLoad,
@@ -765,7 +825,10 @@ class AirportDetailsDialog extends ConsumerWidget {
                 Positioned(
                   bottom: 20,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(16),
@@ -778,7 +841,10 @@ class AirportDetailsDialog extends ConsumerWidget {
                             : initialIndex + 1;
                         return Text(
                           '$currentPage / ${images.length}',
-                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
                         );
                       },
                     ),

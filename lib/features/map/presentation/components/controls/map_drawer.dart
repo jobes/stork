@@ -95,6 +95,14 @@ class MapDrawer extends StatelessWidget {
                 context.push('/navigation');
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: Text(l10n.flightRecords),
+              onTap: () {
+                context.pop();
+                context.push('/flight-records');
+              },
+            ),
             const Spacer(),
             if (!kIsWeb)
               ListTile(

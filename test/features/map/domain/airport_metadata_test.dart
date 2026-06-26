@@ -135,14 +135,14 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        (MethodCall methodCall) async {
-          if (methodCall.method == 'getApplicationSupportDirectory') {
-            return tempDir.path;
-          }
-          return null;
-        },
-      );
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (MethodCall methodCall) async {
+              if (methodCall.method == 'getApplicationSupportDirectory') {
+                return tempDir.path;
+              }
+              return null;
+            },
+          );
     });
 
     tearDownAll(() {
@@ -151,47 +151,50 @@ void main() {
       } catch (_) {}
     });
 
-    test('Concurrent requests for the same country code are deduplicated', () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'Concurrent requests for the same country code are deduplicated',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final cache = container.read(airportMetadataCacheProvider.notifier);
+        final cache = container.read(airportMetadataCacheProvider.notifier);
 
-      var requestCount = 0;
-      final mockClient = MockClient((request) async {
-        requestCount++;
-        await Future.delayed(const Duration(milliseconds: 50));
-        return http.Response(
-          json.encode({
-            'features': [
-              {
-                'type': 'Feature',
-                'properties': {
-                  'id': 'apt1',
-                  'name': 'Test Airport 1',
-                  'type': 1,
-                  'country': 'US',
-                }
-              }
-            ]
-          }),
-          200,
-        );
-      });
+        var requestCount = 0;
+        final mockClient = MockClient((request) async {
+          requestCount++;
+          await Future.delayed(const Duration(milliseconds: 50));
+          return http.Response(
+            json.encode({
+              'features': [
+                {
+                  'type': 'Feature',
+                  'properties': {
+                    'id': 'apt1',
+                    'name': 'Test Airport 1',
+                    'type': 1,
+                    'country': 'US',
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        });
 
-      await http.runWithClient(() async {
-        final future1 = cache.getMetadata('apt1', 'US');
-        final future2 = cache.getMetadata('apt1', 'US');
+        await http.runWithClient(() async {
+          final future1 = cache.getMetadata('apt1', 'US');
+          final future2 = cache.getMetadata('apt1', 'US');
 
-        final results = await Future.wait([future1, future2]);
+          final results = await Future.wait([future1, future2]);
 
-        expect(results[0], isNotNull);
-        expect(results[1], isNotNull);
-        expect(results[0]?.name, equals('Test Airport 1'));
-        expect(results[1]?.name, equals('Test Airport 1'));
-        expect(requestCount, equals(1));
-      }, () => mockClient);
-    });
+          expect(results[0], isNotNull);
+          expect(results[1], isNotNull);
+          expect(results[0]?.name, equals('Test Airport 1'));
+          expect(results[1]?.name, equals('Test Airport 1'));
+          expect(requestCount, equals(1));
+        }, () => mockClient);
+      },
+    );
 
     test('Failed request can be retried on next call', () async {
       final container = ProviderContainer();
@@ -215,9 +218,9 @@ void main() {
                   'name': 'Test Airport 1',
                   'type': 1,
                   'country': 'US',
-                }
-              }
-            ]
+                },
+              },
+            ],
           }),
           200,
         );
@@ -237,39 +240,42 @@ void main() {
       }, () => mockClient);
     });
 
-    test('Downloads and decodes UTF-8 characters correctly (e.g. Austrian/Hungarian/German)', () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'Downloads and decodes UTF-8 characters correctly (e.g. Austrian/Hungarian/German)',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final cache = container.read(airportMetadataCacheProvider.notifier);
+        final cache = container.read(airportMetadataCacheProvider.notifier);
 
-      final mockClient = MockClient((request) async {
-        return http.Response.bytes(
-          utf8.encode(json.encode({
-            'features': [
-              {
-                'type': 'Feature',
-                'properties': {
-                  'id': 'apt_utf8',
-                  'name': 'Bad Vöslau / Fertőszentmiklós',
-                  'type': 1,
-                  'country': 'AT',
-                }
-              }
-            ]
-          })),
-          200,
-          headers: {
-            'content-type': 'application/json',
-          },
-        );
-      });
+        final mockClient = MockClient((request) async {
+          return http.Response.bytes(
+            utf8.encode(
+              json.encode({
+                'features': [
+                  {
+                    'type': 'Feature',
+                    'properties': {
+                      'id': 'apt_utf8',
+                      'name': 'Bad Vöslau / Fertőszentmiklós',
+                      'type': 1,
+                      'country': 'AT',
+                    },
+                  },
+                ],
+              }),
+            ),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        });
 
-      await http.runWithClient(() async {
-        final result = await cache.getMetadata('apt_utf8', 'AT');
-        expect(result, isNotNull);
-        expect(result?.name, equals('Bad Vöslau / Fertőszentmiklós'));
-      }, () => mockClient);
-    });
+        await http.runWithClient(() async {
+          final result = await cache.getMetadata('apt_utf8', 'AT');
+          expect(result, isNotNull);
+          expect(result?.name, equals('Bad Vöslau / Fertőszentmiklós'));
+        }, () => mockClient);
+      },
+    );
   });
 }

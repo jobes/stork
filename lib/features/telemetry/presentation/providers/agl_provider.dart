@@ -15,28 +15,32 @@ class AglState {
   final double? terrainElevation;
   final double? heightAboveGround;
   final bool isFetching;
+  final ResolvedAltitude resolvedAltitude;
 
   const AglState({
     this.terrainElevation,
     this.heightAboveGround,
     this.isFetching = false,
+    required this.resolvedAltitude,
   });
 
   AglState copyWith({
     double? terrainElevation,
     double? heightAboveGround,
     bool? isFetching,
+    ResolvedAltitude? resolvedAltitude,
   }) {
     return AglState(
       terrainElevation: terrainElevation ?? this.terrainElevation,
       heightAboveGround: heightAboveGround ?? this.heightAboveGround,
       isFetching: isFetching ?? this.isFetching,
+      resolvedAltitude: resolvedAltitude ?? this.resolvedAltitude,
     );
   }
 
   @override
   String toString() =>
-      'AglState(terrainElevation: $terrainElevation, heightAboveGround: $heightAboveGround, isFetching: $isFetching)';
+      'AglState(terrainElevation: $terrainElevation, heightAboveGround: $heightAboveGround, isFetching: $isFetching, resolvedAltitude: $resolvedAltitude)';
 }
 
 class AutoQnhCalibratorState {
@@ -141,7 +145,7 @@ class TerrainElevation extends _$TerrainElevation {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 ResolvedAltitude resolvedAltitude(Ref ref) {
   final settings = ref.watch(appSettingsProvider).value;
 
@@ -439,5 +443,6 @@ AglState agl(Ref ref) {
         ? msl - elevation
         : null,
     isFetching: elevationAsync.isLoading,
+    resolvedAltitude: resolved,
   );
 }

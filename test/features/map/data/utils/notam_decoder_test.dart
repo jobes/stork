@@ -9,7 +9,8 @@ void main() {
     });
 
     test('separateToParts parses standard parts correctly', () {
-      const raw = 'A1234/26 NOTAMN\n'
+      const raw =
+          'A1234/26 NOTAMN\n'
           'Q) LZBB/QFAXX/IV/NBO/A/000/999/4810N01710E025\n'
           'A) LZIB\n'
           'B) 2603251315\n'
@@ -39,7 +40,8 @@ void main() {
         'issueDate': '2026-03-25T13:00:00Z',
         'startDate': '2026-03-25T13:15:00Z',
         'endDate': '2026-06-25T18:00:00Z',
-        'traditionalMessage': 'A1234/26 NOTAMN\n'
+        'traditionalMessage':
+            'A1234/26 NOTAMN\n'
             'Q) LZBB/QFAXX/IV/NBO/A/000/999/4810N01710E025\n'
             'A) LZIB\n'
             'B) 2603251315\n'

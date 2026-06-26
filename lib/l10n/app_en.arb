@@ -1,4 +1,5 @@
 {
+  "@@locale": "en",
   "appTitle": "Stork nav",
   "@appTitle": {
     "description": "The title of the application"
@@ -468,5 +469,44 @@
   "notamEnd": "End Time",
   "notamFir": "FIR",
   "notamLimits": "Vertical Limits",
-  "hideNotam": "Hide"
+  "hideNotam": "Hide",
+  "flightRecords": "Flight Records",
+  "flightRecordsTitle": "Flight Records",
+  "flightName": "Flight Name",
+  "pilotId": "Pilot ID",
+  "airplaneId": "Aircraft ID",
+  "editFlight": "Edit Flight",
+  "shareGpx": "Share GPX",
+  "downloadGpx": "Download GPX",
+  "flightRecordsEmpty": "No flight records found",
+  "flightDate": "Date",
+  "startTime": "Start Time",
+  "endTime": "End Time",
+  "save": "Save",
+  "shareError": "Failed to share GPX file",
+  "shareSuccess": "GPX file shared successfully",
+  "maxAltitudeLabel": "Max altitude",
+  "totalAscentLabel": "Total ascent",
+  "totalDescentLabel": "Total descent",
+  "avgAltitudeLabel": "Average altitude",
+  "maxSpeedLabel": "Max speed",
+  "avgSpeedLabel": "Average speed",
+  "flownDistanceLabel": "Flown distance",
+  "maxDistanceTakeoffLabel": "Max distance from takeoff",
+  "avgRpmLabel": "Average engine RPM",
+  "failedToAddNavigationPoint": "Failed to add navigation point",
+  "pleaseEnterName": "Please enter a name",
+  "deleteFlightConfirmation": "Are you sure you want to delete \"{name}\"?",
+  "@deleteFlightConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noTelemetryRecords": "No telemetry records found for this flight.",
+  "durationHoursSuffix": "h",
+  "durationMinutesSuffix": "m",
+  "durationSecondsSuffix": "s",
+  "flightRecordsLoadError": "Failed to load flight records"
 }

@@ -24,7 +24,9 @@ class FlightTimeTelemetryWidget extends ConsumerWidget {
     if (isFlying) {
       timeColor = isDark ? Colors.white : Colors.black;
     } else {
-      timeColor = isDark ? Colors.white.withAlpha(76) : Colors.black.withAlpha(76);
+      timeColor = isDark
+          ? Colors.white.withAlpha(76)
+          : Colors.black.withAlpha(76);
     }
 
     final formattedTime = flightSummary.duration.toHMSString();
@@ -36,7 +38,10 @@ class FlightTimeTelemetryWidget extends ConsumerWidget {
           builder: (context) => const FlightTimeDetailsDialog(),
         );
       },
-      padding: EdgeInsets.symmetric(horizontal: 12.0 * fontScale, vertical: 8.0 * fontScale),
+      padding: EdgeInsets.symmetric(
+        horizontal: 12.0 * fontScale,
+        vertical: 8.0 * fontScale,
+      ),
       child: Text(
         formattedTime,
         style: TextStyle(

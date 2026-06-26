@@ -27,7 +27,10 @@ void main() {
       };
 
       final notam = Notam.fromJson(json);
-      expect(notam.from, equals(DateTime.parse('2026-03-25T13:00:00Z').toUtc()));
+      expect(
+        notam.from,
+        equals(DateTime.parse('2026-03-25T13:00:00Z').toUtc()),
+      );
       expect(notam.from.isUtc, isTrue);
       expect(notam.to, equals(DateTime.parse('2026-06-25T18:00:00Z').toUtc()));
       expect(notam.to.isUtc, isTrue);

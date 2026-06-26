@@ -23,7 +23,10 @@ void main() {
         addTearDown(container.dispose);
 
         // Listen to the provider to keep it active and tracked
-        final sub = container.listen(throttledTelemetryProvider, (prev, next) {});
+        final sub = container.listen(
+          throttledTelemetryProvider,
+          (prev, next) {},
+        );
         final notifier = container.read(telemetryProvider.notifier);
 
         expect(container.read(throttledTelemetryProvider).latitude, isNull);
@@ -47,13 +50,19 @@ void main() {
         final container = ProviderContainer();
         addTearDown(container.dispose);
 
-        final sub = container.listen(throttledTelemetryProvider, (prev, next) {});
+        final sub = container.listen(
+          throttledTelemetryProvider,
+          (prev, next) {},
+        );
         final notifier = container.read(telemetryProvider.notifier);
 
         // 1. Initial fix (immediate)
         notifier.updateGPS(latitude: 48.0, longitude: 17.0);
         async.flushMicrotasks();
-        expect(container.read(throttledTelemetryProvider).latitude, equals(48.0));
+        expect(
+          container.read(throttledTelemetryProvider).latitude,
+          equals(48.0),
+        );
 
         // 2. Update 2 seconds later (should be throttled)
         async.elapse(const Duration(seconds: 2));
@@ -61,13 +70,19 @@ void main() {
         async.flushMicrotasks();
 
         // Still 48.0 because it's within the 5 seconds window
-        expect(container.read(throttledTelemetryProvider).latitude, equals(48.0));
+        expect(
+          container.read(throttledTelemetryProvider).latitude,
+          equals(48.0),
+        );
 
         // 3. Elapse another 3 seconds (5 seconds total from initial update)
         async.elapse(const Duration(seconds: 3));
 
         // The throttled update should now be applied
-        expect(container.read(throttledTelemetryProvider).latitude, equals(48.1));
+        expect(
+          container.read(throttledTelemetryProvider).latitude,
+          equals(48.1),
+        );
 
         sub.close();
       });
@@ -78,7 +93,10 @@ void main() {
         final container = ProviderContainer();
         addTearDown(container.dispose);
 
-        final sub = container.listen(throttledTelemetryProvider, (prev, next) {});
+        final sub = container.listen(
+          throttledTelemetryProvider,
+          (prev, next) {},
+        );
         final notifier = container.read(telemetryProvider.notifier);
 
         // 1. Initial fix (immediate)
@@ -92,7 +110,10 @@ void main() {
         notifier.updateGPS(latitude: 48.2, longitude: 17.2);
         async.flushMicrotasks();
 
-        expect(container.read(throttledTelemetryProvider).latitude, equals(48.2));
+        expect(
+          container.read(throttledTelemetryProvider).latitude,
+          equals(48.2),
+        );
 
         sub.close();
       });
@@ -103,7 +124,10 @@ void main() {
         final container = ProviderContainer();
         addTearDown(container.dispose);
 
-        final sub = container.listen(throttledTelemetryProvider, (prev, next) {});
+        final sub = container.listen(
+          throttledTelemetryProvider,
+          (prev, next) {},
+        );
         final notifier = container.read(telemetryProvider.notifier);
 
         // Trigger multiple updates synchronously inside the same event loop tick
@@ -118,7 +142,10 @@ void main() {
         async.flushMicrotasks();
 
         // Should receive the last update directly (48.2, 17.2) immediately as the initial fix
-        expect(container.read(throttledTelemetryProvider).latitude, equals(48.2));
+        expect(
+          container.read(throttledTelemetryProvider).latitude,
+          equals(48.2),
+        );
 
         sub.close();
       });

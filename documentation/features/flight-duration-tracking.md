@@ -102,3 +102,9 @@ Tapping on the `FlightTimeTelemetryWidget` displays a detail panel showing:
 - **Takeoff Time**: The exact timestamp when flight tracking was triggered, formatted to the local timezone.
 - **Active Duration**: The total elapsed flight time.
 - **Flight Distance**: The accumulated distance flown, converted and formatted in kilometers (e.g. `12.34 km`).
+
+---
+
+## 5. Related Systems
+
+The flight takeoff and landing events that manage flight duration tracking also control the [Black Box Flight Logging System](black-box-logging.md), which records high-resolution telemetry, maintains persistent flight records, calculates post-flight statistics, and enables GPX track exports.

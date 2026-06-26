@@ -32,20 +32,30 @@ class FirUtils {
     if (_features != null) return;
     try {
       final jsonString = rawJson ?? await rootBundle.loadString(assetPath);
-      final Map<String, dynamic> data = jsonDecode(jsonString) as Map<String, dynamic>;
+      final Map<String, dynamic> data =
+          jsonDecode(jsonString) as Map<String, dynamic>;
       final List<dynamic> featuresList = data['features'] as List<dynamic>;
 
       final List<FirFeature> parsedFeatures = [];
       for (final dynamic f in featuresList) {
         final Map<String, dynamic> feature = f as Map<String, dynamic>;
-        final Map<String, dynamic> properties = feature['properties'] as Map<String, dynamic>;
-        final Map<String, dynamic> geometry = feature['geometry'] as Map<String, dynamic>;
+        final Map<String, dynamic> properties =
+            feature['properties'] as Map<String, dynamic>;
+        final Map<String, dynamic> geometry =
+            feature['geometry'] as Map<String, dynamic>;
 
-        final String icao = properties['ICAO'] as String? ?? properties['name'] as String? ?? 'UNKNOWN';
-        final double minLat = double.tryParse(properties['MinLat']?.toString() ?? '') ?? -90.0;
-        final double minLon = double.tryParse(properties['MinLon']?.toString() ?? '') ?? -180.0;
-        final double maxLat = double.tryParse(properties['MaxLat']?.toString() ?? '') ?? 90.0;
-        final double maxLon = double.tryParse(properties['MaxLon']?.toString() ?? '') ?? 180.0;
+        final String icao =
+            properties['ICAO'] as String? ??
+            properties['name'] as String? ??
+            'UNKNOWN';
+        final double minLat =
+            double.tryParse(properties['MinLat']?.toString() ?? '') ?? -90.0;
+        final double minLon =
+            double.tryParse(properties['MinLon']?.toString() ?? '') ?? -180.0;
+        final double maxLat =
+            double.tryParse(properties['MaxLat']?.toString() ?? '') ?? 90.0;
+        final double maxLon =
+            double.tryParse(properties['MaxLon']?.toString() ?? '') ?? 180.0;
 
         final String type = geometry['type'] as String;
         final List<dynamic> coords = geometry['coordinates'] as List<dynamic>;
@@ -56,10 +66,7 @@ class FirUtils {
           for (final dynamic ringObj in polyCoords) {
             final List<List<double>> ring = [];
             for (final dynamic pt in ringObj) {
-              ring.add([
-                (pt[0] as num).toDouble(),
-                (pt[1] as num).toDouble(),
-              ]);
+              ring.add([(pt[0] as num).toDouble(), (pt[1] as num).toDouble()]);
             }
             poly.add(ring);
           }
@@ -100,7 +107,10 @@ class FirUtils {
 
     for (final feature in features) {
       // 1. Quick bounding box check
-      if (lat < feature.minLat || lat > feature.maxLat || lon < feature.minLon || lon > feature.maxLon) {
+      if (lat < feature.minLat ||
+          lat > feature.maxLat ||
+          lon < feature.minLon ||
+          lon > feature.maxLon) {
         continue;
       }
 
@@ -132,7 +142,12 @@ class FirUtils {
       final p1 = routePoints[i];
       final p2 = routePoints[i + 1];
 
-      final segmentDist = GeoUtils.distanceBetween(p1.lat, p1.lon, p2.lat, p2.lon);
+      final segmentDist = GeoUtils.distanceBetween(
+        p1.lat,
+        p1.lon,
+        p2.lat,
+        p2.lon,
+      );
       if (segmentDist == 0) continue;
 
       double coveredDist = 0;
@@ -150,7 +165,12 @@ class FirUtils {
     // Always add the last point if it is not already very close to the last added point
     final lastPoint = routePoints.last;
     final lastAdded = result.last;
-    final finalDist = GeoUtils.distanceBetween(lastAdded.lat, lastAdded.lon, lastPoint.lat, lastPoint.lon);
+    final finalDist = GeoUtils.distanceBetween(
+      lastAdded.lat,
+      lastAdded.lon,
+      lastPoint.lat,
+      lastPoint.lon,
+    );
     if (finalDist > 1000) {
       result.add(lastPoint);
     }

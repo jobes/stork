@@ -28,7 +28,8 @@ class BaseDetailsDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final Widget? leadingWidget = leading ??
+    final Widget? leadingWidget =
+        leading ??
         (icon != null
             ? Container(
                 padding: const EdgeInsets.all(8),
@@ -36,15 +37,12 @@ class BaseDetailsDialog extends StatelessWidget {
                   color: Colors.blue.withAlpha(40),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: Colors.blueAccent,
-                  size: 24,
-                ),
+                child: Icon(icon, color: Colors.blueAccent, size: 24),
               )
             : null);
 
-    final Widget titleWidget = title ??
+    final Widget titleWidget =
+        title ??
         Text(
           titleText ?? '',
           style: TextStyle(

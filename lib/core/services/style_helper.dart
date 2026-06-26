@@ -29,7 +29,9 @@ class StyleHelper {
               newList[i + 1] = scaleValue(newList[i + 1]);
             }
             if (newList.length % 2 == 0) {
-              newList[newList.length - 1] = scaleValue(newList[newList.length - 1]);
+              newList[newList.length - 1] = scaleValue(
+                newList[newList.length - 1],
+              );
             }
             return newList;
           } else if (op == 'match') {
@@ -37,7 +39,9 @@ class StyleHelper {
               newList[i + 1] = scaleValue(newList[i + 1]);
             }
             if (newList.length % 2 != 0) {
-              newList[newList.length - 1] = scaleValue(newList[newList.length - 1]);
+              newList[newList.length - 1] = scaleValue(
+                newList[newList.length - 1],
+              );
             }
             return newList;
           } else if (op == 'interpolate' || op == 'step') {

@@ -24,10 +24,10 @@ class NavigationState {
   }
 
   Map<String, dynamic> toJson() => {
-        'points': points.map((p) => p.toJson()).toList(),
-        'isActive': isActive,
-        'wasAutoAdvanced': wasAutoAdvanced,
-      };
+    'points': points.map((p) => p.toJson()).toList(),
+    'isActive': isActive,
+    'wasAutoAdvanced': wasAutoAdvanced,
+  };
 
   factory NavigationState.fromJson(Map<String, dynamic> json) {
     final points = <NavigationPoint>[];

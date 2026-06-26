@@ -27,6 +27,8 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Explains how waypoint-based routing works, including dynamic ETA/ETE calculations, custom path legs, reorderable lists, manual controls, and the auto-advance logic that moves to the next waypoint when travel time is $\le 60.0$ seconds.*
 *   [Flight Duration and Distance Tracking](features/flight-duration-tracking.md)
     *   *Describes block-time telemetry tracking which automatically detects takeoff and landing, accumulates flight distances using geographic mathematics while filtering out GPS noise, and exposes the time/distance readouts via dedicated widgets.*
+*   [Black Box Flight Logging and GPX Export](features/black-box-logging.md)
+    *   *Details the automated flight recording system, delta-compressed sqlite persistence, background isolate-based statistics computation, crash recovery procedures, and GPX track exporter.*
 *   [Course Line (Trend Vector)](features/course-line.md)
     *   *Covers the predictive course line rendering utilizing layered MapLibre sources (black/white dashes with black border outline) to project the aircraft's future trajectory based on speed, heading, and settings configurations.*
 *   [Customizable Widgets and Layouts](features/customizable-widgets-layout.md)

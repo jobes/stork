@@ -1879,6 +1879,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hide'**
   String get hideNotam;
+
+  /// No description provided for @flightRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Records'**
+  String get flightRecords;
+
+  /// No description provided for @flightRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Records'**
+  String get flightRecordsTitle;
+
+  /// No description provided for @flightName.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Name'**
+  String get flightName;
+
+  /// No description provided for @pilotId.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilot ID'**
+  String get pilotId;
+
+  /// No description provided for @airplaneId.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft ID'**
+  String get airplaneId;
+
+  /// No description provided for @editFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Flight'**
+  String get editFlight;
+
+  /// No description provided for @shareGpx.
+  ///
+  /// In en, this message translates to:
+  /// **'Share GPX'**
+  String get shareGpx;
+
+  /// No description provided for @downloadGpx.
+  ///
+  /// In en, this message translates to:
+  /// **'Download GPX'**
+  String get downloadGpx;
+
+  /// No description provided for @flightRecordsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No flight records found'**
+  String get flightRecordsEmpty;
+
+  /// No description provided for @flightDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get flightDate;
+
+  /// No description provided for @startTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Time'**
+  String get startTime;
+
+  /// No description provided for @endTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End Time'**
+  String get endTime;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @shareError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to share GPX file'**
+  String get shareError;
+
+  /// No description provided for @shareSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'GPX file shared successfully'**
+  String get shareSuccess;
+
+  /// No description provided for @maxAltitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Max altitude'**
+  String get maxAltitudeLabel;
+
+  /// No description provided for @totalAscentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total ascent'**
+  String get totalAscentLabel;
+
+  /// No description provided for @totalDescentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total descent'**
+  String get totalDescentLabel;
+
+  /// No description provided for @avgAltitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Average altitude'**
+  String get avgAltitudeLabel;
+
+  /// No description provided for @maxSpeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Max speed'**
+  String get maxSpeedLabel;
+
+  /// No description provided for @avgSpeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Average speed'**
+  String get avgSpeedLabel;
+
+  /// No description provided for @flownDistanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Flown distance'**
+  String get flownDistanceLabel;
+
+  /// No description provided for @maxDistanceTakeoffLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Max distance from takeoff'**
+  String get maxDistanceTakeoffLabel;
+
+  /// No description provided for @avgRpmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Average engine RPM'**
+  String get avgRpmLabel;
+
+  /// No description provided for @failedToAddNavigationPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add navigation point'**
+  String get failedToAddNavigationPoint;
+
+  /// No description provided for @pleaseEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get pleaseEnterName;
+
+  /// No description provided for @deleteFlightConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"?'**
+  String deleteFlightConfirmation(String name);
+
+  /// No description provided for @noTelemetryRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No telemetry records found for this flight.'**
+  String get noTelemetryRecords;
+
+  /// No description provided for @durationHoursSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get durationHoursSuffix;
+
+  /// No description provided for @durationMinutesSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'m'**
+  String get durationMinutesSuffix;
+
+  /// No description provided for @durationSecondsSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'s'**
+  String get durationSecondsSuffix;
+
+  /// No description provided for @flightRecordsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load flight records'**
+  String get flightRecordsLoadError;
 }
 
 class _AppLocalizationsDelegate

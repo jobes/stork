@@ -8,112 +8,133 @@ import 'package:stork/features/map/domain/airport_metadata.dart';
 import 'package:stork/l10n/app_localizations.dart';
 
 void main() {
-  testWidgets('AirportDetailsDialog localized fallback title (loading state) - en vs sk', (WidgetTester tester) async {
-    final completer = Completer<AirportMetadata?>();
+  testWidgets(
+    'AirportDetailsDialog localized fallback title (loading state) - en vs sk',
+    (WidgetTester tester) async {
+      final completer = Completer<AirportMetadata?>();
 
-    // ENGLISH locale
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          airportMetadataProvider('123', 'US').overrideWith((ref) => completer.future),
-          openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('en'),
-          home: const Scaffold(
-            body: AirportDetailsDialog(
-              airportId: '123',
-              countryCode: 'US',
-              fallbackName: '', // Empty fallbackName triggers the localized fallback title
+      // ENGLISH locale
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            airportMetadataProvider(
+              '123',
+              'US',
+            ).overrideWith((ref) => completer.future),
+            openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
+            home: const Scaffold(
+              body: AirportDetailsDialog(
+                airportId: '123',
+                countryCode: 'US',
+                fallbackName:
+                    '', // Empty fallbackName triggers the localized fallback title
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    // Verify it is loading, and show localized fallback title "Airport"
-    expect(find.text('Airport'), findsOneWidget);
+      // Verify it is loading, and show localized fallback title "Airport"
+      expect(find.text('Airport'), findsOneWidget);
 
-    // SLOVAK locale
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          airportMetadataProvider('123', 'US').overrideWith((ref) => completer.future),
-          openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('sk'),
-          home: const Scaffold(
-            body: AirportDetailsDialog(
-              airportId: '123',
-              countryCode: 'US',
-              fallbackName: '',
+      // SLOVAK locale
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            airportMetadataProvider(
+              '123',
+              'US',
+            ).overrideWith((ref) => completer.future),
+            openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('sk'),
+            home: const Scaffold(
+              body: AirportDetailsDialog(
+                airportId: '123',
+                countryCode: 'US',
+                fallbackName: '',
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('Letisko'), findsOneWidget);
-  });
+      expect(find.text('Letisko'), findsOneWidget);
+    },
+  );
 
-  testWidgets('AirportDetailsDialog localized fallback title (error state) - en vs sk', (WidgetTester tester) async {
-    // ENGLISH locale
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          airportMetadataProvider('123', 'US').overrideWith((ref) async => throw Exception('error')),
-          openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('en'),
-          home: const Scaffold(
-            body: AirportDetailsDialog(
-              airportId: '123',
-              countryCode: 'US',
-              fallbackName: '',
+  testWidgets(
+    'AirportDetailsDialog localized fallback title (error state) - en vs sk',
+    (WidgetTester tester) async {
+      // ENGLISH locale
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            airportMetadataProvider(
+              '123',
+              'US',
+            ).overrideWith((ref) async => throw Exception('error')),
+            openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
+            home: const Scaffold(
+              body: AirportDetailsDialog(
+                airportId: '123',
+                countryCode: 'US',
+                fallbackName: '',
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.pumpAndSettle();
-    expect(find.text('Airport'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('Airport'), findsOneWidget);
 
-    // SLOVAK locale
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          airportMetadataProvider('123', 'US').overrideWith((ref) async => throw Exception('error')),
-          openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('sk'),
-          home: const Scaffold(
-            body: AirportDetailsDialog(
-              airportId: '123',
-              countryCode: 'US',
-              fallbackName: '',
+      // SLOVAK locale
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            airportMetadataProvider(
+              '123',
+              'US',
+            ).overrideWith((ref) async => throw Exception('error')),
+            openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('sk'),
+            home: const Scaffold(
+              body: AirportDetailsDialog(
+                airportId: '123',
+                countryCode: 'US',
+                fallbackName: '',
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.pumpAndSettle();
-    expect(find.text('Letisko'), findsOneWidget);
-  });
+      await tester.pumpAndSettle();
+      expect(find.text('Letisko'), findsOneWidget);
+    },
+  );
 
-  testWidgets('AirportDetailsDialog localized badges - en vs sk', (WidgetTester tester) async {
+  testWidgets('AirportDetailsDialog localized badges - en vs sk', (
+    WidgetTester tester,
+  ) async {
     final metadata = AirportMetadata(
       id: '123',
       name: 'Test Airport',
@@ -158,7 +179,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          airportMetadataProvider('123', 'US').overrideWith((ref) async => metadata),
+          airportMetadataProvider(
+            '123',
+            'US',
+          ).overrideWith((ref) async => metadata),
           openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
         ],
         child: MaterialApp(
@@ -184,7 +208,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          airportMetadataProvider('123', 'US').overrideWith((ref) async => metadata),
+          airportMetadataProvider(
+            '123',
+            'US',
+          ).overrideWith((ref) async => metadata),
           openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
         ],
         child: MaterialApp(

@@ -16,7 +16,8 @@ part 'notam_repository.g.dart';
 class HttpNotamRepository implements NotamRepository {
   final http.Client _client;
 
-  HttpNotamRepository({http.Client? client}) : _client = client ?? http.Client();
+  HttpNotamRepository({http.Client? client})
+    : _client = client ?? http.Client();
 
   @override
   Future<List<Notam>> fetchNotamsByFirs(List<String> firs) async {
@@ -25,19 +26,23 @@ class HttpNotamRepository implements NotamRepository {
         : ApiConstants.faaNotamSearchUrl;
 
     try {
-      final response = await _client.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
-          'searchType': '0',
-          'designatorsForLocation': firs.join(','),
-          'offset': '0',
-          'notamsOnly': 'false',
-        },
-      ).timeout(const Duration(seconds: 30));
+      final response = await _client
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: {
+              'searchType': '0',
+              'designatorsForLocation': firs.join(','),
+              'offset': '0',
+              'notamsOnly': 'false',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to load NOTAMs for FIRs: ${response.statusCode}');
+        throw Exception(
+          'Failed to load NOTAMs for FIRs: ${response.statusCode}',
+        );
       }
 
       final data = json.decode(utf8.decode(response.bodyBytes));
@@ -77,25 +82,27 @@ class HttpNotamRepository implements NotamRepository {
     final radiusNm = (radiusMeters / 1852.0).ceil();
 
     try {
-      final response = await _client.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
-          'searchType': '3',
-          'latDegrees': latDeg.toString(),
-          'latMinutes': latMin.toString(),
-          'latSeconds': latSec.toString(),
-          'latitudeDirection': latDir,
-          'longDegrees': lonDeg.toString(),
-          'longMinutes': lonMin.toString(),
-          'longSeconds': lonSec.toString(),
-          'longitudeDirection': lonDir,
-          'radius': radiusNm.toString(),
-          'offset': '0',
-          'notamsOnly': 'false',
-          'radiusSearchOnDesignator': 'false',
-        },
-      ).timeout(const Duration(seconds: 30));
+      final response = await _client
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: {
+              'searchType': '3',
+              'latDegrees': latDeg.toString(),
+              'latMinutes': latMin.toString(),
+              'latSeconds': latSec.toString(),
+              'latitudeDirection': latDir,
+              'longDegrees': lonDeg.toString(),
+              'longMinutes': lonMin.toString(),
+              'longSeconds': lonSec.toString(),
+              'longitudeDirection': lonDir,
+              'radius': radiusNm.toString(),
+              'offset': '0',
+              'notamsOnly': 'false',
+              'radiusSearchOnDesignator': 'false',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -136,4 +143,3 @@ NotamRepository notamRepository(Ref ref) {
   ref.onDispose(() => client.close());
   return HttpNotamRepository(client: client);
 }
-

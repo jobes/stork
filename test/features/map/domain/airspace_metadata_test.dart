@@ -51,45 +51,69 @@ void main() {
       expect(metadata.byNotam, equals(true));
     });
 
-    test('AirspaceMetadata serialization and deserialization of unknown and unclassified classes', () {
-      final unclassifiedMetadata = AirspaceMetadata(
-        id: 'asp_unclassified',
-        name: 'Unclassified Airspace',
-        icaoClass: AirspaceClass.unclassified,
-        type: AirspaceType.ctr,
-        country: 'SK',
-        limitLower: AirspaceLimit(value: 0, unit: OpenAipUnit.meters, referenceDatum: ReferenceDatum.gnd),
-        limitUpper: AirspaceLimit(value: 8000, unit: OpenAipUnit.feet, referenceDatum: ReferenceDatum.msl),
-      );
+    test(
+      'AirspaceMetadata serialization and deserialization of unknown and unclassified classes',
+      () {
+        final unclassifiedMetadata = AirspaceMetadata(
+          id: 'asp_unclassified',
+          name: 'Unclassified Airspace',
+          icaoClass: AirspaceClass.unclassified,
+          type: AirspaceType.ctr,
+          country: 'SK',
+          limitLower: AirspaceLimit(
+            value: 0,
+            unit: OpenAipUnit.meters,
+            referenceDatum: ReferenceDatum.gnd,
+          ),
+          limitUpper: AirspaceLimit(
+            value: 8000,
+            unit: OpenAipUnit.feet,
+            referenceDatum: ReferenceDatum.msl,
+          ),
+        );
 
-      final unknownMetadata = AirspaceMetadata(
-        id: 'asp_unknown',
-        name: 'Unknown Airspace',
-        icaoClass: AirspaceClass.unknown,
-        type: AirspaceType.ctr,
-        country: 'SK',
-        limitLower: AirspaceLimit(value: 0, unit: OpenAipUnit.meters, referenceDatum: ReferenceDatum.gnd),
-        limitUpper: AirspaceLimit(value: 8000, unit: OpenAipUnit.feet, referenceDatum: ReferenceDatum.msl),
-      );
+        final unknownMetadata = AirspaceMetadata(
+          id: 'asp_unknown',
+          name: 'Unknown Airspace',
+          icaoClass: AirspaceClass.unknown,
+          type: AirspaceType.ctr,
+          country: 'SK',
+          limitLower: AirspaceLimit(
+            value: 0,
+            unit: OpenAipUnit.meters,
+            referenceDatum: ReferenceDatum.gnd,
+          ),
+          limitUpper: AirspaceLimit(
+            value: 8000,
+            unit: OpenAipUnit.feet,
+            referenceDatum: ReferenceDatum.msl,
+          ),
+        );
 
-      // Serialize
-      final unclassifiedJson = unclassifiedMetadata.toJson();
-      final unknownJson = unknownMetadata.toJson();
+        // Serialize
+        final unclassifiedJson = unclassifiedMetadata.toJson();
+        final unknownJson = unknownMetadata.toJson();
 
-      expect(unclassifiedJson['icaoClass'], equals(8));
-      expect(unknownJson['icaoClass'], equals(9));
+        expect(unclassifiedJson['icaoClass'], equals(8));
+        expect(unknownJson['icaoClass'], equals(9));
 
-      // Deserialize
-      final restoredUnclassified = AirspaceMetadata.fromJson(unclassifiedJson);
-      final restoredUnknown = AirspaceMetadata.fromJson(unknownJson);
+        // Deserialize
+        final restoredUnclassified = AirspaceMetadata.fromJson(
+          unclassifiedJson,
+        );
+        final restoredUnknown = AirspaceMetadata.fromJson(unknownJson);
 
-      expect(restoredUnclassified.icaoClass, equals(AirspaceClass.unclassified));
-      expect(restoredUnknown.icaoClass, equals(AirspaceClass.unknown));
+        expect(
+          restoredUnclassified.icaoClass,
+          equals(AirspaceClass.unclassified),
+        );
+        expect(restoredUnknown.icaoClass, equals(AirspaceClass.unknown));
 
-      // Verify no data loss on round-trip for limit values
-      expect(restoredUnclassified.limitLower.value, equals(0.0));
-      expect(restoredUnclassified.limitUpper.value, equals(8000.0));
-    });
+        // Verify no data loss on round-trip for limit values
+        expect(restoredUnclassified.limitLower.value, equals(0.0));
+        expect(restoredUnclassified.limitUpper.value, equals(8000.0));
+      },
+    );
   });
 
   group('AirspaceMetadataCache Concurrent Downloads', () {

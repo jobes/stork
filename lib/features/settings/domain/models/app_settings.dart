@@ -42,6 +42,8 @@ abstract class AppSettings with _$AppSettings {
     @Default(AltitudeUnit.feet) AltitudeUnit altitudeUnit,
     @Default(AltitudeUnit.meters) AltitudeUnit heightUnit,
     @Default(27.78) double averageSpeed,
+    String? pilotId,
+    String? airplaneId,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>
@@ -52,7 +54,10 @@ abstract class AppSettings with _$AppSettings {
     if (!validatedQnh.isFinite || validatedQnh <= 0.0) {
       validatedQnh = AviationMath.standardPressureHpa;
     } else {
-      validatedQnh = validatedQnh.clamp(AviationMath.minQnhHpa, AviationMath.maxQnhHpa);
+      validatedQnh = validatedQnh.clamp(
+        AviationMath.minQnhHpa,
+        AviationMath.maxQnhHpa,
+      );
     }
     return copyWith(qnh: validatedQnh);
   }

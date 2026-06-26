@@ -1,4 +1,5 @@
 {
+  "@@locale": "sk",
   "appTitle": "Stork nav",
   "mapLoadingError": "Chyba pri načítavaní štýlu mapy",
   "menu": "Menu",
@@ -390,5 +391,44 @@
   "notamEnd": "Koniec platnosti",
   "notamFir": "FIR",
   "notamLimits": "Vertikálne limity",
-  "hideNotam": "Skryť"
+  "hideNotam": "Skryť",
+  "flightRecords": "Záznamy letov",
+  "flightRecordsTitle": "Záznamy letov",
+  "flightName": "Názov letu",
+  "pilotId": "ID pilota",
+  "airplaneId": "ID lietadla",
+  "editFlight": "Upraviť let",
+  "shareGpx": "Zdieľať GPX",
+  "downloadGpx": "Stiahnuť GPX",
+  "flightRecordsEmpty": "Nenašli sa žiadne záznamy letov",
+  "flightDate": "Dátum",
+  "startTime": "Čas štartu",
+  "endTime": "Čas pristátia",
+  "save": "Uložiť",
+  "shareError": "Nepodarilo sa zdieľať GPX súbor",
+  "shareSuccess": "GPX súbor bol úspešne zdieľaný",
+  "maxAltitudeLabel": "Maximálna dosiahnutá výška",
+  "totalAscentLabel": "Nastúpaná výška",
+  "totalDescentLabel": "Naklesaná výška",
+  "avgAltitudeLabel": "Priemerná výška",
+  "maxSpeedLabel": "Maximálna rýchlosť",
+  "avgSpeedLabel": "Priemerná rýchlosť",
+  "flownDistanceLabel": "Nalietaná vzdialenosť",
+  "maxDistanceTakeoffLabel": "Najvzdialenejší bod od vzletu",
+  "avgRpmLabel": "Priemerné RPM motora",
+  "failedToAddNavigationPoint": "Nepodarilo sa pridať navigačný bod",
+  "pleaseEnterName": "Prosím, zadajte názov",
+  "deleteFlightConfirmation": "Naozaj chcete vymazať \"{name}\"?",
+  "@deleteFlightConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noTelemetryRecords": "Pre tento let sa nenašli žiadne záznamy telemetrie.",
+  "durationHoursSuffix": "h",
+  "durationMinutesSuffix": "m",
+  "durationSecondsSuffix": "s",
+  "flightRecordsLoadError": "Nepodarilo sa načítať záznamy letov"
 }

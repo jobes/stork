@@ -30,7 +30,10 @@ void main() {
         isActive: true,
       );
 
-      prefs.setString('navigation_state_json', json.encode(originalState.toJson()));
+      prefs.setString(
+        'navigation_state_json',
+        json.encode(originalState.toJson()),
+      );
 
       final state = repository.loadNavigationState();
       expect(state.points, hasLength(1));
@@ -47,40 +50,46 @@ void main() {
       expect(state.isActive, isFalse);
     });
 
-    test('saveNavigationState successfully persists NavigationState to SharedPreferences', () async {
-      final repository = NavigationRepository(prefs);
-      const stateToSave = NavigationState(
-        points: [
-          NavigationPoint(latitude: 48.0, longitude: 17.0, name: 'Point 1'),
-        ],
-        isActive: true,
-      );
+    test(
+      'saveNavigationState successfully persists NavigationState to SharedPreferences',
+      () async {
+        final repository = NavigationRepository(prefs);
+        const stateToSave = NavigationState(
+          points: [
+            NavigationPoint(latitude: 48.0, longitude: 17.0, name: 'Point 1'),
+          ],
+          isActive: true,
+        );
 
-      await repository.saveNavigationState(stateToSave);
+        await repository.saveNavigationState(stateToSave);
 
-      final savedJson = prefs.getString('navigation_state_json');
-      expect(savedJson, isNotNull);
-      final savedState = NavigationState.fromJson(json.decode(savedJson!));
-      expect(savedState.points, hasLength(1));
-      expect(savedState.points.first.name, equals('Point 1'));
-      expect(savedState.isActive, isTrue);
-    });
+        final savedJson = prefs.getString('navigation_state_json');
+        expect(savedJson, isNotNull);
+        final savedState = NavigationState.fromJson(json.decode(savedJson!));
+        expect(savedState.points, hasLength(1));
+        expect(savedState.points.first.name, equals('Point 1'));
+        expect(savedState.isActive, isTrue);
+      },
+    );
 
-    test('saveNavigationState throws StateError when SharedPreferences.setString returns false', () async {
-      final failurePrefs = FailureSharedPreferences();
-      final repository = NavigationRepository(failurePrefs);
-      const stateToSave = NavigationState(
-        points: [
-          NavigationPoint(latitude: 48.0, longitude: 17.0, name: 'Point 1'),
-        ],
-        isActive: true,
-      );
+    test(
+      'saveNavigationState throws StateError when SharedPreferences.setString returns false',
+      () async {
+        final failurePrefs = FailureSharedPreferences();
+        final repository = NavigationRepository(failurePrefs);
+        const stateToSave = NavigationState(
+          points: [
+            NavigationPoint(latitude: 48.0, longitude: 17.0, name: 'Point 1'),
+          ],
+          isActive: true,
+        );
 
-      expect(
-        () => repository.saveNavigationState(stateToSave),
-        throwsA(isA<StateError>()),
-      );
-    });
+        await expectLater(
+          repository.saveNavigationState(stateToSave),
+          throwsA(isA<StateError>()),
+        );
+      },
+    );
   });
 }
 

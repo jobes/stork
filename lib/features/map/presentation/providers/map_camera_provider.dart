@@ -481,23 +481,17 @@ class MapCamera extends _$MapCamera {
 
       final airspaceFeatures = _mapController!.featuresAtPoint(
         event.screenPoint,
-        layerIds: [
-          'airspace_clicktarget',
-        ],
+        layerIds: ['airspace_clicktarget'],
       );
 
       final placeFeatures = _mapController!.featuresAtPoint(
         event.screenPoint,
-        layerIds: [
-          'places_locality',
-        ],
+        layerIds: ['places_locality'],
       );
 
       final notamFeatures = _mapController!.featuresAtPoint(
         event.screenPoint,
-        layerIds: [
-          'notams-fill-layer',
-        ],
+        layerIds: ['notams-fill-layer'],
       );
 
       final featureMaps = <Map<String, dynamic>>[];
@@ -583,7 +577,12 @@ class MapCamera extends _$MapCamera {
     double currentLon = telemetry.longitude!;
 
     for (final p in points) {
-      final legPath = _interpolateGreatCircle(currentLat, currentLon, p.latitude, p.longitude);
+      final legPath = _interpolateGreatCircle(
+        currentLat,
+        currentLon,
+        p.latitude,
+        p.longitude,
+      );
       if (legPath != null) {
         if (interpolatedCoordinates.isNotEmpty && legPath.isNotEmpty) {
           interpolatedCoordinates.addAll(legPath.skip(1));
@@ -598,10 +597,7 @@ class MapCamera extends _$MapCamera {
     if (interpolatedCoordinates.length < 2) {
       _mapController!.style!.updateGeoJsonSource(
         id: 'navigation-route-source',
-        data: jsonEncode({
-          'type': 'FeatureCollection',
-          'features': [],
-        }),
+        data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
       );
       return;
     }
@@ -615,7 +611,7 @@ class MapCamera extends _$MapCamera {
             'type': 'LineString',
             'coordinates': interpolatedCoordinates,
           },
-        }
+        },
       ],
     });
 
@@ -665,9 +661,11 @@ class MapCamera extends _$MapCamera {
       final weightA = math.sin((1.0 - f) * d) / sinD;
       final weightB = math.sin(f * d) / sinD;
 
-      final x = weightA * math.cos(lat1Rad) * math.cos(lon1Rad) +
+      final x =
+          weightA * math.cos(lat1Rad) * math.cos(lon1Rad) +
           weightB * math.cos(lat2Rad) * math.cos(lon2Rad);
-      final y = weightA * math.cos(lat1Rad) * math.sin(lon1Rad) +
+      final y =
+          weightA * math.cos(lat1Rad) * math.sin(lon1Rad) +
           weightB * math.cos(lat2Rad) * math.sin(lon2Rad);
       final z = weightA * math.sin(lat1Rad) + weightB * math.sin(lat2Rad);
 
@@ -678,7 +676,7 @@ class MapCamera extends _$MapCamera {
     }
 
     return path;
-    }
+  }
 
   void updateNotamsOnMap() {
     if (_mapController == null ||
@@ -698,18 +696,22 @@ class MapCamera extends _$MapCamera {
       const int segments = 32;
       final latRad = notam.latitude * math.pi / 180.0;
       final lonRad = notam.longitude * math.pi / 180.0;
-      final dRad = notam.radius / 6371000.0; // Radius in meters divided by Earth's radius
+      final dRad =
+          notam.radius /
+          6371000.0; // Radius in meters divided by Earth's radius
 
       for (int i = 0; i <= segments; i++) {
         final double angle = i * 2.0 * math.pi / segments;
         final double destLatRad = math.asin(
           math.sin(latRad) * math.cos(dRad) +
-          math.cos(latRad) * math.sin(dRad) * math.cos(angle)
+              math.cos(latRad) * math.sin(dRad) * math.cos(angle),
         );
-        final double destLonRad = lonRad + math.atan2(
-          math.sin(angle) * math.sin(dRad) * math.cos(latRad),
-          math.cos(dRad) - math.sin(latRad) * math.sin(destLatRad)
-        );
+        final double destLonRad =
+            lonRad +
+            math.atan2(
+              math.sin(angle) * math.sin(dRad) * math.cos(latRad),
+              math.cos(dRad) - math.sin(latRad) * math.sin(destLatRad),
+            );
         ring.add([destLonRad * 180.0 / math.pi, destLatRad * 180.0 / math.pi]);
       }
 

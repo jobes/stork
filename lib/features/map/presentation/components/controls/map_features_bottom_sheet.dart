@@ -56,10 +56,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
     for (final f in features) {
       if (f case {
         'layerType': 'notam',
-        'properties': {
-          'id': Object _,
-          'title': Object _,
-        }
+        'properties': {'id': Object _, 'title': Object _},
       }) {
         list.add(f);
       }
@@ -98,9 +95,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
   ) {
     showDialog(
       context: context,
-      builder: (context) => AirspaceDetailsDialog(
-        features: airspaceFeatures,
-      ),
+      builder: (context) => AirspaceDetailsDialog(features: airspaceFeatures),
     );
   }
 
@@ -114,7 +109,9 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
         .map((f) => f['properties']?['id']?.toString())
         .whereType<String>()
         .toSet();
-    final matchedNotams = notamsState.where((n) => notamIds.contains(n.id)).toList();
+    final matchedNotams = notamsState
+        .where((n) => notamIds.contains(n.id))
+        .toList();
 
     if (matchedNotams.isEmpty) {
       return;
@@ -122,9 +119,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
 
     showDialog(
       context: context,
-      builder: (context) => NotamDetailsDialog(
-        notams: matchedNotams,
-      ),
+      builder: (context) => NotamDetailsDialog(notams: matchedNotams),
     );
   }
 
@@ -139,7 +134,9 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
         final lines = nameLabel.toString().split('\n');
         name = lines.length > 1 ? lines[1] : lines.first;
       }
-      final isHex = airportId.length == 24 && RegExp(r'^[0-9a-fA-F]+$').hasMatch(airportId);
+      final isHex =
+          airportId.length == 24 &&
+          RegExp(r'^[0-9a-fA-F]+$').hasMatch(airportId);
       if (airportId.isNotEmpty && !isHex) {
         return name.isNotEmpty ? '$name ($airportId)' : airportId;
       }
@@ -149,7 +146,10 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
     final place = _findPlaceFeature();
     if (place != null) {
       final properties = place['properties'] as Map;
-      final name = properties['name']?.toString() ?? properties['pgf:name']?.toString() ?? '';
+      final name =
+          properties['name']?.toString() ??
+          properties['pgf:name']?.toString() ??
+          '';
       if (name.isNotEmpty) {
         return name;
       }
@@ -192,7 +192,10 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
             ),
           if (notamFeatures.isNotEmpty)
             ListTile(
-              leading: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              leading: const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange,
+              ),
               title: Text(
                 notamFeatures.length > 1
                     ? '${l10n.notamsTitle} (${notamFeatures.length})'
@@ -253,14 +256,19 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
 
                 if (airportId.isNotEmpty) {
                   try {
-                    final metadata = await ref.read(airportMetadataProvider(airportId, country).future);
+                    final metadata = await ref.read(
+                      airportMetadataProvider(airportId, country).future,
+                    );
                     if (metadata != null) {
-                      if (metadata.latitude != null && metadata.longitude != null) {
+                      if (metadata.latitude != null &&
+                          metadata.longitude != null) {
                         lat = metadata.latitude!;
                         lon = metadata.longitude!;
                       }
                       final icao = metadata.icaoCode;
-                      if (metadata.name.isNotEmpty && icao != null && icao.isNotEmpty) {
+                      if (metadata.name.isNotEmpty &&
+                          icao != null &&
+                          icao.isNotEmpty) {
                         name = '${metadata.name} ($icao)';
                       } else if (metadata.name.isNotEmpty) {
                         name = metadata.name;
@@ -269,19 +277,32 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
                       }
                     }
                   } catch (e) {
-                    debugPrint('Failed to load airport metadata for snapping: $e');
+                    debugPrint(
+                      'Failed to load airport metadata for snapping: $e',
+                    );
                   }
                 }
               }
 
-              ref.read(navigationProvider.notifier).addPoint(
-                NavigationPoint(
-                  latitude: lat,
-                  longitude: lon,
-                  name: name,
-                  isAirport: isAirport,
-                ),
-              );
+              try {
+                await ref
+                    .read(navigationProvider.notifier)
+                    .addPoint(
+                      NavigationPoint(
+                        latitude: lat,
+                        longitude: lon,
+                        name: name,
+                        isAirport: isAirport,
+                      ),
+                    );
+              } catch (e) {
+                debugPrint('Failed to add navigation point: $e');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.failedToAddNavigationPoint)),
+                  );
+                }
+              }
               if (context.mounted) {
                 Navigator.pop(context); // Close bottom sheet
               }
@@ -301,9 +322,7 @@ void showMapFeaturesBottomSheet(
 ) {
   showModalBottomSheet(
     context: context,
-    builder: (context) => MapFeaturesBottomSheet(
-      features: features,
-      coordinate: coordinate,
-    ),
+    builder: (context) =>
+        MapFeaturesBottomSheet(features: features, coordinate: coordinate),
   );
 }

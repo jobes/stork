@@ -82,8 +82,8 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final resolved = ref.watch(resolvedAltitudeProvider);
     final aglState = ref.watch(aglProvider);
+    final resolved = aglState.resolvedAltitude;
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -309,9 +309,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                               l10n.autoQnhLabel,
                               style: TextStyle(
                                 fontSize: 15,
-                                color: isDark
-                                    ? Colors.white
-                                    : Colors.black87,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                           ),
@@ -338,9 +336,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                               l10n.currentQnhLabel,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: isDark
-                                    ? Colors.white60
-                                    : Colors.black54,
+                                color: isDark ? Colors.white60 : Colors.black54,
                               ),
                             ),
                             Container(
@@ -440,12 +436,14 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                                               vertical: 12,
                                             ),
                                         border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: Colors.blueAccent,
                                             width: 2,

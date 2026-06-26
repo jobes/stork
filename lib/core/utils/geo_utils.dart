@@ -66,11 +66,13 @@ class GeoUtils {
   ) {
     final dLat = _degreesToRadians(lat2 - lat1);
     final dLon = _degreesToRadians(lon2 - lon1);
-    final a = (math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(_degreesToRadians(lat1)) *
-            math.cos(_degreesToRadians(lat2)) *
-            math.sin(dLon / 2) *
-            math.sin(dLon / 2)).clamp(0.0, 1.0);
+    final a =
+        (math.sin(dLat / 2) * math.sin(dLat / 2) +
+                math.cos(_degreesToRadians(lat1)) *
+                    math.cos(_degreesToRadians(lat2)) *
+                    math.sin(dLon / 2) *
+                    math.sin(dLon / 2))
+            .clamp(0.0, 1.0);
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
     return earthRadiusMeters * c;
   }
@@ -88,7 +90,11 @@ class GeoUtils {
   /// Each polygon is represented as a list of rings (`List<List<double>>`),
   /// where the first ring is the exterior boundary and subsequent rings are holes.
   /// A point is inside if it is inside the exterior boundary and NOT inside any holes.
-  static bool isPointInPolygons(double lon, double lat, List<List<List<List<double>>>> polygons) {
+  static bool isPointInPolygons(
+    double lon,
+    double lat,
+    List<List<List<List<double>>>> polygons,
+  ) {
     for (final List<List<List<double>>> polygon in polygons) {
       if (polygon.isEmpty) continue;
       // Check exterior ring
@@ -125,7 +131,8 @@ class GeoUtils {
       final double xj = pj[0];
       final double yj = pj[1];
 
-      final bool intersect = ((yi > lat) != (yj > lat)) &&
+      final bool intersect =
+          ((yi > lat) != (yj > lat)) &&
           (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi);
       if (intersect) inside = !inside;
       j = i;

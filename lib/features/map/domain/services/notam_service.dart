@@ -40,13 +40,16 @@ class NotamService {
     }
 
     // 2. Query location-based NOTAMs along the route legs
-    final chunkPoints = FirUtils.getRouteChunkPoints(routePoints, 50000.0); // Chunks of 50km
+    final chunkPoints = FirUtils.getRouteChunkPoints(
+      routePoints,
+      50000.0,
+    ); // Chunks of 50km
 
     final List<Notam> allNotams = [];
 
     // Fetch FIR NOTAMs and location NOTAMs in parallel
-    final Future<List<Notam>> firsFuture = routeFirs.isNotEmpty 
-        ? _repository.fetchNotamsByFirs(routeFirs) 
+    final Future<List<Notam>> firsFuture = routeFirs.isNotEmpty
+        ? _repository.fetchNotamsByFirs(routeFirs)
         : Future.value([]);
 
     final List<Future<List<Notam>>> chunkFutures = chunkPoints
@@ -69,4 +72,3 @@ class NotamService {
     return uniqueNotamsMap.values.toList();
   }
 }
-

@@ -214,17 +214,19 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   }
 
   Future<SettingsUpdateResult> updateFlightSpeedMaxRange(double maxRange) {
-    return _updateSettings((s) => s.copyWithValidatedFlightSpeedMaxRange(
-          maxRange,
-          defaultMaxRangeMs: _defaultMaxRangeMs,
-          defaultInactiveMaxMs: _defaultInactiveMaxMs,
-          defaultMinErrorMs: _defaultMinErrorMs,
-          defaultMinWarningMs: _defaultMinWarningMs,
-          defaultMaxWarningMs: _defaultMaxWarningMs,
-          defaultMaxErrorMs: _defaultMaxErrorMs,
-          minRangeLimit: _minRangeLimit,
-          maxRangeLimit: _maxRangeLimit,
-        ));
+    return _updateSettings(
+      (s) => s.copyWithValidatedFlightSpeedMaxRange(
+        maxRange,
+        defaultMaxRangeMs: _defaultMaxRangeMs,
+        defaultInactiveMaxMs: _defaultInactiveMaxMs,
+        defaultMinErrorMs: _defaultMinErrorMs,
+        defaultMinWarningMs: _defaultMinWarningMs,
+        defaultMaxWarningMs: _defaultMaxWarningMs,
+        defaultMaxErrorMs: _defaultMaxErrorMs,
+        minRangeLimit: _minRangeLimit,
+        maxRangeLimit: _maxRangeLimit,
+      ),
+    );
   }
 
   /// Updates the auto-select device setting and, if enabled, performs auto-selection immediately.
@@ -298,6 +300,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       _updateSettings((s) => s.copyWith(heightUnit: heightUnit));
 
   Future<SettingsUpdateResult> updateAverageSpeed(double averageSpeed) {
-    return _updateSettings((s) => s.copyWithValidatedAverageSpeed(averageSpeed));
+    return _updateSettings(
+      (s) => s.copyWithValidatedAverageSpeed(averageSpeed),
+    );
   }
 }

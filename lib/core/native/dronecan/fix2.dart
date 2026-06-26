@@ -80,7 +80,9 @@ class Fix2 implements DroneCanMessage {
     final lon = lonRaw / 1e8;
 
     // Altitudes are in mm (int27)
-    reader.readInt(27); // heightEllipsoidMm (unused but required to advance reader)
+    reader.readInt(
+      27,
+    ); // heightEllipsoidMm (unused but required to advance reader)
     final heightMslMm = reader.readInt(27);
     final alt = heightMslMm / 1000.0;
 

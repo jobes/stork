@@ -13,6 +13,7 @@ import 'core/router/app_router.dart';
 import 'package:stork/core/services/cannelloni_service.dart';
 import 'package:stork/core/utils/time_utils.dart';
 import 'package:stork/features/map/domain/utils/fir_utils.dart';
+import 'package:stork/features/telemetry/presentation/providers/black_box_provider.dart';
 
 Future<void> main() async {
   appStopwatch.start();
@@ -42,6 +43,8 @@ class _StorkAppState extends ConsumerState<StorkApp>
     WakelockPlus.enable();
     // Warm up the Cannelloni service at startup so it runs in the background
     ref.read(cannelloniServiceProvider);
+    // Warm up the Black Box service at startup so it records flights in the background
+    ref.read(blackBoxServiceProvider);
   }
 
   @override

@@ -46,7 +46,10 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         ),
         if (unit.isNotEmpty) ...[
           SizedBox(width: 4 * fontScale),
-          Text(unit, style: TextStyle(fontSize: 12 * fontScale, color: unitColor)),
+          Text(
+            unit,
+            style: TextStyle(fontSize: 12 * fontScale, color: unitColor),
+          ),
         ],
       ],
     );
@@ -54,8 +57,8 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final resolved = ref.watch(resolvedAltitudeProvider);
     final aglState = ref.watch(aglProvider);
+    final resolved = aglState.resolvedAltitude;
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -142,7 +145,10 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         );
       },
       borderColor: borderColor,
-      padding: EdgeInsets.symmetric(horizontal: 12 * fontScale, vertical: 8 * fontScale),
+      padding: EdgeInsets.symmetric(
+        horizontal: 12 * fontScale,
+        vertical: 8 * fontScale,
+      ),
       child: IntrinsicWidth(
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),

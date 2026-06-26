@@ -66,8 +66,7 @@ class AirspaceDetailsDialog extends StatelessWidget {
         child: ListView.separated(
           shrinkWrap: true,
           itemCount: sortedFeatures.length,
-          separatorBuilder: (context, index) =>
-              const SizedBox(height: 10),
+          separatorBuilder: (context, index) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
             final feature = sortedFeatures[index] as Map;
             final props = feature['properties'] as Map;
@@ -78,9 +77,7 @@ class AirspaceDetailsDialog extends StatelessWidget {
             String fallbackName = '';
             if (nameLabel != null) {
               final lines = nameLabel.toString().split('\n');
-              fallbackName = lines.length > 1
-                  ? lines[1]
-                  : lines.first;
+              fallbackName = lines.length > 1 ? lines[1] : lines.first;
             }
 
             return AirspaceDetailCard(
@@ -316,7 +313,11 @@ class AirspaceDetailCard extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          Icon(Icons.height, size: 16, color: isDark ? Colors.white54 : Colors.black45),
+          Icon(
+            Icons.height,
+            size: 16,
+            color: isDark ? Colors.white54 : Colors.black45,
+          ),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
@@ -336,7 +337,9 @@ class AirspaceDetailCard extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.orangeAccent.shade200 : Colors.orange.shade800,
+                color: isDark
+                    ? Colors.orangeAccent.shade200
+                    : Colors.orange.shade800,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
@@ -357,7 +360,9 @@ class AirspaceDetailCard extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.blueAccent.shade100 : Colors.blue.shade800,
+                color: isDark
+                    ? Colors.blueAccent.shade100
+                    : Colors.blue.shade800,
               ),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,

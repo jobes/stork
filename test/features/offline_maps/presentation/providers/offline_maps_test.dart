@@ -97,8 +97,12 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      final airportCache = container.read(airportMetadataCacheProvider.notifier);
-      final airspaceCache = container.read(airspaceMetadataCacheProvider.notifier);
+      final airportCache = container.read(
+        airportMetadataCacheProvider.notifier,
+      );
+      final airspaceCache = container.read(
+        airspaceMetadataCacheProvider.notifier,
+      );
 
       var airportRequestCount = 0;
       var airspaceRequestCount = 0;
@@ -116,9 +120,9 @@ void main() {
                     'name': 'Test Airport 1',
                     'type': 1,
                     'country': 'US',
-                  }
-                }
-              ]
+                  },
+                },
+              ],
             }),
             200,
           );
@@ -135,9 +139,9 @@ void main() {
                     'icaoClass': 2,
                     'type': 7,
                     'country': 'US',
-                  }
-                }
-              ]
+                  },
+                },
+              ],
             }),
             200,
           );
@@ -208,24 +212,16 @@ void main() {
             'name': 'Valid Airport',
             'type': 1,
             'country': 'US',
-          }
+          },
         },
         // 2. properties is a String (invalid)
-        {
-          'type': 'Feature',
-          'properties': 'not a map'
-        },
+        {'type': 'Feature', 'properties': 'not a map'},
         // 3. properties is null (invalid)
-        {
-          'type': 'Feature',
-          'properties': null
-        },
+        {'type': 'Feature', 'properties': null},
         // 4. properties is missing (invalid)
-        {
-          'type': 'Feature'
-        },
+        {'type': 'Feature'},
         // 5. feature is not a Map (invalid)
-        'not a map feature'
+        'not a map feature',
       ];
 
       // Call storeFeaturesForTesting and ensure it doesn't throw
@@ -235,7 +231,10 @@ void main() {
       );
 
       // Verify that only the valid feature was inserted into the database
-      final validResult = await DatabaseService.getOpenAipFeature('valid_apt', 'airport');
+      final validResult = await DatabaseService.getOpenAipFeature(
+        'valid_apt',
+        'airport',
+      );
       expect(validResult, isNotNull);
       expect(validResult!['name'], equals('Valid Airport'));
     });
