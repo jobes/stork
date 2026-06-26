@@ -84,7 +84,7 @@ void main() {
     });
 
     test('getFlightsPaginated throws UnsupportedError', () async {
-      expect(() => db.getFlightsPaginated(10, 0), throwsUnsupportedError);
+      expect(() => db.getFlightsPaginated(10), throwsUnsupportedError);
     });
 
     test('getFlightsCount throws UnsupportedError', () async {

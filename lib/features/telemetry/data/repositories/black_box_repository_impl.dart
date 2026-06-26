@@ -35,8 +35,16 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
   Future<void> clearAll() => _database.clearAll();
 
   @override
-  Future<List<Flight>> getFlightsPaginated(int limit, int offset) =>
-      _database.getFlightsPaginated(limit, offset);
+  Future<List<Flight>> getFlightsPaginated(
+    int limit, {
+    DateTime? lastStartTime,
+    String? lastUuid,
+  }) =>
+      _database.getFlightsPaginated(
+        limit,
+        lastStartTime: lastStartTime,
+        lastUuid: lastUuid,
+      );
 
   @override
   Future<int> getFlightsCount() => _database.getFlightsCount();

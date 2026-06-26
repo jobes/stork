@@ -395,5 +395,153 @@ void main() {
         });
       },
     );
+
+    test('Telemetry is not buffered during flight creation progress, and is buffered after', () {
+      fakeAsync((async) {
+        final mockDb = FakeDelayingBlackBoxDatabase();
+        mockDb.dbPathOverride = dbPath;
+        mockDb.database = db;
+        mockDb.setupTables(db);
+
+        final completer = Completer<void>();
+        mockDb.saveFlightCompleter = completer;
+
+        final container = ProviderContainer(
+          overrides: [
+            blackBoxDatabaseProvider.overrideWithValue(mockDb),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final serviceSub = container.listen(blackBoxServiceProvider, (prev, next) {});
+        final telemetryNotifier = container.read(telemetryProvider.notifier);
+
+        // Start flying (triggers _startFlight which calls saveFlight but it's delayed)
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        async.elapse(const Duration(milliseconds: 100));
+
+        // Update telemetry while saveFlight is in progress
+        telemetryNotifier.updateEngineRPM(2500);
+        async.elapse(const Duration(milliseconds: 100));
+
+        // Verify no telemetry in DB yet
+        expect(db.select('SELECT COUNT(*) as count FROM flight_telemetry').first['count'], equals(0));
+
+        // Complete saveFlight
+        completer.complete();
+        async.elapse(const Duration(milliseconds: 100));
+
+        // Initial keyframe should be buffered/saved now (after flush timer fires)
+        async.elapse(const Duration(seconds: 1));
+        final countAfterInit = db.select('SELECT COUNT(*) as count FROM flight_telemetry').first['count'] as int;
+        expect(countAfterInit, greaterThan(0));
+
+        serviceSub.close();
+      });
+    });
+
+    test('Failed telemetry batch inserts are requeued and retried on next flush', () {
+      fakeAsync((async) {
+        final mockDb = FakeDelayingBlackBoxDatabase();
+        mockDb.dbPathOverride = dbPath;
+        mockDb.database = db;
+        mockDb.setupTables(db);
+
+        final container = ProviderContainer(
+          overrides: [
+            blackBoxDatabaseProvider.overrideWithValue(mockDb),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final serviceSub = container.listen(blackBoxServiceProvider, (prev, next) {});
+        final telemetryNotifier = container.read(telemetryProvider.notifier);
+
+        // Start flying
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        async.elapse(const Duration(milliseconds: 100));
+
+        // Wait for flight creation to complete and initial keyframe to flush
+        async.elapse(const Duration(seconds: 1));
+        final initialCount = db.select('SELECT COUNT(*) as count FROM flight_telemetry').first['count'] as int;
+        expect(initialCount, equals(1));
+
+        // Enable failure for telemetry inserts
+        mockDb.failInsertTelemetry = true;
+
+        // Produce telemetry updates
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        telemetryNotifier.updateEngineRPM(2500);
+        async.elapse(const Duration(milliseconds: 100));
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        telemetryNotifier.updateEngineRPM(2600);
+        async.elapse(const Duration(milliseconds: 100));
+
+        // Trigger flush (will fail)
+        async.elapse(const Duration(milliseconds: 800));
+
+        // DB count should remain 1 (initial keyframe) because inserts failed
+        final countDuringFailure = db.select('SELECT COUNT(*) as count FROM flight_telemetry').first['count'] as int;
+        expect(countDuringFailure, equals(1));
+
+        // Disable failure
+        mockDb.failInsertTelemetry = false;
+
+        // Trigger next flush
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        async.elapse(const Duration(seconds: 1));
+
+        // DB count should now contain the updates (at least greater than countDuringFailure)
+        final finalCount = db.select('SELECT COUNT(*) as count FROM flight_telemetry').first['count'] as int;
+        expect(finalCount, greaterThan(countDuringFailure));
+
+        serviceSub.close();
+      });
+    });
   });
+}
+
+class FakeDelayingBlackBoxDatabase extends IoBlackBoxDatabase {
+  Completer<void>? saveFlightCompleter;
+  bool failSaveFlight = false;
+  bool failInsertTelemetry = false;
+
+  @override
+  Future<void> saveFlight(Flight flight) async {
+    if (failSaveFlight) {
+      throw Exception('Database write error');
+    }
+    if (saveFlightCompleter != null) {
+      await saveFlightCompleter!.future;
+    }
+    await super.saveFlight(flight);
+  }
+
+  @override
+  Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
+    if (failInsertTelemetry) {
+      throw Exception('Transient SQLite insert error');
+    }
+    await super.insertTelemetryEntries(entries);
+  }
 }

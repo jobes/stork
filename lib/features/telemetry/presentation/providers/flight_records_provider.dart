@@ -40,7 +40,7 @@ class FlightRecords extends _$FlightRecords {
   FutureOr<FlightRecordsState> build() async {
     final repo = ref.watch(blackBoxRepositoryProvider);
     final count = await repo.getFlightsCount();
-    final flights = await repo.getFlightsPaginated(_pageSize, 0);
+    final flights = await repo.getFlightsPaginated(_pageSize);
     return FlightRecordsState(
       flights: flights,
       totalCount: count,
@@ -61,9 +61,11 @@ class FlightRecords extends _$FlightRecords {
 
     try {
       final repo = ref.read(blackBoxRepositoryProvider);
+      final lastFlight = currentState.flights.isNotEmpty ? currentState.flights.last : null;
       final nextFlights = await repo.getFlightsPaginated(
         _pageSize,
-        currentState.flights.length,
+        lastStartTime: lastFlight?.startTime,
+        lastUuid: lastFlight?.uuid,
       );
 
       if (!ref.mounted) return;
@@ -73,7 +75,7 @@ class FlightRecords extends _$FlightRecords {
         currentState.copyWith(
           flights: updatedFlights,
           isLoadingMore: false,
-          hasMore: updatedFlights.length < currentState.totalCount,
+          hasMore: nextFlights.length == _pageSize,
         ),
       );
     } catch (e) {
@@ -87,7 +89,7 @@ class FlightRecords extends _$FlightRecords {
     state = await AsyncValue.guard(() async {
       final repo = ref.read(blackBoxRepositoryProvider);
       final count = await repo.getFlightsCount();
-      final flights = await repo.getFlightsPaginated(_pageSize, 0);
+      final flights = await repo.getFlightsPaginated(_pageSize);
       return FlightRecordsState(
         flights: flights,
         totalCount: count,

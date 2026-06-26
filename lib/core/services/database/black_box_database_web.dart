@@ -93,7 +93,11 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
   }
 
   @override
-  Future<List<Flight>> getFlightsPaginated(int limit, int offset) async {
+  Future<List<Flight>> getFlightsPaginated(
+    int limit, {
+    DateTime? lastStartTime,
+    String? lastUuid,
+  }) async {
     throw UnsupportedError('SQLite is not supported on web.');
   }
 

@@ -424,8 +424,13 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   }
 
   @override
-  Future<List<Flight>> getFlightsPaginated(int limit, int offset) async {
+  Future<List<Flight>> getFlightsPaginated(
+    int limit, {
+    DateTime? lastStartTime,
+    String? lastUuid,
+  }) async {
     final db = await database;
+    final lastStartTimeStr = lastStartTime?.toIso8601String();
     final results = db.select(
       '''
       SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id,
@@ -434,9 +439,10 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
              s.total_distance, s.max_distance_from_takeoff, s.avg_engine_rpm
       FROM flights f
       LEFT JOIN flight_statistics s ON f.uuid = s.flight_uuid
-      ORDER BY f.start_time DESC LIMIT ? OFFSET ?
+      WHERE (?1 IS NULL OR f.start_time < ?1 OR (f.start_time = ?1 AND f.uuid < ?2))
+      ORDER BY f.start_time DESC, f.uuid DESC LIMIT ?3
     ''',
-      [limit, offset],
+      [lastStartTimeStr, lastUuid, limit],
     );
     return results.map((row) {
       FlightStatistics? stats;

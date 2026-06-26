@@ -25,6 +25,7 @@ class BlackBoxService extends _$BlackBoxService {
   TelemetryState? _lastBufferedState;
   DateTime _lastKeyframeTime = DateTime.fromMillisecondsSinceEpoch(0);
   Future<void>? _activeFlushFuture;
+  Future<void>? _flightCreationFuture;
 
   @override
   void build() {
@@ -69,7 +70,7 @@ class BlackBoxService extends _$BlackBoxService {
   }
 
   void _startFlight(TelemetryState state) {
-    if (_activeFlightUuid != null) return;
+    if (_activeFlightUuid != null || _flightCreationFuture != null) return;
 
     final uuid = _uuidGen.v4();
     final now = DateTime.now().toUtc();
@@ -96,23 +97,27 @@ class BlackBoxService extends _$BlackBoxService {
 
     // Persist flight metadata asynchronously
     final repo = ref.read(blackBoxRepositoryProvider);
-    unawaited(
-      repo.saveFlight(flight).catchError((e) {
-        debugPrint('Error starting flight in database: $e');
-      }),
-    );
+    _flightCreationFuture = repo.saveFlight(flight).then((_) {
+      _flightCreationFuture = null;
+      // Record the initial keyframe only after saveFlight succeeds
+      _bufferTelemetry(state);
 
-    // Record the initial keyframe
-    _bufferTelemetry(state);
-
-    // Setup periodic database flusher (every 1 second)
-    _flushTimer?.cancel();
-    _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
+      // Setup periodic database flusher (every 1 second)
+      _flushTimer?.cancel();
+      _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
+    }).catchError((e) {
+      _flightCreationFuture = null;
+      _activeFlightUuid = null;
+      debugPrint('Error starting flight in database: $e');
+      throw e;
+    });
   }
 
   void _onTick(Timer timer) {
     if (_activeFlushFuture != null) return;
-    unawaited(_flush());
+    unawaited(_flush().catchError((e) {
+      debugPrint('Error during periodic flush: $e');
+    }));
   }
 
   Future<void> _endFlight() async {
@@ -125,7 +130,11 @@ class BlackBoxService extends _$BlackBoxService {
     _flushTimer = null;
 
     // Flush any remaining entries in the buffer
-    await _flush();
+    try {
+      await _flush();
+    } catch (e) {
+      debugPrint('Error flushing telemetry at end of flight: $e');
+    }
 
     final now = DateTime.now().toUtc();
     final repo = ref.read(blackBoxRepositoryProvider);
@@ -141,7 +150,7 @@ class BlackBoxService extends _$BlackBoxService {
 
   void _bufferTelemetry(TelemetryState next) {
     final uuid = _activeFlightUuid;
-    if (uuid == null) return;
+    if (uuid == null || _flightCreationFuture != null) return;
 
     final now = DateTime.now().toUtc();
 
@@ -214,11 +223,12 @@ class BlackBoxService extends _$BlackBoxService {
       if (repo != null) {
         await repo.insertTelemetryEntries(batch);
       }
-      flushCompleter.complete();
     } catch (e) {
+      _buffer.insertAll(0, batch);
       debugPrint('Error inserting black box telemetry: $e');
-      flushCompleter.completeError(e);
+      rethrow;
     } finally {
+      flushCompleter.complete();
       _activeFlushFuture = null;
     }
   }

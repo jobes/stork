@@ -19,7 +19,11 @@ abstract interface class BlackBoxDatabase {
   Future<TelemetryEntry?> getLastTelemetryForFlight(String flightUuid);
   Future<void> deleteFlight(String uuid);
   Future<void> clearAll();
-  Future<List<Flight>> getFlightsPaginated(int limit, int offset);
+  Future<List<Flight>> getFlightsPaginated(
+    int limit, {
+    DateTime? lastStartTime,
+    String? lastUuid,
+  });
   Future<int> getFlightsCount();
   Future<void> updateFlightDetails({
     required String uuid,
