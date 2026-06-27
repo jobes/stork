@@ -11,6 +11,7 @@ import '../../domain/models/flight.dart';
 import '../../domain/models/telemetry_entry.dart';
 import '../../domain/models/telemetry_state.dart';
 import 'telemetry_provider.dart';
+import 'flight_records_provider.dart';
 
 part 'black_box_provider.g.dart';
 
@@ -33,9 +34,14 @@ class BlackBoxService extends _$BlackBoxService {
 
     // Recover unfinished flights in the background
     unawaited(
-      repo.recoverUnfinishedFlights().catchError((e) {
-        debugPrint('Error recovering unfinished flights: $e');
-      }),
+      repo
+          .recoverUnfinishedFlights()
+          .then((_) {
+            ref.invalidate(flightRecordsProvider);
+          })
+          .catchError((e) {
+            debugPrint('Error recovering unfinished flights: $e');
+          }),
     );
 
     ref.onDispose(() {
@@ -98,26 +104,33 @@ class BlackBoxService extends _$BlackBoxService {
 
     // Persist flight metadata asynchronously
     final repo = ref.read(blackBoxRepositoryProvider);
-    _flightCreationFuture = repo.saveFlight(flight).then((_) {
-      _flightCreationFuture = null;
+    _flightCreationFuture = repo
+        .saveFlight(flight)
+        .then((_) {
+          _flightCreationFuture = null;
+          ref.invalidate(flightRecordsProvider);
 
-      // Setup periodic database flusher (every 1 second)
-      _flushTimer?.cancel();
-      _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
-    }).catchError((e) {
-      _flightCreationFuture = null;
-      _activeFlightUuid = null;
-      _buffer.clear(); // Clear memory buffer on database initialization failure
-      debugPrint('Error starting flight in database: $e');
-      throw e;
-    });
+          // Setup periodic database flusher (every 1 second)
+          _flushTimer?.cancel();
+          _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
+        })
+        .catchError((e) {
+          _flightCreationFuture = null;
+          _activeFlightUuid = null;
+          _buffer
+              .clear(); // Clear memory buffer on database initialization failure
+          debugPrint('Error starting flight in database: $e');
+          throw e;
+        });
   }
 
   void _onTick(Timer timer) {
     if (_activeFlushFuture != null) return;
-    unawaited(_flush().catchError((e) {
-      debugPrint('Error during periodic flush: $e');
-    }));
+    unawaited(
+      _flush().catchError((e) {
+        debugPrint('Error during periodic flush: $e');
+      }),
+    );
   }
 
   Future<void> _endFlight() async {
@@ -141,6 +154,7 @@ class BlackBoxService extends _$BlackBoxService {
     try {
       await repo.updateFlightEndTime(uuid, now);
       await repo.calculateAndSaveFlightStatistics(uuid);
+      ref.invalidate(flightRecordsProvider);
     } catch (e) {
       debugPrint('Error updating flight end time: $e');
     }

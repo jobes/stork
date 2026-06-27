@@ -15,6 +15,7 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_provid
 import 'package:stork/features/telemetry/presentation/providers/black_box_provider.dart';
 import 'package:stork/core/services/database/black_box_database_io.dart';
 import 'package:stork/features/telemetry/presentation/providers/black_box_repository_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/flight_records_provider.dart';
 
 class MockAppSettingsNotifier extends AppSettingsNotifier {
   final AppSettings _settings;
@@ -524,6 +525,65 @@ void main() {
         serviceSub.close();
       });
     });
+
+    test('flightRecordsProvider is invalidated when flights start, end, and recover', () {
+      fakeAsync((async) {
+        final mockDb = FakeDelayingBlackBoxDatabase();
+        mockDb.dbPathOverride = dbPath;
+        mockDb.database = db;
+        mockDb.setupTables(db);
+        mockDb.runStatsSynchronously = true;
+
+        final container = ProviderContainer(
+          overrides: [
+            blackBoxDatabaseProvider.overrideWithValue(mockDb),
+            appSettingsProvider.overrideWith(
+              () => MockAppSettingsNotifier(
+                const AppSettings(
+                  pilotId: 'test-pilot',
+                  airplaneId: 'test-plane',
+                ),
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        // Keep flightRecordsProvider listened so it retains its state
+        final recordsListener = container.listen(flightRecordsProvider, (prev, next) {});
+
+        // Build black box service
+        final serviceSub = container.listen(blackBoxServiceProvider, (prev, next) {});
+        final telemetryNotifier = container.read(telemetryProvider.notifier);
+
+        // Initially we should have 0 flights
+        async.elapse(const Duration(milliseconds: 100)); // wait for recovery to finish
+        expect(container.read(flightRecordsProvider).value?.flights.length, equals(0));
+
+        // Start flying
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        async.elapse(const Duration(milliseconds: 100)); // wait for saveFlight and invalidate to propagate
+
+        // The flightRecordsProvider should now be updated (invalidated & rebuilt)
+        expect(container.read(flightRecordsProvider).value?.flights.length, equals(1));
+        expect(container.read(flightRecordsProvider).value?.flights.first.endTime, isNull);
+
+        // Stop flying
+        telemetryNotifier.updateGPS(groundSpeed: 0.0);
+        async.elapse(const Duration(milliseconds: 100)); // wait for _endFlight and invalidate
+
+        // The flightRecordsProvider should have updated again, flight.endTime should be non-null
+        expect(container.read(flightRecordsProvider).value?.flights.length, equals(1));
+        expect(container.read(flightRecordsProvider).value?.flights.first.endTime, isNotNull);
+
+        serviceSub.close();
+        recordsListener.close();
+      });
+    });
   });
 }
 
@@ -531,6 +591,7 @@ class FakeDelayingBlackBoxDatabase extends IoBlackBoxDatabase {
   Completer<void>? saveFlightCompleter;
   bool failSaveFlight = false;
   bool failInsertTelemetry = false;
+  bool runStatsSynchronously = false;
 
   @override
   Future<void> saveFlight(Flight flight) async {
@@ -549,5 +610,13 @@ class FakeDelayingBlackBoxDatabase extends IoBlackBoxDatabase {
       throw Exception('Transient SQLite insert error');
     }
     await super.insertTelemetryEntries(entries);
+  }
+
+  @override
+  Future<void> calculateAndSaveFlightStatistics(String flightUuid) async {
+    if (runStatsSynchronously) {
+      return;
+    }
+    return super.calculateAndSaveFlightStatistics(flightUuid);
   }
 }
