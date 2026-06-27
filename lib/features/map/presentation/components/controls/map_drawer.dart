@@ -1,16 +1,30 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../telemetry/presentation/widgets/stat_item.dart';
+import '../../../../settings/presentation/providers/settings_provider.dart';
+import '../../../../settings/presentation/providers/pilot_provider.dart';
+import '../../../../settings/presentation/providers/aircraft_provider.dart';
+import '../../../../settings/domain/models/pilot.dart';
+import '../../../../settings/domain/models/aircraft.dart';
 
-class MapDrawer extends StatelessWidget {
+class MapDrawer extends ConsumerWidget {
   const MapDrawer({super.key});
 
+  String _formatHoursMinutes(double totalHours) {
+    final totalMinutes = (totalHours * 60).round();
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+    return '${hours}h ${minutes}m';
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final settingsAsync = ref.watch(appSettingsProvider);
 
     return Drawer(
       child: PointerInterceptor(
@@ -21,70 +35,127 @@ class MapDrawer extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.appTitle,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
+              child: settingsAsync.when(
+                data: (settings) {
+                  final activePilotId = settings.pilotId;
+                  final airplaneId = settings.airplaneId ?? '';
+
+                  final pilotsAsync = ref.watch(pilotStateProvider);
+                  final pilots = pilotsAsync.value ?? [];
+                  Pilot? activePilot;
+                  for (final p in pilots) {
+                    if (p.id == activePilotId) {
+                      activePilot = p;
+                      break;
+                    }
+                  }
+
+                  final aircraftsAsync = ref.watch(aircraftStateProvider);
+                  final aircrafts = aircraftsAsync.value ?? [];
+                  Aircraft? activeAircraft;
+                  for (final a in aircrafts) {
+                    if (a.id == airplaneId) {
+                      activeAircraft = a;
+                      break;
+                    }
+                  }
+
+                  final statsAsync = activePilotId != null
+                      ? ref.watch(pilotStatsProvider(activePilotId))
+                      : null;
+
+                  final aircraftHoursAsync = airplaneId.isNotEmpty
+                      ? ref.watch(aircraftHoursProvider(airplaneId))
+                      : null;
+
+                  final pilotNameText = activePilot?.name ?? l10n.anonymousPilot;
+                  final airplaneNameText = activeAircraft?.name ?? l10n.unknownAircraft;
+
+                  final pilotHoursText = statsAsync?.value != null
+                      ? _formatHoursMinutes(statsAsync!.value!.totalHours)
+                      : '---h --m';
+
+                  final aircraftHoursText = aircraftHoursAsync?.value != null
+                      ? _formatHoursMinutes(aircraftHoursAsync!.value!)
+                      : '---h --m';
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      StatItem(
-                        icon: Icons.timer_outlined,
-                        value: '---h --m',
-                        label: l10n.pilotTotalHours,
+                      Text(
+                        l10n.appTitle,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      const SizedBox(width: 16),
-                      StatItem(
-                        icon: Icons.airplanemode_active,
-                        value: '---h --m',
-                        label: l10n.aircraftTotalHours,
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          StatItem(
+                            icon: Icons.timer_outlined,
+                            value: pilotHoursText,
+                            label: l10n.pilotTotalHours,
+                          ),
+                          const SizedBox(width: 16),
+                          StatItem(
+                            icon: Icons.airplanemode_active,
+                            value: aircraftHoursText,
+                            label: l10n.aircraftTotalHours,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      const Spacer(),
+                      InkWell(
+                        onTap: () {
+                          context.pop();
+                          context.push('/profile');
+                        },
+                        child: Row(
                           children: [
-                            Text(
-                              l10n.anonymousPilot,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                fontSize: 16,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    pilotNameText,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    airplaneNameText,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimary.withAlpha(204),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            Text(
-                              l10n.unknownAircraft,
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimary.withAlpha(204),
-                                fontSize: 12,
-                              ),
+                            IconButton(
+                              icon: const Icon(Icons.account_circle_outlined),
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              onPressed: () {
+                                context.pop();
+                                context.push('/profile');
+                              },
                             ),
                           ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.settings),
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        onPressed: () {
-                          context.pop();
-                          context.push('/settings');
-                        },
-                      ),
                     ],
-                  ),
-                ],
+                  );
+                },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+                error: (err, stack) => const Text('Error loading settings'),
               ),
             ),
             ListTile(

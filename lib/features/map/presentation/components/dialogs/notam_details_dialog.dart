@@ -42,25 +42,21 @@ class NotamDetailsDialog extends ConsumerWidget {
       titleText: titleText,
       icon: Icons.warning_amber_rounded,
       maxHeight: 600,
-      child: Flexible(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (int i = 0; i < visibleNotams.length; i++) ...[
-                if (i > 0) ...[const Divider(height: 32)],
-                _buildNotamItem(
-                  context,
-                  ref,
-                  visibleNotams[i],
-                  visibleNotams,
-                  isDark,
-                  l10n,
-                ),
-              ],
-            ],
-          ),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (int i = 0; i < visibleNotams.length; i++) ...[
+            if (i > 0) ...[const Divider(height: 32)],
+            _buildNotamItem(
+              context,
+              ref,
+              visibleNotams[i],
+              visibleNotams,
+              isDark,
+              l10n,
+            ),
+          ],
+        ],
       ),
     );
   }

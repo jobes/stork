@@ -1,6 +1,7 @@
 import '../../../../core/services/database/black_box_database.dart';
 import '../../domain/models/flight.dart';
 import '../../domain/models/telemetry_entry.dart';
+import '../../domain/models/time_based_stats.dart';
 import '../../domain/repositories/black_box_repository.dart';
 
 export '../../domain/repositories/black_box_repository.dart';
@@ -55,11 +56,13 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
     required String name,
     String? pilotId,
     String? airplaneId,
+    String? notes,
   }) => _database.updateFlightDetails(
     uuid: uuid,
     name: name,
     pilotId: pilotId,
     airplaneId: airplaneId,
+    notes: notes,
   );
 
   @override
@@ -80,4 +83,13 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
       await _database.updateFlightEndTime(flight.uuid, endTime);
     }
   }
+
+  @override
+  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0}) =>
+      _database.getPilotTimeStats(pilotId, initialHours: initialHours);
+
+  @override
+  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0}) =>
+      _database.getAircraftTimeStats(airplaneId, initialHours: initialHours);
+
 }

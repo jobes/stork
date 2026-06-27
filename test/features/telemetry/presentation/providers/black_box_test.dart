@@ -54,6 +54,7 @@ void main() {
   group('BlackBoxDatabase Tests', () {
     test('Can save and retrieve a flight', () async {
       final startTime = DateTime.now();
+
       final flight = Flight(
         uuid: 'test-uuid-1',
         name: 'Test Flight',
@@ -191,7 +192,7 @@ void main() {
             ),
           ],
         );
-        addTearDown(container.dispose);
+
 
         // Start listening to the black box service provider
         final serviceSub = container.listen(

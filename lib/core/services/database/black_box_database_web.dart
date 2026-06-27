@@ -1,9 +1,9 @@
 import '../../../features/telemetry/domain/models/flight.dart';
 import '../../../features/telemetry/domain/models/flight_statistics.dart';
 import '../../../features/telemetry/domain/models/telemetry_entry.dart';
+import '../../../features/telemetry/domain/models/time_based_stats.dart';
 
 import 'black_box_database.dart';
-
 BlackBoxDatabase getDatabase() => WebBlackBoxDatabase();
 
 class WebBlackBoxDatabase implements BlackBoxDatabase {
@@ -112,6 +112,7 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
     required String name,
     String? pilotId,
     String? airplaneId,
+    String? notes,
   }) async {
     throw UnsupportedError('SQLite is not supported on web.');
   }
@@ -120,4 +121,15 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
   Future<void> calculateAndSaveFlightStatistics(String flightUuid) async {
     throw UnsupportedError('SQLite is not supported on web.');
   }
+
+  @override
+  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0}) async {
+    throw UnsupportedError('SQLite is not supported on web.');
+  }
+
+  @override
+  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0}) async {
+    throw UnsupportedError('SQLite is not supported on web.');
+  }
+
 }

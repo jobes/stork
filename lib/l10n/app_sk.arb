@@ -430,5 +430,108 @@
   "durationHoursSuffix": "h",
   "durationMinutesSuffix": "m",
   "durationSecondsSuffix": "s",
-  "flightRecordsLoadError": "Nepodarilo sa načítať záznamy letov"
+  "flightRecordsLoadError": "Nepodarilo sa načítať záznamy letov",
+  "takeoffsCount": "{count, plural, =1{1 vzlet} few{{count} vzlety} other{{count} vzletov}}",
+  "@takeoffsCount": {
+    "description": "Number of takeoffs/flights",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "flightNotes": "Poznámka",
+  "enterPilotPin": "Zadajte PIN kód pre pilota \"{name}\":",
+  "@enterPilotPin": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "pinCode": "PIN kód",
+  "incorrectPin": "Nesprávny PIN kód!",
+  "confirm": "Potvrdiť",
+  "selectPilotTitle": "Výber pilota",
+  "deletePilotTitle": "Vymazať pilota",
+  "deletePilotConfirm": "Naozaj chcete vymazať pilota \"{name}\"? Táto akcia je nevratná a vymaže všetky jeho nastavenia.",
+  "@deletePilotConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deletePilotPinPrompt": "Zmazanie pilota",
+  "pilotDeletedSnackbar": "Pilot \"{name}\" bol vymazaný.",
+  "@pilotDeletedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "addAircraftTitle": "Pridať lietadlo",
+  "aircraftNameLabel": "Registračná značka / Názov",
+  "aircraftNameRequired": "Zadajte názov lietadla!",
+  "create": "Vytvoriť",
+  "switchAircraftTitle": "Prepnúť lietadlo",
+  "addNewAircraft": "Pridať nové lietadlo",
+  "savedAircraftsSection": "Uložené lietadlá",
+  "noAircraftsCreated": "Zatiaľ nie sú vytvorené žiadne lietadlá.",
+  "deselectAircraft": "Odhlásiť lietadlo (Neznáme)",
+  "errorPrefix": "Chyba pri načítaní údajov",
+  "aircraftSettingsTitle": "Nastavenia lietadla",
+  "initialFlightHoursLabel": "Inicializačné letové hodiny",
+  "hoursExampleHint": "Napr. 10.5",
+  "invalidFlightHours": "Zadajte platné letové hodiny!",
+  "initialHoursSaved": "Inicializačné letové hodiny uložené.",
+  "deleteAircraftButton": "Vymazať lietadlo",
+  "deleteAircraftConfirm": "Naozaj chcete vymazať lietadlo \"{name}\"?",
+  "@deleteAircraftConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "aircraftDeletedSnackbar": "Lietadlo \"{name}\" bolo vymazané.",
+  "@aircraftDeletedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "close": "Zatvoriť",
+  "addPilotTitle": "Pridať pilota",
+  "pilotNameLabel": "Meno pilota",
+  "pilotNameRequired": "Zadajte meno pilota!",
+  "optionalPinLabel": "Voliteľný PIN kód (len čísla)",
+  "switchPilotTitle": "Prepnúť pilota",
+  "addNewPilot": "Pridať nového pilota",
+  "savedProfilesSection": "Uložené profily",
+  "noPilotsCreated": "Zatiaľ nie sú vytvorení žiadni piloti.",
+  "protectedByPin": "Chránený PIN",
+  "noPin": "Bez PIN-u",
+  "profileAndAircraftPageTitle": "Profil a lietadlo",
+  "pilotUppercase": "PILOT",
+  "aircraftUppercase": "LIETADLO",
+  "accessSettingsTitle": "Prístup k nastaveniam",
+  "noPilotSelected": "Žiadny pilot",
+  "unknown": "Neznáme",
+  "notLoggedIn": "Neprihlásený",
+  "localProfile": "Lokálny",
+  "hoursFlown": "Nalietané: {hours}",
+  "@hoursFlown": {
+    "placeholders": {
+      "hours": { "type": "String" }
+    }
+  },
+  "noActivePilot": "Žiadny aktívny pilot",
+  "noActivePilotInstructions": "Pre zobrazenie letových štatistík a konfiguráciu nastavení si zvoľte aktívneho pilota zo zoznamu vyššie.",
+  "pilotFlightStats": "Letové štatistiky pilota",
+  "aircraftFlightStats": "Letové štatistiky lietadla",
+  "today": "Dnes",
+  "thisWeek": "Tento týždeň",
+  "thisMonth": "Tento mesiac",
+  "thisYear": "Tento rok",
+  "overall": "Celkovo",
+  "statsCalcError": "Chyba pri výpočte štatistík",
+  "aircraftStatsCalcError": "Chyba pri výpočte štatistík lietadla",
+  "pilotSettingsTitle": "Nastavenia pilota",
+  "pinSecurityLabel": "Zabezpečenie PIN kódom",
+  "newPinHint": "Nový PIN (prázdny pre vypnutie)",
+  "pilotPinUpdatedSnackbar": "PIN kód pilota bol aktualizovaný.",
+  "deselectPilot": "Odhlásiť pilota (Neznáme)"
 }

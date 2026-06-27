@@ -508,5 +508,109 @@
   "durationHoursSuffix": "h",
   "durationMinutesSuffix": "m",
   "durationSecondsSuffix": "s",
-  "flightRecordsLoadError": "Failed to load flight records"
+  "flightRecordsLoadError": "Failed to load flight records",
+  "takeoffsCount": "{count, plural, =1{1 takeoff} other{{count} takeoffs}}",
+  "@takeoffsCount": {
+    "description": "Number of takeoffs/flights",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "flightNotes": "Notes",
+  "enterPilotPin": "Enter PIN code for pilot \"{name}\":",
+  "@enterPilotPin": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "pinCode": "PIN code",
+  "incorrectPin": "Incorrect PIN code!",
+  "confirm": "Confirm",
+  "selectPilotTitle": "Select Pilot",
+  "deletePilotTitle": "Delete Pilot",
+  "deletePilotConfirm": "Are you sure you want to delete pilot \"{name}\"? This action is irreversible and will delete all their settings.",
+  "@deletePilotConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deletePilotPinPrompt": "Delete Pilot",
+  "pilotDeletedSnackbar": "Pilot \"{name}\" has been deleted.",
+  "@pilotDeletedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "addAircraftTitle": "Add Aircraft",
+  "aircraftNameLabel": "Registration Mark / Name",
+  "aircraftNameRequired": "Please enter aircraft name!",
+  "create": "Create",
+  "switchAircraftTitle": "Switch Aircraft",
+  "addNewAircraft": "Add new aircraft",
+  "savedAircraftsSection": "Saved Aircraft",
+  "noAircraftsCreated": "No aircraft have been created yet.",
+  "deselectAircraft": "Deselect Aircraft (Unknown)",
+  "errorPrefix": "Failed to load data",
+  "aircraftSettingsTitle": "Aircraft Settings",
+  "initialFlightHoursLabel": "Initial Flight Hours",
+  "hoursExampleHint": "e.g. 10.5",
+  "invalidFlightHours": "Please enter valid flight hours!",
+  "initialHoursSaved": "Initial flight hours saved.",
+  "deleteAircraftButton": "Delete Aircraft",
+  "deleteAircraftConfirm": "Are you sure you want to delete aircraft \"{name}\"?",
+  "@deleteAircraftConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "aircraftDeletedSnackbar": "Aircraft \"{name}\" has been deleted.",
+  "@aircraftDeletedSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "close": "Close",
+  "addPilotTitle": "Add Pilot",
+  "pilotNameLabel": "Pilot Name",
+  "pilotNameRequired": "Please enter pilot name!",
+  "optionalPinLabel": "Optional PIN code (digits only)",
+  "switchPilotTitle": "Switch Pilot",
+  "addNewPilot": "Add new pilot",
+  "savedProfilesSection": "Saved Profiles",
+  "noPilotsCreated": "No pilots have been created yet.",
+  "protectedByPin": "Protected by PIN",
+  "noPin": "No PIN",
+  "profileAndAircraftPageTitle": "Profile & Aircraft",
+  "pilotUppercase": "PILOT",
+  "aircraftUppercase": "AIRCRAFT",
+  "accessSettingsTitle": "Access Settings",
+  "noPilotSelected": "No Pilot Selected",
+  "unknown": "Unknown",
+  "notLoggedIn": "Logged out",
+  "localProfile": "Local",
+  "hoursFlown": "Hours flown: {hours}",
+  "@hoursFlown": {
+    "placeholders": {
+      "hours": { "type": "String" }
+    }
+  },
+  "noActivePilot": "No Active Pilot",
+  "noActivePilotInstructions": "To view flight statistics and configure settings, select an active pilot from the list above.",
+  "pilotFlightStats": "Pilot Flight Statistics",
+  "aircraftFlightStats": "Aircraft Flight Statistics",
+  "today": "Today",
+  "thisWeek": "This Week",
+  "thisMonth": "This Month",
+  "thisYear": "This Year",
+  "overall": "Total",
+  "statsCalcError": "Failed to calculate statistics",
+  "aircraftStatsCalcError": "Failed to calculate aircraft statistics",
+  "pilotSettingsTitle": "Pilot Settings",
+  "pinSecurityLabel": "PIN Code Security",
+  "newPinHint": "New PIN (empty to disable)",
+  "pilotPinUpdatedSnackbar": "Pilot PIN code has been updated.",
+  "deselectPilot": "Deselect Pilot"
 }
+

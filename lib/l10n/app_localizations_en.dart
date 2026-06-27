@@ -1035,4 +1035,218 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get flightRecordsLoadError => 'Failed to load flight records';
+
+  @override
+  String takeoffsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count takeoffs',
+      one: '1 takeoff',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get flightNotes => 'Notes';
+
+  @override
+  String enterPilotPin(String name) {
+    return 'Enter PIN code for pilot \"$name\":';
+  }
+
+  @override
+  String get pinCode => 'PIN code';
+
+  @override
+  String get incorrectPin => 'Incorrect PIN code!';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get selectPilotTitle => 'Select Pilot';
+
+  @override
+  String get deletePilotTitle => 'Delete Pilot';
+
+  @override
+  String deletePilotConfirm(String name) {
+    return 'Are you sure you want to delete pilot \"$name\"? This action is irreversible and will delete all their settings.';
+  }
+
+  @override
+  String get deletePilotPinPrompt => 'Delete Pilot';
+
+  @override
+  String pilotDeletedSnackbar(String name) {
+    return 'Pilot \"$name\" has been deleted.';
+  }
+
+  @override
+  String get addAircraftTitle => 'Add Aircraft';
+
+  @override
+  String get aircraftNameLabel => 'Registration Mark / Name';
+
+  @override
+  String get aircraftNameRequired => 'Please enter aircraft name!';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get switchAircraftTitle => 'Switch Aircraft';
+
+  @override
+  String get addNewAircraft => 'Add new aircraft';
+
+  @override
+  String get savedAircraftsSection => 'Saved Aircraft';
+
+  @override
+  String get noAircraftsCreated => 'No aircraft have been created yet.';
+
+  @override
+  String get deselectAircraft => 'Deselect Aircraft (Unknown)';
+
+  @override
+  String get errorPrefix => 'Failed to load data';
+
+  @override
+  String get aircraftSettingsTitle => 'Aircraft Settings';
+
+  @override
+  String get initialFlightHoursLabel => 'Initial Flight Hours';
+
+  @override
+  String get hoursExampleHint => 'e.g. 10.5';
+
+  @override
+  String get invalidFlightHours => 'Please enter valid flight hours!';
+
+  @override
+  String get initialHoursSaved => 'Initial flight hours saved.';
+
+  @override
+  String get deleteAircraftButton => 'Delete Aircraft';
+
+  @override
+  String deleteAircraftConfirm(String name) {
+    return 'Are you sure you want to delete aircraft \"$name\"?';
+  }
+
+  @override
+  String aircraftDeletedSnackbar(String name) {
+    return 'Aircraft \"$name\" has been deleted.';
+  }
+
+  @override
+  String get addPilotTitle => 'Add Pilot';
+
+  @override
+  String get pilotNameLabel => 'Pilot Name';
+
+  @override
+  String get pilotNameRequired => 'Please enter pilot name!';
+
+  @override
+  String get optionalPinLabel => 'Optional PIN code (digits only)';
+
+  @override
+  String get switchPilotTitle => 'Switch Pilot';
+
+  @override
+  String get addNewPilot => 'Add new pilot';
+
+  @override
+  String get savedProfilesSection => 'Saved Profiles';
+
+  @override
+  String get noPilotsCreated => 'No pilots have been created yet.';
+
+  @override
+  String get protectedByPin => 'Protected by PIN';
+
+  @override
+  String get noPin => 'No PIN';
+
+  @override
+  String get profileAndAircraftPageTitle => 'Profile & Aircraft';
+
+  @override
+  String get pilotUppercase => 'PILOT';
+
+  @override
+  String get aircraftUppercase => 'AIRCRAFT';
+
+  @override
+  String get accessSettingsTitle => 'Access Settings';
+
+  @override
+  String get noPilotSelected => 'No Pilot Selected';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String get notLoggedIn => 'Logged out';
+
+  @override
+  String get localProfile => 'Local';
+
+  @override
+  String hoursFlown(String hours) {
+    return 'Hours flown: $hours';
+  }
+
+  @override
+  String get noActivePilot => 'No Active Pilot';
+
+  @override
+  String get noActivePilotInstructions =>
+      'To view flight statistics and configure settings, select an active pilot from the list above.';
+
+  @override
+  String get pilotFlightStats => 'Pilot Flight Statistics';
+
+  @override
+  String get aircraftFlightStats => 'Aircraft Flight Statistics';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get thisWeek => 'This Week';
+
+  @override
+  String get thisMonth => 'This Month';
+
+  @override
+  String get thisYear => 'This Year';
+
+  @override
+  String get overall => 'Total';
+
+  @override
+  String get statsCalcError => 'Failed to calculate statistics';
+
+  @override
+  String get aircraftStatsCalcError =>
+      'Failed to calculate aircraft statistics';
+
+  @override
+  String get pilotSettingsTitle => 'Pilot Settings';
+
+  @override
+  String get pinSecurityLabel => 'PIN Code Security';
+
+  @override
+  String get newPinHint => 'New PIN (empty to disable)';
+
+  @override
+  String get pilotPinUpdatedSnackbar => 'Pilot PIN code has been updated.';
+
+  @override
+  String get deselectPilot => 'Deselect Pilot';
 }

@@ -10,6 +10,10 @@ import '../../domain/models/flight_statistics.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/altitude_unit.dart';
 import '../providers/black_box_repository_provider.dart';
+import '../../../settings/domain/models/pilot.dart';
+import '../../../settings/domain/models/aircraft.dart';
+import '../../../settings/presentation/providers/pilot_provider.dart';
+import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../dialogs/edit_flight_dialog.dart';
 import '../providers/flight_records_provider.dart';
 
@@ -48,19 +52,21 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
     final seconds = duration.inSeconds.remainder(60);
 
     final parts = <String>[];
-    if (hours > 0) parts.add('$hours${l10n.durationHoursSuffix}');
-    if (minutes > 0 || hours > 0)
+    if (hours > 0) {
+      parts.add('$hours${l10n.durationHoursSuffix}');
+    }
+    if (minutes > 0 || hours > 0) {
       parts.add('$minutes${l10n.durationMinutesSuffix}');
+    }
     parts.add('$seconds${l10n.durationSecondsSuffix}');
     return parts.join(' ');
   }
-
   Future<void> _editFlightDetails(BuildContext context, Flight flight) async {
     showDialog(
       context: context,
       builder: (context) => EditFlightDialog(
         flight: flight,
-        onSave: (name, pilotId, airplaneId) {
+        onSave: (name, pilotId, airplaneId, notes) {
           ref
               .read(flightRecordsProvider.notifier)
               .updateFlightDetails(
@@ -68,12 +74,12 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                 name: name,
                 pilotId: pilotId,
                 airplaneId: airplaneId,
+                notes: notes,
               );
         },
       ),
     );
   }
-
   Future<void> _deleteFlight(BuildContext context, Flight flight) async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
@@ -129,6 +135,10 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final recordsAsync = ref.watch(flightRecordsProvider);
+    final pilotsAsync = ref.watch(pilotStateProvider);
+    final pilots = pilotsAsync.value ?? [];
+    final aircraftsAsync = ref.watch(aircraftStateProvider);
+    final aircrafts = aircraftsAsync.value ?? [];
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.flightRecordsTitle), centerTitle: true),
@@ -175,11 +185,13 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                 }
 
                 final flight = state.flights[index];
-                final startTimeStr = DateFormat.yMd(l10n.localeName)
-                    .add_Hm()
-                    .format(flight.startTime.toLocal());
+                final startTimeStr = DateFormat.yMd(
+                  l10n.localeName,
+                ).add_Hm().format(flight.startTime.toLocal());
                 final endTimeStr = flight.endTime != null
-                    ? DateFormat.Hm(l10n.localeName).format(flight.endTime!.toLocal())
+                    ? DateFormat.Hm(
+                        l10n.localeName,
+                      ).format(flight.endTime!.toLocal())
                     : l10n.placeholderDash;
 
                 final duration = flight.endTime != null
@@ -242,8 +254,16 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                                     child: _InfoChip(
                                       icon: Icons.person_outline,
                                       label: l10n.pilot,
-                                      value:
-                                          flight.pilotId ?? l10n.anonymousPilot,
+                                      value: () {
+                                        if (flight.pilotId == null) {
+                                          return l10n.anonymousPilot;
+                                        }
+                                        final pilot = pilots.cast<Pilot?>().firstWhere(
+                                          (p) => p?.id == flight.pilotId,
+                                          orElse: () => null,
+                                        );
+                                        return pilot?.name ?? flight.pilotId!;
+                                      }(),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -251,13 +271,47 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                                     child: _InfoChip(
                                       icon: Icons.airplanemode_active,
                                       label: l10n.aircraft,
-                                      value:
-                                          flight.airplaneId ??
-                                          l10n.unknownAircraft,
+                                      value: () {
+                                        if (flight.airplaneId == null) {
+                                          return l10n.unknownAircraft;
+                                        }
+                                        final aircraft = aircrafts.cast<Aircraft?>().firstWhere(
+                                          (a) => a?.id == flight.airplaneId,
+                                          orElse: () => null,
+                                        );
+                                        return aircraft?.name ?? l10n.unknownAircraft;
+                                      }(),
                                     ),
                                   ),
                                 ],
                               ),
+                              if (flight.notes != null && flight.notes!.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                Card(
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(100),
+                                  margin: EdgeInsets.zero,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Poznámka',
+                                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          flight.notes!,
+                                          style: Theme.of(context).textTheme.bodyMedium,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 12),
                               if (flight.statistics != null)
                                 _FlightStatisticsWidget(
                                   stats: flight.statistics!,

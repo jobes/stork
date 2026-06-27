@@ -103,12 +103,12 @@ class FlightRecords extends _$FlightRecords {
       state = AsyncError(e, st);
     }
   }
-
   Future<void> updateFlightDetails({
     required String uuid,
     required String name,
     String? pilotId,
     String? airplaneId,
+    String? notes,
   }) async {
     final repo = ref.read(blackBoxRepositoryProvider);
     await repo.updateFlightDetails(
@@ -116,6 +116,7 @@ class FlightRecords extends _$FlightRecords {
       name: name,
       pilotId: pilotId,
       airplaneId: airplaneId,
+      notes: notes,
     );
 
     if (!ref.mounted) return;
@@ -128,6 +129,7 @@ class FlightRecords extends _$FlightRecords {
             name: name,
             pilotId: pilotId,
             airplaneId: airplaneId,
+            notes: notes,
           );
         }
         return f;
@@ -135,7 +137,6 @@ class FlightRecords extends _$FlightRecords {
       state = AsyncData(currentState.copyWith(flights: updatedFlights));
     }
   }
-
   Future<void> deleteFlight(String uuid) async {
     final repo = ref.read(blackBoxRepositoryProvider);
     await repo.deleteFlight(uuid);

@@ -2071,6 +2071,390 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load flight records'**
   String get flightRecordsLoadError;
+
+  /// Number of takeoffs/flights
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 takeoff} other{{count} takeoffs}}'**
+  String takeoffsCount(int count);
+
+  /// No description provided for @flightNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get flightNotes;
+
+  /// No description provided for @enterPilotPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter PIN code for pilot \"{name}\":'**
+  String enterPilotPin(String name);
+
+  /// No description provided for @pinCode.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN code'**
+  String get pinCode;
+
+  /// No description provided for @incorrectPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN code!'**
+  String get incorrectPin;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @selectPilotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Pilot'**
+  String get selectPilotTitle;
+
+  /// No description provided for @deletePilotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Pilot'**
+  String get deletePilotTitle;
+
+  /// No description provided for @deletePilotConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete pilot \"{name}\"? This action is irreversible and will delete all their settings.'**
+  String deletePilotConfirm(String name);
+
+  /// No description provided for @deletePilotPinPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Pilot'**
+  String get deletePilotPinPrompt;
+
+  /// No description provided for @pilotDeletedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilot \"{name}\" has been deleted.'**
+  String pilotDeletedSnackbar(String name);
+
+  /// No description provided for @addAircraftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Aircraft'**
+  String get addAircraftTitle;
+
+  /// No description provided for @aircraftNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration Mark / Name'**
+  String get aircraftNameLabel;
+
+  /// No description provided for @aircraftNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter aircraft name!'**
+  String get aircraftNameRequired;
+
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// No description provided for @switchAircraftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Aircraft'**
+  String get switchAircraftTitle;
+
+  /// No description provided for @addNewAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new aircraft'**
+  String get addNewAircraft;
+
+  /// No description provided for @savedAircraftsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Aircraft'**
+  String get savedAircraftsSection;
+
+  /// No description provided for @noAircraftsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'No aircraft have been created yet.'**
+  String get noAircraftsCreated;
+
+  /// No description provided for @deselectAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect Aircraft (Unknown)'**
+  String get deselectAircraft;
+
+  /// No description provided for @errorPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load data'**
+  String get errorPrefix;
+
+  /// No description provided for @aircraftSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft Settings'**
+  String get aircraftSettingsTitle;
+
+  /// No description provided for @initialFlightHoursLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial Flight Hours'**
+  String get initialFlightHoursLabel;
+
+  /// No description provided for @hoursExampleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 10.5'**
+  String get hoursExampleHint;
+
+  /// No description provided for @invalidFlightHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter valid flight hours!'**
+  String get invalidFlightHours;
+
+  /// No description provided for @initialHoursSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial flight hours saved.'**
+  String get initialHoursSaved;
+
+  /// No description provided for @deleteAircraftButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Aircraft'**
+  String get deleteAircraftButton;
+
+  /// No description provided for @deleteAircraftConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete aircraft \"{name}\"?'**
+  String deleteAircraftConfirm(String name);
+
+  /// No description provided for @aircraftDeletedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft \"{name}\" has been deleted.'**
+  String aircraftDeletedSnackbar(String name);
+
+  /// No description provided for @addPilotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Pilot'**
+  String get addPilotTitle;
+
+  /// No description provided for @pilotNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilot Name'**
+  String get pilotNameLabel;
+
+  /// No description provided for @pilotNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter pilot name!'**
+  String get pilotNameRequired;
+
+  /// No description provided for @optionalPinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional PIN code (digits only)'**
+  String get optionalPinLabel;
+
+  /// No description provided for @switchPilotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Pilot'**
+  String get switchPilotTitle;
+
+  /// No description provided for @addNewPilot.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new pilot'**
+  String get addNewPilot;
+
+  /// No description provided for @savedProfilesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Profiles'**
+  String get savedProfilesSection;
+
+  /// No description provided for @noPilotsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'No pilots have been created yet.'**
+  String get noPilotsCreated;
+
+  /// No description provided for @protectedByPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Protected by PIN'**
+  String get protectedByPin;
+
+  /// No description provided for @noPin.
+  ///
+  /// In en, this message translates to:
+  /// **'No PIN'**
+  String get noPin;
+
+  /// No description provided for @profileAndAircraftPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile & Aircraft'**
+  String get profileAndAircraftPageTitle;
+
+  /// No description provided for @pilotUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'PILOT'**
+  String get pilotUppercase;
+
+  /// No description provided for @aircraftUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'AIRCRAFT'**
+  String get aircraftUppercase;
+
+  /// No description provided for @accessSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Access Settings'**
+  String get accessSettingsTitle;
+
+  /// No description provided for @noPilotSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No Pilot Selected'**
+  String get noPilotSelected;
+
+  /// No description provided for @unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknown;
+
+  /// No description provided for @notLoggedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged out'**
+  String get notLoggedIn;
+
+  /// No description provided for @localProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get localProfile;
+
+  /// No description provided for @hoursFlown.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours flown: {hours}'**
+  String hoursFlown(String hours);
+
+  /// No description provided for @noActivePilot.
+  ///
+  /// In en, this message translates to:
+  /// **'No Active Pilot'**
+  String get noActivePilot;
+
+  /// No description provided for @noActivePilotInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'To view flight statistics and configure settings, select an active pilot from the list above.'**
+  String get noActivePilotInstructions;
+
+  /// No description provided for @pilotFlightStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilot Flight Statistics'**
+  String get pilotFlightStats;
+
+  /// No description provided for @aircraftFlightStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft Flight Statistics'**
+  String get aircraftFlightStats;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @thisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get thisWeek;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get thisMonth;
+
+  /// No description provided for @thisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This Year'**
+  String get thisYear;
+
+  /// No description provided for @overall.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get overall;
+
+  /// No description provided for @statsCalcError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to calculate statistics'**
+  String get statsCalcError;
+
+  /// No description provided for @aircraftStatsCalcError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to calculate aircraft statistics'**
+  String get aircraftStatsCalcError;
+
+  /// No description provided for @pilotSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilot Settings'**
+  String get pilotSettingsTitle;
+
+  /// No description provided for @pinSecurityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN Code Security'**
+  String get pinSecurityLabel;
+
+  /// No description provided for @newPinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN (empty to disable)'**
+  String get newPinHint;
+
+  /// No description provided for @pilotPinUpdatedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Pilot PIN code has been updated.'**
+  String get pilotPinUpdatedSnackbar;
+
+  /// No description provided for @deselectPilot.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect Pilot'**
+  String get deselectPilot;
 }
 
 class _AppLocalizationsDelegate

@@ -15,6 +15,7 @@ _Flight _$FlightFromJson(Map<String, dynamic> json) => _Flight(
       : DateTime.parse(json['end_time'] as String),
   pilotId: json['pilot_id'] as String?,
   airplaneId: json['airplane_id'] as String?,
+  notes: json['notes'] as String?,
   statistics: json['statistics'] == null
       ? null
       : FlightStatistics.fromJson(json['statistics'] as Map<String, dynamic>),
@@ -27,5 +28,6 @@ Map<String, dynamic> _$FlightToJson(_Flight instance) => <String, dynamic>{
   'end_time': instance.endTime?.toIso8601String(),
   'pilot_id': instance.pilotId,
   'airplane_id': instance.airplaneId,
+  'notes': instance.notes,
   'statistics': instance.statistics,
 };

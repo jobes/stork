@@ -4,12 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
-
 import '../../../features/telemetry/domain/models/flight.dart';
-import '../../../features/telemetry/domain/models/flight_statistics.dart';
 import '../../../features/telemetry/domain/models/telemetry_entry.dart';
 import '../../../features/telemetry/domain/models/telemetry_state.dart';
 import '../../../features/telemetry/domain/utils/flight_statistics_calculator.dart';
+import '../../../features/telemetry/domain/models/flight_statistics.dart';
+import '../../../features/telemetry/domain/models/time_based_stats.dart';
 
 import 'black_box_database.dart';
 
@@ -97,7 +97,6 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     }
     await database;
   }
-
   void setupTables(Database db) {
     db.execute('''
       CREATE TABLE IF NOT EXISTS flights (
@@ -106,9 +105,12 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
           start_time TEXT NOT NULL,
           end_time TEXT,
           pilot_id TEXT,
-          airplane_id TEXT
+          airplane_id TEXT,
+          notes TEXT
       );
     ''');
+
+
 
     final telemetryColumns = [
       'id INTEGER PRIMARY KEY AUTOINCREMENT',
@@ -160,6 +162,8 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   }
 
   void _migrateSchema(Database db) {
+
+    // Telemetry columns migration
     final pragmaResults = db.select('PRAGMA table_info(flight_telemetry)');
     final existingColumns = pragmaResults
         .map((row) => row['name'] as String)
@@ -179,14 +183,15 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   Future<void> saveFlight(Flight flight) async {
     final db = await database;
     final stmt = db.prepare('''
-      INSERT INTO flights (uuid, name, start_time, end_time, pilot_id, airplane_id)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO flights (uuid, name, start_time, end_time, pilot_id, airplane_id, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(uuid) DO UPDATE SET
         name = excluded.name,
         start_time = excluded.start_time,
         end_time = excluded.end_time,
         pilot_id = excluded.pilot_id,
-        airplane_id = excluded.airplane_id
+        airplane_id = excluded.airplane_id,
+        notes = excluded.notes
     ''');
     stmt.execute([
       flight.uuid,
@@ -195,6 +200,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       flight.endTime?.toIso8601String(),
       flight.pilotId,
       flight.airplaneId,
+      flight.notes,
     ]);
     stmt.close();
     db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
@@ -231,11 +237,47 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     await Isolate.run(() => _insertTelemetryEntriesIsolate(path, entries));
   }
 
+  Flight _mapFlightFromRow(Row row) {
+    FlightStatistics? stats;
+    if (row['max_altitude'] != null ||
+        row['total_distance'] != null ||
+        row['max_ground_speed'] != null ||
+        row['avg_altitude'] != null ||
+        row['avg_engine_rpm'] != null ||
+        row['avg_ground_speed'] != null) {
+      stats = FlightStatistics(
+        maxAltitude: row['max_altitude'] as double?,
+        totalAscent: row['total_ascent'] as double?,
+        totalDescent: row['total_descent'] as double?,
+        avgAltitude: row['avg_altitude'] as double?,
+        maxGroundSpeed: row['max_ground_speed'] as double?,
+        maxIndicatedAirSpeed: row['max_indicated_air_speed'] as double?,
+        avgGroundSpeed: row['avg_ground_speed'] as double?,
+        avgIndicatedAirSpeed: row['avg_indicated_air_speed'] as double?,
+        totalDistance: row['total_distance'] as double?,
+        maxDistanceFromTakeoff: row['max_distance_from_takeoff'] as double?,
+        avgEngineRPM: row['avg_engine_rpm'] as double?,
+      );
+    }
+    return Flight(
+      uuid: row['uuid'] as String,
+      name: row['name'] as String,
+      startTime: DateTime.parse(row['start_time'] as String).toUtc(),
+      endTime: row['end_time'] != null
+          ? DateTime.parse(row['end_time'] as String).toUtc()
+          : null,
+      pilotId: row['pilot_id'] as String?,
+      airplaneId: row['airplane_id'] as String?,
+      notes: row['notes'] as String?,
+      statistics: stats,
+    );
+  }
+
   @override
   Future<List<Flight>> getFlights() async {
     final db = await database;
     final results = db.select('''
-      SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id,
+      SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id, f.notes,
              s.max_altitude, s.total_ascent, s.total_descent, s.avg_altitude,
              s.max_ground_speed, s.max_indicated_air_speed, s.avg_ground_speed, s.avg_indicated_air_speed,
              s.total_distance, s.max_distance_from_takeoff, s.avg_engine_rpm
@@ -243,47 +285,14 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       LEFT JOIN flight_statistics s ON f.uuid = s.flight_uuid
       ORDER BY f.start_time DESC
     ''');
-    return results.map((row) {
-      FlightStatistics? stats;
-      if (row['max_altitude'] != null ||
-          row['total_distance'] != null ||
-          row['max_ground_speed'] != null ||
-          row['avg_altitude'] != null ||
-          row['avg_engine_rpm'] != null ||
-          row['avg_ground_speed'] != null) {
-        stats = FlightStatistics(
-          maxAltitude: row['max_altitude'] as double?,
-          totalAscent: row['total_ascent'] as double?,
-          totalDescent: row['total_descent'] as double?,
-          avgAltitude: row['avg_altitude'] as double?,
-          maxGroundSpeed: row['max_ground_speed'] as double?,
-          maxIndicatedAirSpeed: row['max_indicated_air_speed'] as double?,
-          avgGroundSpeed: row['avg_ground_speed'] as double?,
-          avgIndicatedAirSpeed: row['avg_indicated_air_speed'] as double?,
-          totalDistance: row['total_distance'] as double?,
-          maxDistanceFromTakeoff: row['max_distance_from_takeoff'] as double?,
-          avgEngineRPM: row['avg_engine_rpm'] as double?,
-        );
-      }
-      return Flight(
-        uuid: row['uuid'] as String,
-        name: row['name'] as String,
-        startTime: DateTime.parse(row['start_time'] as String).toUtc(),
-        endTime: row['end_time'] != null
-            ? DateTime.parse(row['end_time'] as String).toUtc()
-            : null,
-        pilotId: row['pilot_id'] as String?,
-        airplaneId: row['airplane_id'] as String?,
-        statistics: stats,
-      );
-    }).toList();
+    return results.map(_mapFlightFromRow).toList();
   }
 
   @override
   Future<List<Flight>> getUnfinishedFlights() async {
     final db = await database;
     final results = db.select('''
-      SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id,
+      SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id, f.notes,
              s.max_altitude, s.total_ascent, s.total_descent, s.avg_altitude,
              s.max_ground_speed, s.max_indicated_air_speed, s.avg_ground_speed, s.avg_indicated_air_speed,
              s.total_distance, s.max_distance_from_takeoff, s.avg_engine_rpm
@@ -292,40 +301,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       WHERE f.end_time IS NULL
       ORDER BY f.start_time ASC
     ''');
-    return results.map((row) {
-      FlightStatistics? stats;
-      if (row['max_altitude'] != null ||
-          row['total_distance'] != null ||
-          row['max_ground_speed'] != null ||
-          row['avg_altitude'] != null ||
-          row['avg_engine_rpm'] != null ||
-          row['avg_ground_speed'] != null) {
-        stats = FlightStatistics(
-          maxAltitude: row['max_altitude'] as double?,
-          totalAscent: row['total_ascent'] as double?,
-          totalDescent: row['total_descent'] as double?,
-          avgAltitude: row['avg_altitude'] as double?,
-          maxGroundSpeed: row['max_ground_speed'] as double?,
-          maxIndicatedAirSpeed: row['max_indicated_air_speed'] as double?,
-          avgGroundSpeed: row['avg_ground_speed'] as double?,
-          avgIndicatedAirSpeed: row['avg_indicated_air_speed'] as double?,
-          totalDistance: row['total_distance'] as double?,
-          maxDistanceFromTakeoff: row['max_distance_from_takeoff'] as double?,
-          avgEngineRPM: row['avg_engine_rpm'] as double?,
-        );
-      }
-      return Flight(
-        uuid: row['uuid'] as String,
-        name: row['name'] as String,
-        startTime: DateTime.parse(row['start_time'] as String).toUtc(),
-        endTime: row['end_time'] != null
-            ? DateTime.parse(row['end_time'] as String).toUtc()
-            : null,
-        pilotId: row['pilot_id'] as String?,
-        airplaneId: row['airplane_id'] as String?,
-        statistics: stats,
-      );
-    }).toList();
+    return results.map(_mapFlightFromRow).toList();
   }
 
   @override
@@ -433,7 +409,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     final lastStartTimeStr = lastStartTime?.toIso8601String();
     final results = db.select(
       '''
-      SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id,
+      SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id, f.notes,
              s.max_altitude, s.total_ascent, s.total_descent, s.avg_altitude,
              s.max_ground_speed, s.max_indicated_air_speed, s.avg_ground_speed, s.avg_indicated_air_speed,
              s.total_distance, s.max_distance_from_takeoff, s.avg_engine_rpm
@@ -444,40 +420,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     ''',
       [lastStartTimeStr, lastUuid, limit],
     );
-    return results.map((row) {
-      FlightStatistics? stats;
-      if (row['max_altitude'] != null ||
-          row['total_distance'] != null ||
-          row['max_ground_speed'] != null ||
-          row['avg_altitude'] != null ||
-          row['avg_engine_rpm'] != null ||
-          row['avg_ground_speed'] != null) {
-        stats = FlightStatistics(
-          maxAltitude: row['max_altitude'] as double?,
-          totalAscent: row['total_ascent'] as double?,
-          totalDescent: row['total_descent'] as double?,
-          avgAltitude: row['avg_altitude'] as double?,
-          maxGroundSpeed: row['max_ground_speed'] as double?,
-          maxIndicatedAirSpeed: row['max_indicated_air_speed'] as double?,
-          avgGroundSpeed: row['avg_ground_speed'] as double?,
-          avgIndicatedAirSpeed: row['avg_indicated_air_speed'] as double?,
-          totalDistance: row['total_distance'] as double?,
-          maxDistanceFromTakeoff: row['max_distance_from_takeoff'] as double?,
-          avgEngineRPM: row['avg_engine_rpm'] as double?,
-        );
-      }
-      return Flight(
-        uuid: row['uuid'] as String,
-        name: row['name'] as String,
-        startTime: DateTime.parse(row['start_time'] as String).toUtc(),
-        endTime: row['end_time'] != null
-            ? DateTime.parse(row['end_time'] as String).toUtc()
-            : null,
-        pilotId: row['pilot_id'] as String?,
-        airplaneId: row['airplane_id'] as String?,
-        statistics: stats,
-      );
-    }).toList();
+    return results.map(_mapFlightFromRow).toList();
   }
 
   @override
@@ -494,14 +437,15 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     required String name,
     String? pilotId,
     String? airplaneId,
+    String? notes,
   }) async {
     final db = await database;
     final stmt = db.prepare('''
       UPDATE flights 
-      SET name = ?, pilot_id = ?, airplane_id = ? 
+      SET name = ?, pilot_id = ?, airplane_id = ?, notes = ? 
       WHERE uuid = ?
     ''');
-    stmt.execute([name, pilotId, airplaneId, uuid]);
+    stmt.execute([name, pilotId, airplaneId, notes, uuid]);
     stmt.close();
     db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
   }
@@ -635,12 +579,96 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       );
     }).toList();
   }
-
   @override
   Future<void> calculateAndSaveFlightStatistics(String flightUuid) async {
     final path = await _dbPath;
     await Isolate.run(() => _calculateAndSaveStatsIsolate(path, flightUuid));
   }
+
+  TimeBasedStats _calculateStatsFromResults(ResultSet results, double initialHours) {
+    if (results.isEmpty) return TimeBasedStats.empty();
+    final row = results.first;
+    
+    return TimeBasedStats(
+      totalHours: initialHours + (row['total_hours'] as num? ?? 0.0).toDouble(),
+      thisYearHours: (row['year_hours'] as num? ?? 0.0).toDouble(),
+      thisMonthHours: (row['month_hours'] as num? ?? 0.0).toDouble(),
+      thisWeekHours: (row['week_hours'] as num? ?? 0.0).toDouble(),
+      todayHours: (row['today_hours'] as num? ?? 0.0).toDouble(),
+      totalFlights: (row['total_flights'] as num? ?? 0).toInt(),
+      thisYearFlights: (row['year_flights'] as num? ?? 0).toInt(),
+      thisMonthFlights: (row['month_flights'] as num? ?? 0).toInt(),
+      thisWeekFlights: (row['week_flights'] as num? ?? 0).toInt(),
+      todayFlights: (row['today_flights'] as num? ?? 0).toInt(),
+    );
+  }
+
+  String _buildStatsQuery(String filterColumn) {
+    return '''
+      WITH flight_durations AS (
+        SELECT 
+          start_time,
+          (julianday(COALESCE(end_time, ?)) - julianday(start_time)) * 24.0 as hours
+        FROM flights
+        WHERE $filterColumn = ?
+      )
+      SELECT 
+        SUM(hours) as total_hours,
+        COUNT(*) as total_flights,
+        
+        SUM(CASE WHEN start_time >= ? THEN hours ELSE 0 END) as year_hours,
+        SUM(CASE WHEN start_time >= ? THEN 1 ELSE 0 END) as year_flights,
+        
+        SUM(CASE WHEN start_time >= ? THEN hours ELSE 0 END) as month_hours,
+        SUM(CASE WHEN start_time >= ? THEN 1 ELSE 0 END) as month_flights,
+        
+        SUM(CASE WHEN start_time >= ? THEN hours ELSE 0 END) as week_hours,
+        SUM(CASE WHEN start_time >= ? THEN 1 ELSE 0 END) as week_flights,
+        
+        SUM(CASE WHEN start_time >= ? THEN hours ELSE 0 END) as today_hours,
+        SUM(CASE WHEN start_time >= ? THEN 1 ELSE 0 END) as today_flights
+      FROM flight_durations;
+    ''';
+  }
+
+  List<Object?> _buildStatsParams(String filterValue) {
+    final now = DateTime.now().toUtc();
+    final nowStr = now.toIso8601String();
+    
+    final localNow = DateTime.now();
+    final todayLimit = DateTime(localNow.year, localNow.month, localNow.day).toUtc().toIso8601String();
+    
+    final dayOfWeek = localNow.weekday; // 1 = Monday, 7 = Sunday
+    final startDay = localNow.subtract(Duration(days: dayOfWeek - 1));
+    final weekLimit = DateTime(startDay.year, startDay.month, startDay.day).toUtc().toIso8601String();
+    
+    final monthLimit = DateTime(localNow.year, localNow.month, 1).toUtc().toIso8601String();
+    final yearLimit = DateTime(localNow.year, 1, 1).toUtc().toIso8601String();
+
+    return [
+      nowStr,
+      filterValue,
+      yearLimit, yearLimit,
+      monthLimit, monthLimit,
+      weekLimit, weekLimit,
+      todayLimit, todayLimit,
+    ];
+  }
+
+  @override
+  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0}) async {
+    final db = await database;
+    final results = db.select(_buildStatsQuery('pilot_id'), _buildStatsParams(pilotId));
+    return _calculateStatsFromResults(results, initialHours);
+  }
+
+  @override
+  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0}) async {
+    final db = await database;
+    final results = db.select(_buildStatsQuery('airplane_id'), _buildStatsParams(airplaneId));
+    return _calculateStatsFromResults(results, initialHours);
+  }
+
 }
 
 void _calculateAndSaveStatsIsolate(String dbPath, String flightUuid) {

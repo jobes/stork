@@ -13,6 +13,7 @@ abstract class Flight with _$Flight {
     @JsonKey(name: 'end_time') DateTime? endTime,
     @JsonKey(name: 'pilot_id') String? pilotId,
     @JsonKey(name: 'airplane_id') String? airplaneId,
+    String? notes,
     FlightStatistics? statistics,
   }) = _Flight;
 

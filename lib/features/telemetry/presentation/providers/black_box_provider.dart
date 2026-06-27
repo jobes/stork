@@ -76,7 +76,6 @@ class BlackBoxService extends _$BlackBoxService {
     final now = DateTime.now().toUtc();
     final flightName =
         'Flight ${DateFormat('yyyy-MM-dd HH:mm:ss').format(now.toLocal())}';
-
     // Retrieve active pilot and airplane from AppSettings
     final settings = ref.read(appSettingsProvider).value;
     final pilotId = settings?.pilotId;
@@ -89,7 +88,6 @@ class BlackBoxService extends _$BlackBoxService {
       pilotId: pilotId,
       airplaneId: airplaneId,
     );
-
     _activeFlightUuid = uuid;
     _lastKeyframeTime = now;
     _lastBufferedState = null;
