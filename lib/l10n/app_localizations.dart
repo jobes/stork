@@ -146,6 +146,18 @@ abstract class AppLocalizations {
   /// **'Anonymous pilot'**
   String get anonymousPilot;
 
+  /// No description provided for @filterAllPilots.
+  ///
+  /// In en, this message translates to:
+  /// **'All pilots'**
+  String get filterAllPilots;
+
+  /// No description provided for @filterAllAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'All aircraft'**
+  String get filterAllAircraft;
+
   /// No description provided for @editSettings.
   ///
   /// In en, this message translates to:

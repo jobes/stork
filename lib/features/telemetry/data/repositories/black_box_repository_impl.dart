@@ -40,15 +40,34 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
     int limit, {
     DateTime? lastStartTime,
     String? lastUuid,
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
   }) =>
       _database.getFlightsPaginated(
         limit,
         lastStartTime: lastStartTime,
         lastUuid: lastUuid,
+        pilotId: pilotId,
+        airplaneId: airplaneId,
+        pilotAnonymous: pilotAnonymous,
+        airplaneAnonymous: airplaneAnonymous,
       );
 
   @override
-  Future<int> getFlightsCount() => _database.getFlightsCount();
+  Future<int> getFlightsCount({
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
+  }) =>
+      _database.getFlightsCount(
+        pilotId: pilotId,
+        airplaneId: airplaneId,
+        pilotAnonymous: pilotAnonymous,
+        airplaneAnonymous: airplaneAnonymous,
+      );
 
   @override
   Future<void> updateFlightDetails({
@@ -91,5 +110,11 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
   @override
   Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0}) =>
       _database.getAircraftTimeStats(airplaneId, initialHours: initialHours);
+
+  @override
+  Future<List<String>> getUniquePilotIds() => _database.getUniquePilotIds();
+
+  @override
+  Future<List<String>> getUniqueAirplaneIds() => _database.getUniqueAirplaneIds();
 
 }

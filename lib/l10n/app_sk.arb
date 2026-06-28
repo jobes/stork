@@ -8,6 +8,8 @@
   "pilot": "Pilot",
   "unknownAircraft": "Neznáme lietadlo",
   "anonymousPilot": "Anonymný pilot",
+  "filterAllPilots": "Všetci piloti",
+  "filterAllAircraft": "Všetky lietadlá",
   "editSettings": "Nastavenia",
   "pilotTotalHours": "Nálet (pilot)",
   "aircraftTotalHours": "Nálet (lietadlo)",

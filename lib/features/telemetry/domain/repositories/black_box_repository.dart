@@ -13,8 +13,19 @@ abstract class BlackBoxRepository {
     int limit, {
     DateTime? lastStartTime,
     String? lastUuid,
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
   });
-  Future<int> getFlightsCount();
+  Future<int> getFlightsCount({
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
+  });
+  Future<List<String>> getUniquePilotIds();
+  Future<List<String>> getUniqueAirplaneIds();
   Future<void> updateFlightDetails({
     required String uuid,
     required String name,

@@ -26,8 +26,17 @@ abstract interface class BlackBoxDatabase {
     int limit, {
     DateTime? lastStartTime,
     String? lastUuid,
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
   });
-  Future<int> getFlightsCount();
+  Future<int> getFlightsCount({
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
+  });
   Future<void> updateFlightDetails({
     required String uuid,
     required String name,
@@ -41,5 +50,7 @@ abstract interface class BlackBoxDatabase {
   Future<void> calculateAndSaveFlightStatistics(String flightUuid);
   Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0});
   Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0});
+  Future<List<String>> getUniquePilotIds();
+  Future<List<String>> getUniqueAirplaneIds();
 }
 

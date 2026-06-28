@@ -33,6 +33,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get anonymousPilot => 'Anonymous pilot';
 
   @override
+  String get filterAllPilots => 'All pilots';
+
+  @override
+  String get filterAllAircraft => 'All aircraft';
+
+  @override
   String get editSettings => 'Settings';
 
   @override

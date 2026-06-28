@@ -108,7 +108,7 @@ final class PilotStatsProvider
   }
 }
 
-String _$pilotStatsHash() => r'f5699b068632ffa5969001bfac34308e1ec72544';
+String _$pilotStatsHash() => r'87ca8ac3cf69a0fabd0f6854ac4db9b588d766dd';
 
 final class PilotStatsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<TimeBasedStats>, String> {

@@ -102,7 +102,7 @@ final class AircraftHoursProvider
   }
 }
 
-String _$aircraftHoursHash() => r'2f5b83bc632794dbf8de9f384a40ac273bd4d82e';
+String _$aircraftHoursHash() => r'c03db7d6518282b25d6fd226f0f9d520607f2cb9';
 
 final class AircraftHoursFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<double>, String> {
@@ -177,7 +177,7 @@ final class AircraftStatsProvider
   }
 }
 
-String _$aircraftStatsHash() => r'0b87de5c8951702dcd1e52f8c29241d74a26d316';
+String _$aircraftStatsHash() => r'b2a92c4bbea5f4d52fd178b21eecca56f73f4a17';
 
 final class AircraftStatsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<TimeBasedStats>, String> {

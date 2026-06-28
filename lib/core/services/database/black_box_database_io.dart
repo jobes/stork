@@ -139,6 +139,12 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     db.execute(
       'CREATE INDEX IF NOT EXISTS idx_flights_start_time ON flights (start_time DESC);',
     );
+    db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_flights_pilot_id ON flights (pilot_id);',
+    );
+    db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_flights_airplane_id ON flights (airplane_id);',
+    );
 
     db.execute('''
       CREATE TABLE IF NOT EXISTS flight_statistics (
@@ -404,29 +410,85 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     int limit, {
     DateTime? lastStartTime,
     String? lastUuid,
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
   }) async {
     final db = await database;
     final lastStartTimeStr = lastStartTime?.toIso8601String();
-    final results = db.select(
-      '''
+
+    final whereClauses = <String>[];
+    final params = <dynamic>[];
+
+    if (lastStartTimeStr != null && lastUuid != null) {
+      whereClauses.add('(f.start_time < ? OR (f.start_time = ? AND f.uuid < ?))');
+      params.addAll([lastStartTimeStr, lastStartTimeStr, lastUuid]);
+    }
+
+    if (pilotAnonymous == true) {
+      whereClauses.add('f.pilot_id IS NULL');
+    } else if (pilotId != null) {
+      whereClauses.add('f.pilot_id = ?');
+      params.add(pilotId);
+    }
+
+    if (airplaneAnonymous == true) {
+      whereClauses.add('f.airplane_id IS NULL');
+    } else if (airplaneId != null) {
+      whereClauses.add('f.airplane_id = ?');
+      params.add(airplaneId);
+    }
+
+    final whereString = whereClauses.isNotEmpty ? 'WHERE ${whereClauses.join(' AND ')}' : '';
+    params.add(limit);
+    final limitParamIdx = params.length;
+
+    final sql = '''
       SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id, f.notes,
              s.max_altitude, s.total_ascent, s.total_descent, s.avg_altitude,
              s.max_ground_speed, s.max_indicated_air_speed, s.avg_ground_speed, s.avg_indicated_air_speed,
              s.total_distance, s.max_distance_from_takeoff, s.avg_engine_rpm
       FROM flights f
       LEFT JOIN flight_statistics s ON f.uuid = s.flight_uuid
-      WHERE (?1 IS NULL OR f.start_time < ?1 OR (f.start_time = ?1 AND f.uuid < ?2))
-      ORDER BY f.start_time DESC, f.uuid DESC LIMIT ?3
-    ''',
-      [lastStartTimeStr, lastUuid, limit],
-    );
+      $whereString
+      ORDER BY f.start_time DESC, f.uuid DESC LIMIT ?$limitParamIdx
+    ''';
+
+    final results = db.select(sql, params);
     return results.map(_mapFlightFromRow).toList();
   }
 
   @override
-  Future<int> getFlightsCount() async {
+  Future<int> getFlightsCount({
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
+  }) async {
     final db = await database;
-    final results = db.select('SELECT COUNT(*) as count FROM flights');
+
+    final whereClauses = <String>[];
+    final params = <dynamic>[];
+
+    if (pilotAnonymous == true) {
+      whereClauses.add('pilot_id IS NULL');
+    } else if (pilotId != null) {
+      whereClauses.add('pilot_id = ?');
+      params.add(pilotId);
+    }
+
+    if (airplaneAnonymous == true) {
+      whereClauses.add('airplane_id IS NULL');
+    } else if (airplaneId != null) {
+      whereClauses.add('airplane_id = ?');
+      params.add(airplaneId);
+    }
+
+    final whereString = whereClauses.isNotEmpty ? 'WHERE ${whereClauses.join(' AND ')}' : '';
+    final sql = 'SELECT COUNT(*) as count FROM flights $whereString';
+
+    final results = db.select(sql, params);
     if (results.isEmpty) return 0;
     return results.first['count'] as int;
   }
@@ -667,6 +729,20 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     final db = await database;
     final results = db.select(_buildStatsQuery('airplane_id'), _buildStatsParams(airplaneId));
     return _calculateStatsFromResults(results, initialHours);
+  }
+
+  @override
+  Future<List<String>> getUniquePilotIds() async {
+    final db = await database;
+    final results = db.select('SELECT DISTINCT pilot_id FROM flights WHERE pilot_id IS NOT NULL');
+    return results.map((r) => r['pilot_id'] as String).toList();
+  }
+
+  @override
+  Future<List<String>> getUniqueAirplaneIds() async {
+    final db = await database;
+    final results = db.select('SELECT DISTINCT airplane_id FROM flights WHERE airplane_id IS NOT NULL');
+    return results.map((r) => r['airplane_id'] as String).toList();
   }
 
 }

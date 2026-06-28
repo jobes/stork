@@ -14,6 +14,8 @@
   "pilot": "Pilot",
   "unknownAircraft": "Unknown aircraft",
   "anonymousPilot": "Anonymous pilot",
+  "filterAllPilots": "All pilots",
+  "filterAllAircraft": "All aircraft",
   "editSettings": "Settings",
   "pilotTotalHours": "Pilot total",
   "aircraftTotalHours": "Aircraft total",

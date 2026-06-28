@@ -33,6 +33,12 @@ class AppLocalizationsSk extends AppLocalizations {
   String get anonymousPilot => 'Anonymný pilot';
 
   @override
+  String get filterAllPilots => 'Všetci piloti';
+
+  @override
+  String get filterAllAircraft => 'Všetky lietadlá';
+
+  @override
   String get editSettings => 'Nastavenia';
 
   @override

@@ -97,12 +97,31 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
     int limit, {
     DateTime? lastStartTime,
     String? lastUuid,
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
   }) async {
     throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
-  Future<int> getFlightsCount() async {
+  Future<int> getFlightsCount({
+    String? pilotId,
+    String? airplaneId,
+    bool? pilotAnonymous,
+    bool? airplaneAnonymous,
+  }) async {
+    throw UnsupportedError('SQLite is not supported on web.');
+  }
+
+  @override
+  Future<List<String>> getUniquePilotIds() async {
+    throw UnsupportedError('SQLite is not supported on web.');
+  }
+
+  @override
+  Future<List<String>> getUniqueAirplaneIds() async {
     throw UnsupportedError('SQLite is not supported on web.');
   }
 
