@@ -14,6 +14,18 @@
   "pilot": "Pilot",
   "unknownAircraft": "Unknown aircraft",
   "anonymousPilot": "Anonymous pilot",
+  "unknownPilotWithId": "Unknown pilot ({id})",
+  "@unknownPilotWithId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "unknownAircraftWithId": "Unknown aircraft ({id})",
+  "@unknownAircraftWithId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
   "filterAllPilots": "All pilots",
   "filterAllAircraft": "All aircraft",
   "editSettings": "Settings",
@@ -218,7 +230,6 @@
   },
   "terrainElevation": "Terrain Elevation",
   "terrainUnderPosition": "Terrain under position",
-  "close": "Close",
   "airport": "Airport",
   "@airport": {
     "description": "Fallback name for airport"
@@ -617,6 +628,19 @@
   "pinSecurityLabel": "PIN Code Security",
   "newPinHint": "New PIN (empty to disable)",
   "pilotPinUpdatedSnackbar": "Pilot PIN code has been updated.",
-  "deselectPilot": "Deselect Pilot"
+  "deselectPilot": "Deselect Pilot",
+  "hoursMinutesFormat": "{hours}h {minutes}m",
+  "@hoursMinutesFormat": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursMinutesFallback": "---h --m",
+  "errorLoadingSettings": "Error loading settings"
 }
 

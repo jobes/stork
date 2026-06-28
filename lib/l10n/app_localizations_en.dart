@@ -33,6 +33,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get anonymousPilot => 'Anonymous pilot';
 
   @override
+  String unknownPilotWithId(String id) {
+    return 'Unknown pilot ($id)';
+  }
+
+  @override
+  String unknownAircraftWithId(String id) {
+    return 'Unknown aircraft ($id)';
+  }
+
+  @override
   String get filterAllPilots => 'All pilots';
 
   @override
@@ -372,9 +382,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get terrainUnderPosition => 'Terrain under position';
-
-  @override
-  String get close => 'Close';
 
   @override
   String get airport => 'Airport';
@@ -1160,6 +1167,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get close => 'Close';
+
+  @override
   String get addPilotTitle => 'Add Pilot';
 
   @override
@@ -1267,4 +1277,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deselectPilot => 'Deselect Pilot';
+
+  @override
+  String hoursMinutesFormat(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String get hoursMinutesFallback => '---h --m';
+
+  @override
+  String get errorLoadingSettings => 'Error loading settings';
 }

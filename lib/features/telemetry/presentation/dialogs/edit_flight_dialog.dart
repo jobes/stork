@@ -8,7 +8,7 @@ import '../../domain/models/flight.dart';
 
 class EditFlightDialog extends ConsumerStatefulWidget {
   final Flight flight;
-  final Function(String name, String? pilotId, String? airplaneId, String? notes) onSave;
+  final Future<void> Function(String name, String? pilotId, String? airplaneId, String? notes) onSave;
 
   const EditFlightDialog({
     super.key,
@@ -77,11 +77,11 @@ class _EditFlightDialogState extends ConsumerState<EditFlightDialog> {
               },
             ),
             const SizedBox(height: 16),
+            // Pilot selection
             pilotsAsync.when(
               data: (pilots) {
                 final hasSelected = _selectedPilotId == null || pilots.any((p) => p.id == _selectedPilotId);
                 final dropdownValue = hasSelected ? _selectedPilotId : null;
-
                 return DropdownButtonFormField<String?>(
                   initialValue: dropdownValue,
                   decoration: InputDecoration(
@@ -138,11 +138,11 @@ class _EditFlightDialogState extends ConsumerState<EditFlightDialog> {
               ),
             ),
             const SizedBox(height: 16),
+            // Aircraft selection
             aircraftsAsync.when(
               data: (aircrafts) {
                 final hasSelected = _selectedAirplaneId == null || aircrafts.any((a) => a.id == _selectedAirplaneId);
                 final dropdownValue = hasSelected ? _selectedAirplaneId : null;
-
                 return DropdownButtonFormField<String?>(
                   initialValue: dropdownValue,
                   decoration: InputDecoration(
@@ -218,17 +218,22 @@ class _EditFlightDialogState extends ConsumerState<EditFlightDialog> {
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       final name = _nameController.text.trim();
                       final notes = _notesController.text.trim();
-                      widget.onSave(
+                      // Sanitize pilot and aircraft IDs against current state
+                      final pilots = pilotsAsync.whenOrNull(data: (p) => p) ?? [];
+                      final aircrafts = aircraftsAsync.whenOrNull(data: (a) => a) ?? [];
+                      final sanitizedPilotId = (_selectedPilotId != null && pilots.any((p) => p.id == _selectedPilotId)) ? _selectedPilotId : null;
+                      final sanitizedAircraftId = (_selectedAirplaneId != null && aircrafts.any((a) => a.id == _selectedAirplaneId)) ? _selectedAirplaneId : null;
+                      await widget.onSave(
                         name,
-                        _selectedPilotId,
-                        _selectedAirplaneId,
+                        sanitizedPilotId,
+                        sanitizedAircraftId,
                         notes.isEmpty ? null : notes,
                       );
-                      Navigator.of(context).pop();
+                      if (context.mounted) Navigator.of(context).pop();
                     }
                   },
                   child: Text(l10n.save),

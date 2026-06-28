@@ -67,17 +67,17 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
       context: context,
       builder: (context) => EditFlightDialog(
         flight: flight,
-        onSave: (name, pilotId, airplaneId, notes) {
-          ref
-              .read(flightRecordsProvider.notifier)
-              .updateFlightDetails(
-                uuid: flight.uuid,
-                name: name,
-                pilotId: pilotId,
-                airplaneId: airplaneId,
-                notes: notes,
-              );
-        },
+        onSave: (name, pilotId, airplaneId, notes) async {
+            await ref
+                .read(flightRecordsProvider.notifier)
+                .updateFlightDetails(
+                  uuid: flight.uuid,
+                  name: name,
+                  pilotId: pilotId,
+                  airplaneId: airplaneId,
+                  notes: notes,
+                );
+          },
       ),
     );
   }
@@ -179,7 +179,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
         child: Text(l10n.anonymousPilot),
       ),
       ...allPilotIds.map((id) {
-        final name = pilotNames[id] ?? 'Neznámy pilot ($id)';
+        final name = pilotNames[id] ?? l10n.unknownPilotWithId(id);
         return DropdownMenuItem<String?>(
           value: id,
           child: Text(name),
@@ -197,7 +197,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
         child: Text(l10n.unknownAircraft),
       ),
       ...allAircraftIds.map((id) {
-        final name = aircraftNames[id] ?? 'Neznáme lietadlo ($id)';
+        final name = aircraftNames[id] ?? l10n.unknownAircraftWithId(id);
         return DropdownMenuItem<String?>(
           value: id,
           child: Text(name),
@@ -215,7 +215,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String?>(
-                    value: filterPilotId,
+                    initialValue: filterPilotId,
                     decoration: InputDecoration(
                       labelText: l10n.pilot,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -234,7 +234,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<String?>(
-                    value: filterAirplaneId,
+                    initialValue: filterAirplaneId,
                     decoration: InputDecoration(
                       labelText: l10n.aircraft,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -408,7 +408,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Poznámka',
+                                          l10n.flightNotes,
                                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                             fontWeight: FontWeight.bold,
                                           ),

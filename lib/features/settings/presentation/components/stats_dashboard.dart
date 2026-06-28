@@ -107,7 +107,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.today,
-                  value: _formatHours(stats.todayHours),
+                  value: _formatHours(l10n, stats.todayHours),
                   flights: stats.todayFlights,
                   icon: Icons.today,
                   color: Colors.blue,
@@ -115,7 +115,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.thisWeek,
-                  value: _formatHours(stats.thisWeekHours),
+                  value: _formatHours(l10n, stats.thisWeekHours),
                   flights: stats.thisWeekFlights,
                   icon: Icons.calendar_view_week,
                   color: Colors.orange,
@@ -123,7 +123,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.thisMonth,
-                  value: _formatHours(stats.thisMonthHours),
+                  value: _formatHours(l10n, stats.thisMonthHours),
                   flights: stats.thisMonthFlights,
                   icon: Icons.calendar_month,
                   color: Colors.purple,
@@ -131,7 +131,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.thisYear,
-                  value: _formatHours(stats.thisYearHours),
+                  value: _formatHours(l10n, stats.thisYearHours),
                   flights: stats.thisYearFlights,
                   icon: Icons.calendar_today,
                   color: Colors.teal,
@@ -139,7 +139,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.overall,
-                  value: _formatHours(stats.totalHours),
+                  value: _formatHours(l10n, stats.totalHours),
                   flights: stats.totalFlights,
                   icon: Icons.flight_takeoff,
                   color: Colors.green,
@@ -187,7 +187,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.today,
-                  value: _formatHours(stats.todayHours),
+                  value: _formatHours(l10n, stats.todayHours),
                   flights: stats.todayFlights,
                   icon: Icons.today,
                   color: Colors.blue,
@@ -195,7 +195,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.thisWeek,
-                  value: _formatHours(stats.thisWeekHours),
+                  value: _formatHours(l10n, stats.thisWeekHours),
                   flights: stats.thisWeekFlights,
                   icon: Icons.calendar_view_week,
                   color: Colors.orange,
@@ -203,7 +203,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.thisMonth,
-                  value: _formatHours(stats.thisMonthHours),
+                  value: _formatHours(l10n, stats.thisMonthHours),
                   flights: stats.thisMonthFlights,
                   icon: Icons.calendar_month,
                   color: Colors.purple,
@@ -211,7 +211,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.thisYear,
-                  value: _formatHours(stats.thisYearHours),
+                  value: _formatHours(l10n, stats.thisYearHours),
                   flights: stats.thisYearFlights,
                   icon: Icons.calendar_today,
                   color: Colors.teal,
@@ -219,7 +219,7 @@ class StatsDashboard extends ConsumerWidget {
                 _buildStatCard(
                   context: context,
                   title: l10n.overall,
-                  value: _formatHours(stats.totalHours),
+                  value: _formatHours(l10n, stats.totalHours),
                   flights: stats.totalFlights,
                   icon: Icons.flight_takeoff,
                   color: Colors.green,
@@ -302,10 +302,10 @@ class StatsDashboard extends ConsumerWidget {
     );
   }
 
-  String _formatHours(double hours) {
+  String _formatHours(AppLocalizations l10n, double hours) {
     final totalMinutes = (hours * 60).round();
     final h = totalMinutes ~/ 60;
     final m = totalMinutes % 60;
-    return '${h}h ${m}m';
+    return '$h${l10n.durationHoursSuffix} $m${l10n.durationMinutesSuffix}';
   }
 }

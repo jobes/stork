@@ -146,6 +146,18 @@ abstract class AppLocalizations {
   /// **'Anonymous pilot'**
   String get anonymousPilot;
 
+  /// No description provided for @unknownPilotWithId.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown pilot ({id})'**
+  String unknownPilotWithId(String id);
+
+  /// No description provided for @unknownAircraftWithId.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown aircraft ({id})'**
+  String unknownAircraftWithId(String id);
+
   /// No description provided for @filterAllPilots.
   ///
   /// In en, this message translates to:
@@ -787,12 +799,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terrain under position'**
   String get terrainUnderPosition;
-
-  /// No description provided for @close.
-  ///
-  /// In en, this message translates to:
-  /// **'Close'**
-  String get close;
 
   /// Fallback name for airport
   ///
@@ -2282,6 +2288,12 @@ abstract class AppLocalizations {
   /// **'Aircraft \"{name}\" has been deleted.'**
   String aircraftDeletedSnackbar(String name);
 
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
   /// No description provided for @addPilotTitle.
   ///
   /// In en, this message translates to:
@@ -2491,6 +2503,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deselect Pilot'**
   String get deselectPilot;
+
+  /// No description provided for @hoursMinutesFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String hoursMinutesFormat(int hours, int minutes);
+
+  /// No description provided for @hoursMinutesFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'---h --m'**
+  String get hoursMinutesFallback;
+
+  /// No description provided for @errorLoadingSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading settings'**
+  String get errorLoadingSettings;
 }
 
 class _AppLocalizationsDelegate

@@ -55,8 +55,16 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                       );
                       return;
                     }
+                    final latestPilotHours = (() {
+                      final async = ref.read(pilotStateProvider);
+                      final list = async.asData?.value;
+                      if (list != null) {
+                        return list.firstWhere((p) => p.id == pilot.id, orElse: () => pilot);
+                      }
+                      return pilot;
+                    })();
                     await ref.read(pilotStateProvider.notifier).updatePilot(
-                          pilot.copyWith(initialFlightHours: hours),
+                          latestPilotHours.copyWith(initialFlightHours: hours),
                         );
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -104,8 +112,16 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                       );
                       return;
                     }
+                    final latestPilotFlights = (() {
+                      final async = ref.read(pilotStateProvider);
+                      final list = async.asData?.value;
+                      if (list != null) {
+                        return list.firstWhere((p) => p.id == pilot.id, orElse: () => pilot);
+                      }
+                      return pilot;
+                    })();
                     await ref.read(pilotStateProvider.notifier).updatePilot(
-                          pilot.copyWith(initialFlights: flights),
+                          latestPilotFlights.copyWith(initialFlights: flights),
                         );
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -148,8 +164,16 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                 ElevatedButton(
                   onPressed: () async {
                     final pinText = pinConfirmController.text.trim();
+                    final latestPilotPin = (() {
+                      final async = ref.read(pilotStateProvider);
+                      final list = async.asData?.value;
+                      if (list != null) {
+                        return list.firstWhere((p) => p.id == pilot.id, orElse: () => pilot);
+                      }
+                      return pilot;
+                    })();
                     await ref.read(pilotStateProvider.notifier).updatePilot(
-                          pilot.copyWith(pin: pinText.isEmpty ? null : pinText),
+                          latestPilotPin.copyWith(pin: pinText.isEmpty ? null : pinText),
                         );
                     pinConfirmController.clear();
                     if (context.mounted) {
@@ -241,10 +265,10 @@ Future<void> requestDeletePilot(BuildContext context, WidgetRef ref, Pilot pilot
     final success = await promptForPin(context, pilot, l10n.deletePilotPinPrompt);
     if (success) {
       final settings = ref.read(appSettingsProvider).value;
+      await ref.read(pilotStateProvider.notifier).deletePilot(pilot.id);
       if (settings?.pilotId == pilot.id) {
         await ref.read(appSettingsProvider.notifier).updatePilotId(null);
       }
-      await ref.read(pilotStateProvider.notifier).deletePilot(pilot.id);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.pilotDeletedSnackbar(pilot.name))),

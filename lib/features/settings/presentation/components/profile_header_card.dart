@@ -249,11 +249,11 @@ class ProfileHeaderCard extends ConsumerWidget {
                             Text(
                               aircraftHoursAsync != null
                                   ? aircraftHoursAsync!.when(
-                                      data: (hrs) => l10n.hoursFlown(_formatHours(hrs)),
+                                      data: (hrs) => l10n.hoursFlown(_formatHours(l10n, hrs)),
                                       loading: () => l10n.hoursFlown('...'),
                                       error: (err, stack) => l10n.hoursFlown('--'),
                                     )
-                                  : l10n.hoursFlown('0h 0m'),
+                                  : l10n.hoursFlown(_formatHours(l10n, 0.0)),
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: theme.colorScheme.onPrimary.withValues(alpha: 0.85),
                               ),
@@ -272,10 +272,10 @@ class ProfileHeaderCard extends ConsumerWidget {
     );
   }
 
-  String _formatHours(double hours) {
+  String _formatHours(AppLocalizations l10n, double hours) {
     final totalMinutes = (hours * 60).round();
     final h = totalMinutes ~/ 60;
     final m = totalMinutes % 60;
-    return '${h}h ${m}m';
+    return '$h${l10n.durationHoursSuffix} $m${l10n.durationMinutesSuffix}';
   }
 }

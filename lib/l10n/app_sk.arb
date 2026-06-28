@@ -8,6 +8,8 @@
   "pilot": "Pilot",
   "unknownAircraft": "Neznáme lietadlo",
   "anonymousPilot": "Anonymný pilot",
+  "unknownPilotWithId": "Neznámy pilot ({id})",
+  "unknownAircraftWithId": "Neznáme lietadlo ({id})",
   "filterAllPilots": "Všetci piloti",
   "filterAllAircraft": "Všetky lietadlá",
   "editSettings": "Nastavenia",
@@ -173,7 +175,6 @@
   "qnhOutOfRange": "Mimo rozsah ({min} - {max})",
   "terrainElevation": "Nadmorská výška terénu",
   "terrainUnderPosition": "Terén pod polohou",
-  "close": "Zavrieť",
   "airport": "Letisko",
   "tune": "NALADIŤ",
   "mainRunway": "Hlavná dráha",
@@ -539,5 +540,18 @@
   "pinSecurityLabel": "Zabezpečenie PIN kódom",
   "newPinHint": "Nový PIN (prázdny pre vypnutie)",
   "pilotPinUpdatedSnackbar": "PIN kód pilota bol aktualizovaný.",
-  "deselectPilot": "Odhlásiť pilota (Neznáme)"
+  "deselectPilot": "Odhlásiť pilota (Neznáme)",
+  "hoursMinutesFormat": "{hours}h {minutes}m",
+  "@hoursMinutesFormat": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursMinutesFallback": "---h --m",
+  "errorLoadingSettings": "Chyba pri načítaní nastavení"
 }

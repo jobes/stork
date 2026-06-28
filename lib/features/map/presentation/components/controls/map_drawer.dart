@@ -14,11 +14,11 @@ import '../../../../settings/domain/models/aircraft.dart';
 class MapDrawer extends ConsumerWidget {
   const MapDrawer({super.key});
 
-  String _formatHoursMinutes(double totalHours) {
+  String _formatHoursMinutes(double totalHours, AppLocalizations l10n) {
     final totalMinutes = (totalHours * 60).round();
     final hours = totalMinutes ~/ 60;
     final minutes = totalMinutes % 60;
-    return '${hours}h ${minutes}m';
+    return l10n.hoursMinutesFormat(hours, minutes);
   }
 
   @override
@@ -72,12 +72,12 @@ class MapDrawer extends ConsumerWidget {
                   final airplaneNameText = activeAircraft?.name ?? l10n.unknownAircraft;
 
                   final pilotHoursText = statsAsync?.value != null
-                      ? _formatHoursMinutes(statsAsync!.value!.totalHours)
-                      : '---h --m';
+                      ? _formatHoursMinutes(statsAsync!.value!.totalHours, l10n)
+                      : l10n.hoursMinutesFallback;
 
                   final aircraftHoursText = aircraftHoursAsync?.value != null
-                      ? _formatHoursMinutes(aircraftHoursAsync!.value!)
-                      : '---h --m';
+                      ? _formatHoursMinutes(aircraftHoursAsync!.value!, l10n)
+                      : l10n.hoursMinutesFallback;
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +155,7 @@ class MapDrawer extends ConsumerWidget {
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: Colors.white),
                 ),
-                error: (err, stack) => const Text('Error loading settings'),
+                error: (err, stack) => Text(l10n.errorLoadingSettings),
               ),
             ),
             ListTile(

@@ -25,8 +25,7 @@ class PilotRepository {
             .toList();
       } catch (e) {
         debugPrint('PilotRepository: Failed to parse pilots JSON: $e');
-        // On error, return empty list instead of crashing
-        return [];
+        rethrow;
       }
     }
     return [];

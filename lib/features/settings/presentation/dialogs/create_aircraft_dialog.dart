@@ -51,15 +51,26 @@ void showCreateAircraftDialog(BuildContext context, WidgetRef ref) {
                     onPressed: () async {
                       if (formKey.currentState!.validate()) {
                         final name = nameController.text.trim();
-                        final dialogNavigator = Navigator.of(dialogCtx);
                         
                         final newId = await ref.read(aircraftStateProvider.notifier).createAircraft(
                               name: name,
                             );
                         
-                        await ref.read(appSettingsProvider.notifier).updateAirplaneId(newId);
+                        final result = await ref.read(appSettingsProvider.notifier).updateAirplaneId(newId);
                         
-                        dialogNavigator.pop();
+                        if (result is SettingsUpdateSuccess) {
+                          if (dialogCtx.mounted) {
+                            Navigator.of(dialogCtx).pop();
+                          }
+                        } else if (result is SettingsUpdateFailure) {
+                          if (dialogCtx.mounted) {
+                            ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to update settings: ${result.error}'),
+                              ),
+                            );
+                          }
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(

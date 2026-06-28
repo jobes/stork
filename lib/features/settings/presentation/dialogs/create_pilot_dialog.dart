@@ -67,20 +67,23 @@ void showCreatePilotDialog(BuildContext context, WidgetRef ref, {void Function(S
                         final name = nameController.text.trim();
                         final pin = pinController.text.trim();
                         final dialogNavigator = Navigator.of(dialogCtx);
-                        
+
                         final newId = await ref.read(pilotStateProvider.notifier).createPilot(
-                              name: name,
-                              pin: pin.isEmpty ? null : pin,
-                            );
-                        
+                          name: name,
+                          pin: pin.isEmpty ? null : pin,
+                        );
+
                         // Switch to the newly created pilot automatically
-                        await ref.read(appSettingsProvider.notifier).updatePilotId(newId);
-                        
-                        if (onCreated != null) {
-                          onCreated(newId);
+                        final updateResult = await ref.read(appSettingsProvider.notifier).updatePilotId(newId);
+
+                        if (updateResult is SettingsUpdateSuccess) {
+                          if (onCreated != null) {
+                            onCreated(newId);
+                          }
+                          if (dialogCtx.mounted) {
+                            dialogNavigator.pop();
+                          }
                         }
-                        
-                        dialogNavigator.pop();
                       }
                     },
                     style: ElevatedButton.styleFrom(

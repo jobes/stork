@@ -33,6 +33,16 @@ class AppLocalizationsSk extends AppLocalizations {
   String get anonymousPilot => 'Anonymný pilot';
 
   @override
+  String unknownPilotWithId(String id) {
+    return 'Neznámy pilot ($id)';
+  }
+
+  @override
+  String unknownAircraftWithId(String id) {
+    return 'Neznáme lietadlo ($id)';
+  }
+
+  @override
   String get filterAllPilots => 'Všetci piloti';
 
   @override
@@ -372,9 +382,6 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get terrainUnderPosition => 'Terén pod polohou';
-
-  @override
-  String get close => 'Zatvoriť';
 
   @override
   String get airport => 'Letisko';
@@ -1162,6 +1169,9 @@ class AppLocalizationsSk extends AppLocalizations {
   }
 
   @override
+  String get close => 'Zatvoriť';
+
+  @override
   String get addPilotTitle => 'Pridať pilota';
 
   @override
@@ -1268,4 +1278,15 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get deselectPilot => 'Odhlásiť pilota (Neznáme)';
+
+  @override
+  String hoursMinutesFormat(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String get hoursMinutesFallback => '---h --m';
+
+  @override
+  String get errorLoadingSettings => 'Chyba pri načítaní nastavení';
 }

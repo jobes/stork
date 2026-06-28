@@ -37,7 +37,7 @@ class BlackBoxService extends _$BlackBoxService {
       repo
           .recoverUnfinishedFlights()
           .then((_) {
-            ref.invalidate(flightRecordsProvider);
+            ref.read(flightRecordsProvider.notifier).refresh();
           })
           .catchError((e) {
             debugPrint('Error recovering unfinished flights: $e');
@@ -108,7 +108,7 @@ class BlackBoxService extends _$BlackBoxService {
         .saveFlight(flight)
         .then((_) {
           _flightCreationFuture = null;
-          ref.invalidate(flightRecordsProvider);
+          ref.read(flightRecordsProvider.notifier).refresh();
 
           // Setup periodic database flusher (every 1 second)
           _flushTimer?.cancel();
@@ -154,7 +154,7 @@ class BlackBoxService extends _$BlackBoxService {
     try {
       await repo.updateFlightEndTime(uuid, now);
       await repo.calculateAndSaveFlightStatistics(uuid);
-      ref.invalidate(flightRecordsProvider);
+      ref.read(flightRecordsProvider.notifier).refresh();
     } catch (e) {
       debugPrint('Error updating flight end time: $e');
     }

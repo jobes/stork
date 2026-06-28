@@ -526,64 +526,89 @@ void main() {
       });
     });
 
-    test('flightRecordsProvider is invalidated when flights start, end, and recover', () {
-      fakeAsync((async) {
-        final mockDb = FakeDelayingBlackBoxDatabase();
-        mockDb.dbPathOverride = dbPath;
-        mockDb.database = db;
-        mockDb.setupTables(db);
-        mockDb.runStatsSynchronously = true;
+    test('flightRecordsProvider recovers unfinished flights and updates on start/stop', () {
+        fakeAsync((async) {
+          final mockDb = FakeDelayingBlackBoxDatabase();
+          mockDb.dbPathOverride = dbPath;
+          mockDb.database = db;
+          mockDb.setupTables(db);
+          mockDb.runStatsSynchronously = true;
 
-        final container = ProviderContainer(
-          overrides: [
-            blackBoxDatabaseProvider.overrideWithValue(mockDb),
-            appSettingsProvider.overrideWith(
-              () => MockAppSettingsNotifier(
-                const AppSettings(
-                  pilotId: 'test-pilot',
-                  airplaneId: 'test-plane',
+          // Seed an unfinished flight (endTime null) directly in the fake DB
+          final unfinishedFlight = Flight(
+            uuid: 'unfinished-uuid',
+            name: 'Unfinished Flight',
+            startTime: DateTime.now(),
+            pilotId: 'test-pilot',
+            airplaneId: 'test-plane',
+          );
+          // Save without awaiting; IoBlackBoxDatabase uses synchronous sqlite calls internally
+          mockDb.saveFlight(unfinishedFlight);
+          async.flushMicrotasks();
+
+          final container = ProviderContainer(
+            overrides: [
+              blackBoxDatabaseProvider.overrideWithValue(mockDb),
+              appSettingsProvider.overrideWith(
+                () => MockAppSettingsNotifier(
+                  const AppSettings(
+                    pilotId: 'test-pilot',
+                    airplaneId: 'test-plane',
+                  ),
                 ),
               ),
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+            ],
+          );
+          // Wait for recovery to finish
+          async.elapse(const Duration(seconds: 1));
+          async.flushMicrotasks();
 
-        // Keep flightRecordsProvider listened so it retains its state
-        final recordsListener = container.listen(flightRecordsProvider, (prev, next) {});
+          // Keep flightRecordsProvider listened so it retains its state
+          final recordsListener = container.listen(flightRecordsProvider, (prev, next) {});
 
-        // Build black box service
-        final serviceSub = container.listen(blackBoxServiceProvider, (prev, next) {});
-        final telemetryNotifier = container.read(telemetryProvider.notifier);
+          // Build black box service (triggers recovery)
+          final serviceSub = container.listen(blackBoxServiceProvider, (prev, next) {});
+          final telemetryNotifier = container.read(telemetryProvider.notifier);
 
-        // Initially we should have 0 flights
-        async.elapse(const Duration(milliseconds: 100)); // wait for recovery to finish
-        expect(container.read(flightRecordsProvider).value?.flights.length, equals(0));
+          // Allow recovery to run – the provider should now contain the seeded flight with a recovered endTime
+          async.elapse(const Duration(milliseconds: 500));
+          async.flushMicrotasks();
+          async.elapse(const Duration(milliseconds: 100));
+          async.flushMicrotasks();
+          async.elapse(const Duration(milliseconds: 500));
+          async.flushMicrotasks();
+          
+          final recovered = container.read(flightRecordsProvider).value;
+          expect(recovered?.flights.length, equals(1));
+          expect(recovered?.flights.first.uuid, equals('unfinished-uuid'));
+          expect(recovered?.flights.first.endTime, isNotNull,
+            reason: 'recoverUnfinishedFlights should set a non‑null endTime');
 
-        // Start flying
-        telemetryNotifier.updateGPS(
-          latitude: 48.0,
-          longitude: 17.0,
-          groundSpeed: 10.0,
-        );
-        async.elapse(const Duration(milliseconds: 100)); // wait for saveFlight and invalidate to propagate
+          // Start a new flight – this should add a second entry
+          telemetryNotifier.updateGPS(
+            latitude: 48.0,
+            longitude: 17.0,
+            groundSpeed: 10.0,
+          );
+          async.elapse(const Duration(milliseconds: 100));
+          final afterStart = container.read(flightRecordsProvider).value;
+          expect(afterStart?.flights.length, equals(2));
+          // The newest flight should have a null endTime initially
+          final newFlight = afterStart?.flights.firstWhere((f) => f.uuid != 'unfinished-uuid');
+          expect(newFlight?.endTime, isNull);
 
-        // The flightRecordsProvider should now be updated (invalidated & rebuilt)
-        expect(container.read(flightRecordsProvider).value?.flights.length, equals(1));
-        expect(container.read(flightRecordsProvider).value?.flights.first.endTime, isNull);
+          // Stop the new flight – endTime should become non‑null
+          telemetryNotifier.updateGPS(groundSpeed: 0.0);
+          async.elapse(const Duration(milliseconds: 100));
+          final afterStop = container.read(flightRecordsProvider).value;
+          expect(afterStop?.flights.length, equals(2));
+          final stoppedFlight = afterStop?.flights.firstWhere((f) => f.uuid != 'unfinished-uuid');
+          expect(stoppedFlight?.endTime, isNotNull);
 
-        // Stop flying
-        telemetryNotifier.updateGPS(groundSpeed: 0.0);
-        async.elapse(const Duration(milliseconds: 100)); // wait for _endFlight and invalidate
-
-        // The flightRecordsProvider should have updated again, flight.endTime should be non-null
-        expect(container.read(flightRecordsProvider).value?.flights.length, equals(1));
-        expect(container.read(flightRecordsProvider).value?.flights.first.endTime, isNotNull);
-
-        serviceSub.close();
-        recordsListener.close();
+          serviceSub.close();
+          recordsListener.close();
+        });
       });
-    });
   });
 }
 

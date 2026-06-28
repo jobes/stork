@@ -25,8 +25,7 @@ class AircraftRepository {
             .toList();
       } catch (e) {
         debugPrint('AircraftRepository: Failed to parse aircrafts JSON: $e');
-        // On error, return empty list instead of crashing
-        return [];
+        rethrow;
       }
     }
     return [];
