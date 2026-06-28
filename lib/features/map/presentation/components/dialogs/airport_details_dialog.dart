@@ -169,19 +169,15 @@ class AirportDetailsDialog extends ConsumerWidget {
     AppLocalizations l10n,
     bool isDark,
   ) {
-    return Flexible(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildGeneralInfo(metadata, l10n, isDark),
-            _buildWarnings(context, metadata, l10n),
-            _buildFrequencies(context, metadata, l10n, isDark),
-            _buildRunways(context, metadata, l10n, isDark),
-            _buildImages(ref, metadata, l10n),
-          ],
-        ),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildGeneralInfo(metadata, l10n, isDark),
+        _buildWarnings(context, metadata, l10n),
+        _buildFrequencies(context, metadata, l10n, isDark),
+        _buildRunways(context, metadata, l10n, isDark),
+        _buildImages(ref, metadata, l10n),
+      ],
     );
   }
 

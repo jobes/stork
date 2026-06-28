@@ -6,6 +6,7 @@ import '../../features/offline_maps/presentation/pages/offline_maps_page_web.dar
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/navigation/presentation/pages/navigation_page.dart';
 import '../../features/telemetry/presentation/pages/flight_records_page.dart';
+import '../../features/settings/presentation/pages/profile_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -27,6 +28,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/flight-records',
       builder: (context, state) => const FlightRecordsPage(),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfilePage(),
     ),
   ],
 );

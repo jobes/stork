@@ -291,89 +291,85 @@ class NavigationDetailsDialog extends ConsumerWidget {
           icon: Icons.explore,
           maxWidth: 450,
           maxHeight: 600, // Bound height to allow scrollable content
-          child: Flexible(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Summary container
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withAlpha(15)
-                          : Colors.black.withAlpha(10),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isDark ? Colors.white12 : Colors.black12,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Summary container
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withAlpha(15)
+                      : Colors.black.withAlpha(10),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? Colors.white12 : Colors.black12,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    if (hasMultiplePoints) ...[
+                      _buildDetailRow(
+                        context: context,
+                        icon: Icons.arrow_right_alt,
+                        iconColor: Colors.orangeAccent,
+                        label: '${l10n.nearestPoint} ($nearestPointName)',
+                        distance: distToNearestStr,
+                        time: timeToNearestStr,
+                        eta: etaNearestStr,
+                        isDark: isDark,
                       ),
+                      const Divider(height: 20),
+                    ],
+                    _buildDetailRow(
+                      context: context,
+                      icon: Icons.flag_outlined,
+                      iconColor: Colors.green,
+                      label: '${l10n.destinationPoint} ($destPointName)',
+                      distance: distToDestStr,
+                      time: timeToDestStr,
+                      eta: etaDestStr,
+                      isDark: isDark,
                     ),
-                    child: Column(
+                    const Divider(height: 20),
+                    Row(
                       children: [
-                        if (hasMultiplePoints) ...[
-                          _buildDetailRow(
-                            context: context,
-                            icon: Icons.arrow_right_alt,
-                            iconColor: Colors.orangeAccent,
-                            label: '${l10n.nearestPoint} ($nearestPointName)',
-                            distance: distToNearestStr,
-                            time: timeToNearestStr,
-                            eta: etaNearestStr,
-                            isDark: isDark,
-                          ),
-                          const Divider(height: 20),
-                        ],
-                        _buildDetailRow(
-                          context: context,
-                          icon: Icons.flag_outlined,
-                          iconColor: Colors.green,
-                          label: '${l10n.destinationPoint} ($destPointName)',
-                          distance: distToDestStr,
-                          time: timeToDestStr,
-                          eta: etaDestStr,
-                          isDark: isDark,
+                        Icon(
+                          Icons.speed_outlined,
+                          size: 16,
+                          color: isDark ? Colors.white60 : Colors.black54,
                         ),
-                        const Divider(height: 20),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.speed_outlined,
-                              size: 16,
-                              color: isDark ? Colors.white60 : Colors.black54,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            l10n.activeSpeedLabel(
+                              speedValFormatted,
+                              speedUnitAbbr,
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                l10n.activeSpeedLabel(
-                                  speedValFormatted,
-                                  speedUnitAbbr,
-                                ),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: defaultTextColor,
-                                ),
-                              ),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: defaultTextColor,
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.waypointsList,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: valueColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...waypointWidgets,
-                ],
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.waypointsList,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: valueColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...waypointWidgets,
+            ],
           ),
         );
       },

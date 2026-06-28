@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Flight {
 
- String get uuid; String get name;@JsonKey(name: 'start_time') DateTime get startTime;@JsonKey(name: 'end_time') DateTime? get endTime;@JsonKey(name: 'pilot_id') String? get pilotId;@JsonKey(name: 'airplane_id') String? get airplaneId; FlightStatistics? get statistics;
+ String get uuid; String get name;@JsonKey(name: 'start_time') DateTime get startTime;@JsonKey(name: 'end_time') DateTime? get endTime;@JsonKey(name: 'pilot_id') String? get pilotId;@JsonKey(name: 'airplane_id') String? get airplaneId; String? get notes; FlightStatistics? get statistics;
 /// Create a copy of Flight
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $FlightCopyWith<Flight> get copyWith => _$FlightCopyWithImpl<Flight>(this as Fli
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Flight&&(identical(other.uuid, uuid) || other.uuid == uuid)&&(identical(other.name, name) || other.name == name)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.pilotId, pilotId) || other.pilotId == pilotId)&&(identical(other.airplaneId, airplaneId) || other.airplaneId == airplaneId)&&(identical(other.statistics, statistics) || other.statistics == statistics));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Flight&&(identical(other.uuid, uuid) || other.uuid == uuid)&&(identical(other.name, name) || other.name == name)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.pilotId, pilotId) || other.pilotId == pilotId)&&(identical(other.airplaneId, airplaneId) || other.airplaneId == airplaneId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.statistics, statistics) || other.statistics == statistics));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uuid,name,startTime,endTime,pilotId,airplaneId,statistics);
+int get hashCode => Object.hash(runtimeType,uuid,name,startTime,endTime,pilotId,airplaneId,notes,statistics);
 
 @override
 String toString() {
-  return 'Flight(uuid: $uuid, name: $name, startTime: $startTime, endTime: $endTime, pilotId: $pilotId, airplaneId: $airplaneId, statistics: $statistics)';
+  return 'Flight(uuid: $uuid, name: $name, startTime: $startTime, endTime: $endTime, pilotId: $pilotId, airplaneId: $airplaneId, notes: $notes, statistics: $statistics)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $FlightCopyWith<$Res>  {
   factory $FlightCopyWith(Flight value, $Res Function(Flight) _then) = _$FlightCopyWithImpl;
 @useResult
 $Res call({
- String uuid, String name,@JsonKey(name: 'start_time') DateTime startTime,@JsonKey(name: 'end_time') DateTime? endTime,@JsonKey(name: 'pilot_id') String? pilotId,@JsonKey(name: 'airplane_id') String? airplaneId, FlightStatistics? statistics
+ String uuid, String name,@JsonKey(name: 'start_time') DateTime startTime,@JsonKey(name: 'end_time') DateTime? endTime,@JsonKey(name: 'pilot_id') String? pilotId,@JsonKey(name: 'airplane_id') String? airplaneId, String? notes, FlightStatistics? statistics
 });
 
 
@@ -65,7 +65,7 @@ class _$FlightCopyWithImpl<$Res>
 
 /// Create a copy of Flight
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? uuid = null,Object? name = null,Object? startTime = null,Object? endTime = freezed,Object? pilotId = freezed,Object? airplaneId = freezed,Object? statistics = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? uuid = null,Object? name = null,Object? startTime = null,Object? endTime = freezed,Object? pilotId = freezed,Object? airplaneId = freezed,Object? notes = freezed,Object? statistics = freezed,}) {
   return _then(_self.copyWith(
 uuid: null == uuid ? _self.uuid : uuid // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -73,6 +73,7 @@ as String,startTime: null == startTime ? _self.startTime : startTime // ignore: 
 as DateTime,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
 as DateTime?,pilotId: freezed == pilotId ? _self.pilotId : pilotId // ignore: cast_nullable_to_non_nullable
 as String?,airplaneId: freezed == airplaneId ? _self.airplaneId : airplaneId // ignore: cast_nullable_to_non_nullable
+as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,statistics: freezed == statistics ? _self.statistics : statistics // ignore: cast_nullable_to_non_nullable
 as FlightStatistics?,
   ));
@@ -171,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uuid,  String name, @JsonKey(name: 'start_time')  DateTime startTime, @JsonKey(name: 'end_time')  DateTime? endTime, @JsonKey(name: 'pilot_id')  String? pilotId, @JsonKey(name: 'airplane_id')  String? airplaneId,  FlightStatistics? statistics)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uuid,  String name, @JsonKey(name: 'start_time')  DateTime startTime, @JsonKey(name: 'end_time')  DateTime? endTime, @JsonKey(name: 'pilot_id')  String? pilotId, @JsonKey(name: 'airplane_id')  String? airplaneId,  String? notes,  FlightStatistics? statistics)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Flight() when $default != null:
-return $default(_that.uuid,_that.name,_that.startTime,_that.endTime,_that.pilotId,_that.airplaneId,_that.statistics);case _:
+return $default(_that.uuid,_that.name,_that.startTime,_that.endTime,_that.pilotId,_that.airplaneId,_that.notes,_that.statistics);case _:
   return orElse();
 
 }
@@ -192,10 +193,10 @@ return $default(_that.uuid,_that.name,_that.startTime,_that.endTime,_that.pilotI
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uuid,  String name, @JsonKey(name: 'start_time')  DateTime startTime, @JsonKey(name: 'end_time')  DateTime? endTime, @JsonKey(name: 'pilot_id')  String? pilotId, @JsonKey(name: 'airplane_id')  String? airplaneId,  FlightStatistics? statistics)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uuid,  String name, @JsonKey(name: 'start_time')  DateTime startTime, @JsonKey(name: 'end_time')  DateTime? endTime, @JsonKey(name: 'pilot_id')  String? pilotId, @JsonKey(name: 'airplane_id')  String? airplaneId,  String? notes,  FlightStatistics? statistics)  $default,) {final _that = this;
 switch (_that) {
 case _Flight():
-return $default(_that.uuid,_that.name,_that.startTime,_that.endTime,_that.pilotId,_that.airplaneId,_that.statistics);case _:
+return $default(_that.uuid,_that.name,_that.startTime,_that.endTime,_that.pilotId,_that.airplaneId,_that.notes,_that.statistics);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -212,10 +213,10 @@ return $default(_that.uuid,_that.name,_that.startTime,_that.endTime,_that.pilotI
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uuid,  String name, @JsonKey(name: 'start_time')  DateTime startTime, @JsonKey(name: 'end_time')  DateTime? endTime, @JsonKey(name: 'pilot_id')  String? pilotId, @JsonKey(name: 'airplane_id')  String? airplaneId,  FlightStatistics? statistics)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uuid,  String name, @JsonKey(name: 'start_time')  DateTime startTime, @JsonKey(name: 'end_time')  DateTime? endTime, @JsonKey(name: 'pilot_id')  String? pilotId, @JsonKey(name: 'airplane_id')  String? airplaneId,  String? notes,  FlightStatistics? statistics)?  $default,) {final _that = this;
 switch (_that) {
 case _Flight() when $default != null:
-return $default(_that.uuid,_that.name,_that.startTime,_that.endTime,_that.pilotId,_that.airplaneId,_that.statistics);case _:
+return $default(_that.uuid,_that.name,_that.startTime,_that.endTime,_that.pilotId,_that.airplaneId,_that.notes,_that.statistics);case _:
   return null;
 
 }
@@ -227,7 +228,7 @@ return $default(_that.uuid,_that.name,_that.startTime,_that.endTime,_that.pilotI
 @JsonSerializable()
 
 class _Flight implements Flight {
-  const _Flight({required this.uuid, required this.name, @JsonKey(name: 'start_time') required this.startTime, @JsonKey(name: 'end_time') this.endTime, @JsonKey(name: 'pilot_id') this.pilotId, @JsonKey(name: 'airplane_id') this.airplaneId, this.statistics});
+  const _Flight({required this.uuid, required this.name, @JsonKey(name: 'start_time') required this.startTime, @JsonKey(name: 'end_time') this.endTime, @JsonKey(name: 'pilot_id') this.pilotId, @JsonKey(name: 'airplane_id') this.airplaneId, this.notes, this.statistics});
   factory _Flight.fromJson(Map<String, dynamic> json) => _$FlightFromJson(json);
 
 @override final  String uuid;
@@ -236,6 +237,7 @@ class _Flight implements Flight {
 @override@JsonKey(name: 'end_time') final  DateTime? endTime;
 @override@JsonKey(name: 'pilot_id') final  String? pilotId;
 @override@JsonKey(name: 'airplane_id') final  String? airplaneId;
+@override final  String? notes;
 @override final  FlightStatistics? statistics;
 
 /// Create a copy of Flight
@@ -251,16 +253,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Flight&&(identical(other.uuid, uuid) || other.uuid == uuid)&&(identical(other.name, name) || other.name == name)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.pilotId, pilotId) || other.pilotId == pilotId)&&(identical(other.airplaneId, airplaneId) || other.airplaneId == airplaneId)&&(identical(other.statistics, statistics) || other.statistics == statistics));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Flight&&(identical(other.uuid, uuid) || other.uuid == uuid)&&(identical(other.name, name) || other.name == name)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.pilotId, pilotId) || other.pilotId == pilotId)&&(identical(other.airplaneId, airplaneId) || other.airplaneId == airplaneId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.statistics, statistics) || other.statistics == statistics));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uuid,name,startTime,endTime,pilotId,airplaneId,statistics);
+int get hashCode => Object.hash(runtimeType,uuid,name,startTime,endTime,pilotId,airplaneId,notes,statistics);
 
 @override
 String toString() {
-  return 'Flight(uuid: $uuid, name: $name, startTime: $startTime, endTime: $endTime, pilotId: $pilotId, airplaneId: $airplaneId, statistics: $statistics)';
+  return 'Flight(uuid: $uuid, name: $name, startTime: $startTime, endTime: $endTime, pilotId: $pilotId, airplaneId: $airplaneId, notes: $notes, statistics: $statistics)';
 }
 
 
@@ -271,7 +273,7 @@ abstract mixin class _$FlightCopyWith<$Res> implements $FlightCopyWith<$Res> {
   factory _$FlightCopyWith(_Flight value, $Res Function(_Flight) _then) = __$FlightCopyWithImpl;
 @override @useResult
 $Res call({
- String uuid, String name,@JsonKey(name: 'start_time') DateTime startTime,@JsonKey(name: 'end_time') DateTime? endTime,@JsonKey(name: 'pilot_id') String? pilotId,@JsonKey(name: 'airplane_id') String? airplaneId, FlightStatistics? statistics
+ String uuid, String name,@JsonKey(name: 'start_time') DateTime startTime,@JsonKey(name: 'end_time') DateTime? endTime,@JsonKey(name: 'pilot_id') String? pilotId,@JsonKey(name: 'airplane_id') String? airplaneId, String? notes, FlightStatistics? statistics
 });
 
 
@@ -288,7 +290,7 @@ class __$FlightCopyWithImpl<$Res>
 
 /// Create a copy of Flight
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? uuid = null,Object? name = null,Object? startTime = null,Object? endTime = freezed,Object? pilotId = freezed,Object? airplaneId = freezed,Object? statistics = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? uuid = null,Object? name = null,Object? startTime = null,Object? endTime = freezed,Object? pilotId = freezed,Object? airplaneId = freezed,Object? notes = freezed,Object? statistics = freezed,}) {
   return _then(_Flight(
 uuid: null == uuid ? _self.uuid : uuid // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -296,6 +298,7 @@ as String,startTime: null == startTime ? _self.startTime : startTime // ignore: 
 as DateTime,endTime: freezed == endTime ? _self.endTime : endTime // ignore: cast_nullable_to_non_nullable
 as DateTime?,pilotId: freezed == pilotId ? _self.pilotId : pilotId // ignore: cast_nullable_to_non_nullable
 as String?,airplaneId: freezed == airplaneId ? _self.airplaneId : airplaneId // ignore: cast_nullable_to_non_nullable
+as String?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String?,statistics: freezed == statistics ? _self.statistics : statistics // ignore: cast_nullable_to_non_nullable
 as FlightStatistics?,
   ));

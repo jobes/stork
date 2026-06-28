@@ -10,8 +10,13 @@ import '../../domain/models/flight_statistics.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/altitude_unit.dart';
 import '../providers/black_box_repository_provider.dart';
+import '../../../settings/domain/models/pilot.dart';
+import '../../../settings/domain/models/aircraft.dart';
+import '../../../settings/presentation/providers/pilot_provider.dart';
+import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../dialogs/edit_flight_dialog.dart';
 import '../providers/flight_records_provider.dart';
+import '../providers/unique_filters_provider.dart';
 
 class FlightRecordsPage extends ConsumerStatefulWidget {
   const FlightRecordsPage({super.key});
@@ -48,32 +53,34 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
     final seconds = duration.inSeconds.remainder(60);
 
     final parts = <String>[];
-    if (hours > 0) parts.add('$hours${l10n.durationHoursSuffix}');
-    if (minutes > 0 || hours > 0)
+    if (hours > 0) {
+      parts.add('$hours${l10n.durationHoursSuffix}');
+    }
+    if (minutes > 0 || hours > 0) {
       parts.add('$minutes${l10n.durationMinutesSuffix}');
+    }
     parts.add('$seconds${l10n.durationSecondsSuffix}');
     return parts.join(' ');
   }
-
   Future<void> _editFlightDetails(BuildContext context, Flight flight) async {
     showDialog(
       context: context,
       builder: (context) => EditFlightDialog(
         flight: flight,
-        onSave: (name, pilotId, airplaneId) {
-          ref
-              .read(flightRecordsProvider.notifier)
-              .updateFlightDetails(
-                uuid: flight.uuid,
-                name: name,
-                pilotId: pilotId,
-                airplaneId: airplaneId,
-              );
-        },
+        onSave: (name, pilotId, airplaneId, notes) async {
+            await ref
+                .read(flightRecordsProvider.notifier)
+                .updateFlightDetails(
+                  uuid: flight.uuid,
+                  name: name,
+                  pilotId: pilotId,
+                  airplaneId: airplaneId,
+                  notes: notes,
+                );
+          },
       ),
     );
   }
-
   Future<void> _deleteFlight(BuildContext context, Flight flight) async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
@@ -129,135 +136,294 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final recordsAsync = ref.watch(flightRecordsProvider);
+    final pilotsAsync = ref.watch(pilotStateProvider);
+    final pilots = pilotsAsync.value ?? [];
+    final aircraftsAsync = ref.watch(aircraftStateProvider);
+    final aircrafts = aircraftsAsync.value ?? [];
+
+    final uniquePilotIds = ref.watch(uniquePilotIdsProvider).value ?? [];
+    final uniqueAirplaneIds = ref.watch(uniqueAirplaneIdsProvider).value ?? [];
+
+    final filterPilotId = recordsAsync.value?.filterPilotId;
+    final filterAirplaneId = recordsAsync.value?.filterAirplaneId;
+
+    final pilotNames = <String, String>{};
+    for (final p in pilots) {
+      pilotNames[p.id] = p.name;
+    }
+
+    final aircraftNames = <String, String>{};
+    for (final a in aircrafts) {
+      aircraftNames[a.id] = a.name;
+    }
+
+    final allPilotIds = <String>{
+      ...pilots.map((p) => p.id),
+      ...uniquePilotIds,
+      if (filterPilotId != null && filterPilotId != 'anonymous') filterPilotId,
+    }.toList();
+
+    final allAircraftIds = <String>{
+      ...aircrafts.map((a) => a.id),
+      ...uniqueAirplaneIds,
+      if (filterAirplaneId != null && filterAirplaneId != 'anonymous') filterAirplaneId,
+    }.toList();
+
+    final pilotFilterItems = [
+      DropdownMenuItem<String?>(
+        value: null,
+        child: Text(l10n.filterAllPilots),
+      ),
+      DropdownMenuItem<String?>(
+        value: 'anonymous',
+        child: Text(l10n.anonymousPilot),
+      ),
+      ...allPilotIds.map((id) {
+        final name = pilotNames[id] ?? l10n.unknownPilotWithId(id);
+        return DropdownMenuItem<String?>(
+          value: id,
+          child: Text(name),
+        );
+      }),
+    ];
+
+    final aircraftFilterItems = [
+      DropdownMenuItem<String?>(
+        value: null,
+        child: Text(l10n.filterAllAircraft),
+      ),
+      DropdownMenuItem<String?>(
+        value: 'anonymous',
+        child: Text(l10n.unknownAircraft),
+      ),
+      ...allAircraftIds.map((id) {
+        final name = aircraftNames[id] ?? l10n.unknownAircraftWithId(id);
+        return DropdownMenuItem<String?>(
+          value: id,
+          child: Text(name),
+        );
+      }),
+    ];
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.flightRecordsTitle), centerTitle: true),
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(flightRecordsProvider.notifier).refresh(),
-        child: recordsAsync.when(
-          data: (state) {
-            if (state.flights.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.flight_takeoff_outlined,
-                      size: 64,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withAlpha(128),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.flightRecordsEmpty,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withAlpha(150),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String?>(
+                    initialValue: filterPilotId,
+                    decoration: InputDecoration(
+                      labelText: l10n.pilot,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                  ],
-                ),
-              );
-            }
-
-            return ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(12),
-              itemCount: state.flights.length + (state.hasMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == state.flights.length) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-
-                final flight = state.flights[index];
-                final startTimeStr = DateFormat.yMd(l10n.localeName)
-                    .add_Hm()
-                    .format(flight.startTime.toLocal());
-                final endTimeStr = flight.endTime != null
-                    ? DateFormat.Hm(l10n.localeName).format(flight.endTime!.toLocal())
-                    : l10n.placeholderDash;
-
-                final duration = flight.endTime != null
-                    ? flight.endTime!.difference(flight.startTime)
-                    : DateTime.now().toUtc().difference(flight.startTime);
-
-                final isRecording = flight.endTime == null;
-
-                return Card(
-                  key: ValueKey(flight.uuid),
-                  elevation: 2,
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(
-                      color: isRecording
-                          ? Theme.of(context).colorScheme.primary.withAlpha(100)
-                          : Theme.of(
-                              context,
-                            ).colorScheme.outlineVariant.withAlpha(100),
-                      width: isRecording ? 2 : 1,
-                    ),
+                    items: pilotFilterItems,
+                    onChanged: (val) {
+                      ref.read(flightRecordsProvider.notifier).setFilters(
+                        filterPilotId: () => val,
+                      );
+                    },
                   ),
-                  child: Theme(
-                    data: Theme.of(
-                      context,
-                    ).copyWith(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      leading: CircleAvatar(
-                        backgroundColor: isRecording
-                            ? Theme.of(context).colorScheme.primaryContainer
-                            : Theme.of(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<String?>(
+                    initialValue: filterAirplaneId,
+                    decoration: InputDecoration(
+                      labelText: l10n.aircraft,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    items: aircraftFilterItems,
+                    onChanged: (val) {
+                      ref.read(flightRecordsProvider.notifier).setFilters(
+                        filterAirplaneId: () => val,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => ref.read(flightRecordsProvider.notifier).refresh(),
+              child: recordsAsync.when(
+                data: (state) {
+                  if (state.flights.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.flight_takeoff_outlined,
+                            size: 64,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withAlpha(128),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            l10n.flightRecordsEmpty,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Theme.of(
                                 context,
-                              ).colorScheme.surfaceContainerHighest,
-                        child: Icon(
-                          isRecording ? Icons.sensors : Icons.flight,
-                          color: isRecording
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                              ).colorScheme.onSurface.withAlpha(150),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(12),
+                    itemCount: state.flights.length + (state.hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == state.flights.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      final flight = state.flights[index];
+                      final startTimeStr = DateFormat.yMd(
+                        l10n.localeName,
+                      ).add_Hm().format(flight.startTime.toLocal());
+                      final endTimeStr = flight.endTime != null
+                          ? DateFormat.Hm(
+                              l10n.localeName,
+                            ).format(flight.endTime!.toLocal())
+                          : l10n.placeholderDash;
+
+                      final duration = flight.endTime != null
+                          ? flight.endTime!.difference(flight.startTime)
+                          : DateTime.now().toUtc().difference(flight.startTime);
+
+                      final isRecording = flight.endTime == null;
+
+                      return Card(
+                        key: ValueKey(flight.uuid),
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: isRecording
+                                ? Theme.of(context).colorScheme.primary.withAlpha(100)
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.outlineVariant.withAlpha(100),
+                            width: isRecording ? 2 : 1,
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        flight.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        '$startTimeStr - $endTimeStr (${_formatDuration(duration, l10n)})',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              const Divider(height: 16),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _InfoChip(
-                                      icon: Icons.person_outline,
-                                      label: l10n.pilot,
-                                      value:
-                                          flight.pilotId ?? l10n.anonymousPilot,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _InfoChip(
-                                      icon: Icons.airplanemode_active,
-                                      label: l10n.aircraft,
-                                      value:
-                                          flight.airplaneId ??
-                                          l10n.unknownAircraft,
-                                    ),
-                                  ),
-                                ],
+                        child: Theme(
+                          data: Theme.of(
+                            context,
+                          ).copyWith(dividerColor: Colors.transparent),
+                          child: ExpansionTile(
+                            leading: CircleAvatar(
+                              backgroundColor: isRecording
+                                  ? Theme.of(context).colorScheme.primaryContainer
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHighest,
+                              child: Icon(
+                                isRecording ? Icons.sensors : Icons.flight,
+                                color: isRecording
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
+                            ),
+                            title: Text(
+                              flight.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              '$startTimeStr - $endTimeStr (${_formatDuration(duration, l10n)})',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    const Divider(height: 16),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: _InfoChip(
+                                            icon: Icons.person_outline,
+                                            label: l10n.pilot,
+                                            value: () {
+                                              if (flight.pilotId == null) {
+                                                return l10n.anonymousPilot;
+                                              }
+                                              final pilot = pilots.cast<Pilot?>().firstWhere(
+                                                (p) => p?.id == flight.pilotId,
+                                                orElse: () => null,
+                                              );
+                                              return pilot?.name ?? flight.pilotId!;
+                                            }(),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: _InfoChip(
+                                            icon: Icons.airplanemode_active,
+                                            label: l10n.aircraft,
+                                            value: () {
+                                              if (flight.airplaneId == null) {
+                                                return l10n.unknownAircraft;
+                                              }
+                                              final aircraft = aircrafts.cast<Aircraft?>().firstWhere(
+                                                (a) => a?.id == flight.airplaneId,
+                                                orElse: () => null,
+                                              );
+                                              return aircraft?.name ?? flight.airplaneId!;
+                                            }(),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                              if (flight.notes != null && flight.notes!.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                Card(
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(100),
+                                  margin: EdgeInsets.zero,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          l10n.flightNotes,
+                                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          flight.notes!,
+                                          style: Theme.of(context).textTheme.bodyMedium,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 12),
                               if (flight.statistics != null)
                                 _FlightStatisticsWidget(
                                   stats: flight.statistics!,
@@ -304,6 +470,9 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
               Center(child: Text(l10n.flightRecordsLoadError)),
         ),
       ),
+    ),
+  ],
+),
     );
   }
 }

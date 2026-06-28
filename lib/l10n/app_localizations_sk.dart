@@ -33,6 +33,22 @@ class AppLocalizationsSk extends AppLocalizations {
   String get anonymousPilot => 'Anonymný pilot';
 
   @override
+  String unknownPilotWithId(String id) {
+    return 'Neznámy pilot ($id)';
+  }
+
+  @override
+  String unknownAircraftWithId(String id) {
+    return 'Neznáme lietadlo ($id)';
+  }
+
+  @override
+  String get filterAllPilots => 'Všetci piloti';
+
+  @override
+  String get filterAllAircraft => 'Všetky lietadlá';
+
+  @override
   String get editSettings => 'Nastavenia';
 
   @override
@@ -366,9 +382,6 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get terrainUnderPosition => 'Terén pod polohou';
-
-  @override
-  String get close => 'Zavrieť';
 
   @override
   String get airport => 'Letisko';
@@ -1036,4 +1049,249 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get flightRecordsLoadError => 'Nepodarilo sa načítať záznamy letov';
+
+  @override
+  String takeoffsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vzletov',
+      few: '$count vzlety',
+      one: '1 vzlet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get flightNotes => 'Poznámka';
+
+  @override
+  String enterPilotPin(String name) {
+    return 'Zadajte PIN kód pre pilota \"$name\":';
+  }
+
+  @override
+  String get pinCode => 'PIN kód';
+
+  @override
+  String get incorrectPin => 'Nesprávny PIN kód!';
+
+  @override
+  String get confirm => 'Potvrdiť';
+
+  @override
+  String get selectPilotTitle => 'Výber pilota';
+
+  @override
+  String get deletePilotTitle => 'Vymazať pilota';
+
+  @override
+  String deletePilotConfirm(String name) {
+    return 'Naozaj chcete vymazať pilota \"$name\"? Táto akcia je nevratná a vymaže všetky jeho nastavenia.';
+  }
+
+  @override
+  String get deletePilotPinPrompt => 'Zmazanie pilota';
+
+  @override
+  String pilotDeletedSnackbar(String name) {
+    return 'Pilot \"$name\" bol vymazaný.';
+  }
+
+  @override
+  String settingsUpdateFailed(String error) {
+    return 'Zlyhala aktualizácia nastavení: $error';
+  }
+
+  @override
+  String get addAircraftTitle => 'Pridať lietadlo';
+
+  @override
+  String get aircraftNameLabel => 'Registračná značka / Názov';
+
+  @override
+  String get aircraftNameRequired => 'Zadajte názov lietadla!';
+
+  @override
+  String get create => 'Vytvoriť';
+
+  @override
+  String get switchAircraftTitle => 'Prepnúť lietadlo';
+
+  @override
+  String get addNewAircraft => 'Pridať nové lietadlo';
+
+  @override
+  String get savedAircraftsSection => 'Uložené lietadlá';
+
+  @override
+  String get noAircraftsCreated => 'Zatiaľ nie sú vytvorené žiadne lietadlá.';
+
+  @override
+  String get deselectAircraft => 'Odhlásiť lietadlo (Neznáme)';
+
+  @override
+  String get errorPrefix => 'Chyba pri načítaní údajov';
+
+  @override
+  String get aircraftSettingsTitle => 'Nastavenia lietadla';
+
+  @override
+  String get initialFlightHoursLabel => 'Inicializačné letové hodiny';
+
+  @override
+  String get hoursExampleHint => 'Napr. 10.5';
+
+  @override
+  String get invalidFlightHours => 'Zadajte platné letové hodiny!';
+
+  @override
+  String get initialHoursSaved => 'Inicializačné letové hodiny uložené.';
+
+  @override
+  String get initialFlightsLabel => 'Inicializačný počet letov';
+
+  @override
+  String get flightsExampleHint => 'Napr. 24';
+
+  @override
+  String get invalidFlights => 'Zadajte platný počet letov!';
+
+  @override
+  String get initialFlightsSaved => 'Inicializačný počet letov uložený.';
+
+  @override
+  String get deleteAircraftButton => 'Vymazať lietadlo';
+
+  @override
+  String deleteAircraftConfirm(String name) {
+    return 'Naozaj chcete vymazať lietadlo \"$name\"?';
+  }
+
+  @override
+  String aircraftDeletedSnackbar(String name) {
+    return 'Lietadlo \"$name\" bolo vymazané.';
+  }
+
+  @override
+  String get close => 'Zatvoriť';
+
+  @override
+  String get addPilotTitle => 'Pridať pilota';
+
+  @override
+  String get pilotNameLabel => 'Meno pilota';
+
+  @override
+  String get pilotNameRequired => 'Zadajte meno pilota!';
+
+  @override
+  String get optionalPinLabel => 'Voliteľný PIN kód (len čísla)';
+
+  @override
+  String get switchPilotTitle => 'Prepnúť pilota';
+
+  @override
+  String get addNewPilot => 'Pridať nového pilota';
+
+  @override
+  String get savedProfilesSection => 'Uložené profily';
+
+  @override
+  String get noPilotsCreated => 'Zatiaľ nie sú vytvorení žiadni piloti.';
+
+  @override
+  String get protectedByPin => 'Chránený PIN';
+
+  @override
+  String get noPin => 'Bez PIN-u';
+
+  @override
+  String get profileAndAircraftPageTitle => 'Profil a lietadlo';
+
+  @override
+  String get pilotUppercase => 'PILOT';
+
+  @override
+  String get aircraftUppercase => 'LIETADLO';
+
+  @override
+  String get accessSettingsTitle => 'Prístup k nastaveniam';
+
+  @override
+  String get noPilotSelected => 'Žiadny pilot';
+
+  @override
+  String get unknown => 'Neznáme';
+
+  @override
+  String get notLoggedIn => 'Neprihlásený';
+
+  @override
+  String get localProfile => 'Lokálny';
+
+  @override
+  String hoursFlown(String hours) {
+    return 'Nalietané: $hours';
+  }
+
+  @override
+  String get noActivePilot => 'Žiadny aktívny pilot';
+
+  @override
+  String get noActivePilotInstructions =>
+      'Pre zobrazenie letových štatistík a konfiguráciu nastavení si zvoľte aktívneho pilota zo zoznamu vyššie.';
+
+  @override
+  String get pilotFlightStats => 'Letové štatistiky pilota';
+
+  @override
+  String get aircraftFlightStats => 'Letové štatistiky lietadla';
+
+  @override
+  String get today => 'Dnes';
+
+  @override
+  String get thisWeek => 'Tento týždeň';
+
+  @override
+  String get thisMonth => 'Tento mesiac';
+
+  @override
+  String get thisYear => 'Tento rok';
+
+  @override
+  String get overall => 'Celkovo';
+
+  @override
+  String get statsCalcError => 'Chyba pri výpočte štatistík';
+
+  @override
+  String get aircraftStatsCalcError => 'Chyba pri výpočte štatistík lietadla';
+
+  @override
+  String get pilotSettingsTitle => 'Nastavenia pilota';
+
+  @override
+  String get pinSecurityLabel => 'Zabezpečenie PIN kódom';
+
+  @override
+  String get newPinHint => 'Nový PIN (prázdny pre vypnutie)';
+
+  @override
+  String get pilotPinUpdatedSnackbar => 'PIN kód pilota bol aktualizovaný.';
+
+  @override
+  String get deselectPilot => 'Odhlásiť pilota (Neznáme)';
+
+  @override
+  String hoursMinutesFormat(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String get hoursMinutesFallback => '---h --m';
+
+  @override
+  String get errorLoadingSettings => 'Chyba pri načítaní nastavení';
 }

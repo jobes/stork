@@ -33,7 +33,7 @@ final class FlightRecordsProvider
   FlightRecords create() => FlightRecords();
 }
 
-String _$flightRecordsHash() => r'38ab6d7891f2fa4a9d4a5a230917df36eb83e078';
+String _$flightRecordsHash() => r'430e0ea707ba68487549d33c87329e2c6bec48d1';
 
 abstract class _$FlightRecords extends $AsyncNotifier<FlightRecordsState> {
   FutureOr<FlightRecordsState> build();

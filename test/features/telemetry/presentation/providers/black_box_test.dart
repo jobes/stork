@@ -15,6 +15,7 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_provid
 import 'package:stork/features/telemetry/presentation/providers/black_box_provider.dart';
 import 'package:stork/core/services/database/black_box_database_io.dart';
 import 'package:stork/features/telemetry/presentation/providers/black_box_repository_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/flight_records_provider.dart';
 
 class MockAppSettingsNotifier extends AppSettingsNotifier {
   final AppSettings _settings;
@@ -54,6 +55,7 @@ void main() {
   group('BlackBoxDatabase Tests', () {
     test('Can save and retrieve a flight', () async {
       final startTime = DateTime.now();
+
       final flight = Flight(
         uuid: 'test-uuid-1',
         name: 'Test Flight',
@@ -191,7 +193,7 @@ void main() {
             ),
           ],
         );
-        addTearDown(container.dispose);
+
 
         // Start listening to the black box service provider
         final serviceSub = container.listen(
@@ -523,6 +525,90 @@ void main() {
         serviceSub.close();
       });
     });
+
+    test('flightRecordsProvider recovers unfinished flights and updates on start/stop', () {
+        fakeAsync((async) {
+          final mockDb = FakeDelayingBlackBoxDatabase();
+          mockDb.dbPathOverride = dbPath;
+          mockDb.database = db;
+          mockDb.setupTables(db);
+          mockDb.runStatsSynchronously = true;
+
+          // Seed an unfinished flight (endTime null) directly in the fake DB
+          final unfinishedFlight = Flight(
+            uuid: 'unfinished-uuid',
+            name: 'Unfinished Flight',
+            startTime: DateTime.now(),
+            pilotId: 'test-pilot',
+            airplaneId: 'test-plane',
+          );
+          // Save without awaiting; IoBlackBoxDatabase uses synchronous sqlite calls internally
+          mockDb.saveFlight(unfinishedFlight);
+          async.flushMicrotasks();
+
+          final container = ProviderContainer(
+            overrides: [
+              blackBoxDatabaseProvider.overrideWithValue(mockDb),
+              appSettingsProvider.overrideWith(
+                () => MockAppSettingsNotifier(
+                  const AppSettings(
+                    pilotId: 'test-pilot',
+                    airplaneId: 'test-plane',
+                  ),
+                ),
+              ),
+            ],
+          );
+          // Wait for recovery to finish
+          async.elapse(const Duration(seconds: 1));
+          async.flushMicrotasks();
+
+          // Keep flightRecordsProvider listened so it retains its state
+          final recordsListener = container.listen(flightRecordsProvider, (prev, next) {});
+
+          // Build black box service (triggers recovery)
+          final serviceSub = container.listen(blackBoxServiceProvider, (prev, next) {});
+          final telemetryNotifier = container.read(telemetryProvider.notifier);
+
+          // Allow recovery to run – the provider should now contain the seeded flight with a recovered endTime
+          async.elapse(const Duration(milliseconds: 500));
+          async.flushMicrotasks();
+          async.elapse(const Duration(milliseconds: 100));
+          async.flushMicrotasks();
+          async.elapse(const Duration(milliseconds: 500));
+          async.flushMicrotasks();
+          
+          final recovered = container.read(flightRecordsProvider).value;
+          expect(recovered?.flights.length, equals(1));
+          expect(recovered?.flights.first.uuid, equals('unfinished-uuid'));
+          expect(recovered?.flights.first.endTime, isNotNull,
+            reason: 'recoverUnfinishedFlights should set a non‑null endTime');
+
+          // Start a new flight – this should add a second entry
+          telemetryNotifier.updateGPS(
+            latitude: 48.0,
+            longitude: 17.0,
+            groundSpeed: 10.0,
+          );
+          async.elapse(const Duration(milliseconds: 100));
+          final afterStart = container.read(flightRecordsProvider).value;
+          expect(afterStart?.flights.length, equals(2));
+          // The newest flight should have a null endTime initially
+          final newFlight = afterStart?.flights.firstWhere((f) => f.uuid != 'unfinished-uuid');
+          expect(newFlight?.endTime, isNull);
+
+          // Stop the new flight – endTime should become non‑null
+          telemetryNotifier.updateGPS(groundSpeed: 0.0);
+          async.elapse(const Duration(milliseconds: 100));
+          final afterStop = container.read(flightRecordsProvider).value;
+          expect(afterStop?.flights.length, equals(2));
+          final stoppedFlight = afterStop?.flights.firstWhere((f) => f.uuid != 'unfinished-uuid');
+          expect(stoppedFlight?.endTime, isNotNull);
+
+          serviceSub.close();
+          recordsListener.close();
+        });
+      });
   });
 }
 
@@ -530,6 +616,7 @@ class FakeDelayingBlackBoxDatabase extends IoBlackBoxDatabase {
   Completer<void>? saveFlightCompleter;
   bool failSaveFlight = false;
   bool failInsertTelemetry = false;
+  bool runStatsSynchronously = false;
 
   @override
   Future<void> saveFlight(Flight flight) async {
@@ -548,5 +635,13 @@ class FakeDelayingBlackBoxDatabase extends IoBlackBoxDatabase {
       throw Exception('Transient SQLite insert error');
     }
     await super.insertTelemetryEntries(entries);
+  }
+
+  @override
+  Future<void> calculateAndSaveFlightStatistics(String flightUuid) async {
+    if (runStatsSynchronously) {
+      return;
+    }
+    return super.calculateAndSaveFlightStatistics(flightUuid);
   }
 }

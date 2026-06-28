@@ -62,31 +62,32 @@ class AirspaceDetailsDialog extends StatelessWidget {
       titleText: l10n.airspacesAtLocation,
       icon: Icons.public,
       maxHeight: 600,
-      child: Flexible(
-        child: ListView.separated(
-          shrinkWrap: true,
-          itemCount: sortedFeatures.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 10),
-          itemBuilder: (context, index) {
-            final feature = sortedFeatures[index] as Map;
-            final props = feature['properties'] as Map;
-            final airspaceId = props['source_id']?.toString() ?? '';
-            final country = props['country']?.toString() ?? '';
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (int index = 0; index < sortedFeatures.length; index++) ...[
+            if (index > 0) const SizedBox(height: 10),
+            Builder(builder: (context) {
+              final feature = sortedFeatures[index] as Map;
+              final props = feature['properties'] as Map;
+              final airspaceId = props['source_id']?.toString() ?? '';
+              final country = props['country']?.toString() ?? '';
 
-            final nameLabel = props['name_label'];
-            String fallbackName = '';
-            if (nameLabel != null) {
-              final lines = nameLabel.toString().split('\n');
-              fallbackName = lines.length > 1 ? lines[1] : lines.first;
-            }
+              final nameLabel = props['name_label'];
+              String fallbackName = '';
+              if (nameLabel != null) {
+                final lines = nameLabel.toString().split('\n');
+                fallbackName = lines.length > 1 ? lines[1] : lines.first;
+              }
 
-            return AirspaceDetailCard(
-              airspaceId: airspaceId,
-              countryCode: country,
-              fallbackName: fallbackName,
-            );
-          },
-        ),
+              return AirspaceDetailCard(
+                airspaceId: airspaceId,
+                countryCode: country,
+                fallbackName: fallbackName,
+              );
+            }),
+          ]
+        ],
       ),
     );
   }
