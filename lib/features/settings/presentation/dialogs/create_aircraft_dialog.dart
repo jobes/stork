@@ -66,7 +66,7 @@ void showCreateAircraftDialog(BuildContext context, WidgetRef ref) {
                           if (dialogCtx.mounted) {
                             ScaffoldMessenger.of(dialogCtx).showSnackBar(
                               SnackBar(
-                                content: Text('Failed to update settings: ${result.error}'),
+                                content: Text(l10n.settingsUpdateFailed(result.error.toString())),
                               ),
                             );
                           }

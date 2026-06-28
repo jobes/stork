@@ -1099,6 +1099,11 @@ class AppLocalizationsSk extends AppLocalizations {
   }
 
   @override
+  String settingsUpdateFailed(String error) {
+    return 'Zlyhala aktualizácia nastavení: $error';
+  }
+
+  @override
   String get addAircraftTitle => 'Pridať lietadlo';
 
   @override

@@ -1097,6 +1097,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settingsUpdateFailed(String error) {
+    return 'Failed to update settings: $error';
+  }
+
+  @override
   String get addAircraftTitle => 'Add Aircraft';
 
   @override

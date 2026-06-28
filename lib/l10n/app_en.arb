@@ -556,7 +556,17 @@
       "name": { "type": "String" }
     }
   },
+  "settingsUpdateFailed": "Failed to update settings: {error}",
+  "@settingsUpdateFailed": {
+    "description": "Error message for settings update failure",
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
   "addAircraftTitle": "Add Aircraft",
+  "@addAircraftTitle": {
+    "description": "Dialog title for creating a new aircraft"
+  },
   "aircraftNameLabel": "Registration Mark / Name",
   "aircraftNameRequired": "Please enter aircraft name!",
   "create": "Create",

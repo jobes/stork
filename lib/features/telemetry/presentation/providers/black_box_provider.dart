@@ -107,18 +107,27 @@ class BlackBoxService extends _$BlackBoxService {
     _flightCreationFuture = repo
         .saveFlight(flight)
         .then((_) {
+          // Reset the creation future now that the flight is persisted
           _flightCreationFuture = null;
-          ref.read(flightRecordsProvider.notifier).refresh();
-
-          // Setup periodic database flusher (every 1 second)
-          _flushTimer?.cancel();
-          _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
+          // Refresh flight records – handle errors separately so they don't clear flight state
+          try {
+            ref.read(flightRecordsProvider.notifier).refresh();
+          } catch (e) {
+            debugPrint('Error refreshing flight records after save: $e');
+          }
+          // Setup periodic database flusher (every 1 second) – isolated error handling
+          try {
+            _flushTimer?.cancel();
+            _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
+          } catch (e) {
+            debugPrint('Error initializing flush timer after save: $e');
+          }
         })
         .catchError((e) {
+          // Only handle errors from saveFlight itself
           _flightCreationFuture = null;
           _activeFlightUuid = null;
-          _buffer
-              .clear(); // Clear memory buffer on database initialization failure
+          _buffer.clear(); // Clear memory buffer on database initialization failure
           debugPrint('Error starting flight in database: $e');
           throw e;
         });

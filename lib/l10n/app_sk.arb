@@ -553,5 +553,12 @@
     }
   },
   "hoursMinutesFallback": "---h --m",
-  "errorLoadingSettings": "Chyba pri načítaní nastavení"
+  "errorLoadingSettings": "Chyba pri načítaní nastavení",
+  "settingsUpdateFailed": "Zlyhala aktualizácia nastavení: {error}",
+  "@settingsUpdateFailed": {
+    "description": "Error message for settings update failure",
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
 }

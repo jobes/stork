@@ -2156,7 +2156,13 @@ abstract class AppLocalizations {
   /// **'Pilot \"{name}\" has been deleted.'**
   String pilotDeletedSnackbar(String name);
 
-  /// No description provided for @addAircraftTitle.
+  /// Error message for settings update failure
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update settings: {error}'**
+  String settingsUpdateFailed(String error);
+
+  /// Dialog title for creating a new aircraft
   ///
   /// In en, this message translates to:
   /// **'Add Aircraft'**
