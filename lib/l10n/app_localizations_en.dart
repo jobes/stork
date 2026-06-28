@@ -1135,6 +1135,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get initialHoursSaved => 'Initial flight hours saved.';
 
   @override
+  String get initialFlightsLabel => 'Initial Flights';
+
+  @override
+  String get flightsExampleHint => 'e.g. 24';
+
+  @override
+  String get invalidFlights => 'Please enter valid number of flights!';
+
+  @override
+  String get initialFlightsSaved => 'Initial number of flights saved.';
+
+  @override
   String get deleteAircraftButton => 'Delete Aircraft';
 
   @override

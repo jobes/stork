@@ -142,12 +142,12 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
   }
 
   @override
-  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0}) async {
+  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0, int initialFlights = 0}) async {
     throw UnsupportedError('SQLite is not supported on web.');
   }
 
   @override
-  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0}) async {
+  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0, int initialFlights = 0}) async {
     throw UnsupportedError('SQLite is not supported on web.');
   }
 

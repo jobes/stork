@@ -10,6 +10,7 @@ abstract class Pilot with _$Pilot {
     required String name,
     String? pin,
     @Default(0.0) double initialFlightHours,
+    @Default(0) int initialFlights,
   }) = _Pilot;
 
   factory Pilot.fromJson(Map<String, dynamic> json) => _$PilotFromJson(json);

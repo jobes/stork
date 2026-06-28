@@ -33,7 +33,7 @@ final class AircraftStateProvider
   AircraftState create() => AircraftState();
 }
 
-String _$aircraftStateHash() => r'00fce3d587f4280673717ba55b2ba32aa4ad274f';
+String _$aircraftStateHash() => r'd2da21c432eca8df76ad7408018ea3994f638787';
 
 abstract class _$AircraftState extends $AsyncNotifier<List<Aircraft>> {
   FutureOr<List<Aircraft>> build();
@@ -102,7 +102,7 @@ final class AircraftHoursProvider
   }
 }
 
-String _$aircraftHoursHash() => r'c03db7d6518282b25d6fd226f0f9d520607f2cb9';
+String _$aircraftHoursHash() => r'ddfe59d9237e34527892ae41f6deee2146ded8dc';
 
 final class AircraftHoursFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<double>, String> {
@@ -177,7 +177,7 @@ final class AircraftStatsProvider
   }
 }
 
-String _$aircraftStatsHash() => r'b2a92c4bbea5f4d52fd178b21eecca56f73f4a17';
+String _$aircraftStatsHash() => r'354788f63f21432bdd8a25fad0b0736759d60a27';
 
 final class AircraftStatsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<TimeBasedStats>, String> {

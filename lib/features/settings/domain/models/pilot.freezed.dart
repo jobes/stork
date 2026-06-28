@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Pilot {
 
- String get id; String get name; String? get pin; double get initialFlightHours;
+ String get id; String get name; String? get pin; double get initialFlightHours; int get initialFlights;
 /// Create a copy of Pilot
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $PilotCopyWith<Pilot> get copyWith => _$PilotCopyWithImpl<Pilot>(this as Pilot, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Pilot&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.pin, pin) || other.pin == pin)&&(identical(other.initialFlightHours, initialFlightHours) || other.initialFlightHours == initialFlightHours));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Pilot&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.pin, pin) || other.pin == pin)&&(identical(other.initialFlightHours, initialFlightHours) || other.initialFlightHours == initialFlightHours)&&(identical(other.initialFlights, initialFlights) || other.initialFlights == initialFlights));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,pin,initialFlightHours);
+int get hashCode => Object.hash(runtimeType,id,name,pin,initialFlightHours,initialFlights);
 
 @override
 String toString() {
-  return 'Pilot(id: $id, name: $name, pin: $pin, initialFlightHours: $initialFlightHours)';
+  return 'Pilot(id: $id, name: $name, pin: $pin, initialFlightHours: $initialFlightHours, initialFlights: $initialFlights)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $PilotCopyWith<$Res>  {
   factory $PilotCopyWith(Pilot value, $Res Function(Pilot) _then) = _$PilotCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String? pin, double initialFlightHours
+ String id, String name, String? pin, double initialFlightHours, int initialFlights
 });
 
 
@@ -65,13 +65,14 @@ class _$PilotCopyWithImpl<$Res>
 
 /// Create a copy of Pilot
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? pin = freezed,Object? initialFlightHours = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? pin = freezed,Object? initialFlightHours = null,Object? initialFlights = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,pin: freezed == pin ? _self.pin : pin // ignore: cast_nullable_to_non_nullable
 as String?,initialFlightHours: null == initialFlightHours ? _self.initialFlightHours : initialFlightHours // ignore: cast_nullable_to_non_nullable
-as double,
+as double,initialFlights: null == initialFlights ? _self.initialFlights : initialFlights // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? pin,  double initialFlightHours)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? pin,  double initialFlightHours,  int initialFlights)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Pilot() when $default != null:
-return $default(_that.id,_that.name,_that.pin,_that.initialFlightHours);case _:
+return $default(_that.id,_that.name,_that.pin,_that.initialFlightHours,_that.initialFlights);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.id,_that.name,_that.pin,_that.initialFlightHours);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? pin,  double initialFlightHours)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? pin,  double initialFlightHours,  int initialFlights)  $default,) {final _that = this;
 switch (_that) {
 case _Pilot():
-return $default(_that.id,_that.name,_that.pin,_that.initialFlightHours);case _:
+return $default(_that.id,_that.name,_that.pin,_that.initialFlightHours,_that.initialFlights);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +198,10 @@ return $default(_that.id,_that.name,_that.pin,_that.initialFlightHours);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? pin,  double initialFlightHours)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? pin,  double initialFlightHours,  int initialFlights)?  $default,) {final _that = this;
 switch (_that) {
 case _Pilot() when $default != null:
-return $default(_that.id,_that.name,_that.pin,_that.initialFlightHours);case _:
+return $default(_that.id,_that.name,_that.pin,_that.initialFlightHours,_that.initialFlights);case _:
   return null;
 
 }
@@ -212,13 +213,14 @@ return $default(_that.id,_that.name,_that.pin,_that.initialFlightHours);case _:
 @JsonSerializable()
 
 class _Pilot implements Pilot {
-  const _Pilot({required this.id, required this.name, this.pin, this.initialFlightHours = 0.0});
+  const _Pilot({required this.id, required this.name, this.pin, this.initialFlightHours = 0.0, this.initialFlights = 0});
   factory _Pilot.fromJson(Map<String, dynamic> json) => _$PilotFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  String? pin;
 @override@JsonKey() final  double initialFlightHours;
+@override@JsonKey() final  int initialFlights;
 
 /// Create a copy of Pilot
 /// with the given fields replaced by the non-null parameter values.
@@ -233,16 +235,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Pilot&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.pin, pin) || other.pin == pin)&&(identical(other.initialFlightHours, initialFlightHours) || other.initialFlightHours == initialFlightHours));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Pilot&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.pin, pin) || other.pin == pin)&&(identical(other.initialFlightHours, initialFlightHours) || other.initialFlightHours == initialFlightHours)&&(identical(other.initialFlights, initialFlights) || other.initialFlights == initialFlights));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,pin,initialFlightHours);
+int get hashCode => Object.hash(runtimeType,id,name,pin,initialFlightHours,initialFlights);
 
 @override
 String toString() {
-  return 'Pilot(id: $id, name: $name, pin: $pin, initialFlightHours: $initialFlightHours)';
+  return 'Pilot(id: $id, name: $name, pin: $pin, initialFlightHours: $initialFlightHours, initialFlights: $initialFlights)';
 }
 
 
@@ -253,7 +255,7 @@ abstract mixin class _$PilotCopyWith<$Res> implements $PilotCopyWith<$Res> {
   factory _$PilotCopyWith(_Pilot value, $Res Function(_Pilot) _then) = __$PilotCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String? pin, double initialFlightHours
+ String id, String name, String? pin, double initialFlightHours, int initialFlights
 });
 
 
@@ -270,13 +272,14 @@ class __$PilotCopyWithImpl<$Res>
 
 /// Create a copy of Pilot
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? pin = freezed,Object? initialFlightHours = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? pin = freezed,Object? initialFlightHours = null,Object? initialFlights = null,}) {
   return _then(_Pilot(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,pin: freezed == pin ? _self.pin : pin // ignore: cast_nullable_to_non_nullable
 as String?,initialFlightHours: null == initialFlightHours ? _self.initialFlightHours : initialFlightHours // ignore: cast_nullable_to_non_nullable
-as double,
+as double,initialFlights: null == initialFlights ? _self.initialFlights : initialFlights // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

@@ -647,7 +647,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     await Isolate.run(() => _calculateAndSaveStatsIsolate(path, flightUuid));
   }
 
-  TimeBasedStats _calculateStatsFromResults(ResultSet results, double initialHours) {
+  TimeBasedStats _calculateStatsFromResults(ResultSet results, double initialHours, int initialFlights) {
     if (results.isEmpty) return TimeBasedStats.empty();
     final row = results.first;
     
@@ -657,7 +657,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       thisMonthHours: (row['month_hours'] as num? ?? 0.0).toDouble(),
       thisWeekHours: (row['week_hours'] as num? ?? 0.0).toDouble(),
       todayHours: (row['today_hours'] as num? ?? 0.0).toDouble(),
-      totalFlights: (row['total_flights'] as num? ?? 0).toInt(),
+      totalFlights: initialFlights + (row['total_flights'] as num? ?? 0).toInt(),
       thisYearFlights: (row['year_flights'] as num? ?? 0).toInt(),
       thisMonthFlights: (row['month_flights'] as num? ?? 0).toInt(),
       thisWeekFlights: (row['week_flights'] as num? ?? 0).toInt(),
@@ -718,17 +718,17 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   }
 
   @override
-  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0}) async {
+  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0, int initialFlights = 0}) async {
     final db = await database;
     final results = db.select(_buildStatsQuery('pilot_id'), _buildStatsParams(pilotId));
-    return _calculateStatsFromResults(results, initialHours);
+    return _calculateStatsFromResults(results, initialHours, initialFlights);
   }
 
   @override
-  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0}) async {
+  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0, int initialFlights = 0}) async {
     final db = await database;
     final results = db.select(_buildStatsQuery('airplane_id'), _buildStatsParams(airplaneId));
-    return _calculateStatsFromResults(results, initialHours);
+    return _calculateStatsFromResults(results, initialHours, initialFlights);
   }
 
   @override

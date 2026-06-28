@@ -19,6 +19,7 @@ class AircraftState extends _$AircraftState {
   Future<String> createAircraft({
     required String name,
     double initialFlightHours = 0.0,
+    int initialFlights = 0,
     String? id,
   }) async {
     final repository = await ref.read(aircraftRepositoryProvider.future);
@@ -27,6 +28,7 @@ class AircraftState extends _$AircraftState {
       id: newId,
       name: name,
       initialFlightHours: initialFlightHours,
+      initialFlights: initialFlights,
     );
     await repository.saveAircraft(aircraft);
     ref.invalidateSelf();
@@ -57,8 +59,9 @@ Future<double> aircraftHours(Ref ref, String airplaneId) async {
   final aircrafts = await ref.watch(aircraftStateProvider.future);
   final aircraft = aircrafts.cast<Aircraft?>().firstWhere((a) => a?.id == airplaneId, orElse: () => null);
   final initialHours = aircraft?.initialFlightHours ?? 0.0;
+  final initialFlights = aircraft?.initialFlights ?? 0;
 
-  final stats = await repository.getAircraftTimeStats(airplaneId, initialHours: initialHours);
+  final stats = await repository.getAircraftTimeStats(airplaneId, initialHours: initialHours, initialFlights: initialFlights);
   return stats.totalHours;
 }
 
@@ -72,9 +75,11 @@ Future<TimeBasedStats> aircraftStats(Ref ref, String airplaneId) async {
   final aircrafts = await ref.watch(aircraftStateProvider.future);
   final aircraft = aircrafts.cast<Aircraft?>().firstWhere((a) => a?.id == airplaneId, orElse: () => null);
   final initialHours = aircraft?.initialFlightHours ?? 0.0;
+  final initialFlights = aircraft?.initialFlights ?? 0;
 
   return repository.getAircraftTimeStats(
     airplaneId,
     initialHours: initialHours,
+    initialFlights: initialFlights,
   );
 }

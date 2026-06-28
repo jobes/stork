@@ -48,8 +48,8 @@ abstract interface class BlackBoxDatabase {
   Future<void> saveFlightStatistics(String flightUuid, FlightStatistics stats);
   Future<List<TelemetryEntry>> getTelemetryForFlightPaginated(String flightUuid, int limit, int? lastId);
   Future<void> calculateAndSaveFlightStatistics(String flightUuid);
-  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0});
-  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0});
+  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0, int initialFlights = 0});
+  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0, int initialFlights = 0});
   Future<List<String>> getUniquePilotIds();
   Future<List<String>> getUniqueAirplaneIds();
 }

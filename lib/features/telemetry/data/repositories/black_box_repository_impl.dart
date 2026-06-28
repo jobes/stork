@@ -104,12 +104,12 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
   }
 
   @override
-  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0}) =>
-      _database.getPilotTimeStats(pilotId, initialHours: initialHours);
+  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0, int initialFlights = 0}) =>
+      _database.getPilotTimeStats(pilotId, initialHours: initialHours, initialFlights: initialFlights);
 
   @override
-  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0}) =>
-      _database.getAircraftTimeStats(airplaneId, initialHours: initialHours);
+  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0, int initialFlights = 0}) =>
+      _database.getAircraftTimeStats(airplaneId, initialHours: initialHours, initialFlights: initialFlights);
 
   @override
   Future<List<String>> getUniquePilotIds() => _database.getUniquePilotIds();

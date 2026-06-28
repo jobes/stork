@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
@@ -9,6 +10,7 @@ import '../providers/settings_provider.dart';
 void showAircraftSettingsDialog(BuildContext context, WidgetRef ref, Aircraft aircraft) {
   final l10n = AppLocalizations.of(context)!;
   final initialHoursController = TextEditingController(text: aircraft.initialFlightHours.toString());
+  final initialFlightsController = TextEditingController(text: aircraft.initialFlights.toString());
   final theme = Theme.of(context);
 
   showDialog(
@@ -56,6 +58,53 @@ void showAircraftSettingsDialog(BuildContext context, WidgetRef ref, Aircraft ai
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(l10n.initialHoursSaved)),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  ),
+                  child: Text(l10n.save),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.initialFlightsLabel,
+              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: initialFlightsController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      hintText: l10n.flightsExampleHint,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () async {
+                    final flights = int.tryParse(initialFlightsController.text);
+                    if (flights == null || flights < 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.invalidFlights)),
+                      );
+                      return;
+                    }
+                    await ref.read(aircraftStateProvider.notifier).updateAircraft(
+                          aircraft.copyWith(initialFlights: flights),
+                        );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.initialFlightsSaved)),
                       );
                     }
                   },

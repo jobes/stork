@@ -2240,6 +2240,30 @@ abstract class AppLocalizations {
   /// **'Initial flight hours saved.'**
   String get initialHoursSaved;
 
+  /// No description provided for @initialFlightsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial Flights'**
+  String get initialFlightsLabel;
+
+  /// No description provided for @flightsExampleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 24'**
+  String get flightsExampleHint;
+
+  /// No description provided for @invalidFlights.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter valid number of flights!'**
+  String get invalidFlights;
+
+  /// No description provided for @initialFlightsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial number of flights saved.'**
+  String get initialFlightsSaved;
+
   /// No description provided for @deleteAircraftButton.
   ///
   /// In en, this message translates to:

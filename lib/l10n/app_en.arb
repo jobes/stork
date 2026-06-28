@@ -560,6 +560,10 @@
   "hoursExampleHint": "e.g. 10.5",
   "invalidFlightHours": "Please enter valid flight hours!",
   "initialHoursSaved": "Initial flight hours saved.",
+  "initialFlightsLabel": "Initial Flights",
+  "flightsExampleHint": "e.g. 24",
+  "invalidFlights": "Please enter valid number of flights!",
+  "initialFlightsSaved": "Initial number of flights saved.",
   "deleteAircraftButton": "Delete Aircraft",
   "deleteAircraftConfirm": "Are you sure you want to delete aircraft \"{name}\"?",
   "@deleteAircraftConfirm": {

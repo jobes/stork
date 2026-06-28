@@ -482,6 +482,10 @@
   "hoursExampleHint": "Napr. 10.5",
   "invalidFlightHours": "Zadajte platné letové hodiny!",
   "initialHoursSaved": "Inicializačné letové hodiny uložené.",
+  "initialFlightsLabel": "Inicializačný počet letov",
+  "flightsExampleHint": "Napr. 24",
+  "invalidFlights": "Zadajte platný počet letov!",
+  "initialFlightsSaved": "Inicializačný počet letov uložený.",
   "deleteAircraftButton": "Vymazať lietadlo",
   "deleteAircraftConfirm": "Naozaj chcete vymazať lietadlo \"{name}\"?",
   "@deleteAircraftConfirm": {

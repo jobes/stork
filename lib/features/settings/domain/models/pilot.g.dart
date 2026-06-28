@@ -11,6 +11,7 @@ _Pilot _$PilotFromJson(Map<String, dynamic> json) => _Pilot(
   name: json['name'] as String,
   pin: json['pin'] as String?,
   initialFlightHours: (json['initialFlightHours'] as num?)?.toDouble() ?? 0.0,
+  initialFlights: (json['initialFlights'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$PilotToJson(_Pilot instance) => <String, dynamic>{
@@ -18,4 +19,5 @@ Map<String, dynamic> _$PilotToJson(_Pilot instance) => <String, dynamic>{
   'name': instance.name,
   'pin': instance.pin,
   'initialFlightHours': instance.initialFlightHours,
+  'initialFlights': instance.initialFlights,
 };

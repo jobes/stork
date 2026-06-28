@@ -18,6 +18,7 @@ class PilotState extends _$PilotState {
     required String name,
     String? pin,
     double initialFlightHours = 0.0,
+    int initialFlights = 0,
     String? id,
   }) async {
     final repository = await ref.read(pilotRepositoryProvider.future);
@@ -27,6 +28,7 @@ class PilotState extends _$PilotState {
       name: name,
       pin: pin,
       initialFlightHours: initialFlightHours,
+      initialFlights: initialFlights,
     );
     await repository.savePilot(pilot);
     ref.invalidateSelf();
@@ -60,6 +62,7 @@ Future<TimeBasedStats> pilotStats(Ref ref, String pilotId) async {
   return repository.getPilotTimeStats(
     pilotId,
     initialHours: pilot.initialFlightHours,
+    initialFlights: pilot.initialFlights,
   );
 }
 

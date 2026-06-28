@@ -33,7 +33,7 @@ final class PilotStateProvider
   PilotState create() => PilotState();
 }
 
-String _$pilotStateHash() => r'6817b8e0ae470b21273db80f99079b8081888e70';
+String _$pilotStateHash() => r'aa80c6dca2853f0fbaabc72fa25754b51f15c84e';
 
 abstract class _$PilotState extends $AsyncNotifier<List<Pilot>> {
   FutureOr<List<Pilot>> build();
@@ -108,7 +108,7 @@ final class PilotStatsProvider
   }
 }
 
-String _$pilotStatsHash() => r'87ca8ac3cf69a0fabd0f6854ac4db9b588d766dd';
+String _$pilotStatsHash() => r'2cdfe7a8c358f0df238c5a0b4bf921ae1465fdf1';
 
 final class PilotStatsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<TimeBasedStats>, String> {

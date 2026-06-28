@@ -1137,6 +1137,18 @@ class AppLocalizationsSk extends AppLocalizations {
   String get initialHoursSaved => 'Inicializačné letové hodiny uložené.';
 
   @override
+  String get initialFlightsLabel => 'Inicializačný počet letov';
+
+  @override
+  String get flightsExampleHint => 'Napr. 24';
+
+  @override
+  String get invalidFlights => 'Zadajte platný počet letov!';
+
+  @override
+  String get initialFlightsSaved => 'Inicializačný počet letov uložený.';
+
+  @override
   String get deleteAircraftButton => 'Vymazať lietadlo';
 
   @override
