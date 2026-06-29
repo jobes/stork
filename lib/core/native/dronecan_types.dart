@@ -6,4 +6,5 @@ export 'dronecan/get_node_info.dart';
 export 'dronecan/get_transport_stats.dart';
 export 'dronecan/restart_node.dart';
 export 'dronecan/fix2.dart';
+export 'dronecan/ice_status.dart';
 export 'dronecan/bit_reader.dart';

@@ -360,7 +360,7 @@ void main() {
 
           // Wait 12 seconds while updating RPM occasionally (should trigger periodic keyframe)
           for (int i = 0; i < 12; i++) {
-            telemetryNotifier.updateEngineRPM(2500.0 + i);
+            telemetryNotifier.updateEngineRPM(2500 + i);
             telemetryNotifier.updateGPS(
               latitude: 48.0,
               longitude: 17.0,

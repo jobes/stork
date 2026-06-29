@@ -55,7 +55,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _updateIsFlying();
     },
   );
-  late final DecayableField<double> _engineRPM = DecayableField<double>(
+  late final DecayableField<int> _engineRPM = DecayableField<int>(
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.engineRPM)
@@ -104,6 +104,43 @@ class TelemetryNotifier extends _$TelemetryNotifier {
               : state.copyWith(gpsVerticalAccuracy: TelemetryValue(val));
         },
       );
+  late final DecayableField<double> _coolantTemperature = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.coolantTemperature)
+          : state.copyWith(coolantTemperature: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<double> _oilPressure = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.oilPressure)
+          : state.copyWith(oilPressure: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<double> _oilTemperature = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.oilTemperature)
+          : state.copyWith(oilTemperature: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<List<double?>> _cylinderHeadTemperatures =
+      DecayableField<List<double?>>(
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.cylinderHeadTemperature)
+              : state.copyWith(cylinderHeadTemperatures: TelemetryValue(val));
+        },
+      );
+  late final DecayableField<List<double?>> _exhaustGasTemperatures =
+      DecayableField<List<double?>>(
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.exhaustGasTemperature)
+              : state.copyWith(exhaustGasTemperatures: TelemetryValue(val));
+        },
+      );
 
   DateTime? _lastDroneCanFixTime;
 
@@ -121,6 +158,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _gpsSatelliteCount.cancel();
       _gpsHorizontalAccuracy.cancel();
       _gpsVerticalAccuracy.cancel();
+      _coolantTemperature.cancel();
+      _oilPressure.cancel();
+      _oilTemperature.cancel();
+      _cylinderHeadTemperatures.cancel();
+      _exhaustGasTemperatures.cancel();
     });
 
     return const TelemetryState();
@@ -195,8 +237,33 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _indicatedAirSpeed.update(ias);
   }
 
-  void updateEngineRPM(double? rpm) {
+  void updateEngineRPM(int? rpm) {
     _engineRPM.update(rpm);
+  }
+
+  void updateIceStatus({
+    required int engineSpeedRpm,
+    double? coolantTemperature,
+    double? oilPressure,
+    double? oilTemperature,
+    List<double?> cylinderHeadTemperatures = const [],
+    List<double?> exhaustGasTemperatures = const [],
+  }) {
+    _engineRPM.sync(engineSpeedRpm);
+    _coolantTemperature.sync(coolantTemperature);
+    _oilPressure.sync(oilPressure);
+    _oilTemperature.sync(oilTemperature);
+    _cylinderHeadTemperatures.sync(cylinderHeadTemperatures);
+    _exhaustGasTemperatures.sync(exhaustGasTemperatures);
+
+    state = state.copyWith(
+      engineRPM: TelemetryValue(engineSpeedRpm),
+      coolantTemperature: TelemetryValue(coolantTemperature),
+      oilPressure: TelemetryValue(oilPressure),
+      oilTemperature: TelemetryValue(oilTemperature),
+      cylinderHeadTemperatures: TelemetryValue(cylinderHeadTemperatures),
+      exhaustGasTemperatures: TelemetryValue(exhaustGasTemperatures),
+    );
   }
 
   void updatePressure(double? pressure) {
@@ -221,6 +288,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _gpsSatelliteCount.sync(newState.gpsSatelliteCount);
     _gpsHorizontalAccuracy.sync(newState.gpsHorizontalAccuracy);
     _gpsVerticalAccuracy.sync(newState.gpsVerticalAccuracy);
+    _coolantTemperature.sync(newState.coolantTemperature);
+    _oilPressure.sync(newState.oilPressure);
+    _oilTemperature.sync(newState.oilTemperature);
+    _cylinderHeadTemperatures.sync(newState.cylinderHeadTemperatures);
+    _exhaustGasTemperatures.sync(newState.exhaustGasTemperatures);
 
     _updateIsFlying();
   }

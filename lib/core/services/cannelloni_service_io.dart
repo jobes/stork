@@ -405,6 +405,25 @@ class CannelloniService extends _$CannelloniService {
         );
   }
 
+  void _updateTelemetryIceStatus(IceStatus msg) {
+    if (msg.hasError) {
+      debugPrint(
+        '[DroneCAN] ICE Status ERROR from engine: ${msg.errorDescription} '
+        '(state=${msg.state}, flags=0x${msg.flags.toRadixString(16)})',
+      );
+    }
+    ref
+        .read(telemetryProvider.notifier)
+        .updateIceStatus(
+          engineSpeedRpm: msg.engineSpeedRpm,
+          coolantTemperature: msg.coolantTemperature,
+          oilPressure: msg.oilPressure,
+          oilTemperature: msg.oilTemperature,
+          cylinderHeadTemperatures: msg.cylinderHeadTemperatures,
+          exhaustGasTemperatures: msg.exhaustGasTemperatures,
+        );
+  }
+
   void _handleGetNodeInfoRequest({
     required int transferId,
     required int sourceNodeId,
@@ -484,6 +503,9 @@ void _storkCanardTransferCallback(
     } else if (dataTypeId == Fix2.messageId) {
       final fix2Msg = Fix2.fromPayload(payloadBytes);
       _activeInstance!._updateTelemetryGPS(fix2Msg);
+    } else if (dataTypeId == IceStatus.messageId) {
+      final iceMsg = IceStatus.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryIceStatus(iceMsg);
     }
   } catch (e) {
     debugPrint('Error in native transfer callback: $e');
@@ -513,6 +535,10 @@ int _storkCanardShouldAcceptCallback(
       }
       if (dataTypeId == Fix2.messageId) {
         outDataTypeSignature.value = Fix2.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == IceStatus.messageId) {
+        outDataTypeSignature.value = IceStatus.messageSignature;
         return 1;
       }
     } else {
