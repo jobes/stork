@@ -117,6 +117,8 @@ class TelemetryState {
   final double? coolantTemperature; // in Kelvin
   final double? oilPressure; // in kPa
   final double? oilTemperature; // in Kelvin
+  final bool isOilTempSupported;
+  final bool isOilPressureSupported;
   /// CHT per cylinder, in Kelvin (null = no sensor for that cylinder, empty list = no data).
   final List<double?> cylinderHeadTemperatures;
   /// EGT per cylinder, in Kelvin (null = no sensor for that cylinder, empty list = no data).
@@ -140,6 +142,8 @@ class TelemetryState {
     this.coolantTemperature,
     this.oilPressure,
     this.oilTemperature,
+    this.isOilTempSupported = false,
+    this.isOilPressureSupported = false,
     this.cylinderHeadTemperatures = const [],
     this.exhaustGasTemperatures = const [],
     this.isGpsDroneCan = false,
@@ -262,6 +266,8 @@ class TelemetryState {
     TelemetryValue<double?>? coolantTemperature,
     TelemetryValue<double?>? oilPressure,
     TelemetryValue<double?>? oilTemperature,
+    bool? isOilTempSupported,
+    bool? isOilPressureSupported,
     TelemetryValue<List<double?>>? cylinderHeadTemperatures,
     TelemetryValue<List<double?>>? exhaustGasTemperatures,
     bool? isGpsDroneCan,
@@ -283,6 +289,9 @@ class TelemetryState {
       coolantTemperature: coolantTemperature != null ? coolantTemperature.value : this.coolantTemperature,
       oilPressure: oilPressure != null ? oilPressure.value : this.oilPressure,
       oilTemperature: oilTemperature != null ? oilTemperature.value : this.oilTemperature,
+      isOilTempSupported: isOilTempSupported ?? this.isOilTempSupported,
+      isOilPressureSupported:
+          isOilPressureSupported ?? this.isOilPressureSupported,
       cylinderHeadTemperatures: cylinderHeadTemperatures != null
           ? cylinderHeadTemperatures.value
           : this.cylinderHeadTemperatures,
@@ -321,6 +330,8 @@ class TelemetryState {
           : coolantTemperature,
       oilPressure: field == TelemetryField.oilPressure ? null : oilPressure,
       oilTemperature: field == TelemetryField.oilTemperature ? null : oilTemperature,
+      isOilTempSupported: isOilTempSupported,
+      isOilPressureSupported: isOilPressureSupported,
       cylinderHeadTemperatures: field == TelemetryField.cylinderHeadTemperature
           ? const []
           : cylinderHeadTemperatures,
@@ -338,6 +349,6 @@ class TelemetryState {
 
   @override
   String toString() {
-    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, coolant: $coolantTemperature, oilP: $oilPressure, oilT: $oilTemperature, chts: $cylinderHeadTemperatures, egts: $exhaustGasTemperatures, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState)';
+    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, coolant: $coolantTemperature, oilP: $oilPressure, oilT: $oilTemperature, isOilTempSupported: $isOilTempSupported, isOilPressureSupported: $isOilPressureSupported, chts: $cylinderHeadTemperatures, egts: $exhaustGasTemperatures, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState)';
   }
 }

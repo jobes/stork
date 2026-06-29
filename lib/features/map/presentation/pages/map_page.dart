@@ -15,6 +15,8 @@ import '../components/controls/compass_bar.dart';
 import '../../../telemetry/presentation/widgets/speed_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/altitude_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/flight_time_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/oil_temp_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/oil_pressure_telemetry_widget.dart';
 import '../components/controls/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
@@ -130,6 +132,20 @@ class _MapPageState extends ConsumerState<MapPage> {
                 defaultLeft: 334.0, // Vedľa altitude widgetu
                 child: FlightTimeTelemetryWidget(),
               ),
+              if (telemetry.isOilTempSupported)
+                const MapWidgetWrapper(
+                  widgetId: 'oil_temp_widget',
+                  defaultTop: 50.0,
+                  defaultLeft: 493.0, // Vedľa flight_time widgetu
+                  child: OilTempTelemetryWidget(),
+                ),
+              if (telemetry.isOilPressureSupported)
+                const MapWidgetWrapper(
+                  widgetId: 'oil_pressure_widget',
+                  defaultTop: 50.0,
+                  defaultLeft: 552.0, // Vedľa oil_temp widgetu
+                  child: OilPressureTelemetryWidget(),
+                ),
               if (navigationAsync.value?.isActive == true &&
                   navigationAsync.value?.points.isNotEmpty == true)
                 const MapWidgetWrapper(

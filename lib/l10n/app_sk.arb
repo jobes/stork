@@ -560,5 +560,18 @@
     "placeholders": {
       "error": { "type": "String" }
     }
-  }
+  },
+  "tempUnitCelsius": "Celsius",
+  "tempUnitKelvin": "Kelvin",
+  "tempUnitFahrenheit": "Fahrenheit",
+  "temperatureUnitSettings": "Jednotka teploty",
+  "pressureUnitSettings": "Jednotka tlaku",
+  "oilTemperature": "Teplota oleja",
+  "oilTemperatureShort": "Tep. ol.",
+  "oilTemperatureSettings": "Teplota oleja",
+  "oilTempMaxRange": "Maximálny rozsah teploty oleja",
+  "oilPressure": "Tlak oleja",
+  "oilPressureShort": "Tlak ol.",
+  "oilPressureSettings": "Tlak oleja",
+  "oilPressureMaxRange": "Maximálny rozsah tlaku oleja"
 }

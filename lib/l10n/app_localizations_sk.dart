@@ -1294,4 +1294,43 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get errorLoadingSettings => 'Chyba pri načítaní nastavení';
+
+  @override
+  String get tempUnitCelsius => 'Celsius';
+
+  @override
+  String get tempUnitKelvin => 'Kelvin';
+
+  @override
+  String get tempUnitFahrenheit => 'Fahrenheit';
+
+  @override
+  String get temperatureUnitSettings => 'Jednotka teploty';
+
+  @override
+  String get pressureUnitSettings => 'Jednotka tlaku';
+
+  @override
+  String get oilTemperature => 'Teplota oleja';
+
+  @override
+  String get oilTemperatureShort => 'Tep. ol.';
+
+  @override
+  String get oilTemperatureSettings => 'Teplota oleja';
+
+  @override
+  String get oilTempMaxRange => 'Maximálny rozsah teploty oleja';
+
+  @override
+  String get oilPressure => 'Tlak oleja';
+
+  @override
+  String get oilPressureShort => 'Tlak ol.';
+
+  @override
+  String get oilPressureSettings => 'Tlak oleja';
+
+  @override
+  String get oilPressureMaxRange => 'Maximálny rozsah tlaku oleja';
 }

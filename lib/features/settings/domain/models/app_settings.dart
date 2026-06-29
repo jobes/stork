@@ -4,6 +4,8 @@ import 'range_thresholds.dart';
 import 'widget_position.dart';
 import 'speed_unit.dart';
 import 'altitude_unit.dart';
+import 'temperature_unit.dart';
+import 'pressure_unit.dart';
 import '../../../../../core/utils/aviation_math.dart';
 
 part 'app_settings.freezed.dart';
@@ -44,6 +46,30 @@ abstract class AppSettings with _$AppSettings {
     @Default(27.78) double averageSpeed,
     String? pilotId,
     String? airplaneId,
+    @Default(TemperatureUnit.celsius) TemperatureUnit temperatureUnit,
+    @Default(
+      RangeThresholds.raw(
+        inactiveMax: 303.15, // 30 °C
+        minError: 323.15,    // 50 °C
+        minWarning: 333.15,  // 60 °C
+        maxWarning: 383.15,  // 110 °C
+        maxError: 403.15,    // 130 °C
+      ),
+    )
+    RangeThresholds oilTempThresholds,
+    @Default(413.15) double oilTempMaxRange, // 140 °C
+    @Default(PressureUnit.bar) PressureUnit pressureUnit,
+    @Default(
+      RangeThresholds.raw(
+        inactiveMax: 50.0,    // 0.5 bar
+        minError: 80.0,       // 0.8 bar
+        minWarning: 200.0,    // 2.0 bar
+        maxWarning: 500.0,    // 5.0 bar
+        maxError: 700.0,      // 7.0 bar
+      ),
+    )
+    RangeThresholds oilPressureThresholds,
+    @Default(800.0) double oilPressureMaxRange, // 8.0 bar
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>
@@ -135,6 +161,142 @@ abstract class AppSettings with _$AppSettings {
         minWarning: speedUnit.convertToMs(newMinWarningActive),
         maxWarning: speedUnit.convertToMs(newMaxWarningActive),
         maxError: speedUnit.convertToMs(newMaxErrorActive),
+      ),
+    );
+  }
+
+  AppSettings copyWithValidatedOilTempMaxRange(
+    double maxRange, {
+    required double defaultMaxRangeK,
+    required double defaultInactiveMaxK,
+    required double defaultMinErrorK,
+    required double defaultMinWarningK,
+    required double defaultMaxWarningK,
+    required double defaultMaxErrorK,
+    required double minRangeLimit,
+    required double maxRangeLimit,
+  }) {
+    double clampedMaxRangeActive = maxRange;
+    if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
+      clampedMaxRangeActive = temperatureUnit.convertFromKelvin(defaultMaxRangeK);
+    } else {
+      clampedMaxRangeActive = clampedMaxRangeActive.clamp(
+        minRangeLimit,
+        maxRangeLimit,
+      );
+    }
+
+    final normalizedMaxRangeK = temperatureUnit.convertToKelvin(clampedMaxRangeActive);
+
+    final thresholds = oilTempThresholds;
+    final inactiveMaxActive = temperatureUnit.convertFromKelvin(
+      thresholds.inactiveMax ?? defaultInactiveMaxK,
+    );
+    final minErrorActive = temperatureUnit.convertFromKelvin(
+      thresholds.minError ?? defaultMinErrorK,
+    );
+    final minWarningActive = temperatureUnit.convertFromKelvin(
+      thresholds.minWarning ?? defaultMinWarningK,
+    );
+    final maxWarningActive = temperatureUnit.convertFromKelvin(
+      thresholds.maxWarning ?? defaultMaxWarningK,
+    );
+    final maxErrorActive = temperatureUnit.convertFromKelvin(
+      thresholds.maxError ?? defaultMaxErrorK,
+    );
+
+    final newMaxErrorActive = maxErrorActive
+        .clamp(0.0, clampedMaxRangeActive)
+        .roundToDouble();
+    final newMaxWarningActive = maxWarningActive
+        .clamp(0.0, newMaxErrorActive)
+        .roundToDouble();
+    final newMinWarningActive = minWarningActive
+        .clamp(0.0, newMaxWarningActive)
+        .roundToDouble();
+    final newMinErrorActive = minErrorActive
+        .clamp(0.0, newMinWarningActive)
+        .roundToDouble();
+    final newInactiveMaxActive = inactiveMaxActive
+        .clamp(0.0, newMinErrorActive)
+        .roundToDouble();
+
+    return copyWith(
+      oilTempMaxRange: normalizedMaxRangeK,
+      oilTempThresholds: thresholds.copyWith(
+        inactiveMax: temperatureUnit.convertToKelvin(newInactiveMaxActive),
+        minError: temperatureUnit.convertToKelvin(newMinErrorActive),
+        minWarning: temperatureUnit.convertToKelvin(newMinWarningActive),
+        maxWarning: temperatureUnit.convertToKelvin(newMaxWarningActive),
+        maxError: temperatureUnit.convertToKelvin(newMaxErrorActive),
+      ),
+    );
+  }
+
+  AppSettings copyWithValidatedOilPressureMaxRange(
+    double maxRange, {
+    required double defaultMaxRangeKpa,
+    required double defaultInactiveMaxKpa,
+    required double defaultMinErrorKpa,
+    required double defaultMinWarningKpa,
+    required double defaultMaxWarningKpa,
+    required double defaultMaxErrorKpa,
+    required double minRangeLimit,
+    required double maxRangeLimit,
+  }) {
+    double clampedMaxRangeActive = maxRange;
+    if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
+      clampedMaxRangeActive = pressureUnit.convertFromKpa(defaultMaxRangeKpa);
+    } else {
+      clampedMaxRangeActive = clampedMaxRangeActive.clamp(
+        minRangeLimit,
+        maxRangeLimit,
+      );
+    }
+
+    final normalizedMaxRangeKpa = pressureUnit.convertToKpa(clampedMaxRangeActive);
+
+    final thresholds = oilPressureThresholds;
+    final inactiveMaxActive = pressureUnit.convertFromKpa(
+      thresholds.inactiveMax ?? defaultInactiveMaxKpa,
+    );
+    final minErrorActive = pressureUnit.convertFromKpa(
+      thresholds.minError ?? defaultMinErrorKpa,
+    );
+    final minWarningActive = pressureUnit.convertFromKpa(
+      thresholds.minWarning ?? defaultMinWarningKpa,
+    );
+    final maxWarningActive = pressureUnit.convertFromKpa(
+      thresholds.maxWarning ?? defaultMaxWarningKpa,
+    );
+    final maxErrorActive = pressureUnit.convertFromKpa(
+      thresholds.maxError ?? defaultMaxErrorKpa,
+    );
+
+    final newMaxErrorActive = maxErrorActive
+        .clamp(0.0, clampedMaxRangeActive)
+        .roundToDouble();
+    final newMaxWarningActive = maxWarningActive
+        .clamp(0.0, newMaxErrorActive)
+        .roundToDouble();
+    final newMinWarningActive = minWarningActive
+        .clamp(0.0, newMaxWarningActive)
+        .roundToDouble();
+    final newMinErrorActive = minErrorActive
+        .clamp(0.0, newMinWarningActive)
+        .roundToDouble();
+    final newInactiveMaxActive = inactiveMaxActive
+        .clamp(0.0, newMinErrorActive)
+        .roundToDouble();
+
+    return copyWith(
+      oilPressureMaxRange: normalizedMaxRangeKpa,
+      oilPressureThresholds: thresholds.copyWith(
+        inactiveMax: pressureUnit.convertToKpa(newInactiveMaxActive),
+        minError: pressureUnit.convertToKpa(newMinErrorActive),
+        minWarning: pressureUnit.convertToKpa(newMinWarningActive),
+        maxWarning: pressureUnit.convertToKpa(newMaxWarningActive),
+        maxError: pressureUnit.convertToKpa(newMaxErrorActive),
       ),
     );
   }

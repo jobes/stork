@@ -56,6 +56,37 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   averageSpeed: (json['averageSpeed'] as num?)?.toDouble() ?? 27.78,
   pilotId: json['pilotId'] as String?,
   airplaneId: json['airplaneId'] as String?,
+  temperatureUnit:
+      $enumDecodeNullable(_$TemperatureUnitEnumMap, json['temperatureUnit']) ??
+      TemperatureUnit.celsius,
+  oilTempThresholds: json['oilTempThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 303.15,
+          minError: 323.15,
+          minWarning: 333.15,
+          maxWarning: 383.15,
+          maxError: 403.15,
+        )
+      : RangeThresholds.fromJson(
+          json['oilTempThresholds'] as Map<String, dynamic>,
+        ),
+  oilTempMaxRange: (json['oilTempMaxRange'] as num?)?.toDouble() ?? 413.15,
+  pressureUnit:
+      $enumDecodeNullable(_$PressureUnitEnumMap, json['pressureUnit']) ??
+      PressureUnit.bar,
+  oilPressureThresholds: json['oilPressureThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 50.0,
+          minError: 80.0,
+          minWarning: 200.0,
+          maxWarning: 500.0,
+          maxError: 700.0,
+        )
+      : RangeThresholds.fromJson(
+          json['oilPressureThresholds'] as Map<String, dynamic>,
+        ),
+  oilPressureMaxRange:
+      (json['oilPressureMaxRange'] as num?)?.toDouble() ?? 800.0,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -81,6 +112,12 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'averageSpeed': instance.averageSpeed,
       'pilotId': instance.pilotId,
       'airplaneId': instance.airplaneId,
+      'temperatureUnit': _$TemperatureUnitEnumMap[instance.temperatureUnit]!,
+      'oilTempThresholds': instance.oilTempThresholds,
+      'oilTempMaxRange': instance.oilTempMaxRange,
+      'pressureUnit': _$PressureUnitEnumMap[instance.pressureUnit]!,
+      'oilPressureThresholds': instance.oilPressureThresholds,
+      'oilPressureMaxRange': instance.oilPressureMaxRange,
     };
 
 const _$SpeedUnitEnumMap = {
@@ -94,4 +131,16 @@ const _$AltitudeUnitEnumMap = {
   AltitudeUnit.meters: 'meters',
   AltitudeUnit.feet: 'feet',
   AltitudeUnit.flightLevel: 'flightLevel',
+};
+
+const _$TemperatureUnitEnumMap = {
+  TemperatureUnit.celsius: 'celsius',
+  TemperatureUnit.kelvin: 'kelvin',
+  TemperatureUnit.fahrenheit: 'fahrenheit',
+};
+
+const _$PressureUnitEnumMap = {
+  PressureUnit.bar: 'bar',
+  PressureUnit.psi: 'psi',
+  PressureUnit.kPa: 'kPa',
 };

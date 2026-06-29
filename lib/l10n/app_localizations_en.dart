@@ -1293,4 +1293,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorLoadingSettings => 'Error loading settings';
+
+  @override
+  String get tempUnitCelsius => 'Celsius';
+
+  @override
+  String get tempUnitKelvin => 'Kelvin';
+
+  @override
+  String get tempUnitFahrenheit => 'Fahrenheit';
+
+  @override
+  String get temperatureUnitSettings => 'Temperature Unit';
+
+  @override
+  String get pressureUnitSettings => 'Pressure Unit';
+
+  @override
+  String get oilTemperature => 'Oil Temperature';
+
+  @override
+  String get oilTemperatureShort => 'Oil T.';
+
+  @override
+  String get oilTemperatureSettings => 'Oil Temperature';
+
+  @override
+  String get oilTempMaxRange => 'Maximum Oil Temperature Range';
+
+  @override
+  String get oilPressure => 'Oil Pressure';
+
+  @override
+  String get oilPressureShort => 'Oil P.';
+
+  @override
+  String get oilPressureSettings => 'Oil Pressure';
+
+  @override
+  String get oilPressureMaxRange => 'Maximum Oil Pressure Range';
 }

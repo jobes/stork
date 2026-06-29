@@ -651,6 +651,19 @@
     }
   },
   "hoursMinutesFallback": "---h --m",
-  "errorLoadingSettings": "Error loading settings"
+  "errorLoadingSettings": "Error loading settings",
+  "tempUnitCelsius": "Celsius",
+  "tempUnitKelvin": "Kelvin",
+  "tempUnitFahrenheit": "Fahrenheit",
+  "temperatureUnitSettings": "Temperature Unit",
+  "pressureUnitSettings": "Pressure Unit",
+  "oilTemperature": "Oil Temperature",
+  "oilTemperatureShort": "Oil T.",
+  "oilTemperatureSettings": "Oil Temperature",
+  "oilTempMaxRange": "Maximum Oil Temperature Range",
+  "oilPressure": "Oil Pressure",
+  "oilPressureShort": "Oil P.",
+  "oilPressureSettings": "Oil Pressure",
+  "oilPressureMaxRange": "Maximum Oil Pressure Range"
 }
 

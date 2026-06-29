@@ -8,6 +8,8 @@ import '../../domain/models/range_thresholds.dart';
 import '../../domain/models/speed_unit.dart';
 import '../../domain/models/altitude_unit.dart';
 import '../../domain/models/widget_position.dart';
+import '../../domain/models/temperature_unit.dart';
+import '../../domain/models/pressure_unit.dart';
 
 part 'settings_provider.g.dart';
 
@@ -310,5 +312,95 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   Future<SettingsUpdateResult> updateAirplaneId(String? airplaneId) {
     return _updateSettings((s) => s.copyWith(airplaneId: airplaneId));
+  }
+
+  Future<SettingsUpdateResult> updateTemperatureUnit(TemperatureUnit temperatureUnit) =>
+      _updateSettings((s) => s.copyWith(temperatureUnit: temperatureUnit));
+
+  Future<SettingsUpdateResult> updateOilTempThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      final tempUnit = s.temperatureUnit;
+      final thresholdsInKelvin = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? tempUnit.convertToKelvin(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? tempUnit.convertToKelvin(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? tempUnit.convertToKelvin(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? tempUnit.convertToKelvin(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? tempUnit.convertToKelvin(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(oilTempThresholds: thresholdsInKelvin);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateOilTempMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedOilTempMaxRange(
+        maxRange,
+        defaultMaxRangeK: 413.15,
+        defaultInactiveMaxK: 303.15,
+        defaultMinErrorK: 323.15,
+        defaultMinWarningK: 333.15,
+        defaultMaxWarningK: 383.15,
+        defaultMaxErrorK: 403.15,
+        minRangeLimit: 50.0,
+        maxRangeLimit: 1000.0,
+      ),
+    );
+  }
+
+  Future<SettingsUpdateResult> updatePressureUnit(PressureUnit pressureUnit) =>
+      _updateSettings((s) => s.copyWith(pressureUnit: pressureUnit));
+
+  Future<SettingsUpdateResult> updateOilPressureThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      final pressureUnit = s.pressureUnit;
+      final thresholdsInKpa = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? pressureUnit.convertToKpa(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? pressureUnit.convertToKpa(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? pressureUnit.convertToKpa(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? pressureUnit.convertToKpa(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? pressureUnit.convertToKpa(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(oilPressureThresholds: thresholdsInKpa);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateOilPressureMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedOilPressureMaxRange(
+        maxRange,
+        defaultMaxRangeKpa: 800.0,
+        defaultInactiveMaxKpa: 50.0,
+        defaultMinErrorKpa: 80.0,
+        defaultMinWarningKpa: 200.0,
+        defaultMaxWarningKpa: 500.0,
+        defaultMaxErrorKpa: 700.0,
+        minRangeLimit: s.pressureUnit.convertFromKpa(100.0), // 1.0 bar / 14.5 psi / 100 kPa
+        maxRangeLimit: s.pressureUnit.convertFromKpa(2000.0), // 20.0 bar / 290 psi / 2000 kPa
+      ),
+    );
   }
 }

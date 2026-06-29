@@ -2527,6 +2527,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error loading settings'**
   String get errorLoadingSettings;
+
+  /// No description provided for @tempUnitCelsius.
+  ///
+  /// In en, this message translates to:
+  /// **'Celsius'**
+  String get tempUnitCelsius;
+
+  /// No description provided for @tempUnitKelvin.
+  ///
+  /// In en, this message translates to:
+  /// **'Kelvin'**
+  String get tempUnitKelvin;
+
+  /// No description provided for @tempUnitFahrenheit.
+  ///
+  /// In en, this message translates to:
+  /// **'Fahrenheit'**
+  String get tempUnitFahrenheit;
+
+  /// No description provided for @temperatureUnitSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature Unit'**
+  String get temperatureUnitSettings;
+
+  /// No description provided for @pressureUnitSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure Unit'**
+  String get pressureUnitSettings;
+
+  /// No description provided for @oilTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Oil Temperature'**
+  String get oilTemperature;
+
+  /// No description provided for @oilTemperatureShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Oil T.'**
+  String get oilTemperatureShort;
+
+  /// No description provided for @oilTemperatureSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Oil Temperature'**
+  String get oilTemperatureSettings;
+
+  /// No description provided for @oilTempMaxRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum Oil Temperature Range'**
+  String get oilTempMaxRange;
+
+  /// No description provided for @oilPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Oil Pressure'**
+  String get oilPressure;
+
+  /// No description provided for @oilPressureShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Oil P.'**
+  String get oilPressureShort;
+
+  /// No description provided for @oilPressureSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Oil Pressure'**
+  String get oilPressureSettings;
+
+  /// No description provided for @oilPressureMaxRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum Oil Pressure Range'**
+  String get oilPressureMaxRange;
 }
 
 class _AppLocalizationsDelegate
