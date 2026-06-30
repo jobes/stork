@@ -666,6 +666,13 @@
   "oilPressureSettings": "Oil Pressure",
   "oilPressureMaxRange": "Maximum Oil Pressure Range",
   "cylinderHeadTemperatureShort": "CHT",
+  "chtTemperature": "Cylinder Head Temperature (CHT)",
+  "chtTemperatureSettings": "Cylinder Head Temperature (CHT)",
+  "chtMaxRange": "Maximum Cylinder Head Temperature Range",
+  "egtTemperature": "Exhaust Gas Temperature",
+  "egtTemperatureShort": "EGT",
+  "egtTemperatureSettings": "Exhaust Gas Temperature",
+  "egtMaxRange": "Maximum Exhaust Gas Temperature Range",
   "fuelTankStatus": "Fuel",
   "fuelTankStatusShort": "Fuel",
   "fuelTankStatusSettings": "Fuel Tank"

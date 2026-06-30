@@ -2612,6 +2612,48 @@ abstract class AppLocalizations {
   /// **'CHT'**
   String get cylinderHeadTemperatureShort;
 
+  /// No description provided for @chtTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder Head Temperature (CHT)'**
+  String get chtTemperature;
+
+  /// No description provided for @chtTemperatureSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder Head Temperature (CHT)'**
+  String get chtTemperatureSettings;
+
+  /// No description provided for @chtMaxRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum Cylinder Head Temperature Range'**
+  String get chtMaxRange;
+
+  /// No description provided for @egtTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Exhaust Gas Temperature'**
+  String get egtTemperature;
+
+  /// No description provided for @egtTemperatureShort.
+  ///
+  /// In en, this message translates to:
+  /// **'EGT'**
+  String get egtTemperatureShort;
+
+  /// No description provided for @egtTemperatureSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Exhaust Gas Temperature'**
+  String get egtTemperatureSettings;
+
+  /// No description provided for @egtMaxRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum Exhaust Gas Temperature Range'**
+  String get egtMaxRange;
+
   /// No description provided for @fuelTankStatus.
   ///
   /// In en, this message translates to:

@@ -82,6 +82,42 @@ class FlightSettingsPage extends ConsumerWidget {
             ),
           );
 
+          final currentEgtThresholds = RangeThresholds(
+            inactiveMax: tempUnit.convertFromKelvin(
+              settings.egtThresholds.inactiveMax ?? 423.15,
+            ),
+            minError: tempUnit.convertFromKelvin(
+              settings.egtThresholds.minError ?? 773.15,
+            ),
+            minWarning: tempUnit.convertFromKelvin(
+              settings.egtThresholds.minWarning ?? 973.15,
+            ),
+            maxWarning: tempUnit.convertFromKelvin(
+              settings.egtThresholds.maxWarning ?? 1153.15,
+            ),
+            maxError: tempUnit.convertFromKelvin(
+              settings.egtThresholds.maxError ?? 1173.15,
+            ),
+          );
+
+          final currentChtThresholds = RangeThresholds(
+            inactiveMax: tempUnit.convertFromKelvin(
+              settings.chtThresholds.inactiveMax ?? 323.15,
+            ),
+            minError: tempUnit.convertFromKelvin(
+              settings.chtThresholds.minError ?? 333.15,
+            ),
+            minWarning: tempUnit.convertFromKelvin(
+              settings.chtThresholds.minWarning ?? 348.15,
+            ),
+            maxWarning: tempUnit.convertFromKelvin(
+              settings.chtThresholds.maxWarning ?? 403.15,
+            ),
+            maxError: tempUnit.convertFromKelvin(
+              settings.chtThresholds.maxError ?? 423.15,
+            ),
+          );
+
           return ListView(
             children: [
               Padding(
@@ -634,6 +670,159 @@ class FlightSettingsPage extends ConsumerWidget {
                           ),
                     );
                   },
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
+                child: Text(
+                  l10n.egtTemperatureSettings,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: tempUnit.convertFromKelvin(273.15), // 0 °C
+                  max: tempUnit.convertFromKelvin(settings.egtMaxRange),
+                  evaluate: currentEgtThresholds.evaluate,
+                  unitLabel: tempUnit.getAbbreviation(),
+                  values: [
+                    currentEgtThresholds.inactiveMax!,
+                    currentEgtThresholds.minError!,
+                    currentEgtThresholds.minWarning!,
+                    currentEgtThresholds.maxWarning!,
+                    currentEgtThresholds.maxError!,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateEgtThresholds(
+                            currentEgtThresholds.copyWith(
+                              inactiveMax: newValues[0],
+                              minError: newValues[1],
+                              minWarning: newValues[2],
+                              maxWarning: newValues[3],
+                              maxError: newValues[4],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.egtMaxRange,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: tempUnit
+                          .convertFromKelvin(settings.egtMaxRange)
+                          .roundToDouble(),
+                      min: tempUnit.convertFromKelvin(273.15 + 100.0).roundToDouble(),
+                      max: tempUnit.convertFromKelvin(273.15 + 1500.0).roundToDouble(),
+                      step: 50,
+                      suffix: tempUnit.getAbbreviation(),
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateEgtMaxRange(newValue),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Text(
+                  l10n.chtTemperatureSettings,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: tempUnit.convertFromKelvin(273.15), // 0 °C
+                  max: tempUnit.convertFromKelvin(settings.chtMaxRange),
+                  evaluate: currentChtThresholds.evaluate,
+                  unitLabel: tempUnit.getAbbreviation(),
+                  values: [
+                    currentChtThresholds.inactiveMax!,
+                    currentChtThresholds.minError!,
+                    currentChtThresholds.minWarning!,
+                    currentChtThresholds.maxWarning!,
+                    currentChtThresholds.maxError!,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateChtThresholds(
+                            currentChtThresholds.copyWith(
+                              inactiveMax: newValues[0],
+                              minError: newValues[1],
+                              minWarning: newValues[2],
+                              maxWarning: newValues[3],
+                              maxError: newValues[4],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.chtMaxRange,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: tempUnit
+                          .convertFromKelvin(settings.chtMaxRange)
+                          .roundToDouble(),
+                      min: tempUnit.convertFromKelvin(273.15 + 50.0).roundToDouble(),
+                      max: tempUnit.convertFromKelvin(273.15 + 300.0).roundToDouble(),
+                      step: 10,
+                      suffix: tempUnit.getAbbreviation(),
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateChtMaxRange(newValue),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
               CourseLineSettingsSection(settings: settings, l10n: l10n),

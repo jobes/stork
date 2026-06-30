@@ -1338,6 +1338,27 @@ class AppLocalizationsSk extends AppLocalizations {
   String get cylinderHeadTemperatureShort => 'CHT';
 
   @override
+  String get chtTemperature => 'Teplota hlavy valcov (CHT)';
+
+  @override
+  String get chtTemperatureSettings => 'Teplota hlavy valcov (CHT)';
+
+  @override
+  String get chtMaxRange => 'Maximálny rozsah teploty CHT';
+
+  @override
+  String get egtTemperature => 'Teplota výfukových plynov';
+
+  @override
+  String get egtTemperatureShort => 'EGT';
+
+  @override
+  String get egtTemperatureSettings => 'Teplota výfukových plynov';
+
+  @override
+  String get egtMaxRange => 'Maximálny rozsah teploty výfukových plynov';
+
+  @override
   String get fuelTankStatus => 'Palivo';
 
   @override

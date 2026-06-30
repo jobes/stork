@@ -374,7 +374,7 @@ class TelemetryState {
           ? List<double?>.filled(cylinderHeadTemperatures.length, null)
           : cylinderHeadTemperatures,
       exhaustGasTemperatures: field == TelemetryField.exhaustGasTemperature
-          ? const []
+          ? List<double?>.filled(exhaustGasTemperatures.length, null)
           : exhaustGasTemperatures,
       isGpsDroneCan:
           field == TelemetryField.gpsHorizontalAccuracy ||

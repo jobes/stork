@@ -77,6 +77,28 @@ abstract class AppSettings with _$AppSettings {
       ),
     )
     RangeThresholds fuelThresholds,
+    @Default(
+      RangeThresholds.raw(
+        inactiveMax: 423.15, // 150 °C
+        minError: 773.15,    // 500 °C
+        minWarning: 973.15,  // 700 °C
+        maxWarning: 1153.15, // 880 °C
+        maxError: 1173.15,   // 900 °C
+      ),
+    )
+    RangeThresholds egtThresholds,
+    @Default(1223.15) double egtMaxRange, // 950 °C
+    @Default(
+      RangeThresholds.raw(
+        inactiveMax: 323.15, // 50 °C
+        minError: 333.15,    // 60 °C
+        minWarning: 348.15,  // 75 °C
+        maxWarning: 403.15,  // 130 °C
+        maxError: 423.15,    // 150 °C
+      ),
+    )
+    RangeThresholds chtThresholds,
+    @Default(433.15) double chtMaxRange, // 160 °C
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>
@@ -304,6 +326,142 @@ abstract class AppSettings with _$AppSettings {
         minWarning: pressureUnit.convertToKpa(newMinWarningActive),
         maxWarning: pressureUnit.convertToKpa(newMaxWarningActive),
         maxError: pressureUnit.convertToKpa(newMaxErrorActive),
+      ),
+    );
+  }
+
+  AppSettings copyWithValidatedEgtMaxRange(
+    double maxRange, {
+    required double defaultMaxRangeK,
+    required double defaultInactiveMaxK,
+    required double defaultMinErrorK,
+    required double defaultMinWarningK,
+    required double defaultMaxWarningK,
+    required double defaultMaxErrorK,
+    required double minRangeLimit,
+    required double maxRangeLimit,
+  }) {
+    double clampedMaxRangeActive = maxRange;
+    if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
+      clampedMaxRangeActive = temperatureUnit.convertFromKelvin(defaultMaxRangeK);
+    } else {
+      clampedMaxRangeActive = clampedMaxRangeActive.clamp(
+        minRangeLimit,
+        maxRangeLimit,
+      );
+    }
+
+    final normalizedMaxRangeK = temperatureUnit.convertToKelvin(clampedMaxRangeActive);
+
+    final thresholds = egtThresholds;
+    final inactiveMaxActive = temperatureUnit.convertFromKelvin(
+      thresholds.inactiveMax ?? defaultInactiveMaxK,
+    );
+    final minErrorActive = temperatureUnit.convertFromKelvin(
+      thresholds.minError ?? defaultMinErrorK,
+    );
+    final minWarningActive = temperatureUnit.convertFromKelvin(
+      thresholds.minWarning ?? defaultMinWarningK,
+    );
+    final maxWarningActive = temperatureUnit.convertFromKelvin(
+      thresholds.maxWarning ?? defaultMaxWarningK,
+    );
+    final maxErrorActive = temperatureUnit.convertFromKelvin(
+      thresholds.maxError ?? defaultMaxErrorK,
+    );
+
+    final newMaxErrorActive = maxErrorActive
+        .clamp(0.0, clampedMaxRangeActive)
+        .roundToDouble();
+    final newMaxWarningActive = maxWarningActive
+        .clamp(0.0, newMaxErrorActive)
+        .roundToDouble();
+    final newMinWarningActive = minWarningActive
+        .clamp(0.0, newMaxWarningActive)
+        .roundToDouble();
+    final newMinErrorActive = minErrorActive
+        .clamp(0.0, newMinWarningActive)
+        .roundToDouble();
+    final newInactiveMaxActive = inactiveMaxActive
+        .clamp(0.0, newMinErrorActive)
+        .roundToDouble();
+
+    return copyWith(
+      egtMaxRange: normalizedMaxRangeK,
+      egtThresholds: thresholds.copyWith(
+        inactiveMax: temperatureUnit.convertToKelvin(newInactiveMaxActive),
+        minError: temperatureUnit.convertToKelvin(newMinErrorActive),
+        minWarning: temperatureUnit.convertToKelvin(newMinWarningActive),
+        maxWarning: temperatureUnit.convertToKelvin(newMaxWarningActive),
+        maxError: temperatureUnit.convertToKelvin(newMaxErrorActive),
+      ),
+    );
+  }
+
+  AppSettings copyWithValidatedChtMaxRange(
+    double maxRange, {
+    required double defaultMaxRangeK,
+    required double defaultInactiveMaxK,
+    required double defaultMinErrorK,
+    required double defaultMinWarningK,
+    required double defaultMaxWarningK,
+    required double defaultMaxErrorK,
+    required double minRangeLimit,
+    required double maxRangeLimit,
+  }) {
+    double clampedMaxRangeActive = maxRange;
+    if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
+      clampedMaxRangeActive = temperatureUnit.convertFromKelvin(defaultMaxRangeK);
+    } else {
+      clampedMaxRangeActive = clampedMaxRangeActive.clamp(
+        minRangeLimit,
+        maxRangeLimit,
+      );
+    }
+
+    final normalizedMaxRangeK = temperatureUnit.convertToKelvin(clampedMaxRangeActive);
+
+    final thresholds = chtThresholds;
+    final inactiveMaxActive = temperatureUnit.convertFromKelvin(
+      thresholds.inactiveMax ?? defaultInactiveMaxK,
+    );
+    final minErrorActive = temperatureUnit.convertFromKelvin(
+      thresholds.minError ?? defaultMinErrorK,
+    );
+    final minWarningActive = temperatureUnit.convertFromKelvin(
+      thresholds.minWarning ?? defaultMinWarningK,
+    );
+    final maxWarningActive = temperatureUnit.convertFromKelvin(
+      thresholds.maxWarning ?? defaultMaxWarningK,
+    );
+    final maxErrorActive = temperatureUnit.convertFromKelvin(
+      thresholds.maxError ?? defaultMaxErrorK,
+    );
+
+    final newMaxErrorActive = maxErrorActive
+        .clamp(0.0, clampedMaxRangeActive)
+        .roundToDouble();
+    final newMaxWarningActive = maxWarningActive
+        .clamp(0.0, newMaxErrorActive)
+        .roundToDouble();
+    final newMinWarningActive = minWarningActive
+        .clamp(0.0, newMaxWarningActive)
+        .roundToDouble();
+    final newMinErrorActive = minErrorActive
+        .clamp(0.0, newMinWarningActive)
+        .roundToDouble();
+    final newInactiveMaxActive = inactiveMaxActive
+        .clamp(0.0, newMinErrorActive)
+        .roundToDouble();
+
+    return copyWith(
+      chtMaxRange: normalizedMaxRangeK,
+      chtThresholds: thresholds.copyWith(
+        inactiveMax: temperatureUnit.convertToKelvin(newInactiveMaxActive),
+        minError: temperatureUnit.convertToKelvin(newMinErrorActive),
+        minWarning: temperatureUnit.convertToKelvin(newMinWarningActive),
+        maxWarning: temperatureUnit.convertToKelvin(newMaxWarningActive),
+        maxError: temperatureUnit.convertToKelvin(newMaxErrorActive),
       ),
     );
   }

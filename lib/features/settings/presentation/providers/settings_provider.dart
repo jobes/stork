@@ -411,4 +411,88 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       return s.copyWith(fuelThresholds: thresholds);
     });
   }
+
+  Future<SettingsUpdateResult> updateEgtThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      final tempUnit = s.temperatureUnit;
+      final thresholdsInKelvin = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? tempUnit.convertToKelvin(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? tempUnit.convertToKelvin(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? tempUnit.convertToKelvin(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? tempUnit.convertToKelvin(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? tempUnit.convertToKelvin(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(egtThresholds: thresholdsInKelvin);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateEgtMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedEgtMaxRange(
+        maxRange,
+        defaultMaxRangeK: 1223.15,
+        defaultInactiveMaxK: 423.15,
+        defaultMinErrorK: 773.15,
+        defaultMinWarningK: 973.15,
+        defaultMaxWarningK: 1153.15,
+        defaultMaxErrorK: 1173.15,
+        minRangeLimit: 50.0,
+        maxRangeLimit: 2000.0,
+      ),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateChtThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      final tempUnit = s.temperatureUnit;
+      final thresholdsInKelvin = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? tempUnit.convertToKelvin(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? tempUnit.convertToKelvin(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? tempUnit.convertToKelvin(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? tempUnit.convertToKelvin(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? tempUnit.convertToKelvin(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(chtThresholds: thresholdsInKelvin);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateChtMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedChtMaxRange(
+        maxRange,
+        defaultMaxRangeK: 433.15,
+        defaultInactiveMaxK: 323.15,
+        defaultMinErrorK: 333.15,
+        defaultMinWarningK: 348.15,
+        defaultMaxWarningK: 403.15,
+        defaultMaxErrorK: 423.15,
+        minRangeLimit: 50.0,
+        maxRangeLimit: 1000.0,
+      ),
+    );
+  }
 }

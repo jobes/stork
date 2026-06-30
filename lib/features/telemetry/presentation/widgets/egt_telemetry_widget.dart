@@ -9,8 +9,8 @@ import '../providers/telemetry_provider.dart';
 import 'telemetry_card.dart';
 import 'segmented_gauge_painter.dart';
 
-class CylinderTempTelemetryWidget extends ConsumerWidget {
-  const CylinderTempTelemetryWidget({super.key});
+class EgtTelemetryWidget extends ConsumerWidget {
+  const EgtTelemetryWidget({super.key});
 
   int _stateSeverity(ThresholdState state) {
     switch (state) {
@@ -85,27 +85,27 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
 
     final tempUnit = settings?.temperatureUnit ?? TemperatureUnit.celsius;
     
-    // CHT thresholds loaded from settings
-    final thresholds = settings?.chtThresholds ?? const RangeThresholds.raw(
-      inactiveMax: 323.15, // 50 °C
-      minError: 333.15,    // 60 °C
-      minWarning: 348.15,  // 75 °C
-      maxWarning: 403.15,  // 130 °C
-      maxError: 423.15,    // 150 °C
+    // EGT thresholds loaded from settings
+    final thresholds = settings?.egtThresholds ?? const RangeThresholds.raw(
+      inactiveMax: 423.15, // 150 °C
+      minError: 773.15,    // 500 °C
+      minWarning: 973.15,  // 700 °C
+      maxWarning: 1153.15, // 880 °C
+      maxError: 1173.15,   // 900 °C
     );
 
-    final double maxVisualK = settings?.chtMaxRange ?? 433.15; // 160 °C
-    final double minVisualK = thresholds.inactiveMax ?? 323.15; // 50 °C
+    final double maxVisualK = settings?.egtMaxRange ?? 1223.15; // 950 °C
+    final double minVisualK = thresholds.inactiveMax ?? 423.15; // 150 °C
 
-    final chts = telemetry.cylinderHeadTemperatures;
-    if (chts.isEmpty) {
+    final egts = telemetry.exhaustGasTemperatures;
+    if (egts.isEmpty) {
       return const SizedBox.shrink();
     }
 
     // Determine the worst state among all cylinders
     ThresholdState worstState = ThresholdState.inactive;
     int worstSeverity = -1;
-    for (final temp in chts) {
+    for (final temp in egts) {
       final state = temp != null ? thresholds.evaluate(temp) : ThresholdState.maxError;
       final sev = _stateSeverity(state);
       if (sev > worstSeverity) {
@@ -118,8 +118,8 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
     final defaultTextColor = isDark ? Colors.grey.shade300 : Colors.grey.shade700;
 
     // Dynamically calculate column layout sizes
-    final double colWidth = (chts.length <= 2 ? 36.0 : 28.0) * fontScale;
-    final double totalContentWidth = chts.length * colWidth;
+    final double colWidth = (egts.length <= 2 ? 36.0 : 28.0) * fontScale;
+    final double totalContentWidth = egts.length * colWidth;
 
     return TelemetryCard(
       boxShadow: _getBoxShadow(worstState, isDark),
@@ -136,7 +136,7 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              l10n.cylinderHeadTemperatureShort.toUpperCase(),
+              l10n.egtTemperatureShort.toUpperCase(),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -151,8 +151,8 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(chts.length, (index) {
-                final double? rawTemp = chts[index];
+              children: List.generate(egts.length, (index) {
+                final double? rawTemp = egts[index];
                 final ThresholdState tempState = rawTemp != null
                     ? thresholds.evaluate(rawTemp)
                     : ThresholdState.maxError;
@@ -223,5 +223,3 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
     );
   }
 }
-
-

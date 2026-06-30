@@ -92,6 +92,26 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
       : RangeThresholds.fromJson(
           json['fuelThresholds'] as Map<String, dynamic>,
         ),
+  egtThresholds: json['egtThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 423.15,
+          minError: 773.15,
+          minWarning: 973.15,
+          maxWarning: 1153.15,
+          maxError: 1173.15,
+        )
+      : RangeThresholds.fromJson(json['egtThresholds'] as Map<String, dynamic>),
+  egtMaxRange: (json['egtMaxRange'] as num?)?.toDouble() ?? 1223.15,
+  chtThresholds: json['chtThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 323.15,
+          minError: 333.15,
+          minWarning: 348.15,
+          maxWarning: 403.15,
+          maxError: 423.15,
+        )
+      : RangeThresholds.fromJson(json['chtThresholds'] as Map<String, dynamic>),
+  chtMaxRange: (json['chtMaxRange'] as num?)?.toDouble() ?? 433.15,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -124,6 +144,10 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'oilPressureThresholds': instance.oilPressureThresholds,
       'oilPressureMaxRange': instance.oilPressureMaxRange,
       'fuelThresholds': instance.fuelThresholds,
+      'egtThresholds': instance.egtThresholds,
+      'egtMaxRange': instance.egtMaxRange,
+      'chtThresholds': instance.chtThresholds,
+      'chtMaxRange': instance.chtMaxRange,
     };
 
 const _$SpeedUnitEnumMap = {

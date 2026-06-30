@@ -1337,6 +1337,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cylinderHeadTemperatureShort => 'CHT';
 
   @override
+  String get chtTemperature => 'Cylinder Head Temperature (CHT)';
+
+  @override
+  String get chtTemperatureSettings => 'Cylinder Head Temperature (CHT)';
+
+  @override
+  String get chtMaxRange => 'Maximum Cylinder Head Temperature Range';
+
+  @override
+  String get egtTemperature => 'Exhaust Gas Temperature';
+
+  @override
+  String get egtTemperatureShort => 'EGT';
+
+  @override
+  String get egtTemperatureSettings => 'Exhaust Gas Temperature';
+
+  @override
+  String get egtMaxRange => 'Maximum Exhaust Gas Temperature Range';
+
+  @override
   String get fuelTankStatus => 'Fuel';
 
   @override

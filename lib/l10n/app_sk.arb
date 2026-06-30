@@ -575,6 +575,13 @@
   "oilPressureSettings": "Tlak oleja",
   "oilPressureMaxRange": "Maximálny rozsah tlaku oleja",
   "cylinderHeadTemperatureShort": "CHT",
+  "chtTemperature": "Teplota hlavy valcov (CHT)",
+  "chtTemperatureSettings": "Teplota hlavy valcov (CHT)",
+  "chtMaxRange": "Maximálny rozsah teploty CHT",
+  "egtTemperature": "Teplota výfukových plynov",
+  "egtTemperatureShort": "EGT",
+  "egtTemperatureSettings": "Teplota výfukových plynov",
+  "egtMaxRange": "Maximálny rozsah teploty výfukových plynov",
   "fuelTankStatus": "Palivo",
   "fuelTankStatusShort": "Palivo",
   "fuelTankStatusSettings": "Palivová nádrž"
