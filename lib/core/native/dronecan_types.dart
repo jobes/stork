@@ -8,4 +8,5 @@ export 'dronecan/restart_node.dart';
 export 'dronecan/fix2.dart';
 export 'dronecan/ice_status.dart';
 export 'dronecan/fuel_tank_status.dart';
+export 'dronecan/stork_engine_rpm.dart';
 export 'dronecan/bit_reader.dart';
