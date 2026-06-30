@@ -98,8 +98,8 @@ void main() {
         state = container.read(telemetryProvider);
         expect(state.engineRPM, equals(2500));
 
-        // Advance 0.6 seconds (over 1s since update), should be null again
-        async.elapse(const Duration(milliseconds: 600));
+        // Advance 1.1 seconds (over 1.5s since update), should be null again
+        async.elapse(const Duration(milliseconds: 1100));
         state = container.read(telemetryProvider);
         expect(state.engineRPM, isNull);
       });

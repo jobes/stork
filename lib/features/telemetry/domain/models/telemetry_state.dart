@@ -384,7 +384,7 @@ class TelemetryState {
       mapViewState: mapViewState,
       fuelLevelPercent: field == TelemetryField.fuelLevelPercent ? null : fuelLevelPercent,
       fuelVolumeLiters: field == TelemetryField.fuelVolumeLiters ? null : fuelVolumeLiters,
-      isFuelSupported: (field == TelemetryField.fuelLevelPercent || field == TelemetryField.fuelVolumeLiters) ? false : isFuelSupported,
+      isFuelSupported: isFuelSupported,
     );
   }
 
