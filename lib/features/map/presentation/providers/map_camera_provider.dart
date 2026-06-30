@@ -9,6 +9,7 @@ import '../../../../core/services/location_provider.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
+import '../../../telemetry/domain/models/telemetry_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import 'notams_provider.dart';

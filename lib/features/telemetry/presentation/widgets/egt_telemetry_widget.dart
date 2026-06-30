@@ -174,17 +174,24 @@ class EgtTelemetryWidget extends ConsumerWidget {
                         width: 24 * fontScale,
                         height: 80 * fontScale,
                         child: rawTemp != null
-                            ? CustomPaint(
-                                painter: SegmentedGaugePainter(
-                                  currentValue: rawTemp,
-                                  minValue: minVisualK,
-                                  maxValue: maxVisualK,
-                                  thresholds: thresholds,
-                                  isDark: isDark,
-                                  pointerThickness: 3.0,
-                                  pointerOverflow: 6.0,
-                                  tickLength: 1.5,
-                                ),
+                            ? TweenAnimationBuilder<double>(
+                                tween: Tween<double>(begin: rawTemp, end: rawTemp),
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
+                                builder: (context, animTemp, child) {
+                                  return CustomPaint(
+                                    painter: SegmentedGaugePainter(
+                                      currentValue: animTemp,
+                                      minValue: minVisualK,
+                                      maxValue: maxVisualK,
+                                      thresholds: thresholds,
+                                      isDark: isDark,
+                                      pointerThickness: 3.0,
+                                      pointerOverflow: 6.0,
+                                      tickLength: 1.5,
+                                    ),
+                                  );
+                                },
                               )
                             : Center(
                                 child: Icon(

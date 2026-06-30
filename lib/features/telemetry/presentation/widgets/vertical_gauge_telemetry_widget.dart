@@ -117,17 +117,24 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
               width: 32 * fontScale,
               height: 80 * fontScale,
               child: currentValue != null
-                  ? CustomPaint(
-                      painter: SegmentedGaugePainter(
-                        currentValue: currentValue!,
-                        minValue: minVisualValue,
-                        maxValue: maxVisualValue,
-                        thresholds: thresholds,
-                        isDark: isDark,
-                        pointerThickness: 3.5,
-                        pointerOverflow: 10.0,
-                        tickLength: 2.5,
-                      ),
+                  ? TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: currentValue!, end: currentValue!),
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                      builder: (context, animValue, child) {
+                        return CustomPaint(
+                          painter: SegmentedGaugePainter(
+                            currentValue: animValue,
+                            minValue: minVisualValue,
+                            maxValue: maxVisualValue,
+                            thresholds: thresholds,
+                            isDark: isDark,
+                            pointerThickness: 3.5,
+                            pointerOverflow: 10.0,
+                            tickLength: 2.5,
+                          ),
+                        );
+                      },
                     )
                   : Center(
                       child: Icon(

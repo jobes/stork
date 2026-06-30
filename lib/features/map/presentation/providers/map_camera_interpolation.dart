@@ -103,9 +103,9 @@ extension MapCameraInterpolation on MapCamera {
     final telemetry = refAccess.read(telemetryProvider);
     final settings = refAccess.read(appSettingsProvider).value;
     final interpolatedTelemetry = telemetry.copyWith(
-      latitude: courseLat,
-      longitude: courseLon,
-      heading: courseBearing,
+      latitude: TelemetryValue(courseLat),
+      longitude: TelemetryValue(courseLon),
+      heading: TelemetryValue(courseBearing),
     );
 
     _mapController!.style!.updateGeoJsonSource(
