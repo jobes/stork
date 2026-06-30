@@ -59,7 +59,10 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.engineRPM)
-          : state.copyWith(engineRPM: TelemetryValue(val));
+          : state.copyWith(
+              engineRPM: TelemetryValue(val),
+              isEngineRpmSupported: true,
+            );
     },
   );
   late final DecayableField<double> _airPressure = DecayableField<double>(
@@ -291,6 +294,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       oilTemperature: TelemetryValue(oilTemperature),
       isOilTempSupported: state.isOilTempSupported || oilTemperature != null,
       isOilPressureSupported: state.isOilPressureSupported || oilPressure != null,
+      isEngineRpmSupported: true,
       cylinderHeadTemperatures: TelemetryValue(cylinderHeadTemperatures),
       exhaustGasTemperatures: TelemetryValue(exhaustGasTemperatures),
     );

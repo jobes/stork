@@ -675,5 +675,9 @@
   "egtMaxRange": "Maximum Exhaust Gas Temperature Range",
   "fuelTankStatus": "Fuel",
   "fuelTankStatusShort": "Fuel",
-  "fuelTankStatusSettings": "Fuel Tank"
+  "fuelTankStatusSettings": "Fuel Tank",
+  "engineRpm": "Engine RPM",
+  "engineRpmShort": "RPM",
+  "rpmThresholds": "Engine RPM Thresholds",
+  "rpmMaxRange": "Maximum RPM slider range"
 }

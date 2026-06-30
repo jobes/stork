@@ -1365,4 +1365,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fuelTankStatusSettings => 'Fuel Tank';
+
+  @override
+  String get engineRpm => 'Engine RPM';
+
+  @override
+  String get engineRpmShort => 'RPM';
+
+  @override
+  String get rpmThresholds => 'Engine RPM Thresholds';
+
+  @override
+  String get rpmMaxRange => 'Maximum RPM slider range';
 }

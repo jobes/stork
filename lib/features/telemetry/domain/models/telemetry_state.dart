@@ -127,6 +127,7 @@ class TelemetryState {
   final double? oilTemperature; // in Kelvin
   final bool isOilTempSupported;
   final bool isOilPressureSupported;
+  final bool isEngineRpmSupported;
   /// CHT per cylinder, in Kelvin (null = no sensor for that cylinder, empty list = no data).
   final List<double?> cylinderHeadTemperatures;
   /// EGT per cylinder, in Kelvin (null = no sensor for that cylinder, empty list = no data).
@@ -155,6 +156,7 @@ class TelemetryState {
     this.oilTemperature,
     this.isOilTempSupported = false,
     this.isOilPressureSupported = false,
+    this.isEngineRpmSupported = false,
     this.cylinderHeadTemperatures = const [],
     this.exhaustGasTemperatures = const [],
     this.isGpsDroneCan = false,
@@ -300,6 +302,7 @@ class TelemetryState {
     TelemetryValue<double?>? oilTemperature,
     bool? isOilTempSupported,
     bool? isOilPressureSupported,
+    bool? isEngineRpmSupported,
     TelemetryValue<List<double?>>? cylinderHeadTemperatures,
     TelemetryValue<List<double?>>? exhaustGasTemperatures,
     bool? isGpsDroneCan,
@@ -327,6 +330,7 @@ class TelemetryState {
       isOilTempSupported: isOilTempSupported ?? this.isOilTempSupported,
       isOilPressureSupported:
           isOilPressureSupported ?? this.isOilPressureSupported,
+      isEngineRpmSupported: isEngineRpmSupported ?? this.isEngineRpmSupported,
       cylinderHeadTemperatures: cylinderHeadTemperatures != null
           ? cylinderHeadTemperatures.value
           : this.cylinderHeadTemperatures,
@@ -370,6 +374,7 @@ class TelemetryState {
       oilTemperature: field == TelemetryField.oilTemperature ? null : oilTemperature,
       isOilTempSupported: isOilTempSupported,
       isOilPressureSupported: isOilPressureSupported,
+      isEngineRpmSupported: field == TelemetryField.engineRPM ? false : isEngineRpmSupported,
       cylinderHeadTemperatures: field == TelemetryField.cylinderHeadTemperature
           ? List<double?>.filled(cylinderHeadTemperatures.length, null)
           : cylinderHeadTemperatures,

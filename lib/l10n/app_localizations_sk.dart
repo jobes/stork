@@ -1366,4 +1366,16 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get fuelTankStatusSettings => 'Palivová nádrž';
+
+  @override
+  String get engineRpm => 'Otáčky motora (RPM)';
+
+  @override
+  String get engineRpmShort => 'RPM';
+
+  @override
+  String get rpmThresholds => 'Prahové hodnoty otáčok motora';
+
+  @override
+  String get rpmMaxRange => 'Maximálny rozsah posuvníka otáčok';
 }

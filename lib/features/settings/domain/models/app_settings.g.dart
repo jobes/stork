@@ -112,6 +112,16 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
         )
       : RangeThresholds.fromJson(json['chtThresholds'] as Map<String, dynamic>),
   chtMaxRange: (json['chtMaxRange'] as num?)?.toDouble() ?? 433.15,
+  rpmThresholds: json['rpmThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 10.0,
+          minError: 1400.0,
+          minWarning: 1800.0,
+          maxWarning: 5500.0,
+          maxError: 5800.0,
+        )
+      : RangeThresholds.fromJson(json['rpmThresholds'] as Map<String, dynamic>),
+  rpmMaxRange: (json['rpmMaxRange'] as num?)?.toDouble() ?? 6000.0,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -148,6 +158,8 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'egtMaxRange': instance.egtMaxRange,
       'chtThresholds': instance.chtThresholds,
       'chtMaxRange': instance.chtMaxRange,
+      'rpmThresholds': instance.rpmThresholds,
+      'rpmMaxRange': instance.rpmMaxRange,
     };
 
 const _$SpeedUnitEnumMap = {

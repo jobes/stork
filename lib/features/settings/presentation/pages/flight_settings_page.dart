@@ -118,6 +118,14 @@ class FlightSettingsPage extends ConsumerWidget {
             ),
           );
 
+          final currentRpmThresholds = RangeThresholds(
+            inactiveMax: settings.rpmThresholds.inactiveMax ?? 10.0,
+            minError: settings.rpmThresholds.minError ?? 1400.0,
+            minWarning: settings.rpmThresholds.minWarning ?? 1800.0,
+            maxWarning: settings.rpmThresholds.maxWarning ?? 5500.0,
+            maxError: settings.rpmThresholds.maxError ?? 5800.0,
+          );
+
           return ListView(
             children: [
               Padding(
@@ -819,6 +827,82 @@ class FlightSettingsPage extends ConsumerWidget {
                           ref
                               .read(appSettingsProvider.notifier)
                               .updateChtMaxRange(newValue),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Text(
+                  l10n.rpmThresholds,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: 0.0,
+                  max: settings.rpmMaxRange,
+                  evaluate: currentRpmThresholds.evaluate,
+                  unitLabel: 'RPM',
+                  values: [
+                    currentRpmThresholds.inactiveMax!,
+                    currentRpmThresholds.minError!,
+                    currentRpmThresholds.minWarning!,
+                    currentRpmThresholds.maxWarning!,
+                    currentRpmThresholds.maxError!,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateRpmThresholds(
+                            currentRpmThresholds.copyWith(
+                              inactiveMax: newValues[0],
+                              minError: newValues[1],
+                              minWarning: newValues[2],
+                              maxWarning: newValues[3],
+                              maxError: newValues[4],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.rpmMaxRange,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: settings.rpmMaxRange.roundToDouble(),
+                      min: 1000.0,
+                      max: 12000.0,
+                      step: 100,
+                      suffix: 'RPM',
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateRpmMaxRange(newValue),
                         );
                       },
                     ),

@@ -2671,6 +2671,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fuel Tank'**
   String get fuelTankStatusSettings;
+
+  /// No description provided for @engineRpm.
+  ///
+  /// In en, this message translates to:
+  /// **'Engine RPM'**
+  String get engineRpm;
+
+  /// No description provided for @engineRpmShort.
+  ///
+  /// In en, this message translates to:
+  /// **'RPM'**
+  String get engineRpmShort;
+
+  /// No description provided for @rpmThresholds.
+  ///
+  /// In en, this message translates to:
+  /// **'Engine RPM Thresholds'**
+  String get rpmThresholds;
+
+  /// No description provided for @rpmMaxRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum RPM slider range'**
+  String get rpmMaxRange;
 }
 
 class _AppLocalizationsDelegate

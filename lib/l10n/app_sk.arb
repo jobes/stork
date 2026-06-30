@@ -584,5 +584,9 @@
   "egtMaxRange": "Maximálny rozsah teploty výfukových plynov",
   "fuelTankStatus": "Palivo",
   "fuelTankStatusShort": "Palivo",
-  "fuelTankStatusSettings": "Palivová nádrž"
+  "fuelTankStatusSettings": "Palivová nádrž",
+  "engineRpm": "Otáčky motora (RPM)",
+  "engineRpmShort": "RPM",
+  "rpmThresholds": "Prahové hodnoty otáčok motora",
+  "rpmMaxRange": "Maximálny rozsah posuvníka otáčok"
 }

@@ -20,6 +20,7 @@ import '../../../telemetry/presentation/widgets/oil_pressure_telemetry_widget.da
 import '../../../telemetry/presentation/widgets/cylinder_temp_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/egt_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/fuel_status_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/rpm_horizontal_telemetry_widget.dart';
 import '../components/controls/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
@@ -169,6 +170,13 @@ class _MapPageState extends ConsumerState<MapPage> {
                   defaultTop: 50.0,
                   defaultLeft: 729.0, // Vedľa egt widgetu
                   child: FuelStatusTelemetryWidget(),
+                ),
+              if (telemetry.isEngineRpmSupported)
+                const MapWidgetWrapper(
+                  widgetId: 'rpm_widget',
+                  defaultTop: 50.0,
+                  defaultLeft: 788.0, // Vedľa fuel widgetu
+                  child: RpmHorizontalTelemetryWidget(),
                 ),
               if (navigationAsync.value?.isActive == true &&
                   navigationAsync.value?.points.isNotEmpty == true)

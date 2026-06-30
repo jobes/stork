@@ -99,6 +99,17 @@ abstract class AppSettings with _$AppSettings {
     )
     RangeThresholds chtThresholds,
     @Default(433.15) double chtMaxRange, // 160 °C
+    @Default(
+      RangeThresholds.raw(
+        inactiveMax: 10.0,
+        minError: 1400.0,
+        minWarning: 1800.0,
+        maxWarning: 5500.0,
+        maxError: 5800.0,
+      ),
+    )
+    RangeThresholds rpmThresholds,
+    @Default(6000.0) double rpmMaxRange,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>
@@ -462,6 +473,62 @@ abstract class AppSettings with _$AppSettings {
         minWarning: temperatureUnit.convertToKelvin(newMinWarningActive),
         maxWarning: temperatureUnit.convertToKelvin(newMaxWarningActive),
         maxError: temperatureUnit.convertToKelvin(newMaxErrorActive),
+      ),
+    );
+  }
+
+  AppSettings copyWithValidatedRpmMaxRange(
+    double maxRange, {
+    required double defaultMaxRange,
+    required double defaultInactiveMax,
+    required double defaultMinError,
+    required double defaultMinWarning,
+    required double defaultMaxWarning,
+    required double defaultMaxError,
+    required double minRangeLimit,
+    required double maxRangeLimit,
+  }) {
+    double clampedMaxRangeActive = maxRange;
+    if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
+      clampedMaxRangeActive = defaultMaxRange;
+    } else {
+      clampedMaxRangeActive = clampedMaxRangeActive.clamp(
+        minRangeLimit,
+        maxRangeLimit,
+      );
+    }
+
+    final thresholds = rpmThresholds;
+    final inactiveMaxActive = thresholds.inactiveMax ?? defaultInactiveMax;
+    final minErrorActive = thresholds.minError ?? defaultMinError;
+    final minWarningActive = thresholds.minWarning ?? defaultMinWarning;
+    final maxWarningActive = thresholds.maxWarning ?? defaultMaxWarning;
+    final maxErrorActive = thresholds.maxError ?? defaultMaxError;
+
+    final newMaxErrorActive = maxErrorActive
+        .clamp(0.0, clampedMaxRangeActive)
+        .roundToDouble();
+    final newMaxWarningActive = maxWarningActive
+        .clamp(0.0, newMaxErrorActive)
+        .roundToDouble();
+    final newMinWarningActive = minWarningActive
+        .clamp(0.0, newMaxWarningActive)
+        .roundToDouble();
+    final newMinErrorActive = minErrorActive
+        .clamp(0.0, newMinWarningActive)
+        .roundToDouble();
+    final newInactiveMaxActive = inactiveMaxActive
+        .clamp(0.0, newMinErrorActive)
+        .roundToDouble();
+
+    return copyWith(
+      rpmMaxRange: clampedMaxRangeActive,
+      rpmThresholds: thresholds.copyWith(
+        inactiveMax: newInactiveMaxActive,
+        minError: newMinErrorActive,
+        minWarning: newMinWarningActive,
+        maxWarning: newMaxWarningActive,
+        maxError: newMaxErrorActive,
       ),
     );
   }

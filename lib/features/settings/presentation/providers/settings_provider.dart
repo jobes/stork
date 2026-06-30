@@ -42,6 +42,15 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   static const double _minRangeLimit = 10.0;
   static const double _maxRangeLimit = 1000.0;
 
+  static const double _defaultRpmMaxRange = 6000.0;
+  static const double _defaultRpmInactiveMax = 10.0;
+  static const double _defaultRpmMinError = 1400.0;
+  static const double _defaultRpmMinWarning = 1800.0;
+  static const double _defaultRpmMaxWarning = 5500.0;
+  static const double _defaultRpmMaxError = 5800.0;
+  static const double _minRpmLimit = 100.0;
+  static const double _maxRpmLimit = 10000.0;
+
   Future<void> _persistenceQueue = Future.value();
 
   @override
@@ -227,6 +236,30 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
         defaultMaxErrorMs: _defaultMaxErrorMs,
         minRangeLimit: _minRangeLimit,
         maxRangeLimit: _maxRangeLimit,
+      ),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateRpmThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      return s.copyWith(rpmThresholds: thresholds);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateRpmMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedRpmMaxRange(
+        maxRange,
+        defaultMaxRange: _defaultRpmMaxRange,
+        defaultInactiveMax: _defaultRpmInactiveMax,
+        defaultMinError: _defaultRpmMinError,
+        defaultMinWarning: _defaultRpmMinWarning,
+        defaultMaxWarning: _defaultRpmMaxWarning,
+        defaultMaxError: _defaultRpmMaxError,
+        minRangeLimit: _minRpmLimit,
+        maxRangeLimit: _maxRpmLimit,
       ),
     );
   }
