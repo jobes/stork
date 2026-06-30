@@ -229,8 +229,8 @@ class _GaugePainter extends CustomPainter {
 
     // Inactive region (gray)
     drawSegment(yInactive, size.height, Colors.grey.shade500.withAlpha(120));
-    // Critical Low (blue)
-    drawSegment(yMinError, yInactive, Colors.blue.shade400.withAlpha(160));
+    // Critical Low (red)
+    drawSegment(yMinError, yInactive, Colors.red.shade400.withAlpha(160));
     // Warning Low (orange)
     drawSegment(yMinWarning, yMinError, Colors.orange.shade300.withAlpha(160));
     // Operational (green)

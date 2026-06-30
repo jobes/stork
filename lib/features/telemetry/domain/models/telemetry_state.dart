@@ -228,15 +228,21 @@ class TelemetryState {
       case TelemetryField.oilTemperature:
         return copyWith(oilTemperature: TelemetryValue(value as double?));
       case TelemetryField.cylinderHeadTemperature:
+        final List<dynamic>? parsedChtList = (value is String)
+            ? (value.isEmpty ? [] : jsonDecode(value) as List<dynamic>?)
+            : (value as List<dynamic>?);
         return copyWith(
           cylinderHeadTemperatures: TelemetryValue(
-            (value as List?)?.cast<double?>() ?? [],
+            parsedChtList?.cast<double?>() ?? [],
           ),
         );
       case TelemetryField.exhaustGasTemperature:
+        final List<dynamic>? parsedEgtList = (value is String)
+            ? (value.isEmpty ? [] : jsonDecode(value) as List<dynamic>?)
+            : (value as List<dynamic>?);
         return copyWith(
           exhaustGasTemperatures: TelemetryValue(
-            (value as List?)?.cast<double?>() ?? [],
+            parsedEgtList?.cast<double?>() ?? [],
           ),
         );
       case TelemetryField.isFlying:

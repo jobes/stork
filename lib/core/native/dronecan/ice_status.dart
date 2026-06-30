@@ -229,10 +229,10 @@ class IceStatus implements DroneCanMessage {
   }
 
   factory IceStatus.fromPayload(Uint8List payload) {
-    // Minimum bits: 2+30+16+7+17 + 8×16 + 2×32 + 7+6+3+5 = 285 bits → 36 bytes
-    if (payload.length < 36) {
+    // Minimum bits: 2+30+16+7+17 + 8×16 + 2×32 + 7+6+3 = 280 bits → 35 bytes
+    if (payload.length < 35) {
       throw FormatException(
-        'Payload too short for IceStatus message (got ${payload.length} bytes, expected at least 36)',
+        'Payload too short for IceStatus message (got ${payload.length} bytes, expected at least 35)',
       );
     }
 
@@ -273,38 +273,38 @@ class IceStatus implements DroneCanMessage {
     final sparkPlugUsage = reader.readUint(3);               // uint3
 
     // --- Dynamic array of CylinderStatus ---
-    // UAVCAN v0 encodes <=16 elements with a 5-bit length prefix (⌈log₂(16+1)⌉ = 5).
-    // Each CylinderStatus = 5×float16 = 80 bits.
+    // Since cylinders is the last field of uavcan.equipment.ice.reciprocating.Status,
+    // and its element size is >= 8 bits (80 bits = 10 bytes), UAVCAN v0 / DroneCAN tail array optimization (TAO)
+    // applies. The length prefix is omitted, and the array length is inferred from the remaining payload bytes.
     final cylinders = <CylinderStatus>[];
     const cylinderBitsPerEntry = 80; // 5×16
-    const arrayLengthBits = 5; // ceil(log2(16+1))
 
-    if (reader.bitOffset + arrayLengthBits <= payload.length * 8) {
-      final cylinderCount = reader.readUint(arrayLengthBits).clamp(0, maxCylinders);
-      for (int i = 0; i < cylinderCount; i++) {
-        if (reader.bitOffset + cylinderBitsPerEntry > payload.length * 8) break;
+    final remainingBits = (payload.length * 8) - reader.bitOffset;
+    final cylinderCount = (remainingBits / cylinderBitsPerEntry).floor().clamp(0, maxCylinders);
 
-        double? readCylFloat16() {
-          final v = reader.readFloat16();
-          return v.isNaN ? null : v;
-        }
+    for (int i = 0; i < cylinderCount; i++) {
+      if (reader.bitOffset + cylinderBitsPerEntry > payload.length * 8) break;
 
-        final ignitionTimingDeg = readCylFloat16();
-        final injectionTimeMs = readCylFloat16();
-        final cylinderHeadTemperature = readCylFloat16();
-        final exhaustGasTemperature = readCylFloat16();
-        final lambdaCoefficient = readCylFloat16();
-
-        cylinders.add(
-          CylinderStatus(
-            ignitionTimingDeg: ignitionTimingDeg,
-            injectionTimeMs: injectionTimeMs,
-            cylinderHeadTemperature: cylinderHeadTemperature,
-            exhaustGasTemperature: exhaustGasTemperature,
-            lambdaCoefficient: lambdaCoefficient,
-          ),
-        );
+      double? readCylFloat16() {
+        final v = reader.readFloat16();
+        return v.isNaN ? null : v;
       }
+
+      final ignitionTimingDeg = readCylFloat16();
+      final injectionTimeMs = readCylFloat16();
+      final cylinderHeadTemperature = readCylFloat16();
+      final exhaustGasTemperature = readCylFloat16();
+      final lambdaCoefficient = readCylFloat16();
+
+      cylinders.add(
+        CylinderStatus(
+          ignitionTimingDeg: ignitionTimingDeg,
+          injectionTimeMs: injectionTimeMs,
+          cylinderHeadTemperature: cylinderHeadTemperature,
+          exhaustGasTemperature: exhaustGasTemperature,
+          lambdaCoefficient: lambdaCoefficient,
+        ),
+      );
     }
 
     return IceStatus(

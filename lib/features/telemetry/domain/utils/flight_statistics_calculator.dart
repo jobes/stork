@@ -41,12 +41,12 @@ class FlightStatisticsCalculator {
     for (final entry in entries) {
       final timestamp = entry.timestamp;
 
-      final alt = entry.data['gps_altitude'] as double?;
-      final gs = entry.data['ground_speed'] as double?;
-      final ias = entry.data['indicated_air_speed'] as double?;
-      final rpm = entry.data['engine_rpm'] as double?;
-      final lat = entry.data['latitude'] as double?;
-      final lon = entry.data['longitude'] as double?;
+      final alt = (entry.data['gps_altitude'] as num?)?.toDouble();
+      final gs = (entry.data['ground_speed'] as num?)?.toDouble();
+      final ias = (entry.data['indicated_air_speed'] as num?)?.toDouble();
+      final rpm = (entry.data['engine_rpm'] as num?)?.toDouble();
+      final lat = (entry.data['latitude'] as num?)?.toDouble();
+      final lon = (entry.data['longitude'] as num?)?.toDouble();
 
       if (lastTimestamp != null) {
         final dt =
