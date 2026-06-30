@@ -93,10 +93,9 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
     final int? currentRpm = telemetry.engineRPM;
     final String rpmText = currentRpm != null ? currentRpm.toString() : l10n.placeholderDash;
 
-    ThresholdState rpmState = ThresholdState.inactive;
-    if (currentRpm != null) {
-      rpmState = thresholds.evaluate(currentRpm.toDouble());
-    }
+    final ThresholdState rpmState = currentRpm != null
+        ? thresholds.evaluate(currentRpm.toDouble())
+        : ThresholdState.maxError;
 
     final bool isAbnormal = rpmState != ThresholdState.operational &&
         rpmState != ThresholdState.inactive;

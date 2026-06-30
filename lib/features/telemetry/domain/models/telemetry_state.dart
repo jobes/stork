@@ -374,7 +374,7 @@ class TelemetryState {
       oilTemperature: field == TelemetryField.oilTemperature ? null : oilTemperature,
       isOilTempSupported: isOilTempSupported,
       isOilPressureSupported: isOilPressureSupported,
-      isEngineRpmSupported: field == TelemetryField.engineRPM ? false : isEngineRpmSupported,
+      isEngineRpmSupported: isEngineRpmSupported,
       cylinderHeadTemperatures: field == TelemetryField.cylinderHeadTemperature
           ? List<double?>.filled(cylinderHeadTemperatures.length, null)
           : cylinderHeadTemperatures,

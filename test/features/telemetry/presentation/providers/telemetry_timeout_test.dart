@@ -105,6 +105,28 @@ void main() {
       });
     });
 
+    test('isEngineRpmSupported remains true after engineRPM decays', () {
+      fakeAsync((async) {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final notifier = container.read(telemetryProvider.notifier);
+
+        var state = container.read(telemetryProvider);
+        expect(state.isEngineRpmSupported, isFalse);
+
+        notifier.updateEngineRPM(2500);
+        state = container.read(telemetryProvider);
+        expect(state.isEngineRpmSupported, isTrue);
+
+        // Advance 2 seconds to trigger decay
+        async.elapse(const Duration(seconds: 2));
+        state = container.read(telemetryProvider);
+        expect(state.engineRPM, isNull);
+        expect(state.isEngineRpmSupported, isTrue);
+      });
+    });
+
     test('mapViewState and isFlying are excluded from 2-second timeout', () {
       fakeAsync((async) {
         final container = ProviderContainer();
