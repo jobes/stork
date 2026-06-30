@@ -89,6 +89,9 @@ During startup, `CannelloniService` loads the native library and performs three 
 | **`NodeStatus`** | `341` | `0x0F0877D1C67EAE9B` | Broadcasts the app's health and uptime (1Hz). |
 | **`StaticPressure`** | `1030` | `0x3E10E45E8D2E12F5` | Feeds barometric altitude data to the telemetry notifier. |
 | **`Fix2`** | `1063` | `0xCA41E7000F37435F` | Decodes high-accuracy GPS/GNSS telemetry data (latitude, longitude, heading, ground speed, altitude, satellite count, accuracy). |
+| **`IceStatus`** | `1120` | `0xD38AA3EE75537EC6` | Decodes engine status, including oil temp/pressure, coolant temp, fuel rates, CHTs, and EGTs. |
+| **`FuelTankStatus`** | `1129` | `0x286B4A387BA84BC4` | Decodes fuel tank levels, volumes, consumption rates, and temperatures. |
+| **`StorkEngineRpm`** | `20120` | `0xD8CD8D1076CA4884` | Decodes custom engine speed (RPM), load, throttle position, and ECU index. |
 
 ---
 
@@ -119,7 +122,8 @@ late final DecayableField<double> _heading = DecayableField<double>(
   1. The internal timer fires.
   2. The field resets to `null`.
   3. The Riverpod `TelemetryState` is updated to clear the field.
-  4. The UI immediately reflects the missing data (e.g. hiding the aircraft or showing offline indicators).
+  4. The UI immediately reflects the missing data (e.g. showing offline indicators or warning states).
+- **Persistent Support State**: Flags indicating sensor presence (e.g., `isEngineRpmSupported`, `isFuelSupported`) **persist as `true`** even after data decays. This ensures widgets stay visible and show error/timeout states rather than vanishing completely.
 
 ### Timeout Thresholds
 
@@ -128,11 +132,18 @@ late final DecayableField<double> _heading = DecayableField<double>(
 | **`latitude` / `longitude`** | `Duration.zero` (No decay) | Managed by higher-level GPS providers. |
 | **`heading`** | `2 seconds` | Safe rotation updates; prevents heading drift displays. |
 | **`groundSpeed`** | `2 seconds` | Ensures sudden deceleration or dropouts are shown instantly. |
-| **`indicatedAirSpeed`** | `1 second` (Default) | Critical flight dynamic data; must expire immediately if lost. |
+| **`indicatedAirSpeed`** | `1 second` | Critical flight dynamic data; must expire immediately if lost. |
 | **`gpsAltitude`** | `2 seconds` | Avoids presenting outdated altitude during rapid descents. |
 | **`heightAboveGround`** | `2 seconds` | Critical terrain clearance parameter. |
 | **`gpsSatelliteCount`** | `1 second` | Standard GPS quality check parameter. |
 | **`gpsHorizontalAccuracy`**| `2 seconds` | Used to evaluate position precision. |
 | **`gpsVerticalAccuracy`**  | `2 seconds` | Used to evaluate altitude precision. |
-| **`engineRPM`** | `1 second` (Default) | Immediate notification if motor/engine telemetry is interrupted. |
-| **`airPressure`** | `1 second` (Default) | Essential sensor input. |
+| **`engineRPM`** | `1.5 seconds` | Immediate notification if motor/engine RPM telemetry is interrupted. |
+| **`coolantTemperature`** | `1.5 seconds` | Coolant system thermal health decay. |
+| **`oilPressure`** | `1.5 seconds` | Critical lubrication health decay. |
+| **`oilTemperature`** | `1.5 seconds` | Critical engine thermal state decay. |
+| **`cylinderHeadTemperatures`** | `1.5 seconds` | Individual cylinder head temperatures decay. |
+| **`exhaustGasTemperatures`** | `1.5 seconds` | Individual exhaust gas temperatures decay. |
+| **`fuelLevelPercent`** | `1.5 seconds` | Fuel level status decay. |
+| **`fuelVolumeLiters`** | `1.5 seconds` | Fuel volume status decay. |
+| **`airPressure`** | `1 second` | Essential sensor input. |

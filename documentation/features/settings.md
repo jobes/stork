@@ -38,8 +38,10 @@ The configuration is strictly typed and immutable, generated using the `freezed`
 Stork supports multiple aviation units. These are modeled as enums:
 - **[AltitudeUnit](../../lib/features/settings/domain/models/altitude_unit.dart)**: Supports `meters`, `feet`, and `flightLevel`.
 - **[SpeedUnit](../../lib/features/settings/domain/models/speed_unit.dart)**: Supports `kmh` (km/h), `mph`, and `knots`.
+- **[TemperatureUnit](../../lib/features/settings/domain/models/temperature_unit.dart)**: Supports `celsius` (°C), `kelvin` (K), and `fahrenheit` (°F) for engine temperature indicators (oil temp, CHT, EGT).
+- **[PressureUnit](../../lib/features/settings/domain/models/pressure_unit.dart)**: Supports `bar`, `psi`, and `kPa` for engine oil pressure indicators.
 
-The `app_settings` model stores the user's preferred units, and formatting extensions automatically translate raw SI units (meters/seconds) into the correct display string.
+The `app_settings` model stores the user's preferred units, and formatting extensions automatically translate raw SI units (Kelvin, kPa) into the correct display string.
 
 ## 3. Persistence Layer
 
@@ -50,12 +52,18 @@ The settings are saved using the `shared_preferences` package, abstracted behind
 
 ## 4. UI Implementation
 
-To prevent a single cluttered screen, the configuration is split into modular pages accessed via the main [SettingsPage](../../lib/features/settings/presentation/pages/settings_page.dart):
+To prevent a single cluttered screen, the configuration is split into modular pages accessed via the main [SettingsPage](../../lib/features/settings/presentation/settings_page.dart):
 
 ### 4.1. Flight Settings ([FlightSettingsPage](../../lib/features/settings/presentation/pages/flight_settings_page.dart))
 Manages aircraft-specific configurations:
-- **Unit Selectors**: Dropdowns for Altitude, Height (AGL), and Speed units.
-- **Safety Thresholds**: A complex, custom-painted [ThresholdsSlider](../../lib/features/settings/presentation/widgets/thresholds_slider.dart) that allows intuitive dragging of multiple thumbs to set safe operational speeds and warnings.
+- **Unit Selectors**: Dropdowns for Speed, Altitude, Height, Temperature, and Pressure units.
+- **Safety Thresholds**: Complex, custom-painted [ThresholdsSlider](../../lib/features/settings/presentation/widgets/thresholds_slider.dart) inputs that allow intuitive dragging of multiple thumbs to set safe operational limits and warning/error thresholds for:
+  - **Flight Speed**: Minimum/maximum safe velocities.
+  - **Engine RPM**: Operating speed boundaries.
+  - **Oil Temperature & Pressure**: Lubrication health metrics.
+  - **Cylinder Head Temp (CHT) & Exhaust Gas Temp (EGT)**: Engine thermal health.
+  - **Fuel Level**: Alert triggers for low fuel level percentages.
+- **Max Slider Ranges**: Configurable upper boundaries for sensor sliders, allowing customization per-aircraft capacity.
 
 ### 4.2. Map Settings ([MapSettingsPage](../../lib/features/settings/presentation/pages/map_settings_page.dart))
 Manages visual and layout preferences:

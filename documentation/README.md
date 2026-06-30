@@ -45,4 +45,6 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Details the settings architecture, encompassing the domain models (units, range thresholds, cannelloni devices) and the modular user interface.*
 *   [Pilot and Aircraft Management](features/pilot-and-aircraft-management.md)
     *   *Covers pilot and aircraft profile structures, CRUD repositories, JSON-based persistence, SQL time-based statistics calculations, optional PIN security, and dashboard integration.*
+*   [Engine Telemetry and Health Monitoring](features/engine-telemetry.md)
+    *   *Details DroneCAN-based ICE (Internal Combustion Engine) monitoring, including RPM, fuel tank status, oil pressure/temperature, CHT, EGT, dynamic overlay widgets, custom segmented gauges, and threshold alarm logic.*
 
