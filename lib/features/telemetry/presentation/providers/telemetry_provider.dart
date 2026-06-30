@@ -147,6 +147,26 @@ class TelemetryNotifier extends _$TelemetryNotifier {
               : state.copyWith(exhaustGasTemperatures: TelemetryValue(val));
         },
       );
+  late final DecayableField<double> _fuelLevelPercent = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.fuelLevelPercent)
+          : state.copyWith(
+              fuelLevelPercent: TelemetryValue(val),
+              isFuelSupported: true,
+            );
+    },
+  );
+  late final DecayableField<double> _fuelVolumeLiters = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.fuelVolumeLiters)
+          : state.copyWith(
+              fuelVolumeLiters: TelemetryValue(val),
+              isFuelSupported: true,
+            );
+    },
+  );
 
   DateTime? _lastDroneCanFixTime;
 
@@ -169,6 +189,8 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _oilTemperature.cancel();
       _cylinderHeadTemperatures.cancel();
       _exhaustGasTemperatures.cancel();
+      _fuelLevelPercent.cancel();
+      _fuelVolumeLiters.cancel();
     });
 
     return const TelemetryState();
@@ -274,6 +296,16 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     );
   }
 
+  void updateFuelStatus({required double percent, double? volumeLiters}) {
+    _fuelLevelPercent.sync(percent);
+    _fuelVolumeLiters.sync(volumeLiters);
+    state = state.copyWith(
+      fuelLevelPercent: TelemetryValue(percent),
+      fuelVolumeLiters: TelemetryValue(volumeLiters),
+      isFuelSupported: true,
+    );
+  }
+
   void updatePressure(double? pressure) {
     _airPressure.update(pressure);
   }
@@ -301,6 +333,8 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _oilTemperature.sync(newState.oilTemperature);
     _cylinderHeadTemperatures.sync(newState.cylinderHeadTemperatures);
     _exhaustGasTemperatures.sync(newState.exhaustGasTemperatures);
+    _fuelLevelPercent.sync(newState.fuelLevelPercent);
+    _fuelVolumeLiters.sync(newState.fuelVolumeLiters);
 
     _updateIsFlying();
   }

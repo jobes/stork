@@ -1335,4 +1335,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cylinderHeadTemperatureShort => 'CHT';
+
+  @override
+  String get fuelTankStatus => 'Fuel';
+
+  @override
+  String get fuelTankStatusShort => 'Fuel';
+
+  @override
+  String get fuelTankStatusSettings => 'Fuel Tank';
 }

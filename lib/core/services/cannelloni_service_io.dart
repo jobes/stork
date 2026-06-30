@@ -424,6 +424,18 @@ class CannelloniService extends _$CannelloniService {
         );
   }
 
+  void _updateTelemetryFuelTankStatus(FuelTankStatus msg) {
+    final double? volumeLiters = msg.availableFuelVolumeCm3 != null
+        ? msg.availableFuelVolumeCm3! / 1000.0
+        : null;
+    ref
+        .read(telemetryProvider.notifier)
+        .updateFuelStatus(
+          percent: msg.availableFuelVolumePercent.toDouble(),
+          volumeLiters: volumeLiters,
+        );
+  }
+
   void _handleGetNodeInfoRequest({
     required int transferId,
     required int sourceNodeId,
@@ -506,6 +518,9 @@ void _storkCanardTransferCallback(
     } else if (dataTypeId == IceStatus.messageId) {
       final iceMsg = IceStatus.fromPayload(payloadBytes);
       _activeInstance!._updateTelemetryIceStatus(iceMsg);
+    } else if (dataTypeId == FuelTankStatus.messageId) {
+      final fuelMsg = FuelTankStatus.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryFuelTankStatus(fuelMsg);
     }
   } catch (e) {
     debugPrint('Error in native transfer callback: $e');
@@ -539,6 +554,10 @@ int _storkCanardShouldAcceptCallback(
       }
       if (dataTypeId == IceStatus.messageId) {
         outDataTypeSignature.value = IceStatus.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == FuelTankStatus.messageId) {
+        outDataTypeSignature.value = FuelTankStatus.messageSignature;
         return 1;
       }
     } else {

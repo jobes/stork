@@ -1336,4 +1336,13 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get cylinderHeadTemperatureShort => 'CHT';
+
+  @override
+  String get fuelTankStatus => 'Palivo';
+
+  @override
+  String get fuelTankStatusShort => 'Palivo';
+
+  @override
+  String get fuelTankStatusSettings => 'Palivová nádrž';
 }

@@ -87,6 +87,11 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
         ),
   oilPressureMaxRange:
       (json['oilPressureMaxRange'] as num?)?.toDouble() ?? 800.0,
+  fuelThresholds: json['fuelThresholds'] == null
+      ? const RangeThresholds.raw(minError: 10.0, minWarning: 20.0)
+      : RangeThresholds.fromJson(
+          json['fuelThresholds'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -118,6 +123,7 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'pressureUnit': _$PressureUnitEnumMap[instance.pressureUnit]!,
       'oilPressureThresholds': instance.oilPressureThresholds,
       'oilPressureMaxRange': instance.oilPressureMaxRange,
+      'fuelThresholds': instance.fuelThresholds,
     };
 
 const _$SpeedUnitEnumMap = {

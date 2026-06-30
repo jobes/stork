@@ -70,6 +70,13 @@ abstract class AppSettings with _$AppSettings {
     )
     RangeThresholds oilPressureThresholds,
     @Default(800.0) double oilPressureMaxRange, // 8.0 bar
+    @Default(
+      RangeThresholds.raw(
+        minError: 10.0,
+        minWarning: 20.0,
+      ),
+    )
+    RangeThresholds fuelThresholds,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>

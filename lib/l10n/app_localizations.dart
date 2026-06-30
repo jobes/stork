@@ -2611,6 +2611,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'CHT'**
   String get cylinderHeadTemperatureShort;
+
+  /// No description provided for @fuelTankStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel'**
+  String get fuelTankStatus;
+
+  /// No description provided for @fuelTankStatusShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel'**
+  String get fuelTankStatusShort;
+
+  /// No description provided for @fuelTankStatusSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel Tank'**
+  String get fuelTankStatusSettings;
 }
 
 class _AppLocalizationsDelegate

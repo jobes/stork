@@ -574,5 +574,8 @@
   "oilPressureShort": "Tlak ol.",
   "oilPressureSettings": "Tlak oleja",
   "oilPressureMaxRange": "Maximálny rozsah tlaku oleja",
-  "cylinderHeadTemperatureShort": "CHT"
+  "cylinderHeadTemperatureShort": "CHT",
+  "fuelTankStatus": "Palivo",
+  "fuelTankStatusShort": "Palivo",
+  "fuelTankStatusSettings": "Palivová nádrž"
 }

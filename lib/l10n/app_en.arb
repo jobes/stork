@@ -665,6 +665,8 @@
   "oilPressureShort": "Oil P.",
   "oilPressureSettings": "Oil Pressure",
   "oilPressureMaxRange": "Maximum Oil Pressure Range",
-  "cylinderHeadTemperatureShort": "CHT"
+  "cylinderHeadTemperatureShort": "CHT",
+  "fuelTankStatus": "Fuel",
+  "fuelTankStatusShort": "Fuel",
+  "fuelTankStatusSettings": "Fuel Tank"
 }
-

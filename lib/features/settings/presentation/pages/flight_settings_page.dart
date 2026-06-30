@@ -599,6 +599,43 @@ class FlightSettingsPage extends ConsumerWidget {
                   ],
                 ),
               ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
+                child: Text(
+                  l10n.fuelTankStatusSettings,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: 0.0,
+                  max: 100.0,
+                  evaluate: settings.fuelThresholds.evaluate,
+                  unitLabel: '%',
+                  decimalPlaces: 0,
+                  values: [
+                    settings.fuelThresholds.minError ?? 10.0,
+                    settings.fuelThresholds.minWarning ?? 20.0,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateFuelThresholds(
+                            settings.fuelThresholds.copyWith(
+                              minError: newValues[0],
+                              minWarning: newValues[1],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
               CourseLineSettingsSection(settings: settings, l10n: l10n),
             ],
           );

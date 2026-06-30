@@ -29,10 +29,10 @@ class SegmentedGaugePainter extends CustomPainter {
     final double tubeLeft = (size.width - tubeWidth) / 2;
 
     final inactiveMax = thresholds.inactiveMax ?? minValue;
-    final minError = thresholds.minError ?? (minValue + (maxValue - minValue) * 0.1);
-    final minWarning = thresholds.minWarning ?? (minValue + (maxValue - minValue) * 0.25);
-    final maxWarning = thresholds.maxWarning ?? (minValue + (maxValue - minValue) * 0.75);
-    final maxError = thresholds.maxError ?? (minValue + (maxValue - minValue) * 0.9);
+    final minError = thresholds.minError ?? inactiveMax;
+    final minWarning = thresholds.minWarning ?? minError;
+    final maxWarning = thresholds.maxWarning ?? maxValue;
+    final maxError = thresholds.maxError ?? maxWarning;
 
     double getY(double val) {
       final ratio = (val - minValue) / (maxValue - minValue);
@@ -126,12 +126,11 @@ class SegmentedGaugePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
-    final List<double> thresholdYs = [
-      yMinError,
-      yMinWarning,
-      yMaxWarning,
-      yMaxError,
-    ];
+    final List<double> thresholdYs = [];
+    if (thresholds.minError != null) thresholdYs.add(yMinError);
+    if (thresholds.minWarning != null) thresholdYs.add(yMinWarning);
+    if (thresholds.maxWarning != null) thresholdYs.add(yMaxWarning);
+    if (thresholds.maxError != null) thresholdYs.add(yMaxError);
 
     for (final y in thresholdYs) {
       // Draw left tick

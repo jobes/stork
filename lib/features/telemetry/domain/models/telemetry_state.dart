@@ -22,12 +22,16 @@ enum TelemetryField {
   exhaustGasTemperature,
   isFlying,
   isGpsDroneCan,
-  mapViewState;
+  mapViewState,
+  fuelLevelPercent,
+  fuelVolumeLiters,
+  isFuelSupported;
 
   bool get isBlackBoxField {
     switch (this) {
       case TelemetryField.isFlying:
       case TelemetryField.mapViewState:
+      case TelemetryField.isFuelSupported:
         return false;
       default:
         return true;
@@ -54,6 +58,7 @@ enum TelemetryField {
       case TelemetryField.engineRPM:
       case TelemetryField.gpsSatelliteCount:
       case TelemetryField.isGpsDroneCan:
+      case TelemetryField.isFuelSupported:
         return 'INTEGER';
       case TelemetryField.cylinderHeadTemperature:
       case TelemetryField.exhaustGasTemperature:
@@ -67,6 +72,7 @@ enum TelemetryField {
     if (dbValue == null) return null;
     switch (this) {
       case TelemetryField.isGpsDroneCan:
+      case TelemetryField.isFuelSupported:
         return (dbValue as int) == 1;
       case TelemetryField.cylinderHeadTemperature:
       case TelemetryField.exhaustGasTemperature:
@@ -89,6 +95,8 @@ enum TelemetryField {
       case TelemetryField.coolantTemperature:
       case TelemetryField.oilPressure:
       case TelemetryField.oilTemperature:
+      case TelemetryField.fuelLevelPercent:
+      case TelemetryField.fuelVolumeLiters:
         return (dbValue as num).toDouble();
       default:
         return dbValue;
@@ -125,6 +133,9 @@ class TelemetryState {
   final List<double?> exhaustGasTemperatures;
   final bool isGpsDroneCan;
   final MapViewState mapViewState;
+  final double? fuelLevelPercent;
+  final double? fuelVolumeLiters;
+  final bool isFuelSupported;
 
   const TelemetryState({
     this.latitude,
@@ -148,6 +159,9 @@ class TelemetryState {
     this.exhaustGasTemperatures = const [],
     this.isGpsDroneCan = false,
     this.mapViewState = MapViewState.init,
+    this.fuelLevelPercent,
+    this.fuelVolumeLiters,
+    this.isFuelSupported = false,
   });
 
   dynamic getFieldValue(TelemetryField field) {
@@ -194,6 +208,12 @@ class TelemetryState {
         return isGpsDroneCan;
       case TelemetryField.mapViewState:
         return mapViewState;
+      case TelemetryField.fuelLevelPercent:
+        return fuelLevelPercent;
+      case TelemetryField.fuelVolumeLiters:
+        return fuelVolumeLiters;
+      case TelemetryField.isFuelSupported:
+        return isFuelSupported;
     }
   }
 
@@ -253,6 +273,12 @@ class TelemetryState {
         return copyWith(
           mapViewState: value as MapViewState? ?? MapViewState.init,
         );
+      case TelemetryField.fuelLevelPercent:
+        return copyWith(fuelLevelPercent: TelemetryValue(value as double?));
+      case TelemetryField.fuelVolumeLiters:
+        return copyWith(fuelVolumeLiters: TelemetryValue(value as double?));
+      case TelemetryField.isFuelSupported:
+        return copyWith(isFuelSupported: value as bool? ?? false);
     }
   }
 
@@ -278,6 +304,9 @@ class TelemetryState {
     TelemetryValue<List<double?>>? exhaustGasTemperatures,
     bool? isGpsDroneCan,
     MapViewState? mapViewState,
+    TelemetryValue<double?>? fuelLevelPercent,
+    TelemetryValue<double?>? fuelVolumeLiters,
+    bool? isFuelSupported,
   }) {
     return TelemetryState(
       latitude: latitude != null ? latitude.value : this.latitude,
@@ -306,6 +335,9 @@ class TelemetryState {
           : this.exhaustGasTemperatures,
       isGpsDroneCan: isGpsDroneCan ?? this.isGpsDroneCan,
       mapViewState: mapViewState ?? this.mapViewState,
+      fuelLevelPercent: fuelLevelPercent != null ? fuelLevelPercent.value : this.fuelLevelPercent,
+      fuelVolumeLiters: fuelVolumeLiters != null ? fuelVolumeLiters.value : this.fuelVolumeLiters,
+      isFuelSupported: isFuelSupported ?? this.isFuelSupported,
     );
   }
 
@@ -350,6 +382,9 @@ class TelemetryState {
           ? false
           : isGpsDroneCan,
       mapViewState: mapViewState,
+      fuelLevelPercent: field == TelemetryField.fuelLevelPercent ? null : fuelLevelPercent,
+      fuelVolumeLiters: field == TelemetryField.fuelVolumeLiters ? null : fuelVolumeLiters,
+      isFuelSupported: (field == TelemetryField.fuelLevelPercent || field == TelemetryField.fuelVolumeLiters) ? false : isFuelSupported,
     );
   }
 

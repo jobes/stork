@@ -18,6 +18,7 @@ import '../../../telemetry/presentation/widgets/flight_time_telemetry_widget.dar
 import '../../../telemetry/presentation/widgets/oil_temp_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/oil_pressure_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/cylinder_temp_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/fuel_status_telemetry_widget.dart';
 import '../components/controls/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
@@ -153,6 +154,13 @@ class _MapPageState extends ConsumerState<MapPage> {
                   defaultTop: 50.0,
                   defaultLeft: 611.0, // Vedľa oil_pressure widgetu
                   child: CylinderTempTelemetryWidget(),
+                ),
+              if (telemetry.isFuelSupported)
+                const MapWidgetWrapper(
+                  widgetId: 'fuel_status_widget',
+                  defaultTop: 50.0,
+                  defaultLeft: 670.0, // Vedľa cylinder_temp widgetu
+                  child: FuelStatusTelemetryWidget(),
                 ),
               if (navigationAsync.value?.isActive == true &&
                   navigationAsync.value?.points.isNotEmpty == true)

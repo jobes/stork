@@ -403,4 +403,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       ),
     );
   }
+
+  Future<SettingsUpdateResult> updateFuelThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      return s.copyWith(fuelThresholds: thresholds);
+    });
+  }
 }
