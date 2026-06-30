@@ -2605,6 +2605,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maximum Oil Pressure Range'**
   String get oilPressureMaxRange;
+
+  /// No description provided for @cylinderHeadTemperatureShort.
+  ///
+  /// In en, this message translates to:
+  /// **'CHT'**
+  String get cylinderHeadTemperatureShort;
 }
 
 class _AppLocalizationsDelegate

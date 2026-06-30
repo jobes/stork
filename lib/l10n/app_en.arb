@@ -664,6 +664,7 @@
   "oilPressure": "Oil Pressure",
   "oilPressureShort": "Oil P.",
   "oilPressureSettings": "Oil Pressure",
-  "oilPressureMaxRange": "Maximum Oil Pressure Range"
+  "oilPressureMaxRange": "Maximum Oil Pressure Range",
+  "cylinderHeadTemperatureShort": "CHT"
 }
 

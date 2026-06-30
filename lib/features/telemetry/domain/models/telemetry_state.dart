@@ -339,7 +339,7 @@ class TelemetryState {
       isOilTempSupported: isOilTempSupported,
       isOilPressureSupported: isOilPressureSupported,
       cylinderHeadTemperatures: field == TelemetryField.cylinderHeadTemperature
-          ? const []
+          ? List<double?>.filled(cylinderHeadTemperatures.length, null)
           : cylinderHeadTemperatures,
       exhaustGasTemperatures: field == TelemetryField.exhaustGasTemperature
           ? const []

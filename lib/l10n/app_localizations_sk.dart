@@ -1333,4 +1333,7 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get oilPressureMaxRange => 'Maximálny rozsah tlaku oleja';
+
+  @override
+  String get cylinderHeadTemperatureShort => 'CHT';
 }

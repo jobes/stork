@@ -1332,4 +1332,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get oilPressureMaxRange => 'Maximum Oil Pressure Range';
+
+  @override
+  String get cylinderHeadTemperatureShort => 'CHT';
 }
