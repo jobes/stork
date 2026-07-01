@@ -89,14 +89,18 @@ class AutoQnhCalibratorState {
 
 @riverpod
 (double, double)? telemetryCoordinates(Ref ref) {
-  final lat = ref.watch(telemetryProvider.select((s) => s.latitude));
-  final lon = ref.watch(telemetryProvider.select((s) => s.longitude));
-  if (lat == null || lon == null) return null;
+  // Round coordinates to ~55m precision (1/2000th of a degree)
+  // to avoid micro-fluctuations and limit excessive terrain API queries.
+  final roundedLat = ref.watch(telemetryProvider.select((s) {
+    final lat = s.latitude;
+    return lat != null ? (lat * 2000).roundToDouble() / 2000 : null;
+  }));
+  final roundedLon = ref.watch(telemetryProvider.select((s) {
+    final lon = s.longitude;
+    return lon != null ? (lon * 2000).roundToDouble() / 2000 : null;
+  }));
 
-  // Round coordinates to 5 decimal places (~1.1m precision)
-  // to avoid micro-fluctuations (GPS noise) from triggering updates.
-  final roundedLat = (lat * 100000).roundToDouble() / 100000;
-  final roundedLon = (lon * 100000).roundToDouble() / 100000;
+  if (roundedLat == null || roundedLon == null) return null;
   return (roundedLat, roundedLon);
 }
 
