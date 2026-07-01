@@ -20,6 +20,7 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
     String? prefix,
   }) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
@@ -149,14 +150,12 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         horizontal: 12 * fontScale,
         vertical: 8 * fontScale,
       ),
-      child: IntrinsicWidth(
-        child: SingleChildScrollView(
-          physics: const NeverScrollableScrollPhysics(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: columnChildren,
-          ),
+      child: SizedBox(
+        width: 126 * fontScale,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: columnChildren,
         ),
       ),
     );

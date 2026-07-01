@@ -27,11 +27,21 @@ class _CompassLayout {
 // To resolve this, CompassBar was refactored to consume telemetryProvider directly.
 // This tightly couples this map presentation component to the telemetry module,
 // but it is a necessary optimization to isolate high-frequency rebuilds to just this widget.
-class CompassBar extends ConsumerWidget {
+class CompassBar extends ConsumerStatefulWidget {
   const CompassBar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CompassBar> createState() => _CompassBarState();
+}
+
+class _CompassBarState extends ConsumerState<CompassBar> {
+  final Map<String, (TextPainter, TextPainter)> _painterCache = {};
+  double? _lastFontScale;
+  Color? _lastColor;
+  Color? _lastShadowColor;
+
+  @override
+  Widget build(BuildContext context) {
     final heading = ref.watch(telemetryProvider.select((t) => t.heading));
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -40,6 +50,19 @@ class CompassBar extends ConsumerWidget {
         (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
       ),
     );
+
+    final color = colorScheme.onSurface;
+    final shadowColor =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.light
+        ? Colors.black.withAlpha(100)
+        : Colors.white.withAlpha(100);
+
+    if (_lastFontScale != fontScale || _lastColor != color || _lastShadowColor != shadowColor) {
+      _painterCache.clear();
+      _lastFontScale = fontScale;
+      _lastColor = color;
+      _lastShadowColor = shadowColor;
+    }
 
     return ClipRRect(
       child: BackdropFilter(
@@ -86,8 +109,10 @@ class CompassBar extends ConsumerWidget {
                   child: CustomPaint(
                     painter: CompassPainter(
                       heading: heading ?? 0.0,
-                      color: colorScheme.onSurface,
+                      color: color,
+                      shadowColor: shadowColor,
                       fontScale: fontScale,
+                      painterCache: _painterCache,
                     ),
                   ),
                 ),
@@ -152,12 +177,16 @@ class CompassBar extends ConsumerWidget {
 class CompassPainter extends CustomPainter {
   final double heading;
   final Color color;
+  final Color shadowColor;
   final double fontScale;
+  final Map<String, (TextPainter, TextPainter)> painterCache;
 
   CompassPainter({
     required this.heading,
     required this.color,
+    required this.shadowColor,
     required this.fontScale,
+    required this.painterCache,
   });
 
   @override
@@ -167,17 +196,9 @@ class CompassPainter extends CustomPainter {
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
     final double pixelsPerDegree =
         _CompassLayout.pixelsPerDegreeBase * fontScale;
     final double centerX = size.width / 2;
-
-    // Calculate shadow once
-    final shadowColor =
-        ThemeData.estimateBrightnessForColor(color) == Brightness.light
-        ? Colors.black.withAlpha(100)
-        : Colors.white.withAlpha(100);
 
     // Calculate range of degrees to draw
     final int startDegree = (heading - (centerX / pixelsPerDegree)).floor();
@@ -211,56 +232,53 @@ class CompassPainter extends CustomPainter {
       );
 
       if (showText && label != null) {
-        final baseStyle = TextStyle(
-          color: color,
-          fontSize: _CompassLayout.labelFontSizeBase * fontScale,
-          fontWeight: normalizedDegree % 90 == 0
-              ? FontWeight.bold
-              : FontWeight.normal,
-          fontFamily: 'Roboto',
-        );
-
         final double textY =
             size.height -
             markerHeight -
             (_CompassLayout.labelOffsetBase * fontScale);
 
-        // NOTE: We draw the text shadow/outline manually in 4 diagonal directions.
-        // We do not use standard TextStyle(shadows: [...]) here because of a known Flutter
-        // graphics engine (Skia/Impeller) caching bug inside CustomPainters, where text shadows
-        // could remain static on the screen during fast repaints/canvas translations while the
-        // foreground text moves. Drawing the shadow manually as text at offset coordinates
-        // guarantees the shadow moves in perfect sync with the foreground label.
-        textPainter.text = TextSpan(
-          text: label,
-          style: baseStyle.copyWith(color: shadowColor),
-        );
-        textPainter.layout();
+        final (shadowPainter, foregroundPainter) = painterCache.putIfAbsent(label, () {
+          final baseStyle = TextStyle(
+            color: color,
+            fontSize: _CompassLayout.labelFontSizeBase * fontScale,
+            fontWeight: normalizedDegree % 90 == 0
+                ? FontWeight.bold
+                : FontWeight.normal,
+            fontFamily: 'Roboto',
+          );
+          final sp = TextPainter(
+            text: TextSpan(text: label, style: baseStyle.copyWith(color: shadowColor)),
+            textDirection: TextDirection.ltr,
+          )..layout();
+          final fp = TextPainter(
+            text: TextSpan(text: label, style: baseStyle),
+            textDirection: TextDirection.ltr,
+          )..layout();
+          return (sp, fp);
+        });
 
         final double shadowOffset = 1.2 * fontScale;
-        final double textX = x - textPainter.width / 2;
+        final double textX = x - foregroundPainter.width / 2;
 
-        textPainter.paint(
+        shadowPainter.paint(
           canvas,
           Offset(textX - shadowOffset, textY - shadowOffset),
         );
-        textPainter.paint(
+        shadowPainter.paint(
           canvas,
           Offset(textX + shadowOffset, textY - shadowOffset),
         );
-        textPainter.paint(
+        shadowPainter.paint(
           canvas,
           Offset(textX - shadowOffset, textY + shadowOffset),
         );
-        textPainter.paint(
+        shadowPainter.paint(
           canvas,
           Offset(textX + shadowOffset, textY + shadowOffset),
         );
 
         // Draw main text
-        textPainter.text = TextSpan(text: label, style: baseStyle);
-        textPainter.layout();
-        textPainter.paint(canvas, Offset(textX, textY));
+        foregroundPainter.paint(canvas, Offset(textX, textY));
       }
     }
   }
@@ -279,6 +297,7 @@ class CompassPainter extends CustomPainter {
   bool shouldRepaint(covariant CompassPainter oldDelegate) {
     return oldDelegate.heading != heading ||
         oldDelegate.fontScale != fontScale ||
-        oldDelegate.color != color;
+        oldDelegate.color != color ||
+        oldDelegate.shadowColor != shadowColor;
   }
 }

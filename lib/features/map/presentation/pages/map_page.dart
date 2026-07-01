@@ -34,16 +34,35 @@ class MapPage extends ConsumerStatefulWidget {
   ConsumerState<MapPage> createState() => _MapPageState();
 }
 
-class _MapPageState extends ConsumerState<MapPage> {
+class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   bool _isDrawerOpen = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Enable immersive mode on the map page
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    
     // Auto-trigger GPS waiting state on start
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(mapCameraProvider.notifier).autoStartGps();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Restore normal system UI mode when leaving the map page
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
   }
 
   @override
@@ -59,9 +78,6 @@ class _MapPageState extends ConsumerState<MapPage> {
     final l10n = AppLocalizations.of(context)!;
     final cameraController = ref.watch(mapCameraProvider.notifier);
     final navigationAsync = ref.watch(navigationProvider);
-
-    // Enable immersive mode on the map page
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
     final double screenWidth = MediaQuery.sizeOf(context).width;
     double currentX = 16.0;
