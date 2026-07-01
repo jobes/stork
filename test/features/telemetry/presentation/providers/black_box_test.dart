@@ -10,7 +10,6 @@ import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/telemetry/domain/models/flight.dart';
 import 'package:stork/features/telemetry/domain/models/telemetry_entry.dart';
-import 'package:stork/features/telemetry/domain/models/telemetry_state.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/black_box_provider.dart';
 import 'package:stork/core/services/database/black_box_database_io.dart';

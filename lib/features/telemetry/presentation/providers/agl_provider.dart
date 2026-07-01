@@ -7,7 +7,6 @@ import '../../../../core/utils/aviation_math.dart';
 import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/resolved_altitude.dart';
-import '../../domain/models/telemetry_state.dart';
 import 'telemetry_provider.dart';
 
 part 'agl_provider.g.dart';
@@ -92,14 +91,18 @@ class AutoQnhCalibratorState {
 (double, double)? telemetryCoordinates(Ref ref) {
   // Round coordinates to ~55m precision (1/2000th of a degree)
   // to avoid micro-fluctuations and limit excessive terrain API queries.
-  final roundedLat = ref.watch(telemetryProvider.select((s) {
-    final lat = s.latitude;
-    return lat != null ? (lat * 2000).roundToDouble() / 2000 : null;
-  }));
-  final roundedLon = ref.watch(telemetryProvider.select((s) {
-    final lon = s.longitude;
-    return lon != null ? (lon * 2000).roundToDouble() / 2000 : null;
-  }));
+  final roundedLat = ref.watch(
+    telemetryProvider.select((s) {
+      final lat = s.latitude;
+      return lat != null ? (lat * 2000).roundToDouble() / 2000 : null;
+    }),
+  );
+  final roundedLon = ref.watch(
+    telemetryProvider.select((s) {
+      final lon = s.longitude;
+      return lon != null ? (lon * 2000).roundToDouble() / 2000 : null;
+    }),
+  );
 
   if (roundedLat == null || roundedLon == null) return null;
   return (roundedLat, roundedLon);
@@ -167,6 +170,7 @@ class TerrainElevation extends _$TerrainElevation {
     }
 
     if (isSafeToKeepPrevious) {
+      // ignore: invalid_use_of_internal_member
       return AsyncLoading<double?>().copyWithPrevious(previousState!);
     } else {
       _lastSuccessLat = null;
@@ -255,15 +259,20 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
       _debounceTimer?.cancel();
     });
 
-    ref.listen(telemetryProvider, (previous, next) {
-      if (previous?.airPressure == next.airPressure &&
-          previous?.gpsAltitude == next.gpsAltitude &&
-          previous?.gpsVerticalAccuracy == next.gpsVerticalAccuracy &&
-          previous?.isFlying == next.isFlying) {
-        return;
-      }
-      _handleTelemetryUpdate(next);
-    });
+    ref.listen(
+      telemetryProvider.select(
+        (s) => (
+          airPressure: s.airPressure,
+          gpsAltitude: s.gpsAltitude,
+          gpsVerticalAccuracy: s.gpsVerticalAccuracy,
+          isFlying: s.isFlying,
+        ),
+      ),
+      (previous, next) {
+        final telemetry = ref.read(telemetryProvider);
+        _handleTelemetryUpdate(telemetry);
+      },
+    );
 
     // Keep the original listener for ground calibration
     ref.listen(recommendedQnhProvider, (previous, next) {

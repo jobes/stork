@@ -41,7 +41,7 @@ final class BlackBoxServiceProvider
   }
 }
 
-String _$blackBoxServiceHash() => r'de4214fb0c88be08f005b4a57e00eadf8083c062';
+String _$blackBoxServiceHash() => r'a0aeee2dbce4c23351517dcbf878bdaf983e8d47';
 
 abstract class _$BlackBoxService extends $Notifier<void> {
   void build();

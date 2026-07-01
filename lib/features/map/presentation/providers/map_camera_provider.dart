@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -9,7 +10,6 @@ import '../../../../core/services/location_provider.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
-import '../../../telemetry/domain/models/telemetry_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import 'notams_provider.dart';
@@ -48,134 +48,146 @@ class MapCamera extends _$MapCamera {
     ref.watch(gpsListenerProvider);
 
     // Listen to telemetry updates to move camera
-    ref.listen(telemetryProvider, (previous, next) {
-      if (_mapController == null) return;
+    ref.listen(
+      telemetryProvider.select((s) => (
+        latitude: s.latitude,
+        longitude: s.longitude,
+        heading: s.heading,
+        groundSpeed: s.groundSpeed,
+        indicatedAirSpeed: s.indicatedAirSpeed,
+        isFlying: s.isFlying,
+        mapViewState: s.mapViewState,
+      )),
+      (previous, next) {
+        if (_mapController == null) return;
 
-      // Update navigation route on map if position changed
-      if (next.latitude != previous?.latitude ||
-          next.longitude != previous?.longitude) {
-        _updateNavigationRouteOnMap();
-      }
-
-      // Update aircraft symbol if initialized
-      if (_isAircraftSymbolInitialized &&
-          _mapController?.style != null &&
-          _interpolationTimer == null) {
+        // Update navigation route on map if position changed
         if (next.latitude != previous?.latitude ||
-            next.longitude != previous?.longitude ||
-            next.heading != previous?.heading) {
-          _mapController!.style!.updateGeoJsonSource(
-            id: 'aircraft-source',
-            data: GeoJsonBuilder.buildAircraftGeoJson(
-              next.latitude,
-              next.longitude,
-              next.heading,
-            ),
-          );
+            next.longitude != previous?.longitude) {
+          _updateNavigationRouteOnMap();
         }
 
-        if (next.latitude != previous?.latitude ||
-            next.longitude != previous?.longitude ||
-            next.heading != previous?.heading ||
-            next.groundSpeed != previous?.groundSpeed ||
-            next.indicatedAirSpeed != previous?.indicatedAirSpeed ||
-            next.isFlying != previous?.isFlying) {
-          final settings = ref.read(appSettingsProvider).value;
-          _mapController!.style!.updateGeoJsonSource(
-            id: 'course-line-source',
-            data: GeoJsonBuilder.buildCourseLineGeoJson(next, settings),
-          );
-        }
-      }
-
-      final settings = ref.read(appSettingsProvider).value;
-      final center = Geographic(
-        lon: next.longitude ?? 0.0,
-        lat: next.latitude ?? 0.0,
-      );
-
-      // Handle mode transitions and continuous updates
-      if (next.mapViewState == MapViewState.follow) {
-        if (next.latitude != null &&
-            next.longitude != null &&
-            next.latitude != 0.0 &&
-            next.longitude != 0.0 &&
-            !_isFollowPaused &&
-            !_isTransitionAnimating) {
-          final isContinuousFollow =
-              previous?.mapViewState == MapViewState.follow;
-          
-          // Only interpolate if coordinates or heading actually changed
-          final coordsChanged = previous?.latitude != next.latitude ||
-              previous?.longitude != next.longitude ||
-              previous?.heading != next.heading;
-              
-          if (isContinuousFollow && !coordsChanged) {
-            return;
+        // Update aircraft symbol if initialized
+        if (_isAircraftSymbolInitialized &&
+            _mapController?.style != null &&
+            _interpolationTimer == null) {
+          if (next.latitude != previous?.latitude ||
+              next.longitude != previous?.longitude ||
+              next.heading != previous?.heading) {
+            _mapController!.style!.updateGeoJsonSource(
+              id: 'aircraft-source',
+              data: GeoJsonBuilder.buildAircraftGeoJson(
+                next.latitude,
+                next.longitude,
+                next.heading,
+              ),
+            );
           }
 
-          if (isContinuousFollow) {
-            final now = DateTime.now();
-            if (_lastUpdateTimestamp != null) {
-              final interval = now.difference(_lastUpdateTimestamp!);
-              if (interval >= const Duration(milliseconds: 100) &&
-                  interval <= const Duration(seconds: 5)) {
-                _lastUpdateInterval = interval;
-              }
+          if (next.latitude != previous?.latitude ||
+              next.longitude != previous?.longitude ||
+              next.heading != previous?.heading ||
+              next.groundSpeed != previous?.groundSpeed ||
+              next.indicatedAirSpeed != previous?.indicatedAirSpeed ||
+              next.isFlying != previous?.isFlying) {
+            final settings = ref.read(appSettingsProvider).value;
+            final telemetry = ref.read(telemetryProvider);
+            _mapController!.style!.updateGeoJsonSource(
+              id: 'course-line-source',
+              data: GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
+            );
+          }
+        }
+
+        final settings = ref.read(appSettingsProvider).value;
+        final center = Geographic(
+          lon: next.longitude ?? 0.0,
+          lat: next.latitude ?? 0.0,
+        );
+
+        // Handle mode transitions and continuous updates
+        if (next.mapViewState == MapViewState.follow) {
+          if (next.latitude != null &&
+              next.longitude != null &&
+              next.latitude != 0.0 &&
+              next.longitude != 0.0 &&
+              !_isFollowPaused &&
+              !_isTransitionAnimating) {
+            final isContinuousFollow =
+                previous?.mapViewState == MapViewState.follow;
+            
+            // Only interpolate if coordinates or heading actually changed
+            final coordsChanged = previous?.latitude != next.latitude ||
+                previous?.longitude != next.longitude ||
+                previous?.heading != next.heading;
+                
+            if (isContinuousFollow && !coordsChanged) {
+              return;
             }
-            _lastUpdateTimestamp = now;
 
-            _startLinearInterpolation(
-              targetCenter: center,
-              targetZoom: settings?.mapFollowZoom ?? 12.0,
-              targetPitch: 60,
-              targetBearing: next.heading ?? 0.0,
-              duration: _lastUpdateInterval,
-            );
-          } else {
-            _lastUpdateTimestamp = DateTime.now();
-            _lastUpdateInterval = const Duration(seconds: 1);
-            unawaited(
-              moveCamera(
-                center: center,
-                zoom: settings?.mapFollowZoom ?? 12.0,
-                pitch: 60,
-                bearing: next.heading ?? 0.0,
-                animate: true,
-              ),
-            );
+            if (isContinuousFollow) {
+              final now = DateTime.now();
+              if (_lastUpdateTimestamp != null) {
+                final interval = now.difference(_lastUpdateTimestamp!);
+                if (interval >= const Duration(milliseconds: 100) &&
+                    interval <= const Duration(seconds: 5)) {
+                  _lastUpdateInterval = interval;
+                }
+              }
+              _lastUpdateTimestamp = now;
+
+              _startLinearInterpolation(
+                targetCenter: center,
+                targetZoom: settings?.mapFollowZoom ?? 12.0,
+                targetPitch: 60,
+                targetBearing: next.heading ?? 0.0,
+                duration: _lastUpdateInterval,
+              );
+            } else {
+              _lastUpdateTimestamp = DateTime.now();
+              _lastUpdateInterval = const Duration(seconds: 1);
+              unawaited(
+                moveCamera(
+                  center: center,
+                  zoom: settings?.mapFollowZoom ?? 12.0,
+                  pitch: 60,
+                  bearing: next.heading ?? 0.0,
+                  animate: true,
+                ),
+              );
+            }
+          }
+        } else {
+          _cancelInterpolation();
+          if (next.mapViewState == MapViewState.overview) {
+            final stateChanged = previous?.mapViewState != next.mapViewState;
+            final coordsBecameValid =
+                (previous?.latitude == null ||
+                    previous?.longitude == null ||
+                    previous?.latitude == 0.0 ||
+                    previous?.longitude == 0.0) &&
+                (next.latitude != null &&
+                    next.longitude != null &&
+                    next.latitude != 0.0 &&
+                    next.longitude != 0.0);
+
+            if (stateChanged || coordsBecameValid) {
+              unawaited(
+                moveCamera(
+                  center: center,
+                  zoom: settings?.mapOverviewZoom ?? 10.0,
+                  pitch: 0,
+                  bearing: 0,
+                  animate: kIsWeb && previous?.mapViewState != MapViewState.follow
+                      ? false
+                      : !coordsBecameValid,
+                ),
+              );
+            }
           }
         }
-      } else {
-        _cancelInterpolation();
-        if (next.mapViewState == MapViewState.overview) {
-          final stateChanged = previous?.mapViewState != next.mapViewState;
-          final coordsBecameValid =
-              (previous?.latitude == null ||
-                  previous?.longitude == null ||
-                  previous?.latitude == 0.0 ||
-                  previous?.longitude == 0.0) &&
-              (next.latitude != null &&
-                  next.longitude != null &&
-                  next.latitude != 0.0 &&
-                  next.longitude != 0.0);
-
-          if (stateChanged || coordsBecameValid) {
-            unawaited(
-              moveCamera(
-                center: center,
-                zoom: settings?.mapOverviewZoom ?? 10.0,
-                pitch: 0,
-                bearing: 0,
-                animate: kIsWeb && previous?.mapViewState != MapViewState.follow
-                    ? false
-                    : !coordsBecameValid,
-              ),
-            );
-          }
-        }
-      }
-    });
+      },
+    );
 
     // Listen to settings updates to update course line
     ref.listen(appSettingsProvider, (previous, next) {

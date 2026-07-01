@@ -14,6 +14,9 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final engineRPM = ref.watch(telemetryProvider.select((t) => t.engineRPM));
+    final disableAnimations = ref.watch(
+      disableTelemetryAnimationsProvider.select((m) => m[TelemetryField.engineRPM] ?? false),
+    );
     final settings = ref.watch(appSettingsProvider).value;
     final thresholds = settings?.rpmThresholds ?? const RangeThresholds.raw(
       inactiveMax: 10.0,
@@ -45,6 +48,7 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
 
     return TelemetryCard(
       state: rpmState,
+      disableAnimations: disableAnimations,
       padding: EdgeInsets.symmetric(
         horizontal: 12.0 * fontScale,
         vertical: 8.0 * fontScale,
@@ -70,7 +74,7 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
                     ),
                   ),
                   AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 300),
+                    duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     style: TextStyle(
                       fontSize: (isAbnormal ? 18.0 : 15.0) * fontScale,

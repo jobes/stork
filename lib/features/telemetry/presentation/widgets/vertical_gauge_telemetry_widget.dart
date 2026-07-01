@@ -13,6 +13,7 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
   final RangeThresholds thresholds;
   final ThresholdState state;
   final double fontScale;
+  final bool disableAnimations;
 
   const VerticalGaugeTelemetryWidget({
     super.key,
@@ -24,6 +25,7 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
     required this.thresholds,
     required this.state,
     required this.fontScale,
+    this.disableAnimations = false,
   });
 
 
@@ -39,6 +41,7 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
 
     return TelemetryCard(
       state: state,
+      disableAnimations: disableAnimations,
       padding: EdgeInsets.symmetric(
         horizontal: 4.0 * fontScale,
         vertical: 8.0 * fontScale,
@@ -68,7 +71,7 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
               child: currentValue != null
                   ? TweenAnimationBuilder<double>(
                       tween: Tween<double>(begin: currentValue!, end: currentValue!),
-                      duration: const Duration(milliseconds: 300),
+                      duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
                       curve: Curves.easeOut,
                       builder: (context, animValue, child) {
                         return CustomPaint(
@@ -98,7 +101,7 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
               height: 26 * fontScale,
               child: Center(
                 child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 300),
+                  duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   style: TextStyle(
                     fontSize: (isAbnormal ? 24.0 : 18.0) * fontScale,

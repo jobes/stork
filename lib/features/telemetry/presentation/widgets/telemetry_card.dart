@@ -17,6 +17,7 @@ class TelemetryCard extends ConsumerWidget {
   final double? borderWidth;
   final EdgeInsetsGeometry padding;
   final ThresholdState state;
+  final bool disableAnimations;
 
   const TelemetryCard({
     super.key,
@@ -27,6 +28,7 @@ class TelemetryCard extends ConsumerWidget {
     this.borderWidth,
     this.padding = const EdgeInsets.all(12.0),
     this.state = ThresholdState.operational,
+    this.disableAnimations = false,
   });
 
   @override
@@ -129,7 +131,7 @@ class TelemetryCard extends ConsumerWidget {
     }
 
     final widgetContent = AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       padding: padding,
       decoration: BoxDecoration(

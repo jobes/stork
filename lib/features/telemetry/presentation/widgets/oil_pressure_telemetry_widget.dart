@@ -14,6 +14,9 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final oilPressure = ref.watch(telemetryProvider.select((t) => t.oilPressure));
+    final disableAnimations = ref.watch(
+      disableTelemetryAnimationsProvider.select((m) => m[TelemetryField.oilPressure] ?? false),
+    );
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -51,6 +54,7 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
       thresholds: thresholds,
       state: pressureState,
       fontScale: fontScale,
+      disableAnimations: disableAnimations,
     );
   }
 }

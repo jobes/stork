@@ -9,7 +9,6 @@ import '../../domain/repositories/black_box_repository.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/flight.dart';
 import '../../domain/models/telemetry_entry.dart';
-import '../../domain/models/telemetry_state.dart';
 import 'telemetry_provider.dart';
 import 'flight_records_provider.dart';
 

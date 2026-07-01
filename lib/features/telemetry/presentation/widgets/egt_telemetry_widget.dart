@@ -29,6 +29,9 @@ class EgtTelemetryWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final exhaustGasTemperatures = ref.watch(telemetryProvider.select((t) => t.exhaustGasTemperatures));
+    final disableAnimations = ref.watch(
+      disableTelemetryAnimationsProvider.select((m) => m[TelemetryField.exhaustGasTemperature] ?? false),
+    );
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -73,6 +76,7 @@ class EgtTelemetryWidget extends ConsumerWidget {
 
     return TelemetryCard(
       state: worstState,
+      disableAnimations: disableAnimations,
       padding: EdgeInsets.symmetric(
         horizontal: 6.0 * fontScale,
         vertical: 8.0 * fontScale,
@@ -124,7 +128,7 @@ class EgtTelemetryWidget extends ConsumerWidget {
                         child: rawTemp != null
                             ? TweenAnimationBuilder<double>(
                                 tween: Tween<double>(begin: rawTemp, end: rawTemp),
-                                duration: const Duration(milliseconds: 300),
+                                duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
                                 curve: Curves.easeOut,
                                 builder: (context, animTemp, child) {
                                   return CustomPaint(
