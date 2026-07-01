@@ -386,8 +386,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
         defaultMinWarningK: 333.15,
         defaultMaxWarningK: 383.15,
         defaultMaxErrorK: 403.15,
-        minRangeLimit: 50.0,
-        maxRangeLimit: 1000.0,
+        minRangeLimit: s.temperatureUnit.convertFromKelvin(50.0),
+        maxRangeLimit: s.temperatureUnit.convertFromKelvin(1000.0),
       ),
     );
   }
@@ -481,8 +481,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
         defaultMinWarningK: 973.15,
         defaultMaxWarningK: 1153.15,
         defaultMaxErrorK: 1173.15,
-        minRangeLimit: 50.0,
-        maxRangeLimit: 2000.0,
+        minRangeLimit: s.temperatureUnit.convertFromKelvin(50.0),
+        maxRangeLimit: s.temperatureUnit.convertFromKelvin(2000.0),
       ),
     );
   }
@@ -523,8 +523,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
         defaultMinWarningK: 348.15,
         defaultMaxWarningK: 403.15,
         defaultMaxErrorK: 423.15,
-        minRangeLimit: 50.0,
-        maxRangeLimit: 1000.0,
+        minRangeLimit: s.temperatureUnit.convertFromKelvin(50.0),
+        maxRangeLimit: s.temperatureUnit.convertFromKelvin(1000.0),
       ),
     );
   }

@@ -313,21 +313,21 @@ abstract class AppSettings with _$AppSettings {
       thresholds.maxError ?? defaultMaxErrorKpa,
     );
 
-    final newMaxErrorActive = maxErrorActive
-        .clamp(0.0, clampedMaxRangeActive)
-        .roundToDouble();
-    final newMaxWarningActive = maxWarningActive
-        .clamp(0.0, newMaxErrorActive)
-        .roundToDouble();
-    final newMinWarningActive = minWarningActive
-        .clamp(0.0, newMaxWarningActive)
-        .roundToDouble();
-    final newMinErrorActive = minErrorActive
-        .clamp(0.0, newMinWarningActive)
-        .roundToDouble();
-    final newInactiveMaxActive = inactiveMaxActive
-        .clamp(0.0, newMinErrorActive)
-        .roundToDouble();
+    final decimalPlaces = pressureUnit == PressureUnit.bar ? 1 : 0;
+    double roundValue(double val, double maxLimit) {
+      final clamped = val.clamp(0.0, maxLimit);
+      if (decimalPlaces > 0) {
+        return double.parse(clamped.toStringAsFixed(decimalPlaces));
+      } else {
+        return clamped.roundToDouble();
+      }
+    }
+
+    final newMaxErrorActive = roundValue(maxErrorActive, clampedMaxRangeActive);
+    final newMaxWarningActive = roundValue(maxWarningActive, newMaxErrorActive);
+    final newMinWarningActive = roundValue(minWarningActive, newMaxWarningActive);
+    final newMinErrorActive = roundValue(minErrorActive, newMinWarningActive);
+    final newInactiveMaxActive = roundValue(inactiveMaxActive, newMinErrorActive);
 
     return copyWith(
       oilPressureMaxRange: normalizedMaxRangeKpa,

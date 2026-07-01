@@ -189,6 +189,7 @@ class IceStatus implements DroneCanMessage {
       (flags & flagGeneralError) != 0 ||
       (flags & flagCrankshaftSensorError) != 0 ||
       (flags & flagTemperatureOverheating) != 0 ||
+      (flags & flagTemperatureEgtAboveNominal) != 0 ||
       (flags & flagFuelPressureBelowNominal) != 0 ||
       (flags & flagFuelPressureAboveNominal) != 0 ||
       (flags & flagOilPressureBelowNominal) != 0 ||

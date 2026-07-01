@@ -57,6 +57,30 @@ class _MapPageState extends ConsumerState<MapPage> {
     // Enable immersive mode on the map page
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    double currentX = 16.0;
+    double currentY = 50.0;
+    const double rightMargin = 16.0;
+    const double itemGap = 9.0;
+    const double rowHeight = 60.0;
+
+    Widget buildWidget(String id, double width, Widget child) {
+      if (currentX > 16.0 && currentX + width > screenWidth - rightMargin) {
+        currentX = 16.0;
+        currentY += rowHeight + itemGap;
+      }
+      final double left = currentX;
+      final double top = currentY;
+      currentX += width + itemGap;
+      return MapWidgetWrapper(
+        key: ValueKey(id),
+        widgetId: id,
+        defaultTop: top,
+        defaultLeft: left,
+        child: child,
+      );
+    }
+
     return Scaffold(
       onDrawerChanged: (isOpen) {
         if (isOpen) {
@@ -118,73 +142,29 @@ class _MapPageState extends ConsumerState<MapPage> {
               ),
             ),
             if (telemetry.mapViewState != MapViewState.init) ...[
-              const MapWidgetWrapper(
-                widgetId: 'speed_widget',
-                defaultTop: 50.0, // Odsadenie pod kompas
-                defaultLeft: 16.0,
-                child: SpeedTelemetryWidget(),
-              ),
-              const MapWidgetWrapper(
-                widgetId: 'altitude_widget',
-                defaultTop: 50.0, // Odsadenie pod kompas
-                defaultLeft: 175.0, // Vedľa speed widgetu
-                child: AltitudeTelemetryWidget(),
-              ),
-              const MapWidgetWrapper(
-                widgetId: 'flight_time_widget',
-                defaultTop: 50.0,
-                defaultLeft: 334.0, // Vedľa altitude widgetu
-                child: FlightTimeTelemetryWidget(),
-              ),
+              buildWidget('speed_widget', 150.0, const SpeedTelemetryWidget()),
+              buildWidget('altitude_widget', 150.0, const AltitudeTelemetryWidget()),
+              buildWidget('flight_time_widget', 150.0, const FlightTimeTelemetryWidget()),
               if (telemetry.isOilTempSupported)
-                const MapWidgetWrapper(
-                  widgetId: 'oil_temp_widget',
-                  defaultTop: 50.0,
-                  defaultLeft: 493.0, // Vedľa flight_time widgetu
-                  child: OilTempTelemetryWidget(),
-                ),
+                buildWidget('oil_temp_widget', 50.0, const OilTempTelemetryWidget()),
               if (telemetry.isOilPressureSupported)
-                const MapWidgetWrapper(
-                  widgetId: 'oil_pressure_widget',
-                  defaultTop: 50.0,
-                  defaultLeft: 552.0, // Vedľa oil_temp widgetu
-                  child: OilPressureTelemetryWidget(),
-                ),
+                buildWidget('oil_pressure_widget', 50.0, const OilPressureTelemetryWidget()),
               if (telemetry.cylinderHeadTemperatures.isNotEmpty)
-                const MapWidgetWrapper(
-                  widgetId: 'cylinder_temp_widget',
-                  defaultTop: 50.0,
-                  defaultLeft: 611.0, // Vedľa oil_pressure widgetu
-                  child: CylinderTempTelemetryWidget(),
-                ),
+                buildWidget('cylinder_temp_widget', 50.0, const CylinderTempTelemetryWidget()),
               if (telemetry.exhaustGasTemperatures.isNotEmpty)
-                const MapWidgetWrapper(
-                  widgetId: 'egt_widget',
-                  defaultTop: 50.0,
-                  defaultLeft: 670.0, // Vedľa cylinder_temp widgetu
-                  child: EgtTelemetryWidget(),
-                ),
+                buildWidget('egt_widget', 50.0, const EgtTelemetryWidget()),
               if (telemetry.isFuelSupported)
-                const MapWidgetWrapper(
-                  widgetId: 'fuel_status_widget',
-                  defaultTop: 50.0,
-                  defaultLeft: 729.0, // Vedľa egt widgetu
-                  child: FuelStatusTelemetryWidget(),
-                ),
+                buildWidget('fuel_status_widget', 50.0, const FuelStatusTelemetryWidget()),
               if (telemetry.isEngineRpmSupported)
-                const MapWidgetWrapper(
-                  widgetId: 'rpm_widget',
-                  defaultTop: 50.0,
-                  defaultLeft: 788.0, // Vedľa fuel widgetu
-                  child: RpmHorizontalTelemetryWidget(),
-                ),
+                buildWidget('rpm_widget', 150.0, const RpmHorizontalTelemetryWidget()),
               if (navigationAsync.value?.isActive == true &&
                   navigationAsync.value?.points.isNotEmpty == true)
-                const MapWidgetWrapper(
+                MapWidgetWrapper(
+                  key: const ValueKey('navigation_widget'),
                   widgetId: 'navigation_widget',
-                  defaultTop: 120.0,
+                  defaultTop: currentY + rowHeight + itemGap,
                   defaultLeft: 16.0,
-                  child: NavigationTelemetryWidget(),
+                  child: const NavigationTelemetryWidget(),
                 ),
             ],
             Builder(

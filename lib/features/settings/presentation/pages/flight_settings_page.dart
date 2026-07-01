@@ -853,7 +853,7 @@ class FlightSettingsPage extends ConsumerWidget {
                   min: 0.0,
                   max: settings.rpmMaxRange,
                   evaluate: currentRpmThresholds.evaluate,
-                  unitLabel: 'RPM',
+                  unitLabel: l10n.engineRpmShort,
                   values: [
                     currentRpmThresholds.inactiveMax!,
                     currentRpmThresholds.minError!,
@@ -897,7 +897,7 @@ class FlightSettingsPage extends ConsumerWidget {
                       min: 1000.0,
                       max: 12000.0,
                       step: 100,
-                      suffix: 'RPM',
+                      suffix: l10n.engineRpmShort,
                       onChanged: (newValue) {
                         unawaited(
                           ref
