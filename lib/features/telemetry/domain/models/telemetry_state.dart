@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'map_view_state.dart';
 
 
@@ -14,14 +15,23 @@ enum TelemetryField {
   gpsSatelliteCount,
   gpsHorizontalAccuracy,
   gpsVerticalAccuracy,
+  coolantTemperature,
+  oilPressure,
+  oilTemperature,
+  cylinderHeadTemperature,
+  exhaustGasTemperature,
   isFlying,
   isGpsDroneCan,
-  mapViewState;
+  mapViewState,
+  fuelLevelPercent,
+  fuelVolumeLiters,
+  isFuelSupported;
 
   bool get isBlackBoxField {
     switch (this) {
       case TelemetryField.isFlying:
       case TelemetryField.mapViewState:
+      case TelemetryField.isFuelSupported:
         return false;
       default:
         return true;
@@ -45,9 +55,14 @@ enum TelemetryField {
 
   String get dbType {
     switch (this) {
+      case TelemetryField.engineRPM:
       case TelemetryField.gpsSatelliteCount:
       case TelemetryField.isGpsDroneCan:
+      case TelemetryField.isFuelSupported:
         return 'INTEGER';
+      case TelemetryField.cylinderHeadTemperature:
+      case TelemetryField.exhaustGasTemperature:
+        return 'TEXT'; // JSON-encoded List<double>
       default:
         return 'REAL';
     }
@@ -57,17 +72,31 @@ enum TelemetryField {
     if (dbValue == null) return null;
     switch (this) {
       case TelemetryField.isGpsDroneCan:
+      case TelemetryField.isFuelSupported:
         return (dbValue as int) == 1;
+      case TelemetryField.cylinderHeadTemperature:
+      case TelemetryField.exhaustGasTemperature:
+        // Stored as JSON array of numbers, e.g. "[450.5,451.0]"
+        final raw = dbValue as String;
+        if (raw.isEmpty) return <double>[];
+        final list = jsonDecode(raw) as List<dynamic>;
+        return list.map((e) => e == null ? null : (e as num).toDouble()).toList();
+      case TelemetryField.engineRPM:
+        return (dbValue as num).toInt();
       case TelemetryField.latitude:
       case TelemetryField.longitude:
       case TelemetryField.heading:
       case TelemetryField.groundSpeed:
       case TelemetryField.indicatedAirSpeed:
-      case TelemetryField.engineRPM:
       case TelemetryField.airPressure:
       case TelemetryField.gpsAltitude:
       case TelemetryField.gpsHorizontalAccuracy:
       case TelemetryField.gpsVerticalAccuracy:
+      case TelemetryField.coolantTemperature:
+      case TelemetryField.oilPressure:
+      case TelemetryField.oilTemperature:
+      case TelemetryField.fuelLevelPercent:
+      case TelemetryField.fuelVolumeLiters:
         return (dbValue as num).toDouble();
       default:
         return dbValue;
@@ -87,14 +116,27 @@ class TelemetryState {
   final double? groundSpeed;
   final double? indicatedAirSpeed;
   final bool isFlying;
-  final double? engineRPM;
+  final int? engineRPM;
   final double? airPressure; // in Pa
   final double? gpsAltitude; // MSL
   final int? gpsSatelliteCount;
   final double? gpsHorizontalAccuracy; // in meters
   final double? gpsVerticalAccuracy; // in meters
+  final double? coolantTemperature; // in Kelvin
+  final double? oilPressure; // in kPa
+  final double? oilTemperature; // in Kelvin
+  final bool isOilTempSupported;
+  final bool isOilPressureSupported;
+  final bool isEngineRpmSupported;
+  /// CHT per cylinder, in Kelvin (null = no sensor for that cylinder, empty list = no data).
+  final List<double?> cylinderHeadTemperatures;
+  /// EGT per cylinder, in Kelvin (null = no sensor for that cylinder, empty list = no data).
+  final List<double?> exhaustGasTemperatures;
   final bool isGpsDroneCan;
   final MapViewState mapViewState;
+  final double? fuelLevelPercent;
+  final double? fuelVolumeLiters;
+  final bool isFuelSupported;
 
   const TelemetryState({
     this.latitude,
@@ -109,8 +151,19 @@ class TelemetryState {
     this.gpsSatelliteCount,
     this.gpsHorizontalAccuracy,
     this.gpsVerticalAccuracy,
+    this.coolantTemperature,
+    this.oilPressure,
+    this.oilTemperature,
+    this.isOilTempSupported = false,
+    this.isOilPressureSupported = false,
+    this.isEngineRpmSupported = false,
+    this.cylinderHeadTemperatures = const [],
+    this.exhaustGasTemperatures = const [],
     this.isGpsDroneCan = false,
     this.mapViewState = MapViewState.init,
+    this.fuelLevelPercent,
+    this.fuelVolumeLiters,
+    this.isFuelSupported = false,
   });
 
   dynamic getFieldValue(TelemetryField field) {
@@ -137,12 +190,32 @@ class TelemetryState {
         return gpsHorizontalAccuracy;
       case TelemetryField.gpsVerticalAccuracy:
         return gpsVerticalAccuracy;
+      case TelemetryField.coolantTemperature:
+        return coolantTemperature;
+      case TelemetryField.oilPressure:
+        return oilPressure;
+      case TelemetryField.oilTemperature:
+        return oilTemperature;
+      case TelemetryField.cylinderHeadTemperature:
+        return cylinderHeadTemperatures.isNotEmpty
+            ? jsonEncode(cylinderHeadTemperatures)
+            : null;
+      case TelemetryField.exhaustGasTemperature:
+        return exhaustGasTemperatures.isNotEmpty
+            ? jsonEncode(exhaustGasTemperatures)
+            : null;
       case TelemetryField.isFlying:
         return isFlying;
       case TelemetryField.isGpsDroneCan:
         return isGpsDroneCan;
       case TelemetryField.mapViewState:
         return mapViewState;
+      case TelemetryField.fuelLevelPercent:
+        return fuelLevelPercent;
+      case TelemetryField.fuelVolumeLiters:
+        return fuelVolumeLiters;
+      case TelemetryField.isFuelSupported:
+        return isFuelSupported;
     }
   }
 
@@ -159,7 +232,7 @@ class TelemetryState {
       case TelemetryField.indicatedAirSpeed:
         return copyWith(indicatedAirSpeed: TelemetryValue(value as double?));
       case TelemetryField.engineRPM:
-        return copyWith(engineRPM: TelemetryValue(value as double?));
+        return copyWith(engineRPM: TelemetryValue(value as int?));
       case TelemetryField.airPressure:
         return copyWith(airPressure: TelemetryValue(value as double?));
       case TelemetryField.gpsAltitude:
@@ -170,6 +243,30 @@ class TelemetryState {
         return copyWith(gpsHorizontalAccuracy: TelemetryValue(value as double?));
       case TelemetryField.gpsVerticalAccuracy:
         return copyWith(gpsVerticalAccuracy: TelemetryValue(value as double?));
+      case TelemetryField.coolantTemperature:
+        return copyWith(coolantTemperature: TelemetryValue(value as double?));
+      case TelemetryField.oilPressure:
+        return copyWith(oilPressure: TelemetryValue(value as double?));
+      case TelemetryField.oilTemperature:
+        return copyWith(oilTemperature: TelemetryValue(value as double?));
+      case TelemetryField.cylinderHeadTemperature:
+        final List<dynamic>? parsedChtList = (value is String)
+            ? (value.isEmpty ? [] : jsonDecode(value) as List<dynamic>?)
+            : (value as List<dynamic>?);
+        return copyWith(
+          cylinderHeadTemperatures: TelemetryValue(
+            parsedChtList?.cast<double?>() ?? [],
+          ),
+        );
+      case TelemetryField.exhaustGasTemperature:
+        final List<dynamic>? parsedEgtList = (value is String)
+            ? (value.isEmpty ? [] : jsonDecode(value) as List<dynamic>?)
+            : (value as List<dynamic>?);
+        return copyWith(
+          exhaustGasTemperatures: TelemetryValue(
+            parsedEgtList?.cast<double?>() ?? [],
+          ),
+        );
       case TelemetryField.isFlying:
         return copyWith(isFlying: value as bool? ?? false);
       case TelemetryField.isGpsDroneCan:
@@ -178,6 +275,12 @@ class TelemetryState {
         return copyWith(
           mapViewState: value as MapViewState? ?? MapViewState.init,
         );
+      case TelemetryField.fuelLevelPercent:
+        return copyWith(fuelLevelPercent: TelemetryValue(value as double?));
+      case TelemetryField.fuelVolumeLiters:
+        return copyWith(fuelVolumeLiters: TelemetryValue(value as double?));
+      case TelemetryField.isFuelSupported:
+        return copyWith(isFuelSupported: value as bool? ?? false);
     }
   }
 
@@ -188,14 +291,25 @@ class TelemetryState {
     TelemetryValue<double?>? groundSpeed,
     TelemetryValue<double?>? indicatedAirSpeed,
     bool? isFlying,
-    TelemetryValue<double?>? engineRPM,
+    TelemetryValue<int?>? engineRPM,
     TelemetryValue<double?>? airPressure,
     TelemetryValue<double?>? gpsAltitude,
     TelemetryValue<int?>? gpsSatelliteCount,
     TelemetryValue<double?>? gpsHorizontalAccuracy,
     TelemetryValue<double?>? gpsVerticalAccuracy,
+    TelemetryValue<double?>? coolantTemperature,
+    TelemetryValue<double?>? oilPressure,
+    TelemetryValue<double?>? oilTemperature,
+    bool? isOilTempSupported,
+    bool? isOilPressureSupported,
+    bool? isEngineRpmSupported,
+    TelemetryValue<List<double?>>? cylinderHeadTemperatures,
+    TelemetryValue<List<double?>>? exhaustGasTemperatures,
     bool? isGpsDroneCan,
     MapViewState? mapViewState,
+    TelemetryValue<double?>? fuelLevelPercent,
+    TelemetryValue<double?>? fuelVolumeLiters,
+    bool? isFuelSupported,
   }) {
     return TelemetryState(
       latitude: latitude != null ? latitude.value : this.latitude,
@@ -210,8 +324,24 @@ class TelemetryState {
       gpsSatelliteCount: gpsSatelliteCount != null ? gpsSatelliteCount.value : this.gpsSatelliteCount,
       gpsHorizontalAccuracy: gpsHorizontalAccuracy != null ? gpsHorizontalAccuracy.value : this.gpsHorizontalAccuracy,
       gpsVerticalAccuracy: gpsVerticalAccuracy != null ? gpsVerticalAccuracy.value : this.gpsVerticalAccuracy,
+      coolantTemperature: coolantTemperature != null ? coolantTemperature.value : this.coolantTemperature,
+      oilPressure: oilPressure != null ? oilPressure.value : this.oilPressure,
+      oilTemperature: oilTemperature != null ? oilTemperature.value : this.oilTemperature,
+      isOilTempSupported: isOilTempSupported ?? this.isOilTempSupported,
+      isOilPressureSupported:
+          isOilPressureSupported ?? this.isOilPressureSupported,
+      isEngineRpmSupported: isEngineRpmSupported ?? this.isEngineRpmSupported,
+      cylinderHeadTemperatures: cylinderHeadTemperatures != null
+          ? cylinderHeadTemperatures.value
+          : this.cylinderHeadTemperatures,
+      exhaustGasTemperatures: exhaustGasTemperatures != null
+          ? exhaustGasTemperatures.value
+          : this.exhaustGasTemperatures,
       isGpsDroneCan: isGpsDroneCan ?? this.isGpsDroneCan,
       mapViewState: mapViewState ?? this.mapViewState,
+      fuelLevelPercent: fuelLevelPercent != null ? fuelLevelPercent.value : this.fuelLevelPercent,
+      fuelVolumeLiters: fuelVolumeLiters != null ? fuelVolumeLiters.value : this.fuelVolumeLiters,
+      isFuelSupported: isFuelSupported ?? this.isFuelSupported,
     );
   }
 
@@ -237,17 +367,34 @@ class TelemetryState {
       gpsVerticalAccuracy: field == TelemetryField.gpsVerticalAccuracy
           ? null
           : gpsVerticalAccuracy,
+      coolantTemperature: field == TelemetryField.coolantTemperature
+          ? null
+          : coolantTemperature,
+      oilPressure: field == TelemetryField.oilPressure ? null : oilPressure,
+      oilTemperature: field == TelemetryField.oilTemperature ? null : oilTemperature,
+      isOilTempSupported: isOilTempSupported,
+      isOilPressureSupported: isOilPressureSupported,
+      isEngineRpmSupported: isEngineRpmSupported,
+      cylinderHeadTemperatures: field == TelemetryField.cylinderHeadTemperature
+          ? List<double?>.filled(cylinderHeadTemperatures.length, null)
+          : cylinderHeadTemperatures,
+      exhaustGasTemperatures: field == TelemetryField.exhaustGasTemperature
+          ? List<double?>.filled(exhaustGasTemperatures.length, null)
+          : exhaustGasTemperatures,
       isGpsDroneCan:
           field == TelemetryField.gpsHorizontalAccuracy ||
               field == TelemetryField.gpsVerticalAccuracy
           ? false
           : isGpsDroneCan,
       mapViewState: mapViewState,
+      fuelLevelPercent: field == TelemetryField.fuelLevelPercent ? null : fuelLevelPercent,
+      fuelVolumeLiters: field == TelemetryField.fuelVolumeLiters ? null : fuelVolumeLiters,
+      isFuelSupported: isFuelSupported,
     );
   }
 
   @override
   String toString() {
-    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState)';
+    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, coolant: $coolantTemperature, oilP: $oilPressure, oilT: $oilTemperature, isOilTempSupported: $isOilTempSupported, isOilPressureSupported: $isOilPressureSupported, chts: $cylinderHeadTemperatures, egts: $exhaustGasTemperatures, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState)';
   }
 }

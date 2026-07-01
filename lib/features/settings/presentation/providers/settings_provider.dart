@@ -8,6 +8,8 @@ import '../../domain/models/range_thresholds.dart';
 import '../../domain/models/speed_unit.dart';
 import '../../domain/models/altitude_unit.dart';
 import '../../domain/models/widget_position.dart';
+import '../../domain/models/temperature_unit.dart';
+import '../../domain/models/pressure_unit.dart';
 
 part 'settings_provider.g.dart';
 
@@ -39,6 +41,15 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   static const double _defaultMaxErrorMs = 34.72;
   static const double _minRangeLimit = 10.0;
   static const double _maxRangeLimit = 1000.0;
+
+  static const double _defaultRpmMaxRange = 6000.0;
+  static const double _defaultRpmInactiveMax = 10.0;
+  static const double _defaultRpmMinError = 1400.0;
+  static const double _defaultRpmMinWarning = 1800.0;
+  static const double _defaultRpmMaxWarning = 5500.0;
+  static const double _defaultRpmMaxError = 5800.0;
+  static const double _minRpmLimit = 100.0;
+  static const double _maxRpmLimit = 10000.0;
 
   Future<void> _persistenceQueue = Future.value();
 
@@ -229,6 +240,30 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     );
   }
 
+  Future<SettingsUpdateResult> updateRpmThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      return s.copyWith(rpmThresholds: thresholds);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateRpmMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedRpmMaxRange(
+        maxRange,
+        defaultMaxRange: _defaultRpmMaxRange,
+        defaultInactiveMax: _defaultRpmInactiveMax,
+        defaultMinError: _defaultRpmMinError,
+        defaultMinWarning: _defaultRpmMinWarning,
+        defaultMaxWarning: _defaultRpmMaxWarning,
+        defaultMaxError: _defaultRpmMaxError,
+        minRangeLimit: _minRpmLimit,
+        maxRangeLimit: _maxRpmLimit,
+      ),
+    );
+  }
+
   /// Updates the auto-select device setting and, if enabled, performs auto-selection immediately.
   ///
   /// Invokes [_updateSettings] to update the setting, then awaits [_tryAutoSelectDevice] which
@@ -310,5 +345,187 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   Future<SettingsUpdateResult> updateAirplaneId(String? airplaneId) {
     return _updateSettings((s) => s.copyWith(airplaneId: airplaneId));
+  }
+
+  Future<SettingsUpdateResult> updateTemperatureUnit(TemperatureUnit temperatureUnit) =>
+      _updateSettings((s) => s.copyWith(temperatureUnit: temperatureUnit));
+
+  Future<SettingsUpdateResult> updateOilTempThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      final tempUnit = s.temperatureUnit;
+      final thresholdsInKelvin = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? tempUnit.convertToKelvin(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? tempUnit.convertToKelvin(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? tempUnit.convertToKelvin(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? tempUnit.convertToKelvin(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? tempUnit.convertToKelvin(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(oilTempThresholds: thresholdsInKelvin);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateOilTempMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedOilTempMaxRange(
+        maxRange,
+        defaultMaxRangeK: 413.15,
+        defaultInactiveMaxK: 303.15,
+        defaultMinErrorK: 323.15,
+        defaultMinWarningK: 333.15,
+        defaultMaxWarningK: 383.15,
+        defaultMaxErrorK: 403.15,
+        minRangeLimit: s.temperatureUnit.convertFromKelvin(50.0),
+        maxRangeLimit: s.temperatureUnit.convertFromKelvin(1000.0),
+      ),
+    );
+  }
+
+  Future<SettingsUpdateResult> updatePressureUnit(PressureUnit pressureUnit) =>
+      _updateSettings((s) => s.copyWith(pressureUnit: pressureUnit));
+
+  Future<SettingsUpdateResult> updateOilPressureThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      final pressureUnit = s.pressureUnit;
+      final thresholdsInKpa = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? pressureUnit.convertToKpa(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? pressureUnit.convertToKpa(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? pressureUnit.convertToKpa(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? pressureUnit.convertToKpa(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? pressureUnit.convertToKpa(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(oilPressureThresholds: thresholdsInKpa);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateOilPressureMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedOilPressureMaxRange(
+        maxRange,
+        defaultMaxRangeKpa: 800.0,
+        defaultInactiveMaxKpa: 50.0,
+        defaultMinErrorKpa: 80.0,
+        defaultMinWarningKpa: 200.0,
+        defaultMaxWarningKpa: 500.0,
+        defaultMaxErrorKpa: 700.0,
+        minRangeLimit: s.pressureUnit.convertFromKpa(100.0), // 1.0 bar / 14.5 psi / 100 kPa
+        maxRangeLimit: s.pressureUnit.convertFromKpa(2000.0), // 20.0 bar / 290 psi / 2000 kPa
+      ),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateFuelThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      return s.copyWith(fuelThresholds: thresholds);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateEgtThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      final tempUnit = s.temperatureUnit;
+      final thresholdsInKelvin = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? tempUnit.convertToKelvin(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? tempUnit.convertToKelvin(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? tempUnit.convertToKelvin(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? tempUnit.convertToKelvin(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? tempUnit.convertToKelvin(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(egtThresholds: thresholdsInKelvin);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateEgtMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedEgtMaxRange(
+        maxRange,
+        defaultMaxRangeK: 1223.15,
+        defaultInactiveMaxK: 423.15,
+        defaultMinErrorK: 773.15,
+        defaultMinWarningK: 973.15,
+        defaultMaxWarningK: 1153.15,
+        defaultMaxErrorK: 1173.15,
+        minRangeLimit: s.temperatureUnit.convertFromKelvin(50.0),
+        maxRangeLimit: s.temperatureUnit.convertFromKelvin(2000.0),
+      ),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateChtThresholds(
+    RangeThresholds thresholds,
+  ) {
+    return _updateSettings((s) {
+      final tempUnit = s.temperatureUnit;
+      final thresholdsInKelvin = RangeThresholds(
+        inactiveMax: thresholds.inactiveMax != null
+            ? tempUnit.convertToKelvin(thresholds.inactiveMax!)
+            : null,
+        minError: thresholds.minError != null
+            ? tempUnit.convertToKelvin(thresholds.minError!)
+            : null,
+        minWarning: thresholds.minWarning != null
+            ? tempUnit.convertToKelvin(thresholds.minWarning!)
+            : null,
+        maxWarning: thresholds.maxWarning != null
+            ? tempUnit.convertToKelvin(thresholds.maxWarning!)
+            : null,
+        maxError: thresholds.maxError != null
+            ? tempUnit.convertToKelvin(thresholds.maxError!)
+            : null,
+      );
+      return s.copyWith(chtThresholds: thresholdsInKelvin);
+    });
+  }
+
+  Future<SettingsUpdateResult> updateChtMaxRange(double maxRange) {
+    return _updateSettings(
+      (s) => s.copyWithValidatedChtMaxRange(
+        maxRange,
+        defaultMaxRangeK: 433.15,
+        defaultInactiveMaxK: 323.15,
+        defaultMinErrorK: 333.15,
+        defaultMinWarningK: 348.15,
+        defaultMaxWarningK: 403.15,
+        defaultMaxErrorK: 423.15,
+        minRangeLimit: s.temperatureUnit.convertFromKelvin(50.0),
+        maxRangeLimit: s.temperatureUnit.convertFromKelvin(1000.0),
+      ),
+    );
   }
 }

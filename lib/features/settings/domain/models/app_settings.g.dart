@@ -56,6 +56,72 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   averageSpeed: (json['averageSpeed'] as num?)?.toDouble() ?? 27.78,
   pilotId: json['pilotId'] as String?,
   airplaneId: json['airplaneId'] as String?,
+  temperatureUnit:
+      $enumDecodeNullable(_$TemperatureUnitEnumMap, json['temperatureUnit']) ??
+      TemperatureUnit.celsius,
+  oilTempThresholds: json['oilTempThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 303.15,
+          minError: 323.15,
+          minWarning: 333.15,
+          maxWarning: 383.15,
+          maxError: 403.15,
+        )
+      : RangeThresholds.fromJson(
+          json['oilTempThresholds'] as Map<String, dynamic>,
+        ),
+  oilTempMaxRange: (json['oilTempMaxRange'] as num?)?.toDouble() ?? 413.15,
+  pressureUnit:
+      $enumDecodeNullable(_$PressureUnitEnumMap, json['pressureUnit']) ??
+      PressureUnit.bar,
+  oilPressureThresholds: json['oilPressureThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 50.0,
+          minError: 80.0,
+          minWarning: 200.0,
+          maxWarning: 500.0,
+          maxError: 700.0,
+        )
+      : RangeThresholds.fromJson(
+          json['oilPressureThresholds'] as Map<String, dynamic>,
+        ),
+  oilPressureMaxRange:
+      (json['oilPressureMaxRange'] as num?)?.toDouble() ?? 800.0,
+  fuelThresholds: json['fuelThresholds'] == null
+      ? const RangeThresholds.raw(minError: 10.0, minWarning: 20.0)
+      : RangeThresholds.fromJson(
+          json['fuelThresholds'] as Map<String, dynamic>,
+        ),
+  egtThresholds: json['egtThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 423.15,
+          minError: 773.15,
+          minWarning: 973.15,
+          maxWarning: 1153.15,
+          maxError: 1173.15,
+        )
+      : RangeThresholds.fromJson(json['egtThresholds'] as Map<String, dynamic>),
+  egtMaxRange: (json['egtMaxRange'] as num?)?.toDouble() ?? 1223.15,
+  chtThresholds: json['chtThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 323.15,
+          minError: 333.15,
+          minWarning: 348.15,
+          maxWarning: 403.15,
+          maxError: 423.15,
+        )
+      : RangeThresholds.fromJson(json['chtThresholds'] as Map<String, dynamic>),
+  chtMaxRange: (json['chtMaxRange'] as num?)?.toDouble() ?? 433.15,
+  rpmThresholds: json['rpmThresholds'] == null
+      ? const RangeThresholds.raw(
+          inactiveMax: 10.0,
+          minError: 1400.0,
+          minWarning: 1800.0,
+          maxWarning: 5500.0,
+          maxError: 5800.0,
+        )
+      : RangeThresholds.fromJson(json['rpmThresholds'] as Map<String, dynamic>),
+  rpmMaxRange: (json['rpmMaxRange'] as num?)?.toDouble() ?? 6000.0,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -81,6 +147,19 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'averageSpeed': instance.averageSpeed,
       'pilotId': instance.pilotId,
       'airplaneId': instance.airplaneId,
+      'temperatureUnit': _$TemperatureUnitEnumMap[instance.temperatureUnit]!,
+      'oilTempThresholds': instance.oilTempThresholds,
+      'oilTempMaxRange': instance.oilTempMaxRange,
+      'pressureUnit': _$PressureUnitEnumMap[instance.pressureUnit]!,
+      'oilPressureThresholds': instance.oilPressureThresholds,
+      'oilPressureMaxRange': instance.oilPressureMaxRange,
+      'fuelThresholds': instance.fuelThresholds,
+      'egtThresholds': instance.egtThresholds,
+      'egtMaxRange': instance.egtMaxRange,
+      'chtThresholds': instance.chtThresholds,
+      'chtMaxRange': instance.chtMaxRange,
+      'rpmThresholds': instance.rpmThresholds,
+      'rpmMaxRange': instance.rpmMaxRange,
     };
 
 const _$SpeedUnitEnumMap = {
@@ -94,4 +173,16 @@ const _$AltitudeUnitEnumMap = {
   AltitudeUnit.meters: 'meters',
   AltitudeUnit.feet: 'feet',
   AltitudeUnit.flightLevel: 'flightLevel',
+};
+
+const _$TemperatureUnitEnumMap = {
+  TemperatureUnit.celsius: 'celsius',
+  TemperatureUnit.kelvin: 'kelvin',
+  TemperatureUnit.fahrenheit: 'fahrenheit',
+};
+
+const _$PressureUnitEnumMap = {
+  PressureUnit.bar: 'bar',
+  PressureUnit.psi: 'psi',
+  PressureUnit.kPa: 'kPa',
 };

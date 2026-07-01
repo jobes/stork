@@ -405,6 +405,43 @@ class CannelloniService extends _$CannelloniService {
         );
   }
 
+  void _updateTelemetryIceStatus(IceStatus msg) {
+    if (msg.hasError) {
+      debugPrint(
+        '[DroneCAN] ICE Status ERROR from engine: ${msg.errorDescription} '
+        '(state=${msg.state}, flags=0x${msg.flags.toRadixString(16)})',
+      );
+    }
+    ref
+        .read(telemetryProvider.notifier)
+        .updateIceStatus(
+          engineSpeedRpm: msg.engineSpeedRpm,
+          coolantTemperature: msg.coolantTemperature,
+          oilPressure: msg.oilPressure,
+          oilTemperature: msg.oilTemperature,
+          cylinderHeadTemperatures: msg.cylinderHeadTemperatures,
+          exhaustGasTemperatures: msg.exhaustGasTemperatures,
+        );
+  }
+
+  void _updateTelemetryFuelTankStatus(FuelTankStatus msg) {
+    final double? volumeLiters = msg.availableFuelVolumeCm3 != null
+        ? msg.availableFuelVolumeCm3! / 1000.0
+        : null;
+    ref
+        .read(telemetryProvider.notifier)
+        .updateFuelStatus(
+          percent: msg.availableFuelVolumePercent.toDouble(),
+          volumeLiters: volumeLiters,
+        );
+  }
+
+  void _updateTelemetryStorkEngineRpm(StorkEngineRpm msg) {
+    ref
+        .read(telemetryProvider.notifier)
+        .updateEngineRPM(msg.engineSpeedRpm);
+  }
+
   void _handleGetNodeInfoRequest({
     required int transferId,
     required int sourceNodeId,
@@ -484,6 +521,15 @@ void _storkCanardTransferCallback(
     } else if (dataTypeId == Fix2.messageId) {
       final fix2Msg = Fix2.fromPayload(payloadBytes);
       _activeInstance!._updateTelemetryGPS(fix2Msg);
+    } else if (dataTypeId == IceStatus.messageId) {
+      final iceMsg = IceStatus.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryIceStatus(iceMsg);
+    } else if (dataTypeId == FuelTankStatus.messageId) {
+      final fuelMsg = FuelTankStatus.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryFuelTankStatus(fuelMsg);
+    } else if (dataTypeId == StorkEngineRpm.messageId) {
+      final rpmMsg = StorkEngineRpm.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryStorkEngineRpm(rpmMsg);
     }
   } catch (e) {
     debugPrint('Error in native transfer callback: $e');
@@ -513,6 +559,18 @@ int _storkCanardShouldAcceptCallback(
       }
       if (dataTypeId == Fix2.messageId) {
         outDataTypeSignature.value = Fix2.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == IceStatus.messageId) {
+        outDataTypeSignature.value = IceStatus.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == FuelTankStatus.messageId) {
+        outDataTypeSignature.value = FuelTankStatus.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == StorkEngineRpm.messageId) {
+        outDataTypeSignature.value = StorkEngineRpm.messageSignature;
         return 1;
       }
     } else {

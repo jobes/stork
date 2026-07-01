@@ -1293,4 +1293,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorLoadingSettings => 'Error loading settings';
+
+  @override
+  String get tempUnitCelsius => 'Celsius';
+
+  @override
+  String get tempUnitKelvin => 'Kelvin';
+
+  @override
+  String get tempUnitFahrenheit => 'Fahrenheit';
+
+  @override
+  String get temperatureUnitSettings => 'Temperature Unit';
+
+  @override
+  String get pressureUnitSettings => 'Pressure Unit';
+
+  @override
+  String get oilTemperature => 'Oil Temperature';
+
+  @override
+  String get oilTemperatureShort => 'Oil T.';
+
+  @override
+  String get oilTemperatureSettings => 'Oil Temperature';
+
+  @override
+  String get oilTempMaxRange => 'Maximum Oil Temperature Range';
+
+  @override
+  String get oilPressure => 'Oil Pressure';
+
+  @override
+  String get oilPressureShort => 'Oil P.';
+
+  @override
+  String get oilPressureSettings => 'Oil Pressure';
+
+  @override
+  String get oilPressureMaxRange => 'Maximum Oil Pressure Range';
+
+  @override
+  String get cylinderHeadTemperatureShort => 'CHT';
+
+  @override
+  String get chtTemperature => 'Cylinder Head Temperature (CHT)';
+
+  @override
+  String get chtTemperatureSettings => 'Cylinder Head Temperature (CHT)';
+
+  @override
+  String get chtMaxRange => 'Maximum Cylinder Head Temperature Range';
+
+  @override
+  String get egtTemperature => 'Exhaust Gas Temperature';
+
+  @override
+  String get egtTemperatureShort => 'EGT';
+
+  @override
+  String get egtTemperatureSettings => 'Exhaust Gas Temperature';
+
+  @override
+  String get egtMaxRange => 'Maximum Exhaust Gas Temperature Range';
+
+  @override
+  String get fuelTankStatus => 'Fuel';
+
+  @override
+  String get fuelTankStatusShort => 'Fuel';
+
+  @override
+  String get fuelTankStatusSettings => 'Fuel Tank';
+
+  @override
+  String get engineRpm => 'Engine RPM';
+
+  @override
+  String get engineRpmShort => 'RPM';
+
+  @override
+  String get rpmThresholds => 'Engine RPM Thresholds';
+
+  @override
+  String get rpmMaxRange => 'Maximum RPM slider range';
 }

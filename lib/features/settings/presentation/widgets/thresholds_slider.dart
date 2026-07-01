@@ -10,6 +10,7 @@ class ThresholdsSlider extends StatefulWidget {
   final ThresholdState Function(double) evaluate;
   final ValueChanged<List<double>> onChanged;
   final String unitLabel;
+  final int decimalPlaces;
 
   const ThresholdsSlider({
     super.key,
@@ -19,6 +20,7 @@ class ThresholdsSlider extends StatefulWidget {
     required this.evaluate,
     required this.onChanged,
     required this.unitLabel,
+    this.decimalPlaces = 0,
   });
 
   @override
@@ -112,7 +114,9 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
         ? _currentValues[_activeThumbIndex! + 1]
         : widget.max;
 
-    final double clampedValue = rawValue.clamp(minVal, maxVal).roundToDouble();
+    final double clampedValue = widget.decimalPlaces > 0
+        ? double.parse(rawValue.clamp(minVal, maxVal).toStringAsFixed(widget.decimalPlaces))
+        : rawValue.clamp(minVal, maxVal).roundToDouble();
 
     if (_currentValues[_activeThumbIndex!] != clampedValue) {
       setState(() {
@@ -150,6 +154,7 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
                 context: context,
                 localeTag: Localizations.localeOf(context).toLanguageTag(),
                 unitLabel: widget.unitLabel,
+                decimalPlaces: widget.decimalPlaces,
               ),
             ),
           ),
@@ -169,6 +174,7 @@ class _MultiThumbPainter extends CustomPainter {
   final BuildContext context;
   final String localeTag;
   final String unitLabel;
+  final int decimalPlaces;
 
   _MultiThumbPainter({
     required this.values,
@@ -180,6 +186,7 @@ class _MultiThumbPainter extends CustomPainter {
     required this.context,
     required this.localeTag,
     required this.unitLabel,
+    required this.decimalPlaces,
   });
 
   @override
@@ -258,7 +265,7 @@ class _MultiThumbPainter extends CustomPainter {
       canvas.drawCircle(center, radius, borderPaint);
 
       // Text
-      final String text = '${values[i].toStringAsFixed(0)}\n$unitLabel';
+      final String text = '${values[i].toStringAsFixed(decimalPlaces)}\n$unitLabel';
       final textSpan = TextSpan(
         text: text,
         style: TextStyle(
@@ -294,6 +301,7 @@ class _MultiThumbPainter extends CustomPainter {
         oldDelegate.activeThumbIndex != activeThumbIndex ||
         oldDelegate.textColor != textColor ||
         oldDelegate.localeTag != localeTag ||
-        oldDelegate.unitLabel != unitLabel;
+        oldDelegate.unitLabel != unitLabel ||
+        oldDelegate.decimalPlaces != decimalPlaces;
   }
 }

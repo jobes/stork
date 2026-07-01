@@ -7,6 +7,7 @@ import 'package:stork/features/settings/data/repositories/settings_repository.da
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/domain/models/range_thresholds.dart';
 import 'package:stork/features/settings/domain/models/speed_unit.dart';
+import 'package:stork/features/settings/domain/models/temperature_unit.dart';
 import 'package:stork/features/settings/domain/models/widget_position.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/core/utils/aviation_math.dart';
@@ -441,6 +442,78 @@ void main() {
         expect(
           container.read(appSettingsProvider).value?.flightSpeedMaxRange,
           equals(1000.0),
+        );
+      },
+    );
+
+    test(
+      'updateOilTempMaxRange/updateEgtMaxRange/updateChtMaxRange convert limits using active temperatureUnit',
+      () async {
+        mockRepository.currentSettings = const AppSettings(
+          temperatureUnit: TemperatureUnit.celsius,
+          oilTempMaxRange: 413.15,
+          egtMaxRange: 1223.15,
+          chtMaxRange: 433.15,
+        );
+
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
+
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
+
+        // 1. For oilTempMaxRange in Celsius: maxRangeLimit in Kelvin is 1000.0, which converts to 726.85 C.
+        // Try passing a value above the max limit (800.0 C).
+        // It should clamp to 726.85 C, which stores as 1000.0 Kelvin.
+        final resMaxOilTemp = await notifier.updateOilTempMaxRange(800.0);
+        expect(resMaxOilTemp, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.oilTempMaxRange,
+          closeTo(1000.0, 0.0001),
+        );
+
+        // 2. For oilTempMaxRange in Kelvin: minRangeLimit is 50.0 Kelvin.
+        // Change temperature unit to Kelvin first.
+        await notifier.updateTemperatureUnit(TemperatureUnit.kelvin);
+        // Try passing a value below the min limit (30.0 Kelvin).
+        // It should clamp to 50.0 Kelvin.
+        final resMinOilTemp = await notifier.updateOilTempMaxRange(30.0);
+        expect(resMinOilTemp, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.oilTempMaxRange,
+          closeTo(50.0, 0.0001),
+        );
+
+        // Change temperature unit back to Celsius for remaining tests
+        await notifier.updateTemperatureUnit(TemperatureUnit.celsius);
+
+        // 3. For egtMaxRange in Celsius: maxRangeLimit in Kelvin is 2000.0, which converts to 1726.85 C.
+        // Try passing a value above the max limit, e.g., 1800.0 C.
+        // It should clamp to 1726.85 C, which stores as 2000.0 Kelvin.
+        final resMaxEgt = await notifier.updateEgtMaxRange(1800.0);
+        expect(resMaxEgt, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.egtMaxRange,
+          closeTo(2000.0, 0.0001),
+        );
+
+        // 4. For chtMaxRange in Celsius: maxRangeLimit in Kelvin is 1000.0, which converts to 726.85 C.
+        // Try passing a value above the max limit, e.g., 800.0 C.
+        // It should clamp to 726.85 C, which stores as 1000.0 Kelvin.
+        final resMaxCht = await notifier.updateChtMaxRange(800.0);
+        expect(resMaxCht, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.chtMaxRange,
+          closeTo(1000.0, 0.0001),
         );
       },
     );

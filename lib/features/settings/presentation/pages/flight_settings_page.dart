@@ -6,6 +6,8 @@ import '../../domain/models/app_settings.dart';
 import '../../domain/models/range_thresholds.dart';
 import '../../domain/models/speed_unit.dart';
 import '../../domain/models/altitude_unit.dart';
+import '../../domain/models/temperature_unit.dart';
+import '../../domain/models/pressure_unit.dart';
 import '../providers/settings_provider.dart';
 import '../utils/threshold_state_extension.dart';
 import '../widgets/number_input.dart';
@@ -40,6 +42,88 @@ class FlightSettingsPage extends ConsumerWidget {
             maxError: speedUnit.convertFromMs(
               settings.flightSpeedThresholds.maxError ?? 34.72,
             ),
+          );
+
+          final tempUnit = settings.temperatureUnit;
+          final currentOilThresholds = RangeThresholds(
+            inactiveMax: tempUnit.convertFromKelvin(
+              settings.oilTempThresholds.inactiveMax ?? 303.15,
+            ),
+            minError: tempUnit.convertFromKelvin(
+              settings.oilTempThresholds.minError ?? 323.15,
+            ),
+            minWarning: tempUnit.convertFromKelvin(
+              settings.oilTempThresholds.minWarning ?? 333.15,
+            ),
+            maxWarning: tempUnit.convertFromKelvin(
+              settings.oilTempThresholds.maxWarning ?? 383.15,
+            ),
+            maxError: tempUnit.convertFromKelvin(
+              settings.oilTempThresholds.maxError ?? 403.15,
+            ),
+          );
+
+          final pressureUnit = settings.pressureUnit;
+          final currentOilPressureThresholds = RangeThresholds(
+            inactiveMax: pressureUnit.convertFromKpa(
+              settings.oilPressureThresholds.inactiveMax ?? 50.0,
+            ),
+            minError: pressureUnit.convertFromKpa(
+              settings.oilPressureThresholds.minError ?? 80.0,
+            ),
+            minWarning: pressureUnit.convertFromKpa(
+              settings.oilPressureThresholds.minWarning ?? 200.0,
+            ),
+            maxWarning: pressureUnit.convertFromKpa(
+              settings.oilPressureThresholds.maxWarning ?? 500.0,
+            ),
+            maxError: pressureUnit.convertFromKpa(
+              settings.oilPressureThresholds.maxError ?? 700.0,
+            ),
+          );
+
+          final currentEgtThresholds = RangeThresholds(
+            inactiveMax: tempUnit.convertFromKelvin(
+              settings.egtThresholds.inactiveMax ?? 423.15,
+            ),
+            minError: tempUnit.convertFromKelvin(
+              settings.egtThresholds.minError ?? 773.15,
+            ),
+            minWarning: tempUnit.convertFromKelvin(
+              settings.egtThresholds.minWarning ?? 973.15,
+            ),
+            maxWarning: tempUnit.convertFromKelvin(
+              settings.egtThresholds.maxWarning ?? 1153.15,
+            ),
+            maxError: tempUnit.convertFromKelvin(
+              settings.egtThresholds.maxError ?? 1173.15,
+            ),
+          );
+
+          final currentChtThresholds = RangeThresholds(
+            inactiveMax: tempUnit.convertFromKelvin(
+              settings.chtThresholds.inactiveMax ?? 323.15,
+            ),
+            minError: tempUnit.convertFromKelvin(
+              settings.chtThresholds.minError ?? 333.15,
+            ),
+            minWarning: tempUnit.convertFromKelvin(
+              settings.chtThresholds.minWarning ?? 348.15,
+            ),
+            maxWarning: tempUnit.convertFromKelvin(
+              settings.chtThresholds.maxWarning ?? 403.15,
+            ),
+            maxError: tempUnit.convertFromKelvin(
+              settings.chtThresholds.maxError ?? 423.15,
+            ),
+          );
+
+          final currentRpmThresholds = RangeThresholds(
+            inactiveMax: settings.rpmThresholds.inactiveMax ?? 10.0,
+            minError: settings.rpmThresholds.minError ?? 1400.0,
+            minWarning: settings.rpmThresholds.minWarning ?? 1800.0,
+            maxWarning: settings.rpmThresholds.maxWarning ?? 5500.0,
+            maxError: settings.rpmThresholds.maxError ?? 5800.0,
           );
 
           return ListView(
@@ -209,6 +293,90 @@ class FlightSettingsPage extends ConsumerWidget {
                   ],
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.temperatureUnitSettings,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    DropdownButton<TemperatureUnit>(
+                      value: settings.temperatureUnit,
+                      onChanged: (TemperatureUnit? newValue) {
+                        if (newValue != null) {
+                          unawaited(
+                            ref
+                                .read(appSettingsProvider.notifier)
+                                .updateTemperatureUnit(newValue),
+                          );
+                        }
+                      },
+                      items: TemperatureUnit.values
+                          .map<DropdownMenuItem<TemperatureUnit>>((
+                            TemperatureUnit value,
+                          ) {
+                            return DropdownMenuItem<TemperatureUnit>(
+                              value: value,
+                              child: Text(value.getLabel(l10n)),
+                            );
+                          })
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.pressureUnitSettings,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    DropdownButton<PressureUnit>(
+                      value: settings.pressureUnit,
+                      onChanged: (PressureUnit? newValue) {
+                        if (newValue != null) {
+                          unawaited(
+                            ref
+                                .read(appSettingsProvider.notifier)
+                                .updatePressureUnit(newValue),
+                          );
+                        }
+                      },
+                      items: PressureUnit.values
+                          .map<DropdownMenuItem<PressureUnit>>((
+                            PressureUnit value,
+                          ) {
+                            return DropdownMenuItem<PressureUnit>(
+                              value: value,
+                              child: Text(value.getLabel(l10n)),
+                            );
+                          })
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
               const Divider(),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
@@ -311,6 +479,430 @@ class FlightSettingsPage extends ConsumerWidget {
                           ref
                               .read(appSettingsProvider.notifier)
                               .updateAverageSpeed(newValue),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
+                child: Text(
+                  l10n.oilTemperatureSettings,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: tempUnit.convertFromKelvin(273.15), // 0 °C
+                  max: tempUnit.convertFromKelvin(settings.oilTempMaxRange),
+                  evaluate: currentOilThresholds.evaluate,
+                  unitLabel: tempUnit.getAbbreviation(),
+                  values: [
+                    currentOilThresholds.inactiveMax!,
+                    currentOilThresholds.minError!,
+                    currentOilThresholds.minWarning!,
+                    currentOilThresholds.maxWarning!,
+                    currentOilThresholds.maxError!,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateOilTempThresholds(
+                            currentOilThresholds.copyWith(
+                              inactiveMax: newValues[0],
+                              minError: newValues[1],
+                              minWarning: newValues[2],
+                              maxWarning: newValues[3],
+                              maxError: newValues[4],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.oilTempMaxRange,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: tempUnit
+                          .convertFromKelvin(settings.oilTempMaxRange)
+                          .roundToDouble(),
+                      min: tempUnit.convertFromKelvin(323.15).roundToDouble(), // 50 °C min limit
+                      max: tempUnit.convertFromKelvin(573.15).roundToDouble(), // 300 °C max limit
+                      step: 5,
+                      suffix: tempUnit.getAbbreviation(),
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateOilTempMaxRange(newValue),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
+                child: Text(
+                  l10n.oilPressureSettings,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: 0.0,
+                  max: pressureUnit.convertFromKpa(settings.oilPressureMaxRange),
+                  evaluate: currentOilPressureThresholds.evaluate,
+                  unitLabel: pressureUnit.getAbbreviation(),
+                  decimalPlaces: pressureUnit == PressureUnit.bar ? 1 : 0,
+                  values: [
+                    currentOilPressureThresholds.inactiveMax!,
+                    currentOilPressureThresholds.minError!,
+                    currentOilPressureThresholds.minWarning!,
+                    currentOilPressureThresholds.maxWarning!,
+                    currentOilPressureThresholds.maxError!,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateOilPressureThresholds(
+                            currentOilPressureThresholds.copyWith(
+                              inactiveMax: newValues[0],
+                              minError: newValues[1],
+                              minWarning: newValues[2],
+                              maxWarning: newValues[3],
+                              maxError: newValues[4],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.oilPressureMaxRange,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: pressureUnit == PressureUnit.bar
+                          ? double.parse(pressureUnit.convertFromKpa(settings.oilPressureMaxRange).toStringAsFixed(1))
+                          : pressureUnit.convertFromKpa(settings.oilPressureMaxRange).roundToDouble(),
+                      min: pressureUnit == PressureUnit.bar
+                          ? double.parse(pressureUnit.convertFromKpa(100.0).toStringAsFixed(1))
+                          : pressureUnit.convertFromKpa(100.0).roundToDouble(),
+                      max: pressureUnit == PressureUnit.bar
+                          ? double.parse(pressureUnit.convertFromKpa(2000.0).toStringAsFixed(1))
+                          : pressureUnit.convertFromKpa(2000.0).roundToDouble(),
+                      step: pressureUnit == PressureUnit.bar
+                          ? 0.1
+                          : (pressureUnit == PressureUnit.psi ? 5.0 : 1.0),
+                      decimalPlaces: pressureUnit == PressureUnit.bar ? 1 : 0,
+                      suffix: pressureUnit.getAbbreviation(),
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateOilPressureMaxRange(newValue),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
+                child: Text(
+                  l10n.fuelTankStatusSettings,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: 0.0,
+                  max: 100.0,
+                  evaluate: settings.fuelThresholds.evaluate,
+                  unitLabel: '%',
+                  decimalPlaces: 0,
+                  values: [
+                    settings.fuelThresholds.minError ?? 10.0,
+                    settings.fuelThresholds.minWarning ?? 20.0,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateFuelThresholds(
+                            settings.fuelThresholds.copyWith(
+                              minError: newValues[0],
+                              minWarning: newValues[1],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
+                child: Text(
+                  l10n.egtTemperatureSettings,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: tempUnit.convertFromKelvin(273.15), // 0 °C
+                  max: tempUnit.convertFromKelvin(settings.egtMaxRange),
+                  evaluate: currentEgtThresholds.evaluate,
+                  unitLabel: tempUnit.getAbbreviation(),
+                  values: [
+                    currentEgtThresholds.inactiveMax!,
+                    currentEgtThresholds.minError!,
+                    currentEgtThresholds.minWarning!,
+                    currentEgtThresholds.maxWarning!,
+                    currentEgtThresholds.maxError!,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateEgtThresholds(
+                            currentEgtThresholds.copyWith(
+                              inactiveMax: newValues[0],
+                              minError: newValues[1],
+                              minWarning: newValues[2],
+                              maxWarning: newValues[3],
+                              maxError: newValues[4],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.egtMaxRange,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: tempUnit
+                          .convertFromKelvin(settings.egtMaxRange)
+                          .roundToDouble(),
+                      min: tempUnit.convertFromKelvin(273.15 + 100.0).roundToDouble(),
+                      max: tempUnit.convertFromKelvin(273.15 + 1500.0).roundToDouble(),
+                      step: 50,
+                      suffix: tempUnit.getAbbreviation(),
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateEgtMaxRange(newValue),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Text(
+                  l10n.chtTemperatureSettings,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: tempUnit.convertFromKelvin(273.15), // 0 °C
+                  max: tempUnit.convertFromKelvin(settings.chtMaxRange),
+                  evaluate: currentChtThresholds.evaluate,
+                  unitLabel: tempUnit.getAbbreviation(),
+                  values: [
+                    currentChtThresholds.inactiveMax!,
+                    currentChtThresholds.minError!,
+                    currentChtThresholds.minWarning!,
+                    currentChtThresholds.maxWarning!,
+                    currentChtThresholds.maxError!,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateChtThresholds(
+                            currentChtThresholds.copyWith(
+                              inactiveMax: newValues[0],
+                              minError: newValues[1],
+                              minWarning: newValues[2],
+                              maxWarning: newValues[3],
+                              maxError: newValues[4],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.chtMaxRange,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: tempUnit
+                          .convertFromKelvin(settings.chtMaxRange)
+                          .roundToDouble(),
+                      min: tempUnit.convertFromKelvin(273.15 + 50.0).roundToDouble(),
+                      max: tempUnit.convertFromKelvin(273.15 + 300.0).roundToDouble(),
+                      step: 10,
+                      suffix: tempUnit.getAbbreviation(),
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateChtMaxRange(newValue),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Text(
+                  l10n.rpmThresholds,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ThresholdsSlider(
+                  min: 0.0,
+                  max: settings.rpmMaxRange,
+                  evaluate: currentRpmThresholds.evaluate,
+                  unitLabel: l10n.engineRpmShort,
+                  values: [
+                    currentRpmThresholds.inactiveMax!,
+                    currentRpmThresholds.minError!,
+                    currentRpmThresholds.minWarning!,
+                    currentRpmThresholds.maxWarning!,
+                    currentRpmThresholds.maxError!,
+                  ],
+                  onChanged: (newValues) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateRpmThresholds(
+                            currentRpmThresholds.copyWith(
+                              inactiveMax: newValues[0],
+                              minError: newValues[1],
+                              minWarning: newValues[2],
+                              maxWarning: newValues[3],
+                              maxError: newValues[4],
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.rpmMaxRange,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                    NumberInput(
+                      initialValue: settings.rpmMaxRange.roundToDouble(),
+                      min: 1000.0,
+                      max: 12000.0,
+                      step: 100,
+                      suffix: l10n.engineRpmShort,
+                      onChanged: (newValue) {
+                        unawaited(
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateRpmMaxRange(newValue),
                         );
                       },
                     ),

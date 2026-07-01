@@ -1294,4 +1294,88 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get errorLoadingSettings => 'Chyba pri načítaní nastavení';
+
+  @override
+  String get tempUnitCelsius => 'Celsius';
+
+  @override
+  String get tempUnitKelvin => 'Kelvin';
+
+  @override
+  String get tempUnitFahrenheit => 'Fahrenheit';
+
+  @override
+  String get temperatureUnitSettings => 'Jednotka teploty';
+
+  @override
+  String get pressureUnitSettings => 'Jednotka tlaku';
+
+  @override
+  String get oilTemperature => 'Teplota oleja';
+
+  @override
+  String get oilTemperatureShort => 'Tep. ol.';
+
+  @override
+  String get oilTemperatureSettings => 'Teplota oleja';
+
+  @override
+  String get oilTempMaxRange => 'Maximálny rozsah teploty oleja';
+
+  @override
+  String get oilPressure => 'Tlak oleja';
+
+  @override
+  String get oilPressureShort => 'Tlak ol.';
+
+  @override
+  String get oilPressureSettings => 'Tlak oleja';
+
+  @override
+  String get oilPressureMaxRange => 'Maximálny rozsah tlaku oleja';
+
+  @override
+  String get cylinderHeadTemperatureShort => 'CHT';
+
+  @override
+  String get chtTemperature => 'Teplota hlavy valcov (CHT)';
+
+  @override
+  String get chtTemperatureSettings => 'Teplota hlavy valcov (CHT)';
+
+  @override
+  String get chtMaxRange => 'Maximálny rozsah teploty CHT';
+
+  @override
+  String get egtTemperature => 'Teplota výfukových plynov';
+
+  @override
+  String get egtTemperatureShort => 'EGT';
+
+  @override
+  String get egtTemperatureSettings => 'Teplota výfukových plynov';
+
+  @override
+  String get egtMaxRange => 'Maximálny rozsah teploty výfukových plynov';
+
+  @override
+  String get fuelTankStatus => 'Palivo';
+
+  @override
+  String get fuelTankStatusShort => 'Palivo';
+
+  @override
+  String get fuelTankStatusSettings => 'Palivová nádrž';
+
+  @override
+  String get engineRpm => 'Otáčky motora (RPM)';
+
+  @override
+  String get engineRpmShort => 'RPM';
+
+  @override
+  String get rpmThresholds => 'Prahové hodnoty otáčok motora';
+
+  @override
+  String get rpmMaxRange => 'Maximálny rozsah posuvníka otáčok';
 }

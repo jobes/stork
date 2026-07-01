@@ -55,11 +55,14 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _updateIsFlying();
     },
   );
-  late final DecayableField<double> _engineRPM = DecayableField<double>(
+  late final DecayableField<int> _engineRPM = DecayableField<int>(
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.engineRPM)
-          : state.copyWith(engineRPM: TelemetryValue(val));
+          : state.copyWith(
+              engineRPM: TelemetryValue(val),
+              isEngineRpmSupported: true,
+            );
     },
   );
   late final DecayableField<double> _airPressure = DecayableField<double>(
@@ -104,6 +107,69 @@ class TelemetryNotifier extends _$TelemetryNotifier {
               : state.copyWith(gpsVerticalAccuracy: TelemetryValue(val));
         },
       );
+  late final DecayableField<double> _coolantTemperature = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.coolantTemperature)
+          : state.copyWith(coolantTemperature: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<double> _oilPressure = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.oilPressure)
+          : state.copyWith(
+              oilPressure: TelemetryValue(val),
+              isOilPressureSupported: true,
+            );
+    },
+  );
+  late final DecayableField<double> _oilTemperature = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.oilTemperature)
+          : state.copyWith(
+              oilTemperature: TelemetryValue(val),
+              isOilTempSupported: true,
+            );
+    },
+  );
+  late final DecayableField<List<double?>> _cylinderHeadTemperatures =
+      DecayableField<List<double?>>(
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.cylinderHeadTemperature)
+              : state.copyWith(cylinderHeadTemperatures: TelemetryValue(val));
+        },
+      );
+  late final DecayableField<List<double?>> _exhaustGasTemperatures =
+      DecayableField<List<double?>>(
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.exhaustGasTemperature)
+              : state.copyWith(exhaustGasTemperatures: TelemetryValue(val));
+        },
+      );
+  late final DecayableField<double> _fuelLevelPercent = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.fuelLevelPercent)
+          : state.copyWith(
+              fuelLevelPercent: TelemetryValue(val),
+              isFuelSupported: true,
+            );
+    },
+  );
+  late final DecayableField<double> _fuelVolumeLiters = DecayableField<double>(
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.fuelVolumeLiters)
+          : state.copyWith(
+              fuelVolumeLiters: TelemetryValue(val),
+              isFuelSupported: true,
+            );
+    },
+  );
 
   DateTime? _lastDroneCanFixTime;
 
@@ -121,6 +187,13 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _gpsSatelliteCount.cancel();
       _gpsHorizontalAccuracy.cancel();
       _gpsVerticalAccuracy.cancel();
+      _coolantTemperature.cancel();
+      _oilPressure.cancel();
+      _oilTemperature.cancel();
+      _cylinderHeadTemperatures.cancel();
+      _exhaustGasTemperatures.cancel();
+      _fuelLevelPercent.cancel();
+      _fuelVolumeLiters.cancel();
     });
 
     return const TelemetryState();
@@ -195,8 +268,46 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _indicatedAirSpeed.update(ias);
   }
 
-  void updateEngineRPM(double? rpm) {
+  void updateEngineRPM(int? rpm) {
     _engineRPM.update(rpm);
+  }
+
+  void updateIceStatus({
+    required int engineSpeedRpm,
+    double? coolantTemperature,
+    double? oilPressure,
+    double? oilTemperature,
+    List<double?> cylinderHeadTemperatures = const [],
+    List<double?> exhaustGasTemperatures = const [],
+  }) {
+    _engineRPM.sync(engineSpeedRpm);
+    _coolantTemperature.sync(coolantTemperature);
+    _oilPressure.sync(oilPressure);
+    _oilTemperature.sync(oilTemperature);
+    _cylinderHeadTemperatures.sync(cylinderHeadTemperatures);
+    _exhaustGasTemperatures.sync(exhaustGasTemperatures);
+
+    state = state.copyWith(
+      engineRPM: TelemetryValue(engineSpeedRpm),
+      coolantTemperature: TelemetryValue(coolantTemperature),
+      oilPressure: TelemetryValue(oilPressure),
+      oilTemperature: TelemetryValue(oilTemperature),
+      isOilTempSupported: state.isOilTempSupported || oilTemperature != null,
+      isOilPressureSupported: state.isOilPressureSupported || oilPressure != null,
+      isEngineRpmSupported: true,
+      cylinderHeadTemperatures: TelemetryValue(cylinderHeadTemperatures),
+      exhaustGasTemperatures: TelemetryValue(exhaustGasTemperatures),
+    );
+  }
+
+  void updateFuelStatus({required double percent, double? volumeLiters}) {
+    _fuelLevelPercent.sync(percent);
+    _fuelVolumeLiters.sync(volumeLiters);
+    state = state.copyWith(
+      fuelLevelPercent: TelemetryValue(percent),
+      fuelVolumeLiters: TelemetryValue(volumeLiters),
+      isFuelSupported: true,
+    );
   }
 
   void updatePressure(double? pressure) {
@@ -221,6 +332,13 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _gpsSatelliteCount.sync(newState.gpsSatelliteCount);
     _gpsHorizontalAccuracy.sync(newState.gpsHorizontalAccuracy);
     _gpsVerticalAccuracy.sync(newState.gpsVerticalAccuracy);
+    _coolantTemperature.sync(newState.coolantTemperature);
+    _oilPressure.sync(newState.oilPressure);
+    _oilTemperature.sync(newState.oilTemperature);
+    _cylinderHeadTemperatures.sync(newState.cylinderHeadTemperatures);
+    _exhaustGasTemperatures.sync(newState.exhaustGasTemperatures);
+    _fuelLevelPercent.sync(newState.fuelLevelPercent);
+    _fuelVolumeLiters.sync(newState.fuelVolumeLiters);
 
     _updateIsFlying();
   }

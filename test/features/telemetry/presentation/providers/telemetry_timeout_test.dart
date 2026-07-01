@@ -80,28 +80,50 @@ void main() {
 
         final notifier = container.read(telemetryProvider.notifier);
 
-        notifier.updateEngineRPM(2500.0);
+        notifier.updateEngineRPM(2500);
 
         var state = container.read(telemetryProvider);
-        expect(state.engineRPM, equals(2500.0));
+        expect(state.engineRPM, equals(2500));
 
         // Advance 0.5 seconds
         async.elapse(const Duration(milliseconds: 500));
         state = container.read(telemetryProvider);
-        expect(state.engineRPM, equals(2500.0));
+        expect(state.engineRPM, equals(2500));
 
         // Update to same value
-        notifier.updateEngineRPM(2500.0);
+        notifier.updateEngineRPM(2500);
 
         // Advance 0.5 seconds (total 1s since start, but only 0.5s since update)
         async.elapse(const Duration(milliseconds: 500));
         state = container.read(telemetryProvider);
-        expect(state.engineRPM, equals(2500.0));
+        expect(state.engineRPM, equals(2500));
 
-        // Advance 0.6 seconds (over 1s since update), should be null again
-        async.elapse(const Duration(milliseconds: 600));
+        // Advance 1.1 seconds (over 1.5s since update), should be null again
+        async.elapse(const Duration(milliseconds: 1100));
         state = container.read(telemetryProvider);
         expect(state.engineRPM, isNull);
+      });
+    });
+
+    test('isEngineRpmSupported remains true after engineRPM decays', () {
+      fakeAsync((async) {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final notifier = container.read(telemetryProvider.notifier);
+
+        var state = container.read(telemetryProvider);
+        expect(state.isEngineRpmSupported, isFalse);
+
+        notifier.updateEngineRPM(2500);
+        state = container.read(telemetryProvider);
+        expect(state.isEngineRpmSupported, isTrue);
+
+        // Advance 2 seconds to trigger decay
+        async.elapse(const Duration(seconds: 2));
+        state = container.read(telemetryProvider);
+        expect(state.engineRPM, isNull);
+        expect(state.isEngineRpmSupported, isTrue);
       });
     });
 
