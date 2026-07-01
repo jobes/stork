@@ -5,7 +5,6 @@ import '../../../../l10n/app_localizations.dart';
 import '../providers/telemetry_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
-import '../../../settings/presentation/pages/flight_settings_page.dart';
 import 'telemetry_card.dart';
 
 class RpmHorizontalTelemetryWidget extends ConsumerWidget {
@@ -98,11 +97,6 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
         rpmState != ThresholdState.inactive;
 
     return TelemetryCard(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const FlightSettingsPage()),
-        );
-      },
       boxShadow: _getBoxShadow(rpmState, isDark),
       borderColor: _getBorderColor(rpmState, isDark),
       borderWidth: _getBorderWidth(rpmState),

@@ -58,24 +58,32 @@ class TelemetryCard extends ConsumerWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            padding: padding,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.black.withAlpha(76)
-                  : Colors.white.withAlpha(128),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: resolvedBorderColor,
-                width: borderWidth,
+        child: Stack(
+          fit: StackFit.passthrough,
+          children: [
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: const SizedBox.expand(),
               ),
             ),
-            child: child,
-          ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              padding: padding,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.black.withAlpha(76)
+                    : Colors.white.withAlpha(128),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: resolvedBorderColor,
+                  width: borderWidth,
+                ),
+              ),
+              child: RepaintBoundary(child: child),
+            ),
+          ],
         ),
       ),
     );
