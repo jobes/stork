@@ -41,6 +41,7 @@ class MapCamera extends _$MapCamera {
   double? _currentInterpolatedBearing;
   DateTime? _lastUpdateTimestamp;
   Duration _lastUpdateInterval = const Duration(seconds: 1);
+  DateTime? _lastRouteUpdateTime;
 
   @override
   void build() {
@@ -73,13 +74,13 @@ class MapCamera extends _$MapCamera {
           );
         }
 
-        final settings = ref.read(appSettingsProvider).value;
         if (next.latitude != previous?.latitude ||
             next.longitude != previous?.longitude ||
             next.heading != previous?.heading ||
             next.groundSpeed != previous?.groundSpeed ||
             next.indicatedAirSpeed != previous?.indicatedAirSpeed ||
             next.isFlying != previous?.isFlying) {
+          final settings = ref.read(appSettingsProvider).value;
           _mapController!.style!.updateGeoJsonSource(
             id: 'course-line-source',
             data: GeoJsonBuilder.buildCourseLineGeoJson(next, settings),
@@ -103,6 +104,16 @@ class MapCamera extends _$MapCamera {
             !_isTransitionAnimating) {
           final isContinuousFollow =
               previous?.mapViewState == MapViewState.follow;
+          
+          // Only interpolate if coordinates or heading actually changed
+          final coordsChanged = previous?.latitude != next.latitude ||
+              previous?.longitude != next.longitude ||
+              previous?.heading != next.heading;
+              
+          if (isContinuousFollow && !coordsChanged) {
+            return;
+          }
+
           if (isContinuousFollow) {
             final now = DateTime.now();
             if (_lastUpdateTimestamp != null) {
@@ -204,7 +215,7 @@ class MapCamera extends _$MapCamera {
 
     // Listen to navigation updates to redraw route on map
     ref.listen(navigationProvider, (previous, next) {
-      _updateNavigationRouteOnMap();
+      _updateNavigationRouteOnMap(force: true);
     });
 
     // Listen to NOTAMs updates to redraw NOTAMs on map
@@ -549,11 +560,20 @@ class MapCamera extends _$MapCamera {
     return false;
   }
 
-  void _updateNavigationRouteOnMap() {
+  void _updateNavigationRouteOnMap({bool force = false}) {
     if (_mapController == null ||
         !_isAircraftSymbolInitialized ||
         _mapController?.style == null) {
       return;
+    }
+
+    if (!force) {
+      final now = DateTime.now();
+      if (_lastRouteUpdateTime != null &&
+          now.difference(_lastRouteUpdateTime!) < const Duration(seconds: 2)) {
+        return;
+      }
+      _lastRouteUpdateTime = now;
     }
 
     final telemetry = ref.read(telemetryProvider);

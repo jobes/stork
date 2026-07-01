@@ -41,21 +41,18 @@ class AltitudeResolver {
     return AltitudeSource.none;
   }
 
-  /// Resolves the MSL altitude and flight level based on telemetry fields and app settings.
+  /// Resolves the MSL altitude and flight level based on telemetry fields and QNH.
   static ResolvedAltitude resolve({
     required double? airPressure,
     required double? gpsAltitude,
     required bool isGpsDroneCan,
-    required AppSettings? settings,
+    required double? qnh,
   }) {
     final source = determineSource(
       airPressure: airPressure,
       gpsAltitude: gpsAltitude,
       isGpsDroneCan: isGpsDroneCan,
     );
-    if (settings == null) {
-      return ResolvedAltitude(source: source);
-    }
 
     double? mslValue;
     double? flightLevel;
@@ -70,9 +67,10 @@ class AltitudeResolver {
       flightLevel = stdAltFeet / 100.0;
 
       // QNH-based altitude
+      final double activeQnh = qnh ?? 1013.25;
       mslValue = AviationMath.pressureToAltitudeMeters(
         airPressure,
-        settings.qnh,
+        activeQnh,
       );
     } else if (gpsAltitude != null) {
       final double gpsFeet = gpsAltitude * 3.28084;

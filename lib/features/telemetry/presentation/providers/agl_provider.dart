@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/terrain_elevation_service.dart';
 import '../../../../core/utils/aviation_math.dart';
+import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/resolved_altitude.dart';
 import '../../domain/models/telemetry_state.dart';
@@ -106,10 +107,19 @@ class AutoQnhCalibratorState {
 
 @riverpod
 class TerrainElevation extends _$TerrainElevation {
+  double? _lastSuccessLat;
+  double? _lastSuccessLon;
+  DateTime? _fetchStartTime;
+
   @override
   AsyncValue<double?> build() {
     final coords = ref.watch(telemetryCoordinatesProvider);
-    if (coords == null) return const AsyncValue.data(null);
+    if (coords == null) {
+      _lastSuccessLat = null;
+      _lastSuccessLon = null;
+      _fetchStartTime = null;
+      return const AsyncValue.data(null);
+    }
 
     final service = ref.read(terrainElevationServiceProvider);
 
@@ -118,6 +128,9 @@ class TerrainElevation extends _$TerrainElevation {
       coords.$2,
     );
     if (isCached) {
+      _lastSuccessLat = coords.$1;
+      _lastSuccessLon = coords.$2;
+      _fetchStartTime = null;
       return AsyncValue.data(cachedVal);
     }
 
@@ -125,20 +138,60 @@ class TerrainElevation extends _$TerrainElevation {
     final lon = coords.$2;
     _loadElevation(lat, lon);
 
-    return const AsyncValue.loading();
+    // Read previous state safely
+    AsyncValue<double?>? previousState;
+    try {
+      previousState = state;
+    } catch (_) {}
+
+    final now = DateTime.now();
+    _fetchStartTime ??= now;
+    final elapsed = now.difference(_fetchStartTime!);
+
+    bool isSafeToKeepPrevious = false;
+    if (previousState != null &&
+        previousState.hasValue &&
+        previousState.value != null &&
+        _lastSuccessLat != null &&
+        _lastSuccessLon != null) {
+      final distance = GeoUtils.distanceBetween(
+        _lastSuccessLat!,
+        _lastSuccessLon!,
+        lat,
+        lon,
+      );
+      // Only keep the previous elevation if we moved < 200m and fetch took < 2.0s
+      if (distance < 200.0 && elapsed.inMilliseconds < 2000) {
+        isSafeToKeepPrevious = true;
+      }
+    }
+
+    if (isSafeToKeepPrevious) {
+      return AsyncLoading<double?>().copyWithPrevious(previousState!);
+    } else {
+      _lastSuccessLat = null;
+      _lastSuccessLon = null;
+      _fetchStartTime = now;
+      return const AsyncLoading<double?>();
+    }
   }
 
   Future<void> _loadElevation(double lat, double lon) async {
     final service = ref.read(terrainElevationServiceProvider);
     try {
       final value = await service.getElevation(lat, lon);
+      if (!ref.mounted) return;
       final currentCoords = ref.read(telemetryCoordinatesProvider);
       if (currentCoords != null &&
           currentCoords.$1 == lat &&
           currentCoords.$2 == lon) {
+        _lastSuccessLat = lat;
+        _lastSuccessLon = lon;
+        _fetchStartTime = null;
         state = AsyncValue.data(value);
       }
     } catch (e, st) {
+      if (!ref.mounted) return;
       final currentCoords = ref.read(telemetryCoordinatesProvider);
       if (currentCoords != null &&
           currentCoords.$1 == lat &&
@@ -151,7 +204,7 @@ class TerrainElevation extends _$TerrainElevation {
 
 @Riverpod(keepAlive: true)
 ResolvedAltitude resolvedAltitude(Ref ref) {
-  final settings = ref.watch(appSettingsProvider).value;
+  final qnh = ref.watch(appSettingsProvider.select((s) => s.value?.qnh));
 
   // Watch only the specific fields of TelemetryState that affect altitude:
   final airPressure = ref.watch(telemetryProvider.select((s) => s.airPressure));
@@ -164,7 +217,7 @@ ResolvedAltitude resolvedAltitude(Ref ref) {
     airPressure: airPressure,
     gpsAltitude: gpsAltitude,
     isGpsDroneCan: isGpsDroneCan,
-    settings: settings,
+    qnh: qnh,
   );
 }
 
@@ -249,6 +302,14 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
         gpsVerticalAccuracy >= AviationMath.minGpsVerticalAccuracyMeters &&
         gpsVerticalAccuracy <= AviationMath.maxGpsVerticalAccuracyMeters) {
       final now = DateTime.now();
+
+      // Throttle Kalman filter updates to at most 1 Hz during flight
+      if (state.lastFilterUpdateTime != null) {
+        final elapsed = now.difference(state.lastFilterUpdateTime!);
+        if (elapsed < const Duration(seconds: 1)) {
+          return;
+        }
+      }
 
       double? currentEstH = state.estimatedH;
       double? currentEstQnh = state.estimatedQnh;
