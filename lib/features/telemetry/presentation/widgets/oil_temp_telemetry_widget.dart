@@ -13,7 +13,7 @@ class OilTempTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final telemetry = ref.watch(telemetryProvider);
+    final oilTemperature = ref.watch(telemetryProvider.select((t) => t.oilTemperature));
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -28,7 +28,7 @@ class OilTempTelemetryWidget extends ConsumerWidget {
           maxError: 403.15,
         );
 
-    final double? rawTemp = telemetry.oilTemperature;
+    final double? rawTemp = oilTemperature;
     final ThresholdState tempState = rawTemp != null
         ? thresholds.evaluate(rawTemp)
         : ThresholdState.maxError;

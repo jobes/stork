@@ -13,7 +13,7 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final telemetry = ref.watch(telemetryProvider);
+    final oilPressure = ref.watch(telemetryProvider.select((t) => t.oilPressure));
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -28,7 +28,7 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
           maxError: 700.0,
         );
 
-    final double? rawPressure = telemetry.oilPressure;
+    final double? rawPressure = oilPressure;
     final ThresholdState pressureState = rawPressure != null
         ? thresholds.evaluate(rawPressure)
         : ThresholdState.maxError;

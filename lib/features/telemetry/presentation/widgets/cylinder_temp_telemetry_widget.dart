@@ -78,7 +78,7 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final telemetry = ref.watch(telemetryProvider);
+    final cylinderHeadTemperatures = ref.watch(telemetryProvider.select((t) => t.cylinderHeadTemperatures));
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -97,7 +97,7 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
     final double maxVisualK = settings?.chtMaxRange ?? 433.15; // 160 °C
     final double minVisualK = thresholds.inactiveMax ?? 323.15; // 50 °C
 
-    final chts = telemetry.cylinderHeadTemperatures;
+    final chts = cylinderHeadTemperatures;
     if (chts.isEmpty) {
       return const SizedBox.shrink();
     }

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../settings/presentation/providers/settings_provider.dart';
+import '../../../../telemetry/presentation/providers/telemetry_provider.dart';
 
 class _CompassLayout {
   static const double barHeight = 40.0;
@@ -17,13 +18,21 @@ class _CompassLayout {
   static const double labelOffsetBase = 15.0;
 }
 
+// ARCHITECTURAL NOTE:
+// CompassBar previously took [heading] as a parameter to remain a pure,
+// reusable UI component decoupled from business logic (telemetryProvider).
+// However, because the heading updates very frequently (multiple times per second),
+// passing it down from MapPage caused the entire map screen to rebuild continuously,
+// resulting in severe performance degradation and high CPU usage.
+// To resolve this, CompassBar was refactored to consume telemetryProvider directly.
+// This tightly couples this map presentation component to the telemetry module,
+// but it is a necessary optimization to isolate high-frequency rebuilds to just this widget.
 class CompassBar extends ConsumerWidget {
-  final double? heading;
-
-  const CompassBar({super.key, this.heading});
+  const CompassBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final heading = ref.watch(telemetryProvider.select((t) => t.heading));
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final fontScale = ref.watch(
@@ -118,7 +127,7 @@ class CompassBar extends ConsumerWidget {
                     ),
                     child: Text(
                       heading != null
-                          ? '${(heading!.round() % 360).toString().padLeft(3, '0')}°'
+                          ? '${(heading.round() % 360).toString().padLeft(3, '0')}°'
                           : '---°',
                       style: TextStyle(
                         color: colorScheme.onSurface,

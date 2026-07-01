@@ -103,7 +103,8 @@ class SpeedTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final telemetry = ref.watch(telemetryProvider);
+    final indicatedAirSpeed = ref.watch(telemetryProvider.select((t) => t.indicatedAirSpeed));
+    final groundSpeed = ref.watch(telemetryProvider.select((t) => t.groundSpeed));
     final isConnected = ref.watch(cannelloniServiceProvider);
     final settings = ref.watch(appSettingsProvider).value;
     final thresholds =
@@ -119,24 +120,24 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     final speedValueColor = isDark ? Colors.white : Colors.black;
 
     final speedUnit = settings?.speedUnit ?? SpeedUnit.kmh;
-    final double? ias = telemetry.indicatedAirSpeed != null
-        ? speedUnit.convertFromMs(telemetry.indicatedAirSpeed!)
+    final double? ias = indicatedAirSpeed != null
+        ? speedUnit.convertFromMs(indicatedAirSpeed)
         : null;
-    final double? gs = telemetry.groundSpeed != null
-        ? speedUnit.convertFromMs(telemetry.groundSpeed!)
+    final double? gs = groundSpeed != null
+        ? speedUnit.convertFromMs(groundSpeed)
         : null;
     final String unitLabel = speedUnit.getAbbreviation(l10n);
 
     ThresholdState speedState = ThresholdState.inactive;
     if (!isConnected) {
-      if (telemetry.groundSpeed != null) {
-        speedState = thresholds.evaluate(telemetry.groundSpeed!);
+      if (groundSpeed != null) {
+        speedState = thresholds.evaluate(groundSpeed);
       }
     } else {
-      if (telemetry.indicatedAirSpeed != null) {
-        speedState = thresholds.evaluate(telemetry.indicatedAirSpeed!);
-      } else if (telemetry.groundSpeed != null) {
-        speedState = thresholds.evaluate(telemetry.groundSpeed!);
+      if (indicatedAirSpeed != null) {
+        speedState = thresholds.evaluate(indicatedAirSpeed);
+      } else if (groundSpeed != null) {
+        speedState = thresholds.evaluate(groundSpeed);
       }
     }
 

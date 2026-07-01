@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/cannelloni_service_io.dart'
-    if (dart.library.html) '../../../../core/services/cannelloni_service_stub.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/telemetry_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -69,8 +67,7 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final telemetry = ref.watch(telemetryProvider);
-    final isConnected = ref.watch(cannelloniServiceProvider);
+    final engineRPM = ref.watch(telemetryProvider.select((t) => t.engineRPM));
     final settings = ref.watch(appSettingsProvider).value;
     final thresholds = settings?.rpmThresholds ?? const RangeThresholds.raw(
       inactiveMax: 10.0,
@@ -90,7 +87,7 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
         ? Colors.grey.shade400
         : Colors.grey.shade600;
 
-    final int? currentRpm = telemetry.engineRPM;
+    final int? currentRpm = engineRPM;
     final String rpmText = currentRpm != null ? currentRpm.toString() : l10n.placeholderDash;
 
     final ThresholdState rpmState = currentRpm != null

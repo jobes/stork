@@ -78,7 +78,7 @@ class EgtTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final telemetry = ref.watch(telemetryProvider);
+    final exhaustGasTemperatures = ref.watch(telemetryProvider.select((t) => t.exhaustGasTemperatures));
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -97,7 +97,7 @@ class EgtTelemetryWidget extends ConsumerWidget {
     final double maxVisualK = settings?.egtMaxRange ?? 1223.15; // 950 °C
     final double minVisualK = thresholds.inactiveMax ?? 423.15; // 150 °C
 
-    final egts = telemetry.exhaustGasTemperatures;
+    final egts = exhaustGasTemperatures;
     if (egts.isEmpty) {
       return const SizedBox.shrink();
     }
