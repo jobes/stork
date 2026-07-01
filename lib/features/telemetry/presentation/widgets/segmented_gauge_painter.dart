@@ -64,6 +64,19 @@ class SegmentedGaugePainter extends CustomPainter {
     canvas.save();
     canvas.clipRRect(tubeRRect);
 
+    final Color inactiveColor = isDark
+        ? Colors.grey.shade500.withAlpha(120)
+        : Colors.grey.shade400;
+    final Color errorColor = isDark
+        ? Colors.red.shade400.withAlpha(160)
+        : Colors.red.shade600;
+    final Color warningColor = isDark
+        ? Colors.orange.shade300.withAlpha(160)
+        : Colors.orange.shade500;
+    final Color normalColor = isDark
+        ? Colors.green.shade400.withAlpha(160)
+        : Colors.green.shade600;
+
     // Helper to draw vertical segments
     void drawSegment(double topY, double bottomY, Color color) {
       if (topY >= bottomY) return;
@@ -77,24 +90,24 @@ class SegmentedGaugePainter extends CustomPainter {
       canvas.drawRect(segmentRect, paint);
     }
 
-    // Inactive region (gray)
-    drawSegment(yInactive, size.height, Colors.grey.shade500.withAlpha(120));
+    // Inactive region
+    drawSegment(yInactive, size.height, inactiveColor);
     // Critical Low (red)
-    drawSegment(yMinError, yInactive, Colors.red.shade400.withAlpha(160));
+    drawSegment(yMinError, yInactive, errorColor);
     // Warning Low (orange)
-    drawSegment(yMinWarning, yMinError, Colors.orange.shade300.withAlpha(160));
+    drawSegment(yMinWarning, yMinError, warningColor);
     // Operational (green)
-    drawSegment(yMaxWarning, yMinWarning, Colors.green.shade400.withAlpha(160));
+    drawSegment(yMaxWarning, yMinWarning, normalColor);
     // Warning High (orange)
-    drawSegment(yMaxError, yMaxWarning, Colors.orange.shade300.withAlpha(160));
+    drawSegment(yMaxError, yMaxWarning, warningColor);
     // Critical High (red)
-    drawSegment(0.0, yMaxError, Colors.red.shade400.withAlpha(160));
+    drawSegment(0.0, yMaxError, errorColor);
 
     canvas.restore();
 
     // 2. Draw outer glass borders/contours
     final glassBorderPaint = Paint()
-      ..color = isDark ? Colors.white.withAlpha(60) : Colors.black.withAlpha(40)
+      ..color = isDark ? Colors.white.withAlpha(60) : Colors.black.withAlpha(80)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 

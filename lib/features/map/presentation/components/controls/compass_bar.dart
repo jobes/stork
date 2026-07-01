@@ -64,120 +64,108 @@ class _CompassBarState extends ConsumerState<CompassBar> {
       _lastShadowColor = shadowColor;
     }
 
-    return ClipRRect(
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: const SizedBox.expand(),
-            ),
+    return Container(
+      height: _CompassLayout.barHeight * fontScale,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            colorScheme.surface.withAlpha(235),
+            colorScheme.surface.withAlpha(210),
+            colorScheme.surface.withAlpha(150),
+          ],
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: colorScheme.onSurface.withAlpha(45),
+            width: 0.5,
           ),
-          Container(
-            height: _CompassLayout.barHeight * fontScale,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  colorScheme.surface.withAlpha(180),
-                  colorScheme.surface.withAlpha(100),
-                  colorScheme.surface.withAlpha(20),
-                ],
-              ),
-              border: Border(
-                bottom: BorderSide(
-                  color: colorScheme.onSurface.withAlpha(30),
-                  width: 0.5,
+        ),
+      ),
+      child: RepaintBoundary(
+        child: Stack(
+          children: [
+            // The scrolling compass tape with horizontal fade
+            Positioned.fill(
+              child: ShaderMask(
+                shaderCallback: (rect) {
+                  return LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: const [
+                      Colors.transparent,
+                      Colors.black,
+                      Colors.black,
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.15, 0.85, 1.0],
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstIn,
+                child: CustomPaint(
+                  painter: CompassPainter(
+                    heading: heading ?? 0.0,
+                    color: color,
+                    shadowColor: shadowColor,
+                    fontScale: fontScale,
+                    painterCache: _painterCache,
+                  ),
                 ),
               ),
             ),
-            child: RepaintBoundary(
-              child: Stack(
-                children: [
-                  // The scrolling compass tape with horizontal fade
-                  Positioned.fill(
-                    child: ShaderMask(
-                      shaderCallback: (rect) {
-                        return LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: const [
-                            Colors.transparent,
-                            Colors.black,
-                            Colors.black,
-                            Colors.transparent,
-                          ],
-                          stops: const [0.0, 0.15, 0.85, 1.0],
-                        ).createShader(rect);
-                      },
-                      blendMode: BlendMode.dstIn,
-                      child: CustomPaint(
-                        painter: CompassPainter(
-                          heading: heading ?? 0.0,
-                          color: color,
-                          shadowColor: shadowColor,
-                          fontScale: fontScale,
-                          painterCache: _painterCache,
-                        ),
-                      ),
-                    ),
+            // Center indicator
+            Align(
+              alignment: Alignment.center,
+              child: Container(
+                width: _CompassLayout.indicatorWidth,
+                height: _CompassLayout.indicatorHeight * fontScale,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      colorScheme.primary.withAlpha(0),
+                      colorScheme.primary,
+                      colorScheme.primary.withAlpha(0),
+                    ],
                   ),
-                  // Center indicator
-                  Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      width: _CompassLayout.indicatorWidth,
-                      height: _CompassLayout.indicatorHeight * fontScale,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            colorScheme.primary.withAlpha(0),
-                            colorScheme.primary,
-                            colorScheme.primary.withAlpha(0),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Heading text
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface.withAlpha(100),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          heading != null
-                              ? '${(heading.round() % 360).toString().padLeft(3, '0')}°'
-                              : '---°',
-                          style: TextStyle(
-                            color: colorScheme.onSurface,
-                            fontSize:
-                                _CompassLayout.headingFontSizeBase * fontScale,
-                            fontFamily: 'Roboto Mono',
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2 * fontScale,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+            // Heading text
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 4.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface.withAlpha(140),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    heading != null
+                        ? '${(heading.round() % 360).toString().padLeft(3, '0')}°'
+                        : '---°',
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize:
+                          _CompassLayout.headingFontSizeBase * fontScale,
+                      fontFamily: 'Roboto Mono',
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2 * fontScale,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

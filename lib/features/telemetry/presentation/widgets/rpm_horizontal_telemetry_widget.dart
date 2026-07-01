@@ -10,59 +10,6 @@ import 'telemetry_card.dart';
 class RpmHorizontalTelemetryWidget extends ConsumerWidget {
   const RpmHorizontalTelemetryWidget({super.key});
 
-  Color _getBorderColor(ThresholdState state, bool isDark) {
-    switch (state) {
-      case ThresholdState.inactive:
-      case ThresholdState.operational:
-        return isDark
-            ? Colors.white.withAlpha(76)
-            : Colors.black.withAlpha(51);
-      case ThresholdState.minError:
-      case ThresholdState.maxError:
-        return isDark ? Colors.redAccent.shade200 : Colors.red.shade600;
-      case ThresholdState.minWarning:
-      case ThresholdState.maxWarning:
-        return isDark ? Colors.orangeAccent : Colors.orange.shade700;
-    }
-  }
-
-  double _getBorderWidth(ThresholdState state) {
-    return 2.0;
-  }
-
-  List<BoxShadow> _getBoxShadow(ThresholdState state, bool isDark) {
-    switch (state) {
-      case ThresholdState.inactive:
-      case ThresholdState.operational:
-        return [
-          BoxShadow(
-            color: Colors.black.withAlpha(20),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ];
-      case ThresholdState.minError:
-      case ThresholdState.maxError:
-        final color = isDark ? Colors.redAccent : Colors.red.shade700;
-        return [
-          BoxShadow(
-            color: color.withAlpha(102),
-            blurRadius: 16,
-            spreadRadius: 3,
-          ),
-        ];
-      case ThresholdState.minWarning:
-      case ThresholdState.maxWarning:
-        final color = isDark ? Colors.amber : Colors.orange.shade800;
-        return [
-          BoxShadow(
-            color: color.withAlpha(102),
-            blurRadius: 16,
-            spreadRadius: 3,
-          ),
-        ];
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -97,9 +44,7 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
         rpmState != ThresholdState.inactive;
 
     return TelemetryCard(
-      boxShadow: _getBoxShadow(rpmState, isDark),
-      borderColor: _getBorderColor(rpmState, isDark),
-      borderWidth: _getBorderWidth(rpmState),
+      state: rpmState,
       padding: EdgeInsets.symmetric(
         horizontal: 12.0 * fontScale,
         vertical: 8.0 * fontScale,
@@ -232,6 +177,19 @@ class HorizontalSegmentedGaugePainter extends CustomPainter {
     canvas.save();
     canvas.clipRRect(tubeRRect);
 
+    final Color inactiveColor = isDark
+        ? Colors.grey.shade500.withAlpha(120)
+        : Colors.grey.shade400;
+    final Color errorColor = isDark
+        ? Colors.red.shade400.withAlpha(160)
+        : Colors.red.shade600;
+    final Color warningColor = isDark
+        ? Colors.orange.shade300.withAlpha(160)
+        : Colors.orange.shade500;
+    final Color normalColor = isDark
+        ? Colors.green.shade400.withAlpha(160)
+        : Colors.green.shade600;
+
     // Helper to draw horizontal segments
     void drawSegment(double leftX, double rightX, Color color) {
       if (leftX >= rightX) return;
@@ -245,24 +203,24 @@ class HorizontalSegmentedGaugePainter extends CustomPainter {
       canvas.drawRect(segmentRect, paint);
     }
 
-    // Inactive region (gray)
-    drawSegment(0.0, xInactive, Colors.grey.shade500.withAlpha(120));
+    // Inactive region
+    drawSegment(0.0, xInactive, inactiveColor);
     // Critical Low (red)
-    drawSegment(xInactive, xMinError, Colors.red.shade400.withAlpha(160));
+    drawSegment(xInactive, xMinError, errorColor);
     // Warning Low (orange)
-    drawSegment(xMinError, xMinWarning, Colors.orange.shade300.withAlpha(160));
+    drawSegment(xMinError, xMinWarning, warningColor);
     // Operational (green)
-    drawSegment(xMinWarning, xMaxWarning, Colors.green.shade400.withAlpha(160));
+    drawSegment(xMinWarning, xMaxWarning, normalColor);
     // Warning High (orange)
-    drawSegment(xMaxWarning, xMaxError, Colors.orange.shade300.withAlpha(160));
+    drawSegment(xMaxWarning, xMaxError, warningColor);
     // Critical High (red)
-    drawSegment(xMaxError, size.width, Colors.red.shade400.withAlpha(160));
+    drawSegment(xMaxError, size.width, errorColor);
 
     canvas.restore();
 
     // 2. Draw outer glass borders/contours
     final glassBorderPaint = Paint()
-      ..color = isDark ? Colors.white.withAlpha(60) : Colors.black.withAlpha(40)
+      ..color = isDark ? Colors.white.withAlpha(60) : Colors.black.withAlpha(80)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
