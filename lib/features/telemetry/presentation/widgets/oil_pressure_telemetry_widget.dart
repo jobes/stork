@@ -40,7 +40,7 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
         : '---';
 
     final double maxVisualKpa = settings?.oilPressureMaxRange ?? 800.0;
-    final double minVisualKpa = thresholds.inactiveMax ?? 50.0;
+    final double minVisualKpa = 0.0;
 
     return VerticalGaugeTelemetryWidget(
       title: l10n.oilPressureShort,
