@@ -203,6 +203,12 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
     });
 
     ref.listen(telemetryProvider, (previous, next) {
+      if (previous?.airPressure == next.airPressure &&
+          previous?.gpsAltitude == next.gpsAltitude &&
+          previous?.gpsVerticalAccuracy == next.gpsVerticalAccuracy &&
+          previous?.isFlying == next.isFlying) {
+        return;
+      }
       _handleTelemetryUpdate(next);
     });
 
@@ -374,30 +380,11 @@ class AutoQnhCalibrator extends _$AutoQnhCalibrator {
       final currentQnh = ref.read(appSettingsProvider).value?.qnh ?? 1013.25;
       final diff = (currentEstQnh - currentQnh).abs();
       if (diff > AviationMath.qnhUpdateThresholdHpa) {
-        _pendingQnh = currentEstQnh;
-
         if (_lastSaveTime == null ||
             now.difference(_lastSaveTime!) >= const Duration(seconds: 15)) {
           _lastSaveTime = now;
           ref.read(appSettingsProvider.notifier).updateQnh(currentEstQnh);
-          _debounceTimer?.cancel();
-        } else {
-          _debounceTimer?.cancel();
-          _debounceTimer = Timer(const Duration(seconds: 15), () {
-            if (_pendingQnh != null) {
-              final latestQnh =
-                  ref.read(appSettingsProvider).value?.qnh ?? 1013.25;
-              if ((_pendingQnh! - latestQnh).abs() >
-                  AviationMath.qnhUpdateThresholdHpa) {
-                _lastSaveTime = DateTime.now();
-                ref.read(appSettingsProvider.notifier).updateQnh(_pendingQnh!);
-              }
-            }
-          });
         }
-      } else {
-        _debounceTimer?.cancel();
-        _pendingQnh = null;
       }
     }
   }
