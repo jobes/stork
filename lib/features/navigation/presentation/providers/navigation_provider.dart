@@ -23,9 +23,9 @@ void navigationAutoAdvance(Ref ref) {
       isFlying: s.isFlying,
     )),
     (previous, next) {
-      final telemetry = ref.read(telemetryProvider);
       Future.microtask(() {
         if (ref.mounted) {
+          final telemetry = ref.read(telemetryProvider);
           ref.read(navigationProvider.notifier).checkAutoAdvance(telemetry);
         }
       });

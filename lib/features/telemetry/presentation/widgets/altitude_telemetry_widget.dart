@@ -155,11 +155,13 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         horizontal: 12 * fontScale,
         vertical: 8 * fontScale,
       ),
-      child: SizedBox(
-        width: 126 * fontScale,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: 126 * fontScale,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: columnChildren,
         ),
       ),

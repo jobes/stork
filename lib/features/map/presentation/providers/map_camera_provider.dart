@@ -579,14 +579,14 @@ class MapCamera extends _$MapCamera {
       return;
     }
 
+    final now = DateTime.now();
     if (!force) {
-      final now = DateTime.now();
       if (_lastRouteUpdateTime != null &&
           now.difference(_lastRouteUpdateTime!) < const Duration(seconds: 2)) {
         return;
       }
-      _lastRouteUpdateTime = now;
     }
+    _lastRouteUpdateTime = now;
 
     final telemetry = ref.read(telemetryProvider);
     final navState = ref.read(navigationProvider).value;
