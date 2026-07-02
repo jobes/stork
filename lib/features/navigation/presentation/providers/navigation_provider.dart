@@ -1,7 +1,7 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/repositories/navigation_repository.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
-import '../../../telemetry/domain/models/telemetry_state.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/navigation_point.dart';
 import '../../domain/models/navigation_state.dart';
@@ -15,13 +15,22 @@ part 'navigation_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 void navigationAutoAdvance(Ref ref) {
-  ref.listen<TelemetryState>(telemetryProvider, (previous, next) {
-    Future.microtask(() {
-      if (ref.mounted) {
-        ref.read(navigationProvider.notifier).checkAutoAdvance(next);
-      }
-    });
-  });
+  ref.listen(
+    telemetryProvider.select((s) => (
+      latitude: s.latitude,
+      longitude: s.longitude,
+      groundSpeed: s.groundSpeed,
+      isFlying: s.isFlying,
+    )),
+    (previous, next) {
+      Future.microtask(() {
+        if (ref.mounted) {
+          final telemetry = ref.read(telemetryProvider);
+          ref.read(navigationProvider.notifier).checkAutoAdvance(telemetry);
+        }
+      });
+    },
+  );
 }
 
 @Riverpod(keepAlive: true)

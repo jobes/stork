@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:clock/clock.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'telemetry_provider.dart';
-import '../../domain/models/telemetry_state.dart';
 
 part 'flight_duration_provider.g.dart';
 
@@ -46,9 +46,16 @@ class FlightDuration extends _$FlightDuration {
       _timer?.cancel();
     });
 
-    ref.listen<TelemetryState>(telemetryProvider, (previous, next) {
-      _handleTelemetryChange(previous, next);
-    });
+    ref.listen(
+      telemetryProvider.select((s) => (
+        isFlying: s.isFlying,
+        latitude: s.latitude,
+        longitude: s.longitude,
+      )),
+      (previous, next) {
+        _handleTelemetryChange(previous, next);
+      },
+    );
 
     final telemetry = ref.read(telemetryProvider);
     if (telemetry.isFlying) {
@@ -66,7 +73,10 @@ class FlightDuration extends _$FlightDuration {
     return const FlightSummary();
   }
 
-  void _handleTelemetryChange(TelemetryState? previous, TelemetryState next) {
+  void _handleTelemetryChange(
+    ({bool isFlying, double? latitude, double? longitude})? previous,
+    ({bool isFlying, double? latitude, double? longitude}) next,
+  ) {
     final wasFlying = previous?.isFlying ?? false;
     final isFlying = next.isFlying;
 

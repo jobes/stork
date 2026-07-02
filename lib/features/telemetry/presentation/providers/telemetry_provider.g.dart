@@ -41,7 +41,7 @@ final class TelemetryNotifierProvider
   }
 }
 
-String _$telemetryNotifierHash() => r'922bc5486c451b0edae602e3b0fcfa97e3ec573a';
+String _$telemetryNotifierHash() => r'a0941c19398517e1cf5877a26dae3269ad112ac5';
 
 abstract class _$TelemetryNotifier extends $Notifier<TelemetryState> {
   TelemetryState build();
@@ -100,3 +100,63 @@ final class GpsListenerProvider extends $FunctionalProvider<void, void, void>
 }
 
 String _$gpsListenerHash() => r'522a15cee9ed0dd818415419aa718e95ce16e55c';
+
+@ProviderFor(DisableTelemetryAnimations)
+final disableTelemetryAnimationsProvider =
+    DisableTelemetryAnimationsProvider._();
+
+final class DisableTelemetryAnimationsProvider
+    extends
+        $NotifierProvider<
+          DisableTelemetryAnimations,
+          Map<TelemetryField, bool>
+        > {
+  DisableTelemetryAnimationsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'disableTelemetryAnimationsProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$disableTelemetryAnimationsHash();
+
+  @$internal
+  @override
+  DisableTelemetryAnimations create() => DisableTelemetryAnimations();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<TelemetryField, bool> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<TelemetryField, bool>>(value),
+    );
+  }
+}
+
+String _$disableTelemetryAnimationsHash() =>
+    r'444a066c2938d690bb52f5c3662a6ea18d86b030';
+
+abstract class _$DisableTelemetryAnimations
+    extends $Notifier<Map<TelemetryField, bool>> {
+  Map<TelemetryField, bool> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref as $Ref<Map<TelemetryField, bool>, Map<TelemetryField, bool>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Map<TelemetryField, bool>, Map<TelemetryField, bool>>,
+              Map<TelemetryField, bool>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

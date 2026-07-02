@@ -246,7 +246,7 @@ void main() {
     });
 
     test(
-      'aglProvider rounds coordinates to 5 decimal places to ignore micro-fluctuations',
+      'aglProvider rounds coordinates to 1/2000th of a degree to ignore micro-fluctuations',
       () async {
         final container = ProviderContainer(
           overrides: [
@@ -283,11 +283,11 @@ void main() {
         // Clear the mock cache to verify if service is called again
         service.clearCache();
 
-        // Change GPS coordinates by a very small amount (micro-fluctuation less than 5 decimal places: 0.000001)
+        // Change GPS coordinates by a very small amount (micro-fluctuation less than 1/2000th of a degree: 0.0001)
         container
             .read(telemetryProvider.notifier)
             .updateGPS(
-              latitude: 0.000001, // 0.000001 rounds to 0.00000
+              latitude: 0.0001, // 0.0001 rounds to 0.0000
               longitude: 0.0,
             );
 
@@ -299,11 +299,11 @@ void main() {
         agl = container.read(aglProvider);
         expect(agl.terrainElevation, equals(8848.0));
 
-        // Change coordinates by a larger amount (greater than 5 decimal places: 0.00002)
+        // Change coordinates by a larger amount (greater than 1/2000th of a degree: 0.0006)
         container
             .read(telemetryProvider.notifier)
             .updateGPS(
-              latitude: 0.00002, // rounds to 0.00002
+              latitude: 0.0006, // rounds to 0.0005
               longitude: 0.0,
             );
 
@@ -313,6 +313,89 @@ void main() {
         // Since the mock cache was cleared, it will try to fetch the real tile (which will fail/return null in test)
         // and thus terrainElevation should be null now.
         expect(agl.terrainElevation, isNull);
+      },
+    );
+
+    test(
+      'aglProvider TerrainElevation preserves previous state only within safety limits (distance < 200m and time < 2s)',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            terrainElevationServiceProvider.overrideWithValue(
+              TerrainElevationService(),
+            ),
+            appSettingsProvider.overrideWith(() => MockAppSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        container.listen(telemetryProvider, (_, _) {});
+        container.listen(aglProvider, (_, _) {});
+
+        final service = container.read(terrainElevationServiceProvider);
+
+        // Prepare mock tile with elevation = 8848.0
+        final Uint8List rawBytes = Uint8List(256 * 256 * 4);
+        final ByteData mockByteData = ByteData.sublistView(rawBytes);
+        mockByteData.setUint8(0, 162);
+        mockByteData.setUint8(1, 144);
+        mockByteData.setUint8(2, 0);
+        mockByteData.setUint8(3, 255);
+        
+        service.setMockCache(2048, 2048, mockByteData);
+
+        // Set initial coordinates
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0, longitude: 0.0, gpsAltitude: 10000.0);
+
+        await Future.delayed(const Duration(milliseconds: 100));
+        var agl = container.read(aglProvider);
+        expect(agl.terrainElevation, equals(8848.0));
+
+        // Clear mock cache to simulate cache miss/loading when we move
+        service.clearCache();
+
+        // 1. Move a tiny distance (under 200m).
+        // 0.0006 degrees latitude is roughly 66 meters.
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0006, longitude: 0.0, gpsAltitude: 10000.0);
+
+        // Immediately read state before load completes (it should be loading but keep previous data)
+        agl = container.read(aglProvider);
+        expect(agl.terrainElevation, equals(8848.0)); // Kept!
+        expect(agl.isFetching, isTrue);
+
+        // 2. Wait for more than 2 seconds, it should invalidate and become null
+        await Future.delayed(const Duration(milliseconds: 2100));
+        // Trigger a rebuild
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0006, longitude: 0.0, gpsAltitude: 10100.0);
+        agl = container.read(aglProvider);
+        expect(agl.terrainElevation, isNull); // Invalidated due to time!
+
+        // Reset cache and initial coordinates
+        service.setMockCache(2048, 2048, mockByteData);
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.0, longitude: 0.0, gpsAltitude: 10000.0);
+        await Future.delayed(const Duration(milliseconds: 100));
+        agl = container.read(aglProvider);
+        expect(agl.terrainElevation, equals(8848.0));
+        
+        service.clearCache();
+
+        // 3. Move a larger distance (> 200m).
+        // 0.005 degrees latitude is roughly 550 meters.
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(latitude: 0.005, longitude: 0.0, gpsAltitude: 10000.0);
+        
+        // It should immediately invalidate because it's too far!
+        agl = container.read(aglProvider);
+        expect(agl.terrainElevation, isNull); // Invalidated due to distance!
       },
     );
 

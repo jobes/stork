@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import '../../domain/models/range_thresholds.dart';
 import '../utils/threshold_state_extension.dart';
 
@@ -265,7 +266,11 @@ class _MultiThumbPainter extends CustomPainter {
       canvas.drawCircle(center, radius, borderPaint);
 
       // Text
-      final String text = '${values[i].toStringAsFixed(decimalPlaces)}\n$unitLabel';
+      final formatter = NumberFormat.decimalPattern(localeTag);
+      formatter.minimumFractionDigits = decimalPlaces;
+      formatter.maximumFractionDigits = decimalPlaces;
+      final String formattedValue = formatter.format(values[i]);
+      final String text = '$formattedValue\n$unitLabel';
       final textSpan = TextSpan(
         text: text,
         style: TextStyle(

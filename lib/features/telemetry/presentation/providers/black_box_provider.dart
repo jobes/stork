@@ -9,7 +9,6 @@ import '../../domain/repositories/black_box_repository.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/flight.dart';
 import '../../domain/models/telemetry_entry.dart';
-import '../../domain/models/telemetry_state.dart';
 import 'telemetry_provider.dart';
 import 'flight_records_provider.dart';
 
@@ -200,9 +199,8 @@ class BlackBoxService extends _$BlackBoxService {
       // Delta frame: compare with previously buffered state
       var updatedState = _lastBufferedState!;
       for (final field in TelemetryField.blackBoxFields) {
-        final prevVal = _lastBufferedState!.getFieldValue(field);
-        final nextVal = next.getFieldValue(field);
-        if (prevVal != nextVal) {
+        if (!_areTelemetryFieldsEqual(_lastBufferedState!, next, field)) {
+          final nextVal = next.getFieldValue(field);
           data[field.dbColumnName] = nextVal;
           updatedState = updatedState.copyWithField(field, nextVal);
         }
@@ -256,9 +254,38 @@ class BlackBoxService extends _$BlackBoxService {
     }
   }
 
+  bool _areListsEqual(List<double?> a, List<double?> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  bool _areTelemetryFieldsEqual(TelemetryState a, TelemetryState b, TelemetryField field) {
+    if (field == TelemetryField.cylinderHeadTemperature) {
+      return _areListsEqual(a.cylinderHeadTemperatures, b.cylinderHeadTemperatures);
+    }
+    if (field == TelemetryField.exhaustGasTemperature) {
+      return _areListsEqual(a.exhaustGasTemperatures, b.exhaustGasTemperatures);
+    }
+    return a.getFieldValue(field) == b.getFieldValue(field);
+  }
+
+  bool _isFieldNull(TelemetryState state, TelemetryField field) {
+    if (field == TelemetryField.cylinderHeadTemperature) {
+      return state.cylinderHeadTemperatures.isEmpty;
+    }
+    if (field == TelemetryField.exhaustGasTemperature) {
+      return state.exhaustGasTemperatures.isEmpty;
+    }
+    return state.getFieldValue(field) == null;
+  }
+
   bool _hasStateChanged(TelemetryState prev, TelemetryState next) {
     for (final field in TelemetryField.blackBoxFields) {
-      if (prev.getFieldValue(field) != next.getFieldValue(field)) {
+      if (!_areTelemetryFieldsEqual(prev, next, field)) {
         return true;
       }
     }
@@ -274,9 +301,7 @@ class BlackBoxService extends _$BlackBoxService {
 
     // Force keyframe if a sensor status changed (connected or disconnected / null transitions)
     for (final field in TelemetryField.blackBoxFields) {
-      final prevVal = prev.getFieldValue(field);
-      final nextVal = next.getFieldValue(field);
-      if ((prevVal == null) != (nextVal == null)) {
+      if (_isFieldNull(prev, field) != _isFieldNull(next, field)) {
         return true;
       }
     }

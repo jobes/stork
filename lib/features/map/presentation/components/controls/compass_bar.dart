@@ -1,7 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../settings/presentation/providers/settings_provider.dart';
+import '../../../../telemetry/presentation/providers/telemetry_provider.dart';
 
 class _CompassLayout {
   static const double barHeight = 40.0;
@@ -17,13 +17,31 @@ class _CompassLayout {
   static const double labelOffsetBase = 15.0;
 }
 
-class CompassBar extends ConsumerWidget {
-  final double? heading;
-
-  const CompassBar({super.key, this.heading});
+// ARCHITECTURAL NOTE:
+// CompassBar previously took [heading] as a parameter to remain a pure,
+// reusable UI component decoupled from business logic (telemetryProvider).
+// However, because the heading updates very frequently (multiple times per second),
+// passing it down from MapPage caused the entire map screen to rebuild continuously,
+// resulting in severe performance degradation and high CPU usage.
+// To resolve this, CompassBar was refactored to consume telemetryProvider directly.
+// This tightly couples this map presentation component to the telemetry module,
+// but it is a necessary optimization to isolate high-frequency rebuilds to just this widget.
+class CompassBar extends ConsumerStatefulWidget {
+  const CompassBar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CompassBar> createState() => _CompassBarState();
+}
+
+class _CompassBarState extends ConsumerState<CompassBar> {
+  final Map<String, (TextPainter, TextPainter)> _painterCache = {};
+  double? _lastFontScale;
+  Color? _lastColor;
+  Color? _lastShadowColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final heading = ref.watch(telemetryProvider.select((t) => t.heading));
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final fontScale = ref.watch(
@@ -32,108 +50,120 @@ class CompassBar extends ConsumerWidget {
       ),
     );
 
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          height: _CompassLayout.barHeight * fontScale,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                colorScheme.surface.withAlpha(180),
-                colorScheme.surface.withAlpha(100),
-                colorScheme.surface.withAlpha(20),
-              ],
-            ),
-            border: Border(
-              bottom: BorderSide(
-                color: colorScheme.onSurface.withAlpha(30),
-                width: 0.5,
-              ),
-            ),
+    final color = colorScheme.onSurface;
+    final shadowColor =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.light
+        ? Colors.black.withAlpha(100)
+        : Colors.white.withAlpha(100);
+
+    if (_lastFontScale != fontScale || _lastColor != color || _lastShadowColor != shadowColor) {
+      _painterCache.clear();
+      _lastFontScale = fontScale;
+      _lastColor = color;
+      _lastShadowColor = shadowColor;
+    }
+
+    return Container(
+      height: _CompassLayout.barHeight * fontScale,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            colorScheme.surface.withAlpha(235),
+            colorScheme.surface.withAlpha(210),
+            colorScheme.surface.withAlpha(150),
+          ],
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: colorScheme.onSurface.withAlpha(45),
+            width: 0.5,
           ),
-          child: Stack(
-            children: [
-              // The scrolling compass tape with horizontal fade
-              Positioned.fill(
-                child: ShaderMask(
-                  shaderCallback: (rect) {
-                    return LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: const [
-                        Colors.transparent,
-                        Colors.black,
-                        Colors.black,
-                        Colors.transparent,
-                      ],
-                      stops: const [0.0, 0.15, 0.85, 1.0],
-                    ).createShader(rect);
-                  },
-                  blendMode: BlendMode.dstIn,
-                  child: CustomPaint(
-                    painter: CompassPainter(
-                      heading: heading ?? 0.0,
-                      color: colorScheme.onSurface,
-                      fontScale: fontScale,
-                    ),
+        ),
+      ),
+      child: RepaintBoundary(
+        child: Stack(
+          children: [
+            // The scrolling compass tape with horizontal fade
+            Positioned.fill(
+              child: ShaderMask(
+                shaderCallback: (rect) {
+                  return LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: const [
+                      Colors.transparent,
+                      Colors.black,
+                      Colors.black,
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.15, 0.85, 1.0],
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstIn,
+                child: CustomPaint(
+                  painter: CompassPainter(
+                    heading: heading ?? 0.0,
+                    color: color,
+                    shadowColor: shadowColor,
+                    fontScale: fontScale,
+                    painterCache: _painterCache,
                   ),
                 ),
               ),
-              // Center indicator
-              Align(
-                alignment: Alignment.center,
+            ),
+            // Center indicator
+            Align(
+              alignment: Alignment.center,
+              child: Container(
+                width: _CompassLayout.indicatorWidth,
+                height: _CompassLayout.indicatorHeight * fontScale,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      colorScheme.primary.withAlpha(0),
+                      colorScheme.primary,
+                      colorScheme.primary.withAlpha(0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Heading text
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 4.0),
                 child: Container(
-                  width: _CompassLayout.indicatorWidth,
-                  height: _CompassLayout.indicatorHeight * fontScale,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        colorScheme.primary.withAlpha(0),
-                        colorScheme.primary,
-                        colorScheme.primary.withAlpha(0),
-                      ],
+                    color: colorScheme.surface.withAlpha(140),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    heading != null
+                        ? '${(heading.round() % 360).toString().padLeft(3, '0')}°'
+                        : '---°',
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize:
+                          _CompassLayout.headingFontSizeBase * fontScale,
+                      fontFamily: 'Roboto Mono',
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2 * fontScale,
                     ),
                   ),
                 ),
               ),
-              // Heading text
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 4.0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface.withAlpha(100),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      heading != null
-                          ? '${(heading!.round() % 360).toString().padLeft(3, '0')}°'
-                          : '---°',
-                      style: TextStyle(
-                        color: colorScheme.onSurface,
-                        fontSize:
-                            _CompassLayout.headingFontSizeBase * fontScale,
-                        fontFamily: 'Roboto Mono',
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2 * fontScale,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -143,12 +173,16 @@ class CompassBar extends ConsumerWidget {
 class CompassPainter extends CustomPainter {
   final double heading;
   final Color color;
+  final Color shadowColor;
   final double fontScale;
+  final Map<String, (TextPainter, TextPainter)> painterCache;
 
   CompassPainter({
     required this.heading,
     required this.color,
+    required this.shadowColor,
     required this.fontScale,
+    required this.painterCache,
   });
 
   @override
@@ -158,17 +192,9 @@ class CompassPainter extends CustomPainter {
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
     final double pixelsPerDegree =
         _CompassLayout.pixelsPerDegreeBase * fontScale;
     final double centerX = size.width / 2;
-
-    // Calculate shadow once
-    final shadowColor =
-        ThemeData.estimateBrightnessForColor(color) == Brightness.light
-        ? Colors.black.withAlpha(100)
-        : Colors.white.withAlpha(100);
 
     // Calculate range of degrees to draw
     final int startDegree = (heading - (centerX / pixelsPerDegree)).floor();
@@ -202,56 +228,53 @@ class CompassPainter extends CustomPainter {
       );
 
       if (showText && label != null) {
-        final baseStyle = TextStyle(
-          color: color,
-          fontSize: _CompassLayout.labelFontSizeBase * fontScale,
-          fontWeight: normalizedDegree % 90 == 0
-              ? FontWeight.bold
-              : FontWeight.normal,
-          fontFamily: 'Roboto',
-        );
-
         final double textY =
             size.height -
             markerHeight -
             (_CompassLayout.labelOffsetBase * fontScale);
 
-        // NOTE: We draw the text shadow/outline manually in 4 diagonal directions.
-        // We do not use standard TextStyle(shadows: [...]) here because of a known Flutter
-        // graphics engine (Skia/Impeller) caching bug inside CustomPainters, where text shadows
-        // could remain static on the screen during fast repaints/canvas translations while the
-        // foreground text moves. Drawing the shadow manually as text at offset coordinates
-        // guarantees the shadow moves in perfect sync with the foreground label.
-        textPainter.text = TextSpan(
-          text: label,
-          style: baseStyle.copyWith(color: shadowColor),
-        );
-        textPainter.layout();
+        final (shadowPainter, foregroundPainter) = painterCache.putIfAbsent(label, () {
+          final baseStyle = TextStyle(
+            color: color,
+            fontSize: _CompassLayout.labelFontSizeBase * fontScale,
+            fontWeight: normalizedDegree % 90 == 0
+                ? FontWeight.bold
+                : FontWeight.normal,
+            fontFamily: 'Roboto',
+          );
+          final sp = TextPainter(
+            text: TextSpan(text: label, style: baseStyle.copyWith(color: shadowColor)),
+            textDirection: TextDirection.ltr,
+          )..layout();
+          final fp = TextPainter(
+            text: TextSpan(text: label, style: baseStyle),
+            textDirection: TextDirection.ltr,
+          )..layout();
+          return (sp, fp);
+        });
 
         final double shadowOffset = 1.2 * fontScale;
-        final double textX = x - textPainter.width / 2;
+        final double textX = x - foregroundPainter.width / 2;
 
-        textPainter.paint(
+        shadowPainter.paint(
           canvas,
           Offset(textX - shadowOffset, textY - shadowOffset),
         );
-        textPainter.paint(
+        shadowPainter.paint(
           canvas,
           Offset(textX + shadowOffset, textY - shadowOffset),
         );
-        textPainter.paint(
+        shadowPainter.paint(
           canvas,
           Offset(textX - shadowOffset, textY + shadowOffset),
         );
-        textPainter.paint(
+        shadowPainter.paint(
           canvas,
           Offset(textX + shadowOffset, textY + shadowOffset),
         );
 
         // Draw main text
-        textPainter.text = TextSpan(text: label, style: baseStyle);
-        textPainter.layout();
-        textPainter.paint(canvas, Offset(textX, textY));
+        foregroundPainter.paint(canvas, Offset(textX, textY));
       }
     }
   }
@@ -270,6 +293,7 @@ class CompassPainter extends CustomPainter {
   bool shouldRepaint(covariant CompassPainter oldDelegate) {
     return oldDelegate.heading != heading ||
         oldDelegate.fontScale != fontScale ||
-        oldDelegate.color != color;
+        oldDelegate.color != color ||
+        oldDelegate.shadowColor != shadowColor;
   }
 }

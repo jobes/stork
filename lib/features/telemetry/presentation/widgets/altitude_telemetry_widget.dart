@@ -20,6 +20,7 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
     String? prefix,
   }) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
@@ -59,9 +60,17 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final aglState = ref.watch(aglProvider);
     final resolved = aglState.resolvedAltitude;
-    final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
-    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
+    
+    final fontScale = ref.watch(appSettingsProvider.select(
+      (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
+    ));
+    final activeUnit = ref.watch(appSettingsProvider.select(
+      (s) => s.value?.altitudeUnit ?? AltitudeUnit.feet,
+    ));
+    final heightUnit = ref.watch(appSettingsProvider.select(
+      (s) => s.value?.heightUnit ?? AltitudeUnit.meters,
+    ));
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultTextColor = isDark
@@ -69,7 +78,6 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         : Colors.grey.shade700;
 
     final altitudeValueColor = isDark ? Colors.white : Colors.black;
-    final activeUnit = settings?.altitudeUnit ?? AltitudeUnit.feet;
 
     final List<Widget> columnChildren = [];
 
@@ -105,8 +113,6 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
 
     // Dynamic Second Row: Only displayed if heightAboveGround (AGL) is not null
     if (aglState.heightAboveGround != null) {
-      final heightUnit = settings?.heightUnit ?? AltitudeUnit.meters;
-
       final double heightVal = heightUnit.convertFromMeters(
         aglState.heightAboveGround!,
       );
@@ -149,14 +155,14 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         horizontal: 12 * fontScale,
         vertical: 8 * fontScale,
       ),
-      child: IntrinsicWidth(
-        child: SingleChildScrollView(
-          physics: const NeverScrollableScrollPhysics(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: columnChildren,
-          ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: 126 * fontScale,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: columnChildren,
         ),
       ),
     );

@@ -34,12 +34,16 @@ class MapPage extends ConsumerStatefulWidget {
   ConsumerState<MapPage> createState() => _MapPageState();
 }
 
-class _MapPageState extends ConsumerState<MapPage> {
+class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   bool _isDrawerOpen = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Enable immersive mode on the map page
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    
     // Auto-trigger GPS waiting state on start
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(mapCameraProvider.notifier).autoStartGps();
@@ -47,15 +51,33 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Restore normal system UI mode when leaving the map page
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final styleAsync = ref.watch(mapStyleProvider);
-    final telemetry = ref.watch(telemetryProvider);
+    final mapViewState = ref.watch(telemetryProvider.select((t) => t.mapViewState));
+    final isOilTempSupported = ref.watch(telemetryProvider.select((t) => t.isOilTempSupported));
+    final isOilPressureSupported = ref.watch(telemetryProvider.select((t) => t.isOilPressureSupported));
+    final hasCylinderTemp = ref.watch(telemetryProvider.select((t) => t.cylinderHeadTemperatures.isNotEmpty));
+    final hasEgt = ref.watch(telemetryProvider.select((t) => t.exhaustGasTemperatures.isNotEmpty));
+    final isFuelSupported = ref.watch(telemetryProvider.select((t) => t.isFuelSupported));
+    final isEngineRpmSupported = ref.watch(telemetryProvider.select((t) => t.isEngineRpmSupported));
     final l10n = AppLocalizations.of(context)!;
     final cameraController = ref.watch(mapCameraProvider.notifier);
     final navigationAsync = ref.watch(navigationProvider);
-
-    // Enable immersive mode on the map page
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
     final double screenWidth = MediaQuery.sizeOf(context).width;
     double currentX = 16.0;
@@ -138,24 +160,24 @@ class _MapPageState extends ConsumerState<MapPage> {
               left: 0,
               right: 0,
               child: AbsorbPointer(
-                child: CompassBar(heading: telemetry.heading),
+                child: const CompassBar(),
               ),
             ),
-            if (telemetry.mapViewState != MapViewState.init) ...[
+            if (mapViewState != MapViewState.init) ...[
               buildWidget('speed_widget', 150.0, const SpeedTelemetryWidget()),
               buildWidget('altitude_widget', 150.0, const AltitudeTelemetryWidget()),
               buildWidget('flight_time_widget', 150.0, const FlightTimeTelemetryWidget()),
-              if (telemetry.isOilTempSupported)
+              if (isOilTempSupported)
                 buildWidget('oil_temp_widget', 50.0, const OilTempTelemetryWidget()),
-              if (telemetry.isOilPressureSupported)
+              if (isOilPressureSupported)
                 buildWidget('oil_pressure_widget', 50.0, const OilPressureTelemetryWidget()),
-              if (telemetry.cylinderHeadTemperatures.isNotEmpty)
+              if (hasCylinderTemp)
                 buildWidget('cylinder_temp_widget', 50.0, const CylinderTempTelemetryWidget()),
-              if (telemetry.exhaustGasTemperatures.isNotEmpty)
+              if (hasEgt)
                 buildWidget('egt_widget', 50.0, const EgtTelemetryWidget()),
-              if (telemetry.isFuelSupported)
+              if (isFuelSupported)
                 buildWidget('fuel_status_widget', 50.0, const FuelStatusTelemetryWidget()),
-              if (telemetry.isEngineRpmSupported)
+              if (isEngineRpmSupported)
                 buildWidget('rpm_widget', 150.0, const RpmHorizontalTelemetryWidget()),
               if (navigationAsync.value?.isActive == true &&
                   navigationAsync.value?.points.isNotEmpty == true)
@@ -169,7 +191,7 @@ class _MapPageState extends ConsumerState<MapPage> {
             ],
             Builder(
               builder: (context) => MapControls(
-                mapViewState: telemetry.mapViewState,
+                mapViewState: mapViewState,
                 onMenuPressed: () => Scaffold.of(context).openDrawer(),
                 onGpsPressed: cameraController.handleGpsToggle,
               ),

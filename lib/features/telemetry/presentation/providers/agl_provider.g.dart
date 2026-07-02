@@ -55,7 +55,7 @@ final class TelemetryCoordinatesProvider
 }
 
 String _$telemetryCoordinatesHash() =>
-    r'a30379933a3b0ca053bd1d564efd20df1e708913';
+    r'33126e431b1a5c3af1461994e7fc113d56adf007';
 
 @ProviderFor(TerrainElevation)
 final terrainElevationProvider = TerrainElevationProvider._();
@@ -89,7 +89,7 @@ final class TerrainElevationProvider
   }
 }
 
-String _$terrainElevationHash() => r'd3167aeec255fb410d6abaa8ba069183e90e9770';
+String _$terrainElevationHash() => r'4a4657966e7fab52dc4b8889ce3296a7061f5f7d';
 
 abstract class _$TerrainElevation extends $Notifier<AsyncValue<double?>> {
   AsyncValue<double?> build();
@@ -153,7 +153,7 @@ final class ResolvedAltitudeProvider
   }
 }
 
-String _$resolvedAltitudeHash() => r'ff61771fba35c63c45306625842cb328d938578a';
+String _$resolvedAltitudeHash() => r'371fd56c302c4c497c81ed90a24baf46284351aa';
 
 @ProviderFor(recommendedQnh)
 final recommendedQnhProvider = RecommendedQnhProvider._();
@@ -228,7 +228,7 @@ final class AutoQnhCalibratorProvider
   }
 }
 
-String _$autoQnhCalibratorHash() => r'd37574531194495eca18f20173ea8e898012c931';
+String _$autoQnhCalibratorHash() => r'aa412174090a4b9bba0b8a458edde99e21a936ca';
 
 abstract class _$AutoQnhCalibrator extends $Notifier<AutoQnhCalibratorState> {
   AutoQnhCalibratorState build();

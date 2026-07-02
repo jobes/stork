@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'telemetry_provider.dart';
-import '../../domain/models/telemetry_state.dart';
 
 part 'throttled_telemetry_provider.g.dart';
 

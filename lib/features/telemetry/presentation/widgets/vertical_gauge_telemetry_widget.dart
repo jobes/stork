@@ -13,6 +13,7 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
   final RangeThresholds thresholds;
   final ThresholdState state;
   final double fontScale;
+  final bool disableAnimations;
 
   const VerticalGaugeTelemetryWidget({
     super.key,
@@ -24,57 +25,9 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
     required this.thresholds,
     required this.state,
     required this.fontScale,
+    this.disableAnimations = false,
   });
 
-  Color _getBorderColor(ThresholdState state, bool isDark) {
-    switch (state) {
-      case ThresholdState.inactive:
-      case ThresholdState.operational:
-        return isDark
-            ? Colors.white.withAlpha(76)
-            : Colors.black.withAlpha(51);
-      case ThresholdState.minError:
-      case ThresholdState.maxError:
-        return isDark ? Colors.redAccent.shade200 : Colors.red.shade600;
-      case ThresholdState.minWarning:
-      case ThresholdState.maxWarning:
-        return isDark ? Colors.orangeAccent : Colors.orange.shade700;
-    }
-  }
-
-  List<BoxShadow> _getBoxShadow(ThresholdState state, bool isDark) {
-    switch (state) {
-      case ThresholdState.inactive:
-      case ThresholdState.operational:
-        return [
-          BoxShadow(
-            color: Colors.black.withAlpha(20),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ];
-      case ThresholdState.minError:
-      case ThresholdState.maxError:
-        final color = isDark ? Colors.redAccent : Colors.red.shade700;
-        return [
-          BoxShadow(
-            color: color.withAlpha(102),
-            blurRadius: 16,
-            spreadRadius: 3,
-          ),
-        ];
-      case ThresholdState.minWarning:
-      case ThresholdState.maxWarning:
-        final color = isDark ? Colors.amber : Colors.orange.shade800;
-        return [
-          BoxShadow(
-            color: color.withAlpha(102),
-            blurRadius: 16,
-            spreadRadius: 3,
-          ),
-        ];
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,9 +40,8 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
         state != ThresholdState.inactive;
 
     return TelemetryCard(
-      boxShadow: _getBoxShadow(state, isDark),
-      borderColor: _getBorderColor(state, isDark),
-      borderWidth: 2.0,
+      state: state,
+      disableAnimations: disableAnimations,
       padding: EdgeInsets.symmetric(
         horizontal: 4.0 * fontScale,
         vertical: 8.0 * fontScale,
@@ -119,7 +71,7 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
               child: currentValue != null
                   ? TweenAnimationBuilder<double>(
                       tween: Tween<double>(begin: currentValue!, end: currentValue!),
-                      duration: const Duration(milliseconds: 300),
+                      duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
                       curve: Curves.easeOut,
                       builder: (context, animValue, child) {
                         return CustomPaint(
@@ -149,7 +101,7 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
               height: 26 * fontScale,
               child: Center(
                 child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 300),
+                  duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   style: TextStyle(
                     fontSize: (isAbnormal ? 24.0 : 18.0) * fontScale,

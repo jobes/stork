@@ -26,59 +26,12 @@ class EgtTelemetryWidget extends ConsumerWidget {
     }
   }
 
-  Color _getBorderColor(ThresholdState state, bool isDark) {
-    switch (state) {
-      case ThresholdState.inactive:
-      case ThresholdState.operational:
-        return isDark
-            ? Colors.white.withAlpha(76)
-            : Colors.black.withAlpha(51);
-      case ThresholdState.minError:
-      case ThresholdState.maxError:
-        return isDark ? Colors.redAccent.shade200 : Colors.red.shade600;
-      case ThresholdState.minWarning:
-      case ThresholdState.maxWarning:
-        return isDark ? Colors.orangeAccent : Colors.orange.shade700;
-    }
-  }
-
-  List<BoxShadow> _getBoxShadow(ThresholdState state, bool isDark) {
-    switch (state) {
-      case ThresholdState.inactive:
-      case ThresholdState.operational:
-        return [
-          BoxShadow(
-            color: Colors.black.withAlpha(20),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ];
-      case ThresholdState.minError:
-      case ThresholdState.maxError:
-        final color = isDark ? Colors.redAccent : Colors.red.shade700;
-        return [
-          BoxShadow(
-            color: color.withAlpha(102),
-            blurRadius: 16,
-            spreadRadius: 3,
-          ),
-        ];
-      case ThresholdState.minWarning:
-      case ThresholdState.maxWarning:
-        final color = isDark ? Colors.amber : Colors.orange.shade800;
-        return [
-          BoxShadow(
-            color: color.withAlpha(102),
-            blurRadius: 16,
-            spreadRadius: 3,
-          ),
-        ];
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final telemetry = ref.watch(telemetryProvider);
+    final exhaustGasTemperatures = ref.watch(telemetryProvider.select((t) => t.exhaustGasTemperatures));
+    final disableAnimations = ref.watch(
+      disableTelemetryAnimationsProvider.select((m) => m[TelemetryField.exhaustGasTemperature] ?? false),
+    );
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -97,7 +50,7 @@ class EgtTelemetryWidget extends ConsumerWidget {
     final double maxVisualK = settings?.egtMaxRange ?? 1223.15; // 950 °C
     final double minVisualK = thresholds.inactiveMax ?? 423.15; // 150 °C
 
-    final egts = telemetry.exhaustGasTemperatures;
+    final egts = exhaustGasTemperatures;
     if (egts.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -122,9 +75,8 @@ class EgtTelemetryWidget extends ConsumerWidget {
     final double totalContentWidth = egts.length * colWidth;
 
     return TelemetryCard(
-      boxShadow: _getBoxShadow(worstState, isDark),
-      borderColor: _getBorderColor(worstState, isDark),
-      borderWidth: 2.0,
+      state: worstState,
+      disableAnimations: disableAnimations,
       padding: EdgeInsets.symmetric(
         horizontal: 6.0 * fontScale,
         vertical: 8.0 * fontScale,
@@ -176,7 +128,7 @@ class EgtTelemetryWidget extends ConsumerWidget {
                         child: rawTemp != null
                             ? TweenAnimationBuilder<double>(
                                 tween: Tween<double>(begin: rawTemp, end: rawTemp),
-                                duration: const Duration(milliseconds: 300),
+                                duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
                                 curve: Curves.easeOut,
                                 builder: (context, animTemp, child) {
                                   return CustomPaint(

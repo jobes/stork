@@ -7,6 +7,7 @@ import 'package:stork/l10n/app_localizations.dart';
 import 'package:stork/features/telemetry/presentation/widgets/cylinder_temp_telemetry_widget.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/widgets/telemetry_card.dart';
+import 'package:stork/features/settings/domain/models/range_thresholds.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -105,7 +106,7 @@ void main() {
       final cardFinder = find.byType(TelemetryCard);
       final TelemetryCard card = tester.widget(cardFinder);
       expect(
-        card.borderColor == Colors.red.shade600 || card.borderColor == Colors.redAccent.shade200,
+        card.state == ThresholdState.maxError,
         isTrue,
       );
     });

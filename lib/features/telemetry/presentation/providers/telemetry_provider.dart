@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/telemetry_state.dart';
 import '../../domain/models/map_view_state.dart';
+export '../../domain/models/telemetry_state.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/core/services/location_provider.dart';
 import 'decayable_field.dart';
@@ -394,3 +395,61 @@ void gpsListener(Ref ref) {
     });
   });
 }
+
+@Riverpod(keepAlive: true)
+class DisableTelemetryAnimations extends _$DisableTelemetryAnimations {
+  final Map<TelemetryField, DateTime> _lastUpdateTimes = {};
+  final Map<TelemetryField, bool> _disableAnimations = {};
+
+  @override
+  Map<TelemetryField, bool> build() {
+    ref.listen<TelemetryState>(telemetryProvider, (previous, next) {
+      final now = DateTime.now();
+      bool stateChanged = false;
+
+      for (final field in TelemetryField.values) {
+        bool changed = false;
+        if (field == TelemetryField.cylinderHeadTemperature) {
+          changed = !_areListsEqual(previous?.cylinderHeadTemperatures, next.cylinderHeadTemperatures);
+        } else if (field == TelemetryField.exhaustGasTemperature) {
+          changed = !_areListsEqual(previous?.exhaustGasTemperatures, next.exhaustGasTemperatures);
+        } else {
+          final prevVal = previous?.getFieldValue(field);
+          final nextVal = next.getFieldValue(field);
+          changed = prevVal != nextVal;
+        }
+
+        if (changed) {
+          final lastUpdate = _lastUpdateTimes[field];
+          _lastUpdateTimes[field] = now;
+          if (lastUpdate != null) {
+            final diff = now.difference(lastUpdate);
+            // More than 4x per second means interval < 250 milliseconds
+            final highFreq = diff.inMilliseconds < 250;
+            if (_disableAnimations[field] != highFreq) {
+              _disableAnimations[field] = highFreq;
+              stateChanged = true;
+            }
+          }
+        }
+      }
+
+      if (stateChanged) {
+        state = Map.from(_disableAnimations);
+      }
+    });
+
+    return const {};
+  }
+
+  bool _areListsEqual(List<double?>? a, List<double?>? b) {
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+}
+
