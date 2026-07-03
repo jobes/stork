@@ -174,7 +174,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
   // Radio fields
   late final DecayableField<int> _radioActiveFrequency = DecayableField<int>(
-    timeout: const Duration(seconds: 5),
+    timeout: const Duration(seconds: 30),
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.radioActiveFrequency)
@@ -182,7 +182,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     },
   );
   late final DecayableField<int> _radioStandbyFrequency = DecayableField<int>(
-    timeout: const Duration(seconds: 5),
+    timeout: const Duration(seconds: 30),
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.radioStandbyFrequency)
@@ -190,7 +190,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     },
   );
   late final DecayableField<String> _radioActiveStationName = DecayableField<String>(
-    timeout: const Duration(seconds: 5),
+    timeout: const Duration(seconds: 30),
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.radioActiveStationName)
@@ -198,7 +198,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     },
   );
   late final DecayableField<String> _radioStandbyStationName = DecayableField<String>(
-    timeout: const Duration(seconds: 5),
+    timeout: const Duration(seconds: 30),
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.radioStandbyStationName)
@@ -206,7 +206,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     },
   );
   late final DecayableField<int> _radioFlags = DecayableField<int>(
-    timeout: const Duration(seconds: 5),
+    timeout: const Duration(seconds: 30),
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.radioFlags)
@@ -214,7 +214,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     },
   );
   late final DecayableField<int> _radioInstance = DecayableField<int>(
-    timeout: const Duration(seconds: 5),
+    timeout: const Duration(seconds: 30),
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.radioInstance)
@@ -222,7 +222,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     },
   );
   late final DecayableField<int> _radioNodeId = DecayableField<int>(
-    timeout: const Duration(seconds: 5),
+    timeout: const Duration(seconds: 30),
     onChanged: (val) {
       state = val == null
           ? state.resetField(TelemetryField.radioNodeId)
