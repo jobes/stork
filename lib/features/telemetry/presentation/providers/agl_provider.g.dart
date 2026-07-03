@@ -228,7 +228,7 @@ final class AutoQnhCalibratorProvider
   }
 }
 
-String _$autoQnhCalibratorHash() => r'aa412174090a4b9bba0b8a458edde99e21a936ca';
+String _$autoQnhCalibratorHash() => r'4784d01fb60cc65072310d034576c02a2f0706fe';
 
 abstract class _$AutoQnhCalibrator extends $Notifier<AutoQnhCalibratorState> {
   AutoQnhCalibratorState build();

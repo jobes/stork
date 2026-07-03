@@ -41,7 +41,7 @@ final class TelemetryNotifierProvider
   }
 }
 
-String _$telemetryNotifierHash() => r'a0941c19398517e1cf5877a26dae3269ad112ac5';
+String _$telemetryNotifierHash() => r'7e72e28ac0bcb73d354ca7e900c841105715b84f';
 
 abstract class _$TelemetryNotifier extends $Notifier<TelemetryState> {
   TelemetryState build();
@@ -139,7 +139,7 @@ final class DisableTelemetryAnimationsProvider
 }
 
 String _$disableTelemetryAnimationsHash() =>
-    r'444a066c2938d690bb52f5c3662a6ea18d86b030';
+    r'dda5af347b2c8fe39aaec86894ba28235541022d';
 
 abstract class _$DisableTelemetryAnimations
     extends $Notifier<Map<TelemetryField, bool>> {

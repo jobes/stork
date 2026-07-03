@@ -21,6 +21,7 @@ import '../../../telemetry/presentation/widgets/cylinder_temp_telemetry_widget.d
 import '../../../telemetry/presentation/widgets/egt_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/fuel_status_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/rpm_horizontal_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/vhf_radio_telemetry_widget.dart';
 import '../components/controls/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
@@ -75,6 +76,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
     final hasEgt = ref.watch(telemetryProvider.select((t) => t.exhaustGasTemperatures.isNotEmpty));
     final isFuelSupported = ref.watch(telemetryProvider.select((t) => t.isFuelSupported));
     final isEngineRpmSupported = ref.watch(telemetryProvider.select((t) => t.isEngineRpmSupported));
+    final isRadioSupported = ref.watch(telemetryProvider.select((t) => t.isRadioSupported));
     final l10n = AppLocalizations.of(context)!;
     final cameraController = ref.watch(mapCameraProvider.notifier);
     final navigationAsync = ref.watch(navigationProvider);
@@ -179,6 +181,8 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 buildWidget('fuel_status_widget', 50.0, const FuelStatusTelemetryWidget()),
               if (isEngineRpmSupported)
                 buildWidget('rpm_widget', 150.0, const RpmHorizontalTelemetryWidget()),
+              if (isRadioSupported)
+                buildWidget('radio_widget', 150.0, const VhfRadioTelemetryWidget()),
               if (navigationAsync.value?.isActive == true &&
                   navigationAsync.value?.points.isNotEmpty == true)
                 MapWidgetWrapper(

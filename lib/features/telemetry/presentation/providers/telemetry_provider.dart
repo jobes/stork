@@ -172,6 +172,64 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     },
   );
 
+  // Radio fields
+  late final DecayableField<int> _radioActiveFrequency = DecayableField<int>(
+    timeout: const Duration(seconds: 5),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioActiveFrequency)
+          : state.copyWith(radioActiveFrequency: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<int> _radioStandbyFrequency = DecayableField<int>(
+    timeout: const Duration(seconds: 5),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioStandbyFrequency)
+          : state.copyWith(radioStandbyFrequency: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<String> _radioActiveStationName = DecayableField<String>(
+    timeout: const Duration(seconds: 5),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioActiveStationName)
+          : state.copyWith(radioActiveStationName: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<String> _radioStandbyStationName = DecayableField<String>(
+    timeout: const Duration(seconds: 5),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioStandbyStationName)
+          : state.copyWith(radioStandbyStationName: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<int> _radioFlags = DecayableField<int>(
+    timeout: const Duration(seconds: 5),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioFlags)
+          : state.copyWith(radioFlags: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<int> _radioInstance = DecayableField<int>(
+    timeout: const Duration(seconds: 5),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioInstance)
+          : state.copyWith(radioInstance: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<int> _radioNodeId = DecayableField<int>(
+    timeout: const Duration(seconds: 5),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioNodeId)
+          : state.copyWith(radioNodeId: TelemetryValue(val));
+    },
+  );
+
   DateTime? _lastDroneCanFixTime;
 
   @override
@@ -195,6 +253,15 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _exhaustGasTemperatures.cancel();
       _fuelLevelPercent.cancel();
       _fuelVolumeLiters.cancel();
+
+      // Cancel radio timers
+      _radioActiveFrequency.cancel();
+      _radioStandbyFrequency.cancel();
+      _radioActiveStationName.cancel();
+      _radioStandbyStationName.cancel();
+      _radioFlags.cancel();
+      _radioInstance.cancel();
+      _radioNodeId.cancel();
     });
 
     return const TelemetryState();
@@ -315,6 +382,52 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _airPressure.update(pressure);
   }
 
+  void updateVhfRadioFull({
+    required int radioInstance,
+    required int activeFrequencyKhz,
+    required int standbyFrequencyKhz,
+    required int flags,
+    required String activeStationName,
+    required String standbyStationName,
+    required int nodeId,
+  }) {
+    _radioActiveFrequency.sync(activeFrequencyKhz);
+    _radioStandbyFrequency.sync(standbyFrequencyKhz);
+    _radioActiveStationName.sync(activeStationName);
+    _radioStandbyStationName.sync(standbyStationName);
+    _radioFlags.sync(flags);
+    _radioInstance.sync(radioInstance);
+    _radioNodeId.sync(nodeId);
+
+    state = state.copyWith(
+      radioActiveFrequency: TelemetryValue(activeFrequencyKhz),
+      radioStandbyFrequency: TelemetryValue(standbyFrequencyKhz),
+      radioActiveStationName: TelemetryValue(activeStationName),
+      radioStandbyStationName: TelemetryValue(standbyStationName),
+      radioFlags: TelemetryValue(flags),
+      radioInstance: TelemetryValue(radioInstance),
+      radioNodeId: TelemetryValue(nodeId),
+      isRadioSupported: true,
+    );
+  }
+
+  void updateVhfRadioFast({
+    required int radioInstance,
+    required int flags,
+    required int nodeId,
+  }) {
+    _radioFlags.sync(flags);
+    _radioInstance.sync(radioInstance);
+    _radioNodeId.sync(nodeId);
+
+    state = state.copyWith(
+      radioFlags: TelemetryValue(flags),
+      radioInstance: TelemetryValue(radioInstance),
+      radioNodeId: TelemetryValue(nodeId),
+      isRadioSupported: true,
+    );
+  }
+
   void setMapViewState(MapViewState viewState) {
     state = state.copyWith(mapViewState: viewState);
   }
@@ -340,6 +453,15 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _exhaustGasTemperatures.sync(newState.exhaustGasTemperatures);
     _fuelLevelPercent.sync(newState.fuelLevelPercent);
     _fuelVolumeLiters.sync(newState.fuelVolumeLiters);
+
+    // Sync radio fields
+    _radioActiveFrequency.sync(newState.radioActiveFrequency);
+    _radioStandbyFrequency.sync(newState.radioStandbyFrequency);
+    _radioActiveStationName.sync(newState.radioActiveStationName);
+    _radioStandbyStationName.sync(newState.radioStandbyStationName);
+    _radioFlags.sync(newState.radioFlags);
+    _radioInstance.sync(newState.radioInstance);
+    _radioNodeId.sync(newState.radioNodeId);
 
     _updateIsFlying();
   }
@@ -452,4 +574,3 @@ class DisableTelemetryAnimations extends _$DisableTelemetryAnimations {
     return true;
   }
 }
-

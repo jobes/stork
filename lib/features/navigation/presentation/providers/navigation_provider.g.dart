@@ -49,7 +49,7 @@ final class NavigationAutoAdvanceProvider
 }
 
 String _$navigationAutoAdvanceHash() =>
-    r'edb75374963f82e46f402e7417b241b6fb5a53de';
+    r'ed127d585dbb99acfd596e42a3cfaf62de545965';
 
 @ProviderFor(NavigationNotifier)
 final navigationProvider = NavigationNotifierProvider._();

@@ -442,6 +442,26 @@ class CannelloniService extends _$CannelloniService {
         .updateEngineRPM(msg.engineSpeedRpm);
   }
 
+  void _updateTelemetryVhfRadioFullStatus(VhfRadioFullStatus msg, int sourceNodeId) {
+    ref.read(telemetryProvider.notifier).updateVhfRadioFull(
+          radioInstance: msg.radioInstance,
+          activeFrequencyKhz: msg.activeFrequencyKhz,
+          standbyFrequencyKhz: msg.standbyFrequencyKhz,
+          flags: msg.flags,
+          activeStationName: msg.activeStationName,
+          standbyStationName: msg.standbyStationName,
+          nodeId: sourceNodeId,
+        );
+  }
+
+  void _updateTelemetryVhfRadioFastStatus(VhfRadioFastStatus msg, int sourceNodeId) {
+    ref.read(telemetryProvider.notifier).updateVhfRadioFast(
+          radioInstance: msg.radioInstance,
+          flags: msg.flags,
+          nodeId: sourceNodeId,
+        );
+  }
+
   void _handleGetNodeInfoRequest({
     required int transferId,
     required int sourceNodeId,
@@ -530,6 +550,12 @@ void _storkCanardTransferCallback(
     } else if (dataTypeId == StorkEngineRpm.messageId) {
       final rpmMsg = StorkEngineRpm.fromPayload(payloadBytes);
       _activeInstance!._updateTelemetryStorkEngineRpm(rpmMsg);
+    } else if (dataTypeId == VhfRadioFullStatus.messageId) {
+      final radioFullMsg = VhfRadioFullStatus.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryVhfRadioFullStatus(radioFullMsg, sourceNodeId);
+    } else if (dataTypeId == VhfRadioFastStatus.messageId) {
+      final radioFastMsg = VhfRadioFastStatus.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryVhfRadioFastStatus(radioFastMsg, sourceNodeId);
     }
   } catch (e) {
     debugPrint('Error in native transfer callback: $e');
@@ -571,6 +597,14 @@ int _storkCanardShouldAcceptCallback(
       }
       if (dataTypeId == StorkEngineRpm.messageId) {
         outDataTypeSignature.value = StorkEngineRpm.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == VhfRadioFullStatus.messageId) {
+        outDataTypeSignature.value = VhfRadioFullStatus.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == VhfRadioFastStatus.messageId) {
+        outDataTypeSignature.value = VhfRadioFastStatus.messageSignature;
         return 1;
       }
     } else {

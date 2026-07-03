@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'map_view_state.dart';
 
-
-
 enum TelemetryField {
   latitude,
   longitude,
@@ -25,13 +23,29 @@ enum TelemetryField {
   mapViewState,
   fuelLevelPercent,
   fuelVolumeLiters,
-  isFuelSupported;
+  isFuelSupported,
+  radioActiveFrequency,
+  radioStandbyFrequency,
+  radioActiveStationName,
+  radioStandbyStationName,
+  radioFlags,
+  radioInstance,
+  radioNodeId,
+  isRadioSupported;
 
   bool get isBlackBoxField {
     switch (this) {
       case TelemetryField.isFlying:
       case TelemetryField.mapViewState:
       case TelemetryField.isFuelSupported:
+      case TelemetryField.radioActiveFrequency:
+      case TelemetryField.radioStandbyFrequency:
+      case TelemetryField.radioActiveStationName:
+      case TelemetryField.radioStandbyStationName:
+      case TelemetryField.radioFlags:
+      case TelemetryField.radioInstance:
+      case TelemetryField.radioNodeId:
+      case TelemetryField.isRadioSupported:
         return false;
       default:
         return true;
@@ -138,6 +152,16 @@ class TelemetryState {
   final double? fuelVolumeLiters;
   final bool isFuelSupported;
 
+  // Radio fields
+  final int? radioActiveFrequency;
+  final int? radioStandbyFrequency;
+  final String? radioActiveStationName;
+  final String? radioStandbyStationName;
+  final int? radioFlags;
+  final int? radioInstance;
+  final int? radioNodeId;
+  final bool isRadioSupported;
+
   const TelemetryState({
     this.latitude,
     this.longitude,
@@ -164,6 +188,14 @@ class TelemetryState {
     this.fuelLevelPercent,
     this.fuelVolumeLiters,
     this.isFuelSupported = false,
+    this.radioActiveFrequency,
+    this.radioStandbyFrequency,
+    this.radioActiveStationName,
+    this.radioStandbyStationName,
+    this.radioFlags,
+    this.radioInstance,
+    this.radioNodeId,
+    this.isRadioSupported = false,
   });
 
   dynamic getFieldValue(TelemetryField field) {
@@ -216,6 +248,22 @@ class TelemetryState {
         return fuelVolumeLiters;
       case TelemetryField.isFuelSupported:
         return isFuelSupported;
+      case TelemetryField.radioActiveFrequency:
+        return radioActiveFrequency;
+      case TelemetryField.radioStandbyFrequency:
+        return radioStandbyFrequency;
+      case TelemetryField.radioActiveStationName:
+        return radioActiveStationName;
+      case TelemetryField.radioStandbyStationName:
+        return radioStandbyStationName;
+      case TelemetryField.radioFlags:
+        return radioFlags;
+      case TelemetryField.radioInstance:
+        return radioInstance;
+      case TelemetryField.radioNodeId:
+        return radioNodeId;
+      case TelemetryField.isRadioSupported:
+        return isRadioSupported;
     }
   }
 
@@ -281,6 +329,22 @@ class TelemetryState {
         return copyWith(fuelVolumeLiters: TelemetryValue(value as double?));
       case TelemetryField.isFuelSupported:
         return copyWith(isFuelSupported: value as bool? ?? false);
+      case TelemetryField.radioActiveFrequency:
+        return copyWith(radioActiveFrequency: TelemetryValue(value as int?));
+      case TelemetryField.radioStandbyFrequency:
+        return copyWith(radioStandbyFrequency: TelemetryValue(value as int?));
+      case TelemetryField.radioActiveStationName:
+        return copyWith(radioActiveStationName: TelemetryValue(value as String?));
+      case TelemetryField.radioStandbyStationName:
+        return copyWith(radioStandbyStationName: TelemetryValue(value as String?));
+      case TelemetryField.radioFlags:
+        return copyWith(radioFlags: TelemetryValue(value as int?));
+      case TelemetryField.radioInstance:
+        return copyWith(radioInstance: TelemetryValue(value as int?));
+      case TelemetryField.radioNodeId:
+        return copyWith(radioNodeId: TelemetryValue(value as int?));
+      case TelemetryField.isRadioSupported:
+        return copyWith(isRadioSupported: value as bool? ?? false);
     }
   }
 
@@ -310,6 +374,14 @@ class TelemetryState {
     TelemetryValue<double?>? fuelLevelPercent,
     TelemetryValue<double?>? fuelVolumeLiters,
     bool? isFuelSupported,
+    TelemetryValue<int?>? radioActiveFrequency,
+    TelemetryValue<int?>? radioStandbyFrequency,
+    TelemetryValue<String?>? radioActiveStationName,
+    TelemetryValue<String?>? radioStandbyStationName,
+    TelemetryValue<int?>? radioFlags,
+    TelemetryValue<int?>? radioInstance,
+    TelemetryValue<int?>? radioNodeId,
+    bool? isRadioSupported,
   }) {
     return TelemetryState(
       latitude: latitude != null ? latitude.value : this.latitude,
@@ -328,8 +400,7 @@ class TelemetryState {
       oilPressure: oilPressure != null ? oilPressure.value : this.oilPressure,
       oilTemperature: oilTemperature != null ? oilTemperature.value : this.oilTemperature,
       isOilTempSupported: isOilTempSupported ?? this.isOilTempSupported,
-      isOilPressureSupported:
-          isOilPressureSupported ?? this.isOilPressureSupported,
+      isOilPressureSupported: isOilPressureSupported ?? this.isOilPressureSupported,
       isEngineRpmSupported: isEngineRpmSupported ?? this.isEngineRpmSupported,
       cylinderHeadTemperatures: cylinderHeadTemperatures != null
           ? cylinderHeadTemperatures.value
@@ -342,6 +413,14 @@ class TelemetryState {
       fuelLevelPercent: fuelLevelPercent != null ? fuelLevelPercent.value : this.fuelLevelPercent,
       fuelVolumeLiters: fuelVolumeLiters != null ? fuelVolumeLiters.value : this.fuelVolumeLiters,
       isFuelSupported: isFuelSupported ?? this.isFuelSupported,
+      radioActiveFrequency: radioActiveFrequency != null ? radioActiveFrequency.value : this.radioActiveFrequency,
+      radioStandbyFrequency: radioStandbyFrequency != null ? radioStandbyFrequency.value : this.radioStandbyFrequency,
+      radioActiveStationName: radioActiveStationName != null ? radioActiveStationName.value : this.radioActiveStationName,
+      radioStandbyStationName: radioStandbyStationName != null ? radioStandbyStationName.value : this.radioStandbyStationName,
+      radioFlags: radioFlags != null ? radioFlags.value : this.radioFlags,
+      radioInstance: radioInstance != null ? radioInstance.value : this.radioInstance,
+      radioNodeId: radioNodeId != null ? radioNodeId.value : this.radioNodeId,
+      isRadioSupported: isRadioSupported ?? this.isRadioSupported,
     );
   }
 
@@ -390,11 +469,19 @@ class TelemetryState {
       fuelLevelPercent: field == TelemetryField.fuelLevelPercent ? null : fuelLevelPercent,
       fuelVolumeLiters: field == TelemetryField.fuelVolumeLiters ? null : fuelVolumeLiters,
       isFuelSupported: isFuelSupported,
+      radioActiveFrequency: field == TelemetryField.radioActiveFrequency ? null : radioActiveFrequency,
+      radioStandbyFrequency: field == TelemetryField.radioStandbyFrequency ? null : radioStandbyFrequency,
+      radioActiveStationName: field == TelemetryField.radioActiveStationName ? null : radioActiveStationName,
+      radioStandbyStationName: field == TelemetryField.radioStandbyStationName ? null : radioStandbyStationName,
+      radioFlags: field == TelemetryField.radioFlags ? null : radioFlags,
+      radioInstance: field == TelemetryField.radioInstance ? null : radioInstance,
+      radioNodeId: field == TelemetryField.radioNodeId ? null : radioNodeId,
+      isRadioSupported: isRadioSupported,
     );
   }
 
   @override
   String toString() {
-    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, coolant: $coolantTemperature, oilP: $oilPressure, oilT: $oilTemperature, isOilTempSupported: $isOilTempSupported, isOilPressureSupported: $isOilPressureSupported, chts: $cylinderHeadTemperatures, egts: $exhaustGasTemperatures, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState)';
+    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, coolant: $coolantTemperature, oilP: $oilPressure, oilT: $oilTemperature, isOilTempSupported: $isOilTempSupported, isOilPressureSupported: $isOilPressureSupported, chts: $cylinderHeadTemperatures, egts: $exhaustGasTemperatures, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState, radioActiveFreq: $radioActiveFrequency, radioStandbyFreq: $radioStandbyFrequency, radioActiveName: $radioActiveStationName, radioStandbyName: $radioStandbyStationName, radioFlags: $radioFlags, radioInstance: $radioInstance, radioNodeId: $radioNodeId, isRadioSupported: $isRadioSupported)';
   }
 }
