@@ -66,6 +66,7 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
 
   bool _isSaving = false;
   String? _errorMessage;
+  bool _showAudioControls = false;
 
   @override
   void initState() {
@@ -709,56 +710,86 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
 
                 const Divider(height: 24),
 
-                // Audio Control Sliders with save buttons
-                _buildLabeledSlider(
-                  label: "Hlasitosť",
-                  value: _volume,
-                  onChanged: (val) => setState(() => _volume = val),
-                  onSave: _saveVolume,
-                  isSaveEnabled: _volume.round() != _savedVolume,
-                  icon: Icons.volume_up,
-                ),
-                _buildLabeledSlider(
-                  label: "Squelch (Šumová brána)",
-                  value: _squelch,
-                  onChanged: (val) => setState(() => _squelch = val),
-                  onSave: _saveSquelch,
-                  isSaveEnabled: _squelch.round() != _savedSquelch,
-                  icon: Icons.filter_list,
-                ),
-                _buildLabeledSlider(
-                  label: "VOX Citlivosť",
-                  value: _vox,
-                  onChanged: (val) => setState(() => _vox = val),
-                  onSave: _saveVox,
-                  isSaveEnabled: _vox.round() != _savedVox,
-                  icon: Icons.keyboard_voice,
-                ),
-                _buildLabeledSlider(
-                  label: "Intercom Hlasitosť",
-                  value: _intercom,
-                  onChanged: (val) => setState(() => _intercom = val),
-                  onSave: _saveIntercom,
-                  isSaveEnabled: _intercom.round() != _savedIntercom,
-                  icon: Icons.people,
+                // Audio Control Sliders with save buttons (collapsible)
+                InkWell(
+                  onTap: () => setState(() => _showAudioControls = !_showAudioControls),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _showAudioControls ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          color: Colors.blueAccent,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _showAudioControls ? "Skryť nastavenia hlasitosti" : "Zobraziť nastavenia hlasitosti",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
 
-                // Microphones Gain Section with save buttons
-                if (_micGains.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  const Text("Mikrofóny (Gain)", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  const SizedBox(height: 8),
-                  ...List.generate(_micGains.length, (idx) {
-                    final isGainChanged = _micGains[idx].round() != (idx < _savedMicGains.length ? _savedMicGains[idx] : 0);
-                    return _buildLabeledSlider(
-                      label: "Mikrofón ${idx + 1}",
-                      value: _micGains[idx],
-                      onChanged: (val) => setState(() => _micGains[idx] = val),
-                      onSave: () => _saveMicGain(idx),
-                      isSaveEnabled: isGainChanged,
-                      icon: Icons.mic,
-                    );
-                  }),
+                if (_showAudioControls) ...[
+                  const SizedBox(height: 12),
+                  _buildLabeledSlider(
+                    label: "Hlasitosť",
+                    value: _volume,
+                    onChanged: (val) => setState(() => _volume = val),
+                    onSave: _saveVolume,
+                    isSaveEnabled: _volume.round() != _savedVolume,
+                    icon: Icons.volume_up,
+                  ),
+                  _buildLabeledSlider(
+                    label: "Squelch (Šumová brána)",
+                    value: _squelch,
+                    onChanged: (val) => setState(() => _squelch = val),
+                    onSave: _saveSquelch,
+                    isSaveEnabled: _squelch.round() != _savedSquelch,
+                    icon: Icons.filter_list,
+                  ),
+                  _buildLabeledSlider(
+                    label: "VOX Citlivosť",
+                    value: _vox,
+                    onChanged: (val) => setState(() => _vox = val),
+                    onSave: _saveVox,
+                    isSaveEnabled: _vox.round() != _savedVox,
+                    icon: Icons.keyboard_voice,
+                  ),
+                  _buildLabeledSlider(
+                    label: "Intercom Hlasitosť",
+                    value: _intercom,
+                    onChanged: (val) => setState(() => _intercom = val),
+                    onSave: _saveIntercom,
+                    isSaveEnabled: _intercom.round() != _savedIntercom,
+                    icon: Icons.people,
+                  ),
+
+                  // Microphones Gain Section with save buttons
+                  if (_micGains.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    const Text("Mikrofóny (Gain)", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 8),
+                    ...List.generate(_micGains.length, (idx) {
+                      final isGainChanged = _micGains[idx].round() != (idx < _savedMicGains.length ? _savedMicGains[idx] : 0);
+                      return _buildLabeledSlider(
+                        label: "Mikrofón ${idx + 1}",
+                        value: _micGains[idx],
+                        onChanged: (val) => setState(() => _micGains[idx] = val),
+                        onSave: () => _saveMicGain(idx),
+                        isSaveEnabled: isGainChanged,
+                        icon: Icons.mic,
+                      );
+                    }),
+                  ],
+                  const SizedBox(height: 16),
                 ],
 
                 const SizedBox(height: 16),
