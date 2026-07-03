@@ -31,6 +31,11 @@ enum TelemetryField {
   radioFlags,
   radioInstance,
   radioNodeId,
+  radioVolume,
+  radioSquelch,
+  radioVox,
+  radioIntercom,
+  radioMicGain,
   isRadioSupported;
 
   bool get isBlackBoxField {
@@ -45,6 +50,11 @@ enum TelemetryField {
       case TelemetryField.radioFlags:
       case TelemetryField.radioInstance:
       case TelemetryField.radioNodeId:
+      case TelemetryField.radioVolume:
+      case TelemetryField.radioSquelch:
+      case TelemetryField.radioVox:
+      case TelemetryField.radioIntercom:
+      case TelemetryField.radioMicGain:
       case TelemetryField.isRadioSupported:
         return false;
       default:
@@ -160,6 +170,11 @@ class TelemetryState {
   final int? radioFlags;
   final int? radioInstance;
   final int? radioNodeId;
+  final int? radioVolume;
+  final int? radioSquelch;
+  final int? radioVox;
+  final int? radioIntercom;
+  final List<int> radioMicGain;
   final bool isRadioSupported;
 
   const TelemetryState({
@@ -195,6 +210,11 @@ class TelemetryState {
     this.radioFlags,
     this.radioInstance,
     this.radioNodeId,
+    this.radioVolume,
+    this.radioSquelch,
+    this.radioVox,
+    this.radioIntercom,
+    this.radioMicGain = const [],
     this.isRadioSupported = false,
   });
 
@@ -262,6 +282,16 @@ class TelemetryState {
         return radioInstance;
       case TelemetryField.radioNodeId:
         return radioNodeId;
+      case TelemetryField.radioVolume:
+        return radioVolume;
+      case TelemetryField.radioSquelch:
+        return radioSquelch;
+      case TelemetryField.radioVox:
+        return radioVox;
+      case TelemetryField.radioIntercom:
+        return radioIntercom;
+      case TelemetryField.radioMicGain:
+        return radioMicGain.isNotEmpty ? jsonEncode(radioMicGain) : null;
       case TelemetryField.isRadioSupported:
         return isRadioSupported;
     }
@@ -343,6 +373,21 @@ class TelemetryState {
         return copyWith(radioInstance: TelemetryValue(value as int?));
       case TelemetryField.radioNodeId:
         return copyWith(radioNodeId: TelemetryValue(value as int?));
+      case TelemetryField.radioVolume:
+        return copyWith(radioVolume: TelemetryValue(value as int?));
+      case TelemetryField.radioSquelch:
+        return copyWith(radioSquelch: TelemetryValue(value as int?));
+      case TelemetryField.radioVox:
+        return copyWith(radioVox: TelemetryValue(value as int?));
+      case TelemetryField.radioIntercom:
+        return copyWith(radioIntercom: TelemetryValue(value as int?));
+      case TelemetryField.radioMicGain:
+        final List<dynamic>? parsedMicList = (value is String)
+            ? (value.isEmpty ? [] : jsonDecode(value) as List<dynamic>?)
+            : (value as List<dynamic>?);
+        return copyWith(
+          radioMicGain: TelemetryValue(parsedMicList?.cast<int>() ?? []),
+        );
       case TelemetryField.isRadioSupported:
         return copyWith(isRadioSupported: value as bool? ?? false);
     }
@@ -381,6 +426,11 @@ class TelemetryState {
     TelemetryValue<int?>? radioFlags,
     TelemetryValue<int?>? radioInstance,
     TelemetryValue<int?>? radioNodeId,
+    TelemetryValue<int?>? radioVolume,
+    TelemetryValue<int?>? radioSquelch,
+    TelemetryValue<int?>? radioVox,
+    TelemetryValue<int?>? radioIntercom,
+    TelemetryValue<List<int>>? radioMicGain,
     bool? isRadioSupported,
   }) {
     return TelemetryState(
@@ -420,6 +470,11 @@ class TelemetryState {
       radioFlags: radioFlags != null ? radioFlags.value : this.radioFlags,
       radioInstance: radioInstance != null ? radioInstance.value : this.radioInstance,
       radioNodeId: radioNodeId != null ? radioNodeId.value : this.radioNodeId,
+      radioVolume: radioVolume != null ? radioVolume.value : this.radioVolume,
+      radioSquelch: radioSquelch != null ? radioSquelch.value : this.radioSquelch,
+      radioVox: radioVox != null ? radioVox.value : this.radioVox,
+      radioIntercom: radioIntercom != null ? radioIntercom.value : this.radioIntercom,
+      radioMicGain: radioMicGain != null ? radioMicGain.value : this.radioMicGain,
       isRadioSupported: isRadioSupported ?? this.isRadioSupported,
     );
   }
@@ -476,12 +531,17 @@ class TelemetryState {
       radioFlags: field == TelemetryField.radioFlags ? null : radioFlags,
       radioInstance: field == TelemetryField.radioInstance ? null : radioInstance,
       radioNodeId: field == TelemetryField.radioNodeId ? null : radioNodeId,
+      radioVolume: field == TelemetryField.radioVolume ? null : radioVolume,
+      radioSquelch: field == TelemetryField.radioSquelch ? null : radioSquelch,
+      radioVox: field == TelemetryField.radioVox ? null : radioVox,
+      radioIntercom: field == TelemetryField.radioIntercom ? null : radioIntercom,
+      radioMicGain: field == TelemetryField.radioMicGain ? [] : radioMicGain,
       isRadioSupported: isRadioSupported,
     );
   }
 
   @override
   String toString() {
-    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, coolant: $coolantTemperature, oilP: $oilPressure, oilT: $oilTemperature, isOilTempSupported: $isOilTempSupported, isOilPressureSupported: $isOilPressureSupported, chts: $cylinderHeadTemperatures, egts: $exhaustGasTemperatures, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState, radioActiveFreq: $radioActiveFrequency, radioStandbyFreq: $radioStandbyFrequency, radioActiveName: $radioActiveStationName, radioStandbyName: $radioStandbyStationName, radioFlags: $radioFlags, radioInstance: $radioInstance, radioNodeId: $radioNodeId, isRadioSupported: $isRadioSupported)';
+    return 'TelemetryState(lat: $latitude, lon: $longitude, heading: $heading, groundSpeed: $groundSpeed, ias: $indicatedAirSpeed, isFlying: $isFlying, rpm: $engineRPM, pressure: $airPressure, gpsAlt: $gpsAltitude, gpsSats: $gpsSatelliteCount, gpsHAcc: $gpsHorizontalAccuracy, gpsVAcc: $gpsVerticalAccuracy, coolant: $coolantTemperature, oilP: $oilPressure, oilT: $oilTemperature, isOilTempSupported: $isOilTempSupported, isOilPressureSupported: $isOilPressureSupported, chts: $cylinderHeadTemperatures, egts: $exhaustGasTemperatures, isGpsDroneCan: $isGpsDroneCan, mapState: $mapViewState, radioActiveFreq: $radioActiveFrequency, radioStandbyFreq: $radioStandbyFrequency, radioActiveName: $radioActiveStationName, radioStandbyName: $radioStandbyStationName, radioFlags: $radioFlags, radioInstance: $radioInstance, radioNodeId: $radioNodeId, radioVolume: $radioVolume, radioSquelch: $radioSquelch, radioVox: $radioVox, radioIntercom: $radioIntercom, radioMicGain: $radioMicGain, isRadioSupported: $isRadioSupported)';
   }
 }

@@ -41,7 +41,7 @@ final class TelemetryNotifierProvider
   }
 }
 
-String _$telemetryNotifierHash() => r'7e72e28ac0bcb73d354ca7e900c841105715b84f';
+String _$telemetryNotifierHash() => r'5bd08fdbe8dab08913c78ccb46192f7a38be7a1c';
 
 abstract class _$TelemetryNotifier extends $Notifier<TelemetryState> {
   TelemetryState build();

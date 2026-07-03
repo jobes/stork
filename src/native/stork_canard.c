@@ -356,3 +356,17 @@ FFI_EXPORT int16_t stork_canard_respond(
             data_type_id, payload_len, priority, res);
   return res;
 }
+
+FFI_EXPORT int16_t stork_canard_request(
+    uint64_t data_type_signature, uint16_t data_type_id, uint8_t *inout_transfer_id,
+    uint8_t destination_node_id, uint8_t priority, const uint8_t *payload,
+    uint16_t payload_len) {
+  int16_t res = canardRequestOrRespond(
+      &g_canard, destination_node_id, data_type_signature, data_type_id, inout_transfer_id,
+      priority, CanardRequest, payload, payload_len);
+  stork_log("stork_canard: Request message type ID: %d, len: %d, priority: %d, "
+            "res: %d\n",
+            data_type_id, payload_len, priority, res);
+  return res;
+}
+

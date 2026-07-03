@@ -229,6 +229,46 @@ class TelemetryNotifier extends _$TelemetryNotifier {
           : state.copyWith(radioNodeId: TelemetryValue(val));
     },
   );
+  late final DecayableField<int> _radioVolume = DecayableField<int>(
+    timeout: const Duration(seconds: 30),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioVolume)
+          : state.copyWith(radioVolume: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<int> _radioSquelch = DecayableField<int>(
+    timeout: const Duration(seconds: 30),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioSquelch)
+          : state.copyWith(radioSquelch: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<int> _radioVox = DecayableField<int>(
+    timeout: const Duration(seconds: 30),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioVox)
+          : state.copyWith(radioVox: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<int> _radioIntercom = DecayableField<int>(
+    timeout: const Duration(seconds: 30),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioIntercom)
+          : state.copyWith(radioIntercom: TelemetryValue(val));
+    },
+  );
+  late final DecayableField<List<int>> _radioMicGain = DecayableField<List<int>>(
+    timeout: const Duration(seconds: 30),
+    onChanged: (val) {
+      state = val == null
+          ? state.resetField(TelemetryField.radioMicGain)
+          : state.copyWith(radioMicGain: TelemetryValue(val));
+    },
+  );
 
   DateTime? _lastDroneCanFixTime;
 
@@ -262,6 +302,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _radioFlags.cancel();
       _radioInstance.cancel();
       _radioNodeId.cancel();
+      _radioVolume.cancel();
+      _radioSquelch.cancel();
+      _radioVox.cancel();
+      _radioIntercom.cancel();
+      _radioMicGain.cancel();
     });
 
     return const TelemetryState();
@@ -390,6 +435,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     required String activeStationName,
     required String standbyStationName,
     required int nodeId,
+    required int volume,
+    required int squelch,
+    required int vox,
+    required int intercom,
+    required List<int> micGain,
   }) {
     _radioActiveFrequency.sync(activeFrequencyKhz);
     _radioStandbyFrequency.sync(standbyFrequencyKhz);
@@ -398,6 +448,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _radioFlags.sync(flags);
     _radioInstance.sync(radioInstance);
     _radioNodeId.sync(nodeId);
+    _radioVolume.sync(volume);
+    _radioSquelch.sync(squelch);
+    _radioVox.sync(vox);
+    _radioIntercom.sync(intercom);
+    _radioMicGain.sync(micGain);
 
     state = state.copyWith(
       radioActiveFrequency: TelemetryValue(activeFrequencyKhz),
@@ -407,6 +462,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       radioFlags: TelemetryValue(flags),
       radioInstance: TelemetryValue(radioInstance),
       radioNodeId: TelemetryValue(nodeId),
+      radioVolume: TelemetryValue(volume),
+      radioSquelch: TelemetryValue(squelch),
+      radioVox: TelemetryValue(vox),
+      radioIntercom: TelemetryValue(intercom),
+      radioMicGain: TelemetryValue(micGain),
       isRadioSupported: true,
     );
   }
@@ -462,6 +522,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _radioFlags.sync(newState.radioFlags);
     _radioInstance.sync(newState.radioInstance);
     _radioNodeId.sync(newState.radioNodeId);
+    _radioVolume.sync(newState.radioVolume);
+    _radioSquelch.sync(newState.radioSquelch);
+    _radioVox.sync(newState.radioVox);
+    _radioIntercom.sync(newState.radioIntercom);
+    _radioMicGain.sync(newState.radioMicGain);
 
     _updateIsFlying();
   }

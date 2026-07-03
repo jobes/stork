@@ -5,6 +5,7 @@ import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../providers/telemetry_provider.dart';
 import 'telemetry_card.dart';
+import 'vhf_radio_dialog.dart';
 
 class VhfRadioTelemetryWidget extends ConsumerWidget {
   const VhfRadioTelemetryWidget({super.key});
@@ -16,6 +17,13 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
     final radioActiveName = ref.watch(telemetryProvider.select((t) => t.radioActiveStationName));
     final radioStandbyName = ref.watch(telemetryProvider.select((t) => t.radioStandbyStationName));
     final radioFlags = ref.watch(telemetryProvider.select((t) => t.radioFlags)) ?? 0;
+    final radioInstance = ref.watch(telemetryProvider.select((t) => t.radioInstance)) ?? 0;
+    final radioNodeId = ref.watch(telemetryProvider.select((t) => t.radioNodeId));
+    final radioVolume = ref.watch(telemetryProvider.select((t) => t.radioVolume)) ?? 50;
+    final radioSquelch = ref.watch(telemetryProvider.select((t) => t.radioSquelch)) ?? 10;
+    final radioVox = ref.watch(telemetryProvider.select((t) => t.radioVox)) ?? 20;
+    final radioIntercom = ref.watch(telemetryProvider.select((t) => t.radioIntercom)) ?? 30;
+    final radioMicGain = ref.watch(telemetryProvider.select((t) => t.radioMicGain));
 
     final settings = ref.watch(appSettingsProvider).value;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -43,10 +51,32 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
     final activeFreqStr = formatFreq(radioActiveFreq);
     final standbyFreqStr = formatFreq(radioStandbyFreq);
 
-
+    void openRadioDialog() {
+      if (isErr || radioNodeId == null || radioStandbyFreq == null) {
+        return;
+      }
+      showDialog(
+        context: context,
+        builder: (context) => VhfRadioDialog(
+          radioInstance: radioInstance,
+          nodeId: radioNodeId,
+          initialActiveKhz: radioActiveFreq,
+          initialStandbyKhz: radioStandbyFreq,
+          initialActiveName: radioActiveName ?? '',
+          initialStandbyName: radioStandbyName ?? '',
+          initialVolume: radioVolume,
+          initialSquelch: radioSquelch,
+          initialVox: radioVox,
+          initialIntercom: radioIntercom,
+          initialMicGain: radioMicGain,
+          initialIsDual: isDual,
+        ),
+      );
+    }
 
     return TelemetryCard(
       state: cardState,
+      onTap: (isErr || isDisconnected || radioNodeId == null) ? null : openRadioDialog,
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
       child: SizedBox(
         width: 130.0 * fontScale,

@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/native/dronecan/vhf_radio_full_status.dart';
 import 'package:stork/core/native/dronecan/vhf_radio_fast_status.dart';
+import 'package:stork/core/native/dronecan/bit_reader.dart';
+import 'package:stork/core/native/dronecan/vhf_radio_control.dart';
 
 void main() {
   group('DroneCAN VHF Radio parsing tests', () {
@@ -114,6 +116,43 @@ void main() {
       expect(msg.micGain, equals([90, 85]));
       expect(msg.activeStationName, equals("KOSH TWR"));
       expect(msg.standbyStationName, equals("KLAX GND"));
+    });
+
+    test('BitWriter and VhfRadioControlRequest / Response test', () {
+      final req = VhfRadioControlRequest(
+        radioInstance: 1,
+        action: VhfRadioControlRequest.actionSetStandbyFreq,
+        frequencyKhz: 121500,
+        frequencyName: "COM1 STB",
+      );
+
+      final payload = req.toPayload();
+
+      // Let's decode this payload back with a BitReader to verify exact values:
+      final reader = BitReader(payload);
+      final decodedRadioInstance = reader.readUint(2);
+      final decodedAction = reader.readUint(4);
+      final decodedLevel = reader.readUint(7);
+      final decodedIndex = reader.readUint(3);
+      final decodedFreq = reader.readUint(18);
+
+      final decodedNameBytes = <int>[];
+      while (reader.bitOffset + 8 <= payload.length * 8) {
+        decodedNameBytes.add(reader.readUint(8));
+      }
+      final decodedName = String.fromCharCodes(decodedNameBytes);
+
+      expect(decodedRadioInstance, equals(1));
+      expect(decodedAction, equals(VhfRadioControlRequest.actionSetStandbyFreq));
+      expect(decodedLevel, equals(0));
+      expect(decodedIndex, equals(0));
+      expect(decodedFreq, equals(121500));
+      expect(decodedName, equals("COM1 STB"));
+
+      // Test response decoding
+      final respBytes = Uint8List.fromList([0]);
+      final resp = VhfRadioControlResponse.fromPayload(respBytes);
+      expect(resp.status, equals(VhfRadioControlResponse.statusOk));
     });
   });
 }
