@@ -11,6 +11,9 @@ import '../../../domain/airport_metadata.dart';
 import '../../../utils/openaip_enums.dart';
 import '../../providers/airport_metadata_provider.dart';
 import 'base_details_dialog.dart';
+import 'package:stork/core/services/cannelloni_service_io.dart';
+import 'package:stork/core/native/dronecan/vhf_radio_control.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 
 class AirportDetailsDialog extends ConsumerWidget {
   final String airportId;
@@ -174,7 +177,7 @@ class AirportDetailsDialog extends ConsumerWidget {
       children: [
         _buildGeneralInfo(metadata, l10n, isDark),
         _buildWarnings(context, metadata, l10n),
-        _buildFrequencies(context, metadata, l10n, isDark),
+        _buildFrequencies(context, ref, metadata, l10n, isDark),
         _buildRunways(context, metadata, l10n, isDark),
         _buildImages(ref, metadata, l10n),
       ],
@@ -343,11 +346,16 @@ class AirportDetailsDialog extends ConsumerWidget {
 
   Widget _buildFrequencies(
     BuildContext context,
+    WidgetRef ref,
     AirportMetadata metadata,
     AppLocalizations l10n,
     bool isDark,
   ) {
     if (metadata.frequencies.isEmpty) return const SizedBox.shrink();
+
+    final radioActiveFreq = ref.watch(telemetryProvider.select((t) => t.radioActiveFrequency));
+    final radioStandbyFreq = ref.watch(telemetryProvider.select((t) => t.radioStandbyFrequency));
+    final radioNodeId = ref.watch(telemetryProvider.select((t) => t.radioNodeId));
 
     final sortedFrequencies = List<AirportFrequency>.from(metadata.frequencies)
       ..sort((a, b) {
@@ -391,15 +399,56 @@ class AirportDetailsDialog extends ConsumerWidget {
                 : f.type.toLocalizedName(l10n);
             final freqValue = '${f.value} ${f.unit.symbol}';
 
+            final double? numericValue = double.tryParse(f.value);
+            int? btnFreqKhz;
+            if (numericValue != null) {
+              if (f.unit == OpenAipUnit.mhz) {
+                btnFreqKhz = (numericValue * 1000).round();
+              } else if (f.unit == OpenAipUnit.khz) {
+                btnFreqKhz = numericValue.round();
+              }
+            }
+
+            final bool isCurrentlyActive = btnFreqKhz != null && radioActiveFreq == btnFreqKhz;
+            final bool isCurrentlyStandby = btnFreqKhz != null && radioStandbyFreq == btnFreqKhz;
+
+            final bool showActiveOption = !isCurrentlyActive;
+            final bool showStandbyOption = !isCurrentlyStandby;
+            final bool isClickable = radioNodeId != null && (showActiveOption || showStandbyOption);
+
+            TapDownDetails? tapDetails;
+
             return Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () {
-                  // Debug print requested by user
-                  debugPrint(
-                    'Setting radio frequency: $radioName - $freqValue',
-                  );
+                onTapDown: (details) {
+                  tapDetails = details;
                 },
+                onTap: isClickable ? () {
+                  if (btnFreqKhz == null) return;
+                  final freqKhz = btnFreqKhz;
+
+                  if (freqKhz < 118000 || freqKhz > 136995) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Frekvencia je mimo leteckého pásma (118.000 - 136.995 MHz)'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (tapDetails != null) {
+                    _showRadioPopupMenu(
+                      context: context,
+                      ref: ref,
+                      details: tapDetails!,
+                      freqKhz: freqKhz,
+                      radioName: radioName,
+                      showActive: showActiveOption,
+                      showStandby: showStandbyOption,
+                    );
+                  }
+                } : null,
                 borderRadius: BorderRadius.circular(12),
                 child: Ink(
                   padding: const EdgeInsets.symmetric(
@@ -435,7 +484,7 @@ class AirportDetailsDialog extends ConsumerWidget {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          Icons.radio,
+                           Icons.radio,
                           size: 15,
                           color: f.primary
                               ? Colors.blueAccent
@@ -494,33 +543,35 @@ class AirportDetailsDialog extends ConsumerWidget {
                                   : (isDark ? Colors.white : Colors.black87),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Text(
-                                l10n.tune,
-                                style: TextStyle(
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.bold,
+                          if (isClickable) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Text(
+                                  l10n.tune,
+                                  style: TextStyle(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: f.primary
+                                        ? Colors.blueAccent
+                                        : (isDark
+                                              ? Colors.white38
+                                              : Colors.black38),
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                Icon(
+                                  Icons.tune,
+                                  size: 9,
                                   color: f.primary
                                       ? Colors.blueAccent
                                       : (isDark
                                             ? Colors.white38
                                             : Colors.black38),
                                 ),
-                              ),
-                              const SizedBox(width: 2),
-                              Icon(
-                                Icons.tune,
-                                size: 9,
-                                color: f.primary
-                                    ? Colors.blueAccent
-                                    : (isDark
-                                          ? Colors.white38
-                                          : Colors.black38),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -851,5 +902,100 @@ class AirportDetailsDialog extends ConsumerWidget {
         );
       },
     );
+  }
+
+  void _showRadioPopupMenu({
+    required BuildContext context,
+    required WidgetRef ref,
+    required TapDownDetails details,
+    required int freqKhz,
+    required String radioName,
+    required bool showActive,
+    required bool showStandby,
+  }) {
+    final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        details.globalPosition,
+        details.globalPosition,
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu<String>(
+      context: context,
+      position: position,
+      items: [
+        if (showActive)
+          const PopupMenuItem<String>(
+            value: 'active',
+            child: Text('Aktívna frekvencia'),
+          ),
+        if (showStandby)
+          const PopupMenuItem<String>(
+            value: 'standby',
+            child: Text('Standby frekvencia'),
+          ),
+      ],
+    ).then((String? value) {
+      if (value == null) return;
+      if (!context.mounted) return;
+      _setRadioFrequency(
+        ref: ref,
+        context: context,
+        freqKhz: freqKhz,
+        radioName: radioName,
+        isActive: value == 'active',
+      );
+    });
+  }
+
+  Future<void> _setRadioFrequency({
+    required WidgetRef ref,
+    required BuildContext context,
+    required int freqKhz,
+    required String radioName,
+    required bool isActive,
+  }) async {
+    final currentRadioNodeId = ref.read(telemetryProvider.select((t) => t.radioNodeId));
+    if (currentRadioNodeId == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Rádio nie je pripojené')),
+        );
+      }
+      return;
+    }
+
+    final radioInstance = ref.read(telemetryProvider.select((t) => t.radioInstance)) ?? 0;
+
+    try {
+      final cannelloni = ref.read(cannelloniServiceProvider.notifier);
+      final req = VhfRadioControlRequest(
+        radioInstance: radioInstance,
+        action: isActive
+            ? VhfRadioControlRequest.actionSetActiveFreq
+            : VhfRadioControlRequest.actionSetStandbyFreq,
+        frequencyKhz: freqKhz,
+        frequencyName: radioName,
+      );
+      final res = await cannelloni.sendRequest(
+        destinationNodeId: currentRadioNodeId,
+        dataTypeId: VhfRadioControlRequest.messageId,
+        dataTypeSignature: VhfRadioControlRequest.messageSignature,
+        payload: req.toPayload(),
+      );
+      final response = VhfRadioControlResponse.fromPayload(res);
+      if (response.status != VhfRadioControlResponse.statusOk) {
+        throw Exception('Rádio vrátilo chybu');
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Nepodarilo sa nastaviť frekvenciu: $e'),
+        ),
+      );
+    }
   }
 }
