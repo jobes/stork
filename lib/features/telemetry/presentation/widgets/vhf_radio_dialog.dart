@@ -67,6 +67,7 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
   bool _isSaving = false;
   String? _errorMessage;
   bool _showAudioControls = false;
+  bool _showAdvancedMode = false;
 
   @override
   void initState() {
@@ -108,6 +109,67 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
     _standbyController.dispose();
     _standbyNameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _quickSetFrequency(double mhz, String name, bool isActive) async {
+    setState(() {
+      _isSaving = true;
+      _errorMessage = null;
+    });
+
+    final freqStr = mhz.toStringAsFixed(3);
+    final freqKhz = _parseAviationFrequency(freqStr);
+    if (freqKhz == null) {
+      setState(() {
+        _isSaving = false;
+        _errorMessage = "Frekvencia $freqStr MHz nie je platná.";
+      });
+      return;
+    }
+
+    try {
+      final cannelloni = ref.read(cannelloniServiceProvider.notifier);
+      final req = VhfRadioControlRequest(
+        radioInstance: widget.radioInstance,
+        action: isActive
+            ? VhfRadioControlRequest.actionSetActiveFreq
+            : VhfRadioControlRequest.actionSetStandbyFreq,
+        frequencyKhz: freqKhz,
+        frequencyName: name,
+      );
+      final res = await cannelloni.sendRequest(
+        destinationNodeId: widget.nodeId,
+        dataTypeId: VhfRadioControlRequest.messageId,
+        dataTypeSignature: VhfRadioControlRequest.messageSignature,
+        payload: req.toPayload(),
+      );
+      final response = VhfRadioControlResponse.fromPayload(res);
+      if (response.status != VhfRadioControlResponse.statusOk) {
+        throw Exception("Chyba pri rýchlom nastavení frekvencie");
+      }
+      
+      setState(() {
+        if (isActive) {
+          _activeController.text = freqStr;
+          _activeNameController.text = name;
+          _savedActiveText = freqStr;
+          _savedActiveName = name;
+        } else {
+          _standbyController.text = freqStr;
+          _standbyNameController.text = name;
+          _savedStandbyText = freqStr;
+          _savedStandbyName = name;
+        }
+        _isSaving = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isSaving = false;
+        _errorMessage = e is TimeoutException
+            ? "DroneCAN neodpovedal (Timeout 1s)."
+            : "Chyba rýchleho nastavenia frekvencie: ${e.toString()}";
+      });
+    }
   }
 
   int? _parseAviationFrequency(String text) {
@@ -549,6 +611,179 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
     );
   }
 
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12.0, bottom: 4.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.blueAccent,
+          letterSpacing: 1.0,
+        ),
+      ),
+    );
+  }
+
+  void _showFrequencyMenu(Offset globalPosition, double mhz, String name) {
+    final activeText = _activeController.text.trim();
+    final standbyText = _standbyController.text.trim();
+    final freqStr = mhz.toStringAsFixed(3);
+
+    final isAlreadyActive = (activeText == freqStr);
+    final isAlreadyStandby = (standbyText == freqStr);
+
+    if (isAlreadyActive && isAlreadyStandby) {
+      return; // Already active and standby on this radio
+    }
+
+    final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        globalPosition,
+        globalPosition,
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu<String>(
+      context: context,
+      position: position,
+      items: [
+        if (!isAlreadyActive)
+          const PopupMenuItem<String>(
+            value: 'active',
+            child: ListTile(
+              leading: Icon(Icons.radio, color: Colors.green),
+              title: Text('Nastaviť ako AKTÍVNU'),
+              dense: true,
+            ),
+          ),
+        if (!isAlreadyStandby)
+          const PopupMenuItem<String>(
+            value: 'standby',
+            child: ListTile(
+              leading: Icon(Icons.settings_input_antenna, color: Colors.blue),
+              title: Text('Nastaviť ako STANDBY'),
+              dense: true,
+            ),
+          ),
+      ],
+    ).then((String? value) {
+      if (value == null) return;
+      if (!context.mounted) return;
+      _quickSetFrequency(mhz, name, value == 'active');
+    });
+  }
+
+  Widget _buildAirportItem(String airportName, List<_FrequencyInfo> freqs) {
+    if (freqs.length == 1) {
+      final f = freqs.first;
+      final cleanName = f.name.contains(" ")
+          ? f.name.substring(f.name.indexOf(" ") + 1)
+          : f.name;
+      return _buildSimpleFrequencyRow("$airportName ($cleanName)", f.mhz, f.name);
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              child: Text(
+                airportName,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ),
+            const SizedBox(height: 4),
+            ...freqs.map((f) => _buildFrequencyRow(f.name, f.mhz)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSimpleFrequencyRow(String label, double mhz, String radioName) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
+      ),
+      child: InkWell(
+        onTapUp: (details) => _showFrequencyMenu(details.globalPosition, mhz, radioName),
+        onTap: () {},
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      "${mhz.toStringAsFixed(3)} MHz",
+                      style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFrequencyRow(String label, double mhz, {String? nameOverride}) {
+    final freqStr = mhz.toStringAsFixed(3);
+    final radioName = nameOverride ?? label;
+    return InkWell(
+      onTapUp: (details) => _showFrequencyMenu(details.globalPosition, mhz, radioName),
+      onTap: () {},
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    "$freqStr MHz",
+                    style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Dynamic dirty state calculation for Active Frequency / Name
@@ -563,9 +798,205 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
         RegExp(r'^\d{3}\.\d{3}$').hasMatch(standbyText) &&
         _parseAviationFrequency(standbyText) != null;
 
+    if (!_showAdvancedMode) {
+      return BaseDetailsDialog(
+        titleText: "Radio COM${widget.radioInstance + 1}",
+        icon: Icons.radio,
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              key: const ValueKey('vhf_dialog_quick_content'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_errorMessage != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red.shade400, width: 0.5),
+                      ),
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+
+                  // Header showing Active & Standby
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      children: [
+                        // Active
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "AKTÍVNA",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.green.shade600,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _activeController.text.isEmpty ? "---.---" : "${_activeController.text} MHz",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                              Text(
+                                _activeNameController.text.isEmpty ? "Bez názvu" : _activeNameController.text,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Swap
+                        IconButton(
+                          icon: const Icon(Icons.swap_horiz, size: 28, color: Colors.blueAccent),
+                          onPressed: _isSaving ? null : _flipFrequencies,
+                          tooltip: "Prehodiť frekvencie",
+                        ),
+                        // Standby
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "STANDBY",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue.shade600,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _standbyController.text.isEmpty ? "---.---" : "${_standbyController.text} MHz",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                              Text(
+                                _standbyNameController.text.isEmpty ? "Bez názvu" : _standbyNameController.text,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Advanced Mode Button & Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Frekvencie v okolí",
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => setState(() => _showAdvancedMode = true),
+                        icon: const Icon(Icons.tune, size: 16),
+                        label: const Text("Pokročilé / Ručne", style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // List of mock sections directly inside the Column (parent handles scrollability)
+                  _buildSectionHeader("Letiská v okolí"),
+                  _buildAirportItem("LZIB Bratislava", [
+                    const _FrequencyInfo(118.300, "LZIB TWR"),
+                    const _FrequencyInfo(120.900, "LZIB GND"),
+                    const _FrequencyInfo(128.650, "LZIB ATIS"),
+                  ]),
+                  _buildAirportItem("LZPP Piešťany", [
+                    const _FrequencyInfo(118.575, "LZPP TWR"),
+                    const _FrequencyInfo(122.950, "LZPP Info"),
+                  ]),
+                  _buildAirportItem("LZKZ Košice", [
+                    const _FrequencyInfo(120.400, "LZKZ TWR"),
+                    const _FrequencyInfo(121.900, "LZKZ GND"),
+                  ]),
+                  _buildAirportItem("LZNZ Nové Zámky", [
+                    const _FrequencyInfo(122.605, "LZNZ Prevádzka"),
+                  ]),
+                  const Divider(height: 16),
+                  _buildSectionHeader("Priestory"),
+                  _buildSimpleFrequencyRow("Bratislava Information (FIS)", 124.300, "LZBB FIS"),
+                  _buildSimpleFrequencyRow("Bratislava Radar", 133.725, "LZBB RAD"),
+                  const Divider(height: 16),
+                  _buildSectionHeader("Obľúbené"),
+                  _buildSimpleFrequencyRow("Emergency (Guard)", 121.500, "EMERGENCY"),
+                  _buildSimpleFrequencyRow("LZTT Info (Poprad)", 134.915, "LZTT INFO"),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+            if (_isSaving)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
     return BaseDetailsDialog(
       titleText: "Radio COM${widget.radioInstance + 1}",
       icon: Icons.radio,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => setState(() => _showAdvancedMode = false),
+          tooltip: "Späť na zoznam",
+        ),
+        IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
       child: Stack(
         children: [
           Padding(
@@ -590,7 +1021,6 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
                     ),
                   ),
 
-                // Active and Standby Row with Swap Button
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -812,4 +1242,10 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
       ),
     );
   }
+}
+
+class _FrequencyInfo {
+  final double mhz;
+  final String name;
+  const _FrequencyInfo(this.mhz, this.name);
 }
