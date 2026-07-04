@@ -87,9 +87,13 @@ Future<AirspaceMetadata?> airspaceMetadata(
   Ref ref,
   String airspaceId,
   String countryCode,
-) {
-  ref.keepAlive();
-  return ref
-      .watch(airspaceMetadataCacheProvider.notifier)
+) async {
+  final metadata = await ref
+      .read(airspaceMetadataCacheProvider.notifier)
       .getMetadata(airspaceId, countryCode);
+
+  if (metadata != null && ref.mounted) {
+    ref.keepAlive();
+  }
+  return metadata;
 }

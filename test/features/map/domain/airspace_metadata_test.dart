@@ -32,6 +32,13 @@ void main() {
         'upperLimit': {'value': 8000, 'unit': 1, 'referenceDatum': 1},
         'activity': 1,
         'byNotam': true,
+        'frequencies': [
+          {
+            '_id': 'freq_1',
+            'value': '118.305',
+            'primary': true,
+          }
+        ],
       };
 
       final metadata = AirspaceMetadata.fromJson(json);
@@ -49,6 +56,9 @@ void main() {
       expect(metadata.limitUpper.referenceDatum, equals(ReferenceDatum.msl));
       expect(metadata.activity, equals(AirspaceActivity.parachuting));
       expect(metadata.byNotam, equals(true));
+      expect(metadata.frequencies, isNotNull);
+      expect(metadata.frequencies!.length, equals(1));
+      expect(metadata.frequencies!.first.value, equals('118.305'));
     });
 
     test(
@@ -182,6 +192,75 @@ void main() {
           expect(results[0]?.name, equals('Test Airspace 1'));
           expect(results[1]?.name, equals('Test Airspace 1'));
           expect(requestCount, equals(1));
+        }, () => mockClient);
+      },
+    );
+
+    test(
+      'airspaceMetadata provider disposes KeepAliveLink on failure to allow retries',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        var requestCount = 0;
+        final mockClient = MockClient((request) async {
+          requestCount++;
+          print('MockClient: requestCount=$requestCount');
+          if (requestCount == 1) {
+            print('MockClient: returning 500');
+            return http.Response('Internal Server Error', 500);
+          }
+          print('MockClient: returning 200');
+          return http.Response(
+            json.encode({
+              'features': [
+                {
+                  'type': 'Feature',
+                  'properties': {
+                    'id': 'asp-retry',
+                    'name': 'Test Airspace Retry',
+                    'icaoClass': 2,
+                    'type': 7,
+                    'country': 'US',
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        });
+
+        await http.runWithClient(() async {
+          // Listen to keep provider alive during the test call
+          final sub = container.listen(
+            airspaceMetadataProvider('asp-retry', 'US'),
+            (previous, next) {},
+          );
+
+          // Wait until the provider completes its first load (either has value or error)
+          AsyncValue<AirspaceMetadata?> state;
+          do {
+            await Future.delayed(const Duration(milliseconds: 10));
+            state = container.read(airspaceMetadataProvider('asp-retry', 'US'));
+          } while (state is AsyncLoading && !state.hasError);
+
+          // Verify it failed on the first call
+          expect(state.hasError, isTrue);
+          expect(requestCount, equals(1));
+
+          // Close the subscription to let the provider auto-dispose
+          sub.close();
+
+          // Wait to let disposal register
+          await Future.delayed(Duration.zero);
+
+          // Second attempt - should retry and succeed because the previous one was auto-disposed
+          final secondCall = await container.read(
+            airspaceMetadataProvider('asp-retry', 'US').future,
+          );
+          expect(secondCall, isNotNull);
+          expect(secondCall?.name, equals('Test Airspace Retry'));
+          expect(requestCount, equals(2));
         }, () => mockClient);
       },
     );

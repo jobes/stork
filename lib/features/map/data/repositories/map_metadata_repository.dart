@@ -79,8 +79,11 @@ class MapMetadataRepository {
     String countryCode,
   ) async {
     final lowerCountryCode = countryCode.toLowerCase();
-    final url =
+    final rawUrl =
         '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_apt.geojson?alt=media';
+    final url = kIsWeb
+        ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
+        : rawUrl;
     final response = await _client
         .get(Uri.parse(url))
         .timeout(const Duration(seconds: 15));
@@ -96,8 +99,11 @@ class MapMetadataRepository {
     String countryCode,
   ) async {
     final lowerCountryCode = countryCode.toLowerCase();
-    final url =
+    final rawUrl =
         '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_asp.geojson?alt=media';
+    final url = kIsWeb
+        ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
+        : rawUrl;
     final response = await _client
         .get(Uri.parse(url))
         .timeout(const Duration(seconds: 15));
@@ -113,7 +119,7 @@ class MapMetadataRepository {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 MapMetadataRepository mapMetadataRepository(Ref ref) {
   final client = http.Client();
   ref.onDispose(() => client.close());

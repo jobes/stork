@@ -2,6 +2,7 @@ import 'airspace_class.dart';
 import 'airspace_type.dart';
 import 'airspace_limit.dart';
 import 'airspace_activity.dart';
+import 'airspace_frequency.dart';
 
 class AirspaceMetadata {
   final String id;
@@ -15,7 +16,7 @@ class AirspaceMetadata {
   final bool? byNotam;
   final bool? onDemand;
   final bool? onRequest;
-
+  final List<AirspaceFrequency>? frequencies;
   AirspaceMetadata({
     required this.id,
     required this.name,
@@ -28,6 +29,7 @@ class AirspaceMetadata {
     this.byNotam,
     this.onDemand,
     this.onRequest,
+    this.frequencies,
   });
 
   factory AirspaceMetadata.fromJson(Map<String, Object?> json) {
@@ -54,6 +56,9 @@ class AirspaceMetadata {
       byNotam: json['byNotam'] as bool?,
       onDemand: json['onDemand'] as bool?,
       onRequest: json['onRequest'] as bool?,
+      frequencies: (json['frequencies'] as List<dynamic>?)
+          ?.map((f) => AirspaceFrequency.fromJson(Map<String, Object?>.from(f as Map)))
+          .toList(),
     );
   }
 
@@ -74,6 +79,7 @@ class AirspaceMetadata {
       if (byNotam != null) 'byNotam': byNotam,
       if (onDemand != null) 'onDemand': onDemand,
       if (onRequest != null) 'onRequest': onRequest,
+      if (frequencies != null) 'frequencies': frequencies!.map((f) => f.toJson()).toList(),
     };
   }
 }

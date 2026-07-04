@@ -117,7 +117,7 @@ final class AirportMetadataProvider
   }
 }
 
-String _$airportMetadataHash() => r'af7adf5f5472aa9113f11bc6bea6e69978d3633c';
+String _$airportMetadataHash() => r'4f3e83ae58a081e18ee93195b50dc65953af06fc';
 
 final class AirportMetadataFamily extends $Family
     with

@@ -91,11 +91,15 @@ Future<AirportMetadata?> airportMetadata(
   Ref ref,
   String airportId,
   String countryCode,
-) {
-  ref.keepAlive();
-  return ref
-      .watch(airportMetadataCacheProvider.notifier)
+) async {
+  final metadata = await ref
+      .read(airportMetadataCacheProvider.notifier)
       .getMetadata(airportId, countryCode);
+
+  if (metadata != null && ref.mounted) {
+    ref.keepAlive();
+  }
+  return metadata;
 }
 
 @riverpod

@@ -119,7 +119,7 @@ final class AirspaceMetadataProvider
   }
 }
 
-String _$airspaceMetadataHash() => r'5658c15c2350d03d45938be430c4c82054a088f2';
+String _$airspaceMetadataHash() => r'54e57e979491334120398c87bd95981c975796f7';
 
 final class AirspaceMetadataFamily extends $Family
     with

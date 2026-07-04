@@ -7,6 +7,9 @@ import '../../../domain/airspace_metadata.dart';
 import '../../providers/airspace_metadata_provider.dart';
 import '../../../utils/openaip_enums.dart';
 import 'base_details_dialog.dart';
+import 'package:stork/core/services/cannelloni_service_io.dart';
+import 'package:stork/core/native/dronecan/vhf_radio_control.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 
 class AirspaceDetailsDialog extends StatelessWidget {
   final List<dynamic> features;
@@ -125,7 +128,7 @@ class AirspaceDetailCard extends ConsumerWidget {
           if (metadata == null) {
             return _buildError(l10n, isDark);
           }
-          return _buildContent(context, metadata, l10n, isDark);
+          return _buildContent(context, ref, metadata, l10n, isDark);
         },
         loading: () => _buildLoading(l10n, isDark),
         error: (err, stack) => _buildError(l10n, isDark),
@@ -179,6 +182,7 @@ class AirspaceDetailCard extends ConsumerWidget {
 
   Widget _buildContent(
     BuildContext context,
+    WidgetRef ref,
     AirspaceMetadata metadata,
     AppLocalizations l10n,
     bool isDark,
@@ -253,6 +257,10 @@ class AirspaceDetailCard extends ConsumerWidget {
 
         // Vertical Limits
         _buildLimitsRow(metadata, l10n, isDark),
+
+        // Optional Frequencies
+        if (metadata.frequencies != null && metadata.frequencies!.isNotEmpty)
+          _buildFrequenciesRow(context, ref, metadata, l10n, isDark),
 
         // Optional Activity
         if (metadata.activity != null &&
@@ -453,5 +461,242 @@ class AirspaceDetailCard extends ConsumerWidget {
       padding: const EdgeInsets.only(top: 8.0),
       child: Wrap(spacing: 6, runSpacing: 6, children: chips),
     );
+  }
+
+  Widget _buildFrequenciesRow(
+    BuildContext context,
+    WidgetRef ref,
+    AirspaceMetadata metadata,
+    AppLocalizations l10n,
+    bool isDark,
+  ) {
+    final radioActiveFreq = ref.watch(telemetryProvider.select((t) => t.radioActiveFrequency));
+    final radioStandbyFreq = ref.watch(telemetryProvider.select((t) => t.radioStandbyFrequency));
+    final radioNodeId = ref.watch(telemetryProvider.select((t) => t.radioNodeId));
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(
+              Icons.radio,
+              size: 16,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${l10n.airspaceFrequencies}: ',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: metadata.frequencies!.map((f) {
+                final double? numericValue = double.tryParse(f.value);
+                int? btnFreqKhz;
+                if (numericValue != null) {
+                  btnFreqKhz = (numericValue * 1000).round();
+                }
+
+                final bool isCurrentlyActive = btnFreqKhz != null && radioActiveFreq == btnFreqKhz;
+                final bool isCurrentlyStandby = btnFreqKhz != null && radioStandbyFreq == btnFreqKhz;
+                final bool showActiveOption = !isCurrentlyActive;
+                final bool showStandbyOption = !isCurrentlyStandby;
+                final bool isClickable = radioNodeId != null && (showActiveOption || showStandbyOption);
+
+                Color badgeColor;
+                Color textColor;
+                if (isCurrentlyActive) {
+                  badgeColor = Colors.green.withAlpha(40);
+                  textColor = Colors.greenAccent.shade700;
+                } else if (isCurrentlyStandby) {
+                  badgeColor = Colors.orange.withAlpha(40);
+                  textColor = Colors.orangeAccent.shade700;
+                } else {
+                  badgeColor = isDark ? Colors.white.withAlpha(15) : Colors.black.withAlpha(10);
+                  textColor = isDark ? Colors.white70 : Colors.black87;
+                }
+
+                TapDownDetails? tapDetails;
+
+                return GestureDetector(
+                  onTapDown: (details) {
+                    tapDetails = details;
+                  },
+                  onTap: isClickable ? () {
+                    if (btnFreqKhz == null) return;
+                    final freqKhz = btnFreqKhz;
+
+                    if (freqKhz < 118000 || freqKhz > 136995) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Frekvencia je mimo leteckého pásma (118.000 - 136.995 MHz)'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    if (tapDetails != null) {
+                      _showRadioPopupMenu(
+                        context: context,
+                        ref: ref,
+                        details: tapDetails!,
+                        freqKhz: freqKhz,
+                        radioName: metadata.name,
+                        showActive: showActiveOption,
+                        showStandby: showStandbyOption,
+                      );
+                    }
+                  } : null,
+                  child: MouseRegion(
+                    cursor: isClickable ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: badgeColor,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isCurrentlyActive
+                              ? Colors.green.withAlpha(80)
+                              : (isCurrentlyStandby
+                                  ? Colors.orange.withAlpha(80)
+                                  : (isDark ? Colors.white12 : Colors.black12)),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${f.value} MHz',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: (isCurrentlyActive || isCurrentlyStandby)
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
+                              color: textColor,
+                            ),
+                          ),
+                          if (isClickable) ...[
+                            const SizedBox(width: 3),
+                            Icon(
+                              Icons.tune,
+                              size: 11,
+                              color: textColor.withAlpha(150),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRadioPopupMenu({
+    required BuildContext context,
+    required WidgetRef ref,
+    required TapDownDetails details,
+    required int freqKhz,
+    required String radioName,
+    required bool showActive,
+    required bool showStandby,
+  }) {
+    final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        details.globalPosition,
+        details.globalPosition,
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu<String>(
+      context: context,
+      position: position,
+      items: [
+        if (showActive)
+          const PopupMenuItem<String>(
+            value: 'active',
+            child: Text('Aktívna frekvencia'),
+          ),
+        if (showStandby)
+          const PopupMenuItem<String>(
+            value: 'standby',
+            child: Text('Standby frekvencia'),
+          ),
+      ],
+    ).then((String? value) {
+      if (value == null) return;
+      if (!context.mounted) return;
+      _setRadioFrequency(
+        ref: ref,
+        context: context,
+        freqKhz: freqKhz,
+        radioName: radioName,
+        isActive: value == 'active',
+      );
+    });
+  }
+
+  Future<void> _setRadioFrequency({
+    required WidgetRef ref,
+    required BuildContext context,
+    required int freqKhz,
+    required String radioName,
+    required bool isActive,
+  }) async {
+    final currentRadioNodeId = ref.read(telemetryProvider.select((t) => t.radioNodeId));
+    if (currentRadioNodeId == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Rádio nie je pripojené')),
+        );
+      }
+      return;
+    }
+
+    final radioInstance = ref.read(telemetryProvider.select((t) => t.radioInstance)) ?? 0;
+
+    try {
+      final cannelloni = ref.read(cannelloniServiceProvider.notifier);
+      final req = VhfRadioControlRequest(
+        radioInstance: radioInstance,
+        action: isActive
+            ? VhfRadioControlRequest.actionSetActiveFreq
+            : VhfRadioControlRequest.actionSetStandbyFreq,
+        frequencyKhz: freqKhz,
+        frequencyName: radioName,
+      );
+      final res = await cannelloni.sendRequest(
+        destinationNodeId: currentRadioNodeId,
+        dataTypeId: VhfRadioControlRequest.messageId,
+        dataTypeSignature: VhfRadioControlRequest.messageSignature,
+        payload: req.toPayload(),
+      );
+      final response = VhfRadioControlResponse.fromPayload(res);
+      if (response.status != VhfRadioControlResponse.statusOk) {
+        throw Exception('Rádio vrátilo chybu');
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Nepodarilo sa nastaviť frekvenciu: $e'),
+        ),
+      );
+    }
   }
 }
