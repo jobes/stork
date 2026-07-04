@@ -139,4 +139,50 @@ class GeoUtils {
     }
     return inside;
   }
+
+  /// Calculates the minimum distance from a point (lat, lon) to a segment defined by (lat1, lon1) and (lat2, lon2).
+  static double distanceToSegment(
+    double lat,
+    double lon,
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    final double dx = lon2 - lon1;
+    final double dy = lat2 - lat1;
+    if (dx == 0 && dy == 0) {
+      return distanceBetween(lat, lon, lat1, lon1);
+    }
+    final double t = (((lon - lon1) * dx + (lat - lat1) * dy) / (dx * dx + dy * dy)).clamp(0.0, 1.0);
+    final double closestLon = lon1 + t * dx;
+    final double closestLat = lat1 + t * dy;
+    return distanceBetween(lat, lon, closestLat, closestLon);
+  }
+
+  /// Calculates the minimum distance from a point (lat, lon) to a list of polygons.
+  /// If the point is inside the polygons, returns 0.0.
+  static double distanceToPolygons(
+    double lat,
+    double lon,
+    List<List<List<List<double>>>> polygons,
+  ) {
+    if (isPointInPolygons(lon, lat, polygons)) {
+      return 0.0;
+    }
+    double minDistance = double.infinity;
+    for (final polygon in polygons) {
+      if (polygon.isEmpty) continue;
+      final exteriorRing = polygon[0];
+      for (int i = 0; i < exteriorRing.length; i++) {
+        final p1 = exteriorRing[i];
+        final p2 = exteriorRing[(i + 1) % exteriorRing.length];
+        final dist = distanceToSegment(lat, lon, p1[1], p1[0], p2[1], p2[0]);
+        if (dist < minDistance) {
+          minDistance = dist;
+        }
+      }
+    }
+    return minDistance == double.infinity ? 0.0 : minDistance;
+  }
 }

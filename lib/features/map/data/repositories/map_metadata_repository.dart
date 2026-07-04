@@ -53,7 +53,11 @@ Map<String, AirspaceMetadata> parseAirspaceFeatures(String responseBody) {
         if (props != null) {
           final id = (props['_id'] ?? props['id'] ?? '').toString();
           if (id.isNotEmpty) {
-            result[id] = AirspaceMetadata.fromJson(props);
+            final map = Map<String, dynamic>.from(props);
+            if (f['geometry'] != null) {
+              map['geometry'] = f['geometry'];
+            }
+            result[id] = AirspaceMetadata.fromJson(map);
           }
         }
       }

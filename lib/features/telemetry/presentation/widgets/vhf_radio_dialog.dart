@@ -3,6 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
 import 'package:stork/core/native/dronecan/vhf_radio_control.dart';
+import 'package:stork/core/services/database/database_service.dart';
+import 'package:stork/features/map/presentation/providers/airport_metadata_provider.dart';
+import 'package:stork/features/map/presentation/providers/airspace_metadata_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
+import 'package:stork/core/utils/geo_utils.dart';
+import 'package:stork/features/map/domain/airport_metadata.dart';
+import 'package:stork/features/map/domain/airspace_metadata.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 
 class VhfRadioDialog extends ConsumerStatefulWidget {
@@ -69,6 +76,11 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
   bool _showAudioControls = false;
   bool _showAdvancedMode = false;
 
+  List<MapEntry<AirportMetadata, double>> _nearbyAirports = [];
+  bool _loadingAirports = true;
+  List<MapEntry<AirspaceMetadata, double>> _nearbyAirspaces = [];
+  bool _loadingAirspaces = true;
+
   @override
   void initState() {
     super.initState();
@@ -100,6 +112,136 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
     _activeNameController.addListener(() => setState(() {}));
     _standbyController.addListener(() => setState(() {}));
     _standbyNameController.addListener(() => setState(() {}));
+
+    _loadNearbyAirports();
+    _loadNearbyAirspaces();
+  }
+
+  Future<void> _loadNearbyAirports() async {
+    final telemetry = ref.read(telemetryProvider);
+    final lat = telemetry.latitude;
+    final lon = telemetry.longitude;
+    if (lat == null || lon == null) {
+      if (mounted) {
+        setState(() {
+          _loadingAirports = false;
+        });
+      }
+      return;
+    }
+
+    try {
+      final memoryAirports = ref.read(airportMetadataCacheProvider.notifier).memoryCache.values.toList();
+      
+      final dbFeatures = await DatabaseService.getAllOpenAipFeatures('apt');
+      final dbAirports = dbFeatures.map((json) {
+        try {
+          return AirportMetadata.fromJson(json);
+        } catch (_) {
+          return null;
+        }
+      }).whereType<AirportMetadata>().toList();
+
+      final allAirportsMap = <String, AirportMetadata>{};
+      for (final apt in dbAirports) {
+        if (apt.latitude != null && apt.longitude != null) {
+          allAirportsMap[apt.id] = apt;
+        }
+      }
+      for (final apt in memoryAirports) {
+        if (apt.latitude != null && apt.longitude != null) {
+          allAirportsMap[apt.id] = apt;
+        }
+      }
+
+      final listWithDistance = allAirportsMap.values.map((apt) {
+        final dist = GeoUtils.distanceBetween(lat, lon, apt.latitude!, apt.longitude!);
+        return MapEntry(apt, dist);
+      }).toList();
+
+      listWithDistance.sort((a, b) => a.value.compareTo(b.value));
+
+      if (mounted) {
+        setState(() {
+          _nearbyAirports = listWithDistance.take(5).toList();
+          _loadingAirports = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingAirports = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadNearbyAirspaces() async {
+    final telemetry = ref.read(telemetryProvider);
+    final lat = telemetry.latitude;
+    final lon = telemetry.longitude;
+    if (lat == null || lon == null) {
+      if (mounted) {
+        setState(() {
+          _loadingAirspaces = false;
+        });
+      }
+      return;
+    }
+
+    try {
+      final memoryAirspaces = ref.read(airspaceMetadataCacheProvider.notifier).memoryCache.values.toList();
+      
+      final dbFeatures = await DatabaseService.getAllOpenAipFeatures('asp');
+      final dbAirspaces = dbFeatures.map((json) {
+        try {
+          return AirspaceMetadata.fromJson(json);
+        } catch (_) {
+          return null;
+        }
+      }).whereType<AirspaceMetadata>().toList();
+
+      final allAirspacesMap = <String, AirspaceMetadata>{};
+      for (final asp in dbAirspaces) {
+        if (asp.geometry != null) {
+          allAirspacesMap[asp.id] = asp;
+        }
+      }
+      for (final asp in memoryAirspaces) {
+        if (asp.geometry != null) {
+          allAirspacesMap[asp.id] = asp;
+        }
+      }
+
+
+
+      final listWithDistance = allAirspacesMap.values.map((asp) {
+        final dist = GeoUtils.distanceToPolygons(lat, lon, asp.polygons);
+        return MapEntry(asp, dist);
+      }).where((entry) => entry.key.frequencies != null && entry.key.frequencies!.isNotEmpty).toList();
+
+      listWithDistance.sort((a, b) {
+        final distA = a.value;
+        final distB = b.value;
+        if (distA == 0.0 && distB == 0.0) {
+          return a.key.name.toLowerCase().compareTo(b.key.name.toLowerCase());
+        }
+        return distA.compareTo(distB);
+      });
+
+      if (mounted) {
+        setState(() {
+          _nearbyAirspaces = listWithDistance.take(5).toList();
+          _loadingAirspaces = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingAirspaces = false;
+        });
+      }
+    }
   }
 
   @override
@@ -936,32 +1078,83 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
 
                   const SizedBox(height: 4),
 
-                  // List of mock sections directly inside the Column (parent handles scrollability)
                   _buildSectionHeader("Letiská v okolí"),
-                  _buildAirportItem("LZIB Bratislava", [
-                    const _FrequencyInfo(118.300, "LZIB TWR"),
-                    const _FrequencyInfo(120.900, "LZIB GND"),
-                    const _FrequencyInfo(128.650, "LZIB ATIS"),
-                  ]),
-                  _buildAirportItem("LZPP Piešťany", [
-                    const _FrequencyInfo(118.575, "LZPP TWR"),
-                    const _FrequencyInfo(122.950, "LZPP Info"),
-                  ]),
-                  _buildAirportItem("LZKZ Košice", [
-                    const _FrequencyInfo(120.400, "LZKZ TWR"),
-                    const _FrequencyInfo(121.900, "LZKZ GND"),
-                  ]),
-                  _buildAirportItem("LZNZ Nové Zámky", [
-                    const _FrequencyInfo(122.605, "LZNZ Prevádzka"),
-                  ]),
-                  const Divider(height: 16),
-                  _buildSectionHeader("Priestory"),
-                  _buildSimpleFrequencyRow("Bratislava Information (FIS)", 124.300, "LZBB FIS"),
-                  _buildSimpleFrequencyRow("Bratislava Radar", 133.725, "LZBB RAD"),
+                  if (_loadingAirports)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      child: Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  else if (_nearbyAirports.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      child: Text(
+                        "Žiadne letiská v okolí",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    ..._nearbyAirports.map((entry) {
+                      final apt = entry.key;
+                      final distance = entry.value;
+                      final distanceStr = (distance / 1000.0).toStringAsFixed(1);
+                      final displayLabel = apt.icaoCode != null && apt.icaoCode!.isNotEmpty
+                          ? "${apt.icaoCode} ${apt.name} ($distanceStr km)"
+                          : "${apt.name} ($distanceStr km)";
+                          
+                      final freqs = apt.frequencies.map((f) {
+                        final val = double.tryParse(f.value) ?? 0.0;
+                        return _FrequencyInfo(val, f.name.isNotEmpty ? f.name : f.type.name);
+                      }).where((f) => f.mhz > 0.0).toList();
+
+                      return _buildAirportItem(displayLabel, freqs);
+                    }),
                   const Divider(height: 16),
                   _buildSectionHeader("Obľúbené"),
                   _buildSimpleFrequencyRow("Emergency (Guard)", 121.500, "EMERGENCY"),
                   _buildSimpleFrequencyRow("LZTT Info (Poprad)", 134.915, "LZTT INFO"),
+                  const Divider(height: 16),
+                  _buildSectionHeader("Priestory"),
+                  if (_loadingAirspaces)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      child: Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  else if (_nearbyAirspaces.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      child: Text(
+                        "Žiadne priestory v okolí",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  else
+                    ..._nearbyAirspaces.map((entry) {
+                      final asp = entry.key;
+                      final distance = entry.value;
+                      final distanceStr = distance == 0.0 ? "v priestore" : "${(distance / 1000.0).toStringAsFixed(1)} km";
+                      final displayLabel = "${asp.name} ($distanceStr)";
+                      
+                      final freqs = asp.frequencies!.map((f) {
+                        final val = double.tryParse(f.value) ?? 0.0;
+                        return _FrequencyInfo(val, asp.name);
+                      }).where((f) => f.mhz > 0.0).toList();
+
+                      return _buildAirportItem(displayLabel, freqs);
+                    }),
                   const SizedBox(height: 24),
                 ],
               ),

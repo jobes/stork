@@ -346,6 +346,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
                 final Map<String, dynamic> propsWithGeo =
                     Map<String, dynamic>.from(props);
                 if (f['geometry'] case Map<String, dynamic> geometry) {
+                  propsWithGeo['geometry'] = geometry;
                   if (geometry['type'] == 'Point') {
                     if (geometry['coordinates']
                         case List<dynamic> coordinates) {

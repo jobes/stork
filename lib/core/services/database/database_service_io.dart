@@ -334,6 +334,27 @@ class DatabaseService {
     return null;
   }
 
+  static Future<List<Map<String, dynamic>>> getAllOpenAipFeatures(
+    String type,
+  ) async {
+    if (kIsWeb) return [];
+    final db = await database;
+    final result = db.select(
+      'SELECT json FROM openaip_features WHERE type = ?',
+      [type],
+    );
+    final list = <Map<String, dynamic>>[];
+    for (final row in result) {
+      try {
+        final decoded = json.decode(row['json'] as String);
+        if (decoded is Map<String, dynamic>) {
+          list.add(decoded);
+        }
+      } catch (_) {}
+    }
+    return list;
+  }
+
   static Future<void> clearMapData() async {
     final db = await database;
     db.execute('DELETE FROM map_tiles');
