@@ -6,6 +6,17 @@ import 'package:stork/features/map/presentation/components/dialogs/airport_detai
 import 'package:stork/features/map/presentation/providers/airport_metadata_provider.dart';
 import 'package:stork/features/map/domain/airport_metadata.dart';
 import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
+
+class FakeTelemetryNotifier extends TelemetryNotifier {
+  @override
+  TelemetryState build() {
+    return const TelemetryState(
+      radioNodeId: 10,
+      isRadioSupported: true,
+    );
+  }
+}
 
 void main() {
   testWidgets(
@@ -184,6 +195,7 @@ void main() {
             'US',
           ).overrideWith((ref) async => metadata),
           openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+          telemetryProvider.overrideWith(() => FakeTelemetryNotifier()),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -213,6 +225,7 @@ void main() {
             'US',
           ).overrideWith((ref) async => metadata),
           openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+          telemetryProvider.overrideWith(() => FakeTelemetryNotifier()),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,

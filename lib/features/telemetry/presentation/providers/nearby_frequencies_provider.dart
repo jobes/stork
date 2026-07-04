@@ -23,7 +23,7 @@ class NearbyFrequenciesState {
 class NearbyFrequencies extends _$NearbyFrequencies {
   @override
   FutureOr<NearbyFrequenciesState> build() async {
-    final telemetry = ref.watch(telemetryProvider);
+    final telemetry = ref.read(telemetryProvider);
     final lat = telemetry.latitude;
     final lon = telemetry.longitude;
 

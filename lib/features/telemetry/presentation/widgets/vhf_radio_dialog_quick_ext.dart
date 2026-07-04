@@ -4,6 +4,7 @@ part of 'vhf_radio_dialog.dart';
 extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
   Widget _buildQuickContent(BuildContext context) {
     final favoritesAsync = ref.watch(favoriteFrequenciesProvider);
+    final nearbyAsync = ref.watch(nearbyFrequenciesProvider);
 
     return BaseDetailsDialog(
         titleText: "Radio COM${widget.radioInstance + 1}",
@@ -143,42 +144,56 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                   const SizedBox(height: 4),
 
                   _buildSectionHeader("Letiská v okolí"),
-                  if (_loadingAirports)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                      child: Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    )
-                  else if (_nearbyAirports.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                      child: Text(
-                        "Žiadne letiská v okolí",
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                  else
-                    ..._nearbyAirports.map((entry) {
-                      final apt = entry.key;
-                      final distance = entry.value;
-                      final distanceStr = (distance / 1000.0).toStringAsFixed(1);
-                      final displayLabel = apt.icaoCode != null && apt.icaoCode!.isNotEmpty
-                          ? "${apt.icaoCode} ${apt.name} ($distanceStr km)"
-                          : "${apt.name} ($distanceStr km)";
-                          
-                      final freqs = apt.frequencies.map((f) {
-                        final val = double.tryParse(f.value) ?? 0.0;
-                        return _FrequencyInfo(val, f.name.isNotEmpty ? f.name : f.type.name);
-                      }).where((f) => f.mhz > 0.0).toList();
+                  ...nearbyAsync.when(
+                    data: (nearbyState) {
+                      final airports = nearbyState.nearbyAirports;
+                      if (airports.isEmpty) {
+                        return [
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12.0),
+                            child: Text(
+                              "Žiadne letiská v okolí",
+                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        ];
+                      }
+                      return airports.map((entry) {
+                        final apt = entry.key;
+                        final distance = entry.value;
+                        final distanceStr = (distance / 1000.0).toStringAsFixed(1);
+                        final displayLabel = apt.icaoCode != null && apt.icaoCode!.isNotEmpty
+                            ? "${apt.icaoCode} ${apt.name} ($distanceStr km)"
+                            : "${apt.name} ($distanceStr km)";
+                            
+                        final freqs = apt.frequencies.map((f) {
+                          final val = double.tryParse(f.value) ?? 0.0;
+                          return _FrequencyInfo(val, f.name.isNotEmpty ? f.name : f.type.name);
+                        }).where((f) => f.mhz > 0.0).toList();
 
-                      return _buildAirportItem(displayLabel, freqs);
-                    }),
+                        return _buildAirportItem(displayLabel, freqs);
+                      });
+                    },
+                    loading: () => [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12.0),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      )
+                    ],
+                    error: (err, stack) => [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: Text("Chyba: $err", style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      )
+                    ],
+                  ),
                   const Divider(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -231,40 +246,49 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                   ),
                   const Divider(height: 16),
                   _buildSectionHeader("Priestory"),
-                  if (_loadingAirspaces)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                      child: Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    )
-                  else if (_nearbyAirspaces.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                      child: Text(
-                        "Žiadne priestory v okolí",
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                  else
-                    ..._nearbyAirspaces.map((entry) {
-                      final asp = entry.key;
-                      final distance = entry.value;
-                      final distanceStr = distance == 0.0 ? "v priestore" : "${(distance / 1000.0).toStringAsFixed(1)} km";
-                      final displayLabel = "${asp.name} ($distanceStr)";
-                      
-                      final freqs = asp.frequencies!.map((f) {
-                        final val = double.tryParse(f.value) ?? 0.0;
-                        return _FrequencyInfo(val, asp.name);
-                      }).where((f) => f.mhz > 0.0).toList();
+                  ...nearbyAsync.when(
+                    data: (nearbyState) {
+                      final airspaces = nearbyState.nearbyAirspaces;
+                      if (airspaces.isEmpty) {
+                        return [
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12.0),
+                            child: Text(
+                              "Žiadne priestory v okolí",
+                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        ];
+                      }
+                      return airspaces.map((entry) {
+                        final asp = entry.key;
+                        final distance = entry.value;
+                        final distanceStr = distance == 0.0 ? "v priestore" : "${(distance / 1000.0).toStringAsFixed(1)} km";
+                        final displayLabel = "${asp.name} ($distanceStr)";
+                        
+                        final freqs = asp.frequencies!.map((f) {
+                          final val = double.tryParse(f.value) ?? 0.0;
+                          return _FrequencyInfo(val, asp.name);
+                        }).where((f) => f.mhz > 0.0).toList();
 
-                      return _buildAirportItem(displayLabel, freqs);
-                    }),
+                        return _buildAirportItem(displayLabel, freqs);
+                      });
+                    },
+                    loading: () => [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12.0),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      )
+                    ],
+                    error: (err, stack) => [],
+                  ),
                   const SizedBox(height: 24),
                 ],
               ),

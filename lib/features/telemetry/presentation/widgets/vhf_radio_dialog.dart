@@ -1,15 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stork/core/services/database/database_service.dart';
-import 'package:stork/features/map/presentation/providers/airport_metadata_provider.dart';
-import 'package:stork/features/map/presentation/providers/airspace_metadata_provider.dart';
-import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/vhf_radio_controller.dart';
-import 'package:stork/core/utils/geo_utils.dart';
-import 'package:stork/features/map/domain/airport_metadata.dart';
-import 'package:stork/features/map/domain/airspace_metadata.dart';
 import 'package:stork/features/telemetry/presentation/providers/favorite_frequencies_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/nearby_frequencies_provider.dart';
 import 'package:stork/features/telemetry/presentation/widgets/manage_favorites_dialog.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 
@@ -83,11 +77,6 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
   bool _showAudioControls = false;
   bool _showAdvancedMode = false;
 
-  List<MapEntry<AirportMetadata, double>> _nearbyAirports = [];
-  bool _loadingAirports = true;
-  List<MapEntry<AirspaceMetadata, double>> _nearbyAirspaces = [];
-  bool _loadingAirspaces = true;
-
   @override
   void initState() {
     super.initState();
@@ -119,136 +108,6 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
     _activeNameController.addListener(() => setState(() {}));
     _standbyController.addListener(() => setState(() {}));
     _standbyNameController.addListener(() => setState(() {}));
-
-    _loadNearbyAirports();
-    _loadNearbyAirspaces();
-  }
-
-  Future<void> _loadNearbyAirports() async {
-    final telemetry = ref.read(telemetryProvider);
-    final lat = telemetry.latitude;
-    final lon = telemetry.longitude;
-    if (lat == null || lon == null) {
-      if (mounted) {
-        setState(() {
-          _loadingAirports = false;
-        });
-      }
-      return;
-    }
-
-    try {
-      final memoryAirports = ref.read(airportMetadataCacheProvider.notifier).memoryCache.values.toList();
-      
-      final dbFeatures = await DatabaseService.getAllOpenAipFeatures('apt');
-      final dbAirports = dbFeatures.map((json) {
-        try {
-          return AirportMetadata.fromJson(json);
-        } catch (_) {
-          return null;
-        }
-      }).whereType<AirportMetadata>().toList();
-
-      final allAirportsMap = <String, AirportMetadata>{};
-      for (final apt in dbAirports) {
-        if (apt.latitude != null && apt.longitude != null) {
-          allAirportsMap[apt.id] = apt;
-        }
-      }
-      for (final apt in memoryAirports) {
-        if (apt.latitude != null && apt.longitude != null) {
-          allAirportsMap[apt.id] = apt;
-        }
-      }
-
-      final listWithDistance = allAirportsMap.values.map((apt) {
-        final dist = GeoUtils.distanceBetween(lat, lon, apt.latitude!, apt.longitude!);
-        return MapEntry(apt, dist);
-      }).toList();
-
-      listWithDistance.sort((a, b) => a.value.compareTo(b.value));
-
-      if (mounted) {
-        setState(() {
-          _nearbyAirports = listWithDistance.take(5).toList();
-          _loadingAirports = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _loadingAirports = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadNearbyAirspaces() async {
-    final telemetry = ref.read(telemetryProvider);
-    final lat = telemetry.latitude;
-    final lon = telemetry.longitude;
-    if (lat == null || lon == null) {
-      if (mounted) {
-        setState(() {
-          _loadingAirspaces = false;
-        });
-      }
-      return;
-    }
-
-    try {
-      final memoryAirspaces = ref.read(airspaceMetadataCacheProvider.notifier).memoryCache.values.toList();
-      
-      final dbFeatures = await DatabaseService.getAllOpenAipFeatures('asp');
-      final dbAirspaces = dbFeatures.map((json) {
-        try {
-          return AirspaceMetadata.fromJson(json);
-        } catch (_) {
-          return null;
-        }
-      }).whereType<AirspaceMetadata>().toList();
-
-      final allAirspacesMap = <String, AirspaceMetadata>{};
-      for (final asp in dbAirspaces) {
-        if (asp.geometry != null) {
-          allAirspacesMap[asp.id] = asp;
-        }
-      }
-      for (final asp in memoryAirspaces) {
-        if (asp.geometry != null) {
-          allAirspacesMap[asp.id] = asp;
-        }
-      }
-
-
-
-      final listWithDistance = allAirspacesMap.values.map((asp) {
-        final dist = GeoUtils.distanceToPolygons(lat, lon, asp.polygons);
-        return MapEntry(asp, dist);
-      }).where((entry) => entry.key.frequencies != null && entry.key.frequencies!.isNotEmpty).toList();
-
-      listWithDistance.sort((a, b) {
-        final distA = a.value;
-        final distB = b.value;
-        if (distA == 0.0 && distB == 0.0) {
-          return a.key.name.toLowerCase().compareTo(b.key.name.toLowerCase());
-        }
-        return distA.compareTo(distB);
-      });
-
-      if (mounted) {
-        setState(() {
-          _nearbyAirspaces = listWithDistance.take(5).toList();
-          _loadingAirspaces = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _loadingAirspaces = false;
-        });
-      }
-    }
   }
 
   @override

@@ -33,7 +33,7 @@ final class NearbyFrequenciesProvider
   NearbyFrequencies create() => NearbyFrequencies();
 }
 
-String _$nearbyFrequenciesHash() => r'5a6dd8aaa1b7c41287e9a9dc3cf77fa7e5583a08';
+String _$nearbyFrequenciesHash() => r'40898211365983f293545d30bc2fb2b0b6dfb254';
 
 abstract class _$NearbyFrequencies
     extends $AsyncNotifier<NearbyFrequenciesState> {
