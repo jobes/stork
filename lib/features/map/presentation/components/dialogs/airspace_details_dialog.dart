@@ -7,8 +7,7 @@ import '../../../domain/airspace_metadata.dart';
 import '../../providers/airspace_metadata_provider.dart';
 import '../../../utils/openaip_enums.dart';
 import 'base_details_dialog.dart';
-import 'package:stork/core/services/cannelloni_service_io.dart';
-import 'package:stork/core/native/dronecan/vhf_radio_control.dart';
+import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 
 class AirspaceDetailsDialog extends StatelessWidget {
@@ -545,14 +544,12 @@ class AirspaceDetailCard extends ConsumerWidget {
                     }
 
                     if (tapDetails != null) {
-                      _showRadioPopupMenu(
+                      RadioPopupUtil.showRadioMenu(
                         context: context,
                         ref: ref,
-                        details: tapDetails!,
-                        freqKhz: freqKhz,
+                        globalPosition: tapDetails!.globalPosition,
+                        mhz: freqKhz / 1000.0,
                         radioName: metadata.name,
-                        showActive: showActiveOption,
-                        showStandby: showStandbyOption,
                       );
                     }
                   } : null,
@@ -605,98 +602,4 @@ class AirspaceDetailCard extends ConsumerWidget {
     );
   }
 
-  void _showRadioPopupMenu({
-    required BuildContext context,
-    required WidgetRef ref,
-    required TapDownDetails details,
-    required int freqKhz,
-    required String radioName,
-    required bool showActive,
-    required bool showStandby,
-  }) {
-    final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        details.globalPosition,
-        details.globalPosition,
-      ),
-      Offset.zero & overlay.size,
-    );
-
-    showMenu<String>(
-      context: context,
-      position: position,
-      items: [
-        if (showActive)
-          const PopupMenuItem<String>(
-            value: 'active',
-            child: Text('Aktívna frekvencia'),
-          ),
-        if (showStandby)
-          const PopupMenuItem<String>(
-            value: 'standby',
-            child: Text('Standby frekvencia'),
-          ),
-      ],
-    ).then((String? value) {
-      if (value == null) return;
-      if (!context.mounted) return;
-      _setRadioFrequency(
-        ref: ref,
-        context: context,
-        freqKhz: freqKhz,
-        radioName: radioName,
-        isActive: value == 'active',
-      );
-    });
-  }
-
-  Future<void> _setRadioFrequency({
-    required WidgetRef ref,
-    required BuildContext context,
-    required int freqKhz,
-    required String radioName,
-    required bool isActive,
-  }) async {
-    final currentRadioNodeId = ref.read(telemetryProvider.select((t) => t.radioNodeId));
-    if (currentRadioNodeId == null) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Rádio nie je pripojené')),
-        );
-      }
-      return;
-    }
-
-    final radioInstance = ref.read(telemetryProvider.select((t) => t.radioInstance)) ?? 0;
-
-    try {
-      final cannelloni = ref.read(cannelloniServiceProvider.notifier);
-      final req = VhfRadioControlRequest(
-        radioInstance: radioInstance,
-        action: isActive
-            ? VhfRadioControlRequest.actionSetActiveFreq
-            : VhfRadioControlRequest.actionSetStandbyFreq,
-        frequencyKhz: freqKhz,
-        frequencyName: radioName,
-      );
-      final res = await cannelloni.sendRequest(
-        destinationNodeId: currentRadioNodeId,
-        dataTypeId: VhfRadioControlRequest.messageId,
-        dataTypeSignature: VhfRadioControlRequest.messageSignature,
-        payload: req.toPayload(),
-      );
-      final response = VhfRadioControlResponse.fromPayload(res);
-      if (response.status != VhfRadioControlResponse.statusOk) {
-        throw Exception('Rádio vrátilo chybu');
-      }
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Nepodarilo sa nastaviť frekvenciu: $e'),
-        ),
-      );
-    }
-  }
 }

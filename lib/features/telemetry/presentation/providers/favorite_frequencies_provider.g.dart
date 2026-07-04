@@ -35,7 +35,7 @@ final class FavoriteFrequenciesProvider
 }
 
 String _$favoriteFrequenciesHash() =>
-    r'cdca1afa802213993b6314e12078e8f2de45c030';
+    r'6bab6916782201f8ca88cd269fcffe0f3ae8af58';
 
 abstract class _$FavoriteFrequencies
     extends $AsyncNotifier<List<FavoriteFrequency>> {
