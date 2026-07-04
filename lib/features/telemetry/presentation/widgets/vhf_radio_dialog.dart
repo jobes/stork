@@ -10,6 +10,8 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_provid
 import 'package:stork/core/utils/geo_utils.dart';
 import 'package:stork/features/map/domain/airport_metadata.dart';
 import 'package:stork/features/map/domain/airspace_metadata.dart';
+import 'package:stork/features/telemetry/presentation/providers/favorite_frequencies_provider.dart';
+import 'package:stork/features/telemetry/presentation/widgets/manage_favorites_dialog.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 
 class VhfRadioDialog extends ConsumerStatefulWidget {
@@ -928,6 +930,7 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final favoritesAsync = ref.watch(favoriteFrequenciesProvider);
     // Dynamic dirty state calculation for Active Frequency / Name
     final activeText = _activeController.text.trim();
     final isActiveChanged = (activeText != _savedActiveText || _activeNameController.text != _savedActiveName) &&
@@ -1116,9 +1119,55 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
                       return _buildAirportItem(displayLabel, freqs);
                     }),
                   const Divider(height: 16),
-                  _buildSectionHeader("Obľúbené"),
-                  _buildSimpleFrequencyRow("Emergency (Guard)", 121.500, "EMERGENCY"),
-                  _buildSimpleFrequencyRow("LZTT Info (Poprad)", 134.915, "LZTT INFO"),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildSectionHeader("Obľúbené"),
+                      TextButton.icon(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => const ManageFavoritesDialog(),
+                          );
+                        },
+                        icon: const Icon(Icons.edit, size: 14),
+                        label: const Text("Spravovať", style: TextStyle(fontSize: 12)),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ],
+                  ),
+                  favoritesAsync.when(
+                    data: (list) {
+                      if (list.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text(
+                            "Žiadne obľúbené frekvencie",
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
+                      return Column(
+                        children: list.map((f) => _buildSimpleFrequencyRow(f.name, f.mhz, f.name)).toList(),
+                      );
+                    },
+                    loading: () => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                    error: (err, stack) => Text("Chyba: $err"),
+                  ),
                   const Divider(height: 16),
                   _buildSectionHeader("Priestory"),
                   if (_loadingAirspaces)

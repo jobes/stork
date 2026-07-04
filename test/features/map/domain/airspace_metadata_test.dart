@@ -205,12 +205,9 @@ void main() {
         var requestCount = 0;
         final mockClient = MockClient((request) async {
           requestCount++;
-          print('MockClient: requestCount=$requestCount');
           if (requestCount == 1) {
-            print('MockClient: returning 500');
             return http.Response('Internal Server Error', 500);
           }
-          print('MockClient: returning 200');
           return http.Response(
             json.encode({
               'features': [
