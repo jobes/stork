@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:stork/core/services/database/database_service.dart';
 import 'package:stork/core/utils/geo_utils.dart';
+import 'package:stork/features/map/data/repositories/map_metadata_repository.dart';
 import 'package:stork/features/map/domain/airport_metadata.dart';
 import 'package:stork/features/map/domain/airspace_metadata.dart';
 import 'package:stork/features/map/presentation/providers/airport_metadata_provider.dart';
@@ -19,6 +19,18 @@ class NearbyFrequenciesState {
   });
 }
 
+/// One-shot lookup of airports and airspaces near the current GPS position.
+///
+/// Design intent: the provider is computed once on first use (dialog open)
+/// and is not reactively bound to telemetry changes. This is an intentional
+/// performance optimisation — the computation is DB-heavy (loading all airports
+/// from SQLite + geodesic distance calculations to airspace polygons).
+/// Reactive re-evaluation on every GPS update (~1 Hz) would unnecessarily stress
+/// the main thread and the database.
+///
+/// The repository pattern (via [mapMetadataRepositoryProvider]) is used instead
+/// of calling [DatabaseService] directly, keeping the feature-layer dependency
+/// rules intact.
 @riverpod
 class NearbyFrequencies extends _$NearbyFrequencies {
   @override
@@ -31,10 +43,15 @@ class NearbyFrequencies extends _$NearbyFrequencies {
       return NearbyFrequenciesState(nearbyAirports: [], nearbyAirspaces: []);
     }
 
-    // Načítanie letísk
-    final memoryAirports = ref.read(airportMetadataCacheProvider.notifier).memoryCache.values.toList();
-    final dbAptFeatures = await DatabaseService.getAllOpenAipFeatures('apt');
-    final dbAirports = dbAptFeatures.map((json) {
+    final repo = ref.read(mapMetadataRepositoryProvider);
+
+    // --- Airports ---
+    // Merge in-memory session cache with the offline DB.
+    final memoryAirports =
+        ref.read(airportMetadataCacheProvider.notifier).memoryCache.values.toList();
+
+    final dbAptRaw = await repo.fetchAllFeaturesFromDb('apt');
+    final dbAirports = dbAptRaw.map((json) {
       try {
         return AirportMetadata.fromJson(json);
       } catch (_) {
@@ -42,6 +59,7 @@ class NearbyFrequencies extends _$NearbyFrequencies {
       }
     }).whereType<AirportMetadata>().toList();
 
+    // DB records form the base; memory cache may overwrite with newer values.
     final allAirportsMap = <String, AirportMetadata>{};
     for (final apt in dbAirports) {
       if (apt.latitude != null && apt.longitude != null) {
@@ -58,13 +76,14 @@ class NearbyFrequencies extends _$NearbyFrequencies {
       final dist = GeoUtils.distanceBetween(lat, lon, apt.latitude!, apt.longitude!);
       return MapEntry(apt, dist);
     }).toList();
-
     airportsWithDistance.sort((a, b) => a.value.compareTo(b.value));
 
-    // Načítanie priestorov
-    final memoryAirspaces = ref.read(airspaceMetadataCacheProvider.notifier).memoryCache.values.toList();
-    final dbAspFeatures = await DatabaseService.getAllOpenAipFeatures('asp');
-    final dbAirspaces = dbAspFeatures.map((json) {
+    // --- Airspaces ---
+    final memoryAirspaces =
+        ref.read(airspaceMetadataCacheProvider.notifier).memoryCache.values.toList();
+
+    final dbAspRaw = await repo.fetchAllFeaturesFromDb('asp');
+    final dbAirspaces = dbAspRaw.map((json) {
       try {
         return AirspaceMetadata.fromJson(json);
       } catch (_) {
@@ -84,10 +103,14 @@ class NearbyFrequencies extends _$NearbyFrequencies {
       }
     }
 
-    final airspacesWithDistance = allAirspacesMap.values.map((asp) {
-      final dist = GeoUtils.distanceToPolygons(lat, lon, asp.polygons);
-      return MapEntry(asp, dist);
-    }).where((entry) => entry.key.frequencies != null && entry.key.frequencies!.isNotEmpty).toList();
+    final airspacesWithDistance = allAirspacesMap.values
+        .map((asp) {
+          final dist = GeoUtils.distanceToPolygons(lat, lon, asp.polygons);
+          return MapEntry(asp, dist);
+        })
+        .where((entry) =>
+            entry.key.frequencies != null && entry.key.frequencies!.isNotEmpty)
+        .toList();
 
     airspacesWithDistance.sort((a, b) {
       final distA = a.value;

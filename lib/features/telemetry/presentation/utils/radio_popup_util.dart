@@ -10,6 +10,10 @@ class RadioPopupUtil {
     required Offset globalPosition,
     required double mhz,
     required String radioName,
+    // Optional callback invoked after the frequency has been successfully set.
+    // Used by VhfRadioDialog to update its local snapshot state without being
+    // reactively bound to telemetryProvider.
+    void Function(bool isActive)? onFrequencySet,
   }) {
     final freqKhz = (mhz * 1000).round();
     final telemetry = ref.read(telemetryProvider);
@@ -65,6 +69,7 @@ class RadioPopupUtil {
       if (value == null) return;
       if (!context.mounted) return;
       
+      final isActive = value == 'active';
       _setFrequency(
         context: context,
         ref: ref,
@@ -72,7 +77,8 @@ class RadioPopupUtil {
         radioInstance: telemetry.radioInstance ?? 0,
         freqKhz: freqKhz,
         radioName: radioName,
-        isActive: value == 'active',
+        isActive: isActive,
+        onSuccess: onFrequencySet == null ? null : () => onFrequencySet(isActive),
       );
     });
   }
@@ -85,6 +91,7 @@ class RadioPopupUtil {
     required int freqKhz,
     required String radioName,
     required bool isActive,
+    VoidCallback? onSuccess,
   }) async {
     final controller = ref.read(vhfRadioControllerProvider.notifier);
     try {
@@ -103,6 +110,7 @@ class RadioPopupUtil {
           name: radioName,
         );
       }
+      onSuccess?.call();
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

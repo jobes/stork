@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/features/telemetry/presentation/providers/vhf_radio_controller.dart';
 import 'package:stork/features/telemetry/presentation/providers/favorite_frequencies_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/nearby_frequencies_provider.dart';
+import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
 import 'package:stork/features/telemetry/presentation/widgets/manage_favorites_dialog.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 
@@ -16,6 +17,15 @@ part 'vhf_radio_dialog_audio_ext.dart';
 class VhfRadioDialog extends ConsumerStatefulWidget {
   final int radioInstance;
   final int nodeId;
+
+  // Performance optimisation: the dialog state is an intentional snapshot of values
+  // captured at open time and is not reactively bound to telemetryProvider. This avoids
+  // unnecessary widget rebuilds on every incoming telemetry frame (~100 ms cadence).
+  // The user does not need to see live changes while the dialog is open –
+  // reopening the dialog will pick up the latest values.
+  // Note: NearbyFrequencies performs a one-shot DB lookup on dialog open, which is a
+  // computationally expensive operation; reactive updates would re-trigger it on every
+  // GPS position change.
   final int initialActiveKhz;
   final int initialStandbyKhz;
   final String initialActiveName;
@@ -487,55 +497,18 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
 
 
 
+  // Delegates the frequency selection menu to RadioPopupUtil, which reads the current
+  // radio state directly from telemetryProvider. After the user picks an option,
+  // _quickSetFrequency is called to keep the local dialog snapshot consistent.
   void _showFrequencyMenu(Offset globalPosition, double mhz, String name) {
-    final activeText = _activeController.text.trim();
-    final standbyText = _standbyController.text.trim();
-    final freqStr = mhz.toStringAsFixed(3);
-
-    final isAlreadyActive = (activeText == freqStr);
-    final isAlreadyStandby = (standbyText == freqStr);
-
-    if (isAlreadyActive && isAlreadyStandby) {
-      return; // Already active and standby on this radio
-    }
-
-    final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        globalPosition,
-        globalPosition,
-      ),
-      Offset.zero & overlay.size,
-    );
-
-    showMenu<String>(
+    RadioPopupUtil.showRadioMenu(
       context: context,
-      position: position,
-      items: [
-        if (!isAlreadyActive)
-          const PopupMenuItem<String>(
-            value: 'active',
-            child: ListTile(
-              leading: Icon(Icons.radio, color: Colors.green),
-              title: Text('Nastaviť ako AKTÍVNU'),
-              dense: true,
-            ),
-          ),
-        if (!isAlreadyStandby)
-          const PopupMenuItem<String>(
-            value: 'standby',
-            child: ListTile(
-              leading: Icon(Icons.settings_input_antenna, color: Colors.blue),
-              title: Text('Nastaviť ako STANDBY'),
-              dense: true,
-            ),
-          ),
-      ],
-    ).then((String? value) {
-      if (value == null) return;
-      if (!context.mounted) return;
-      _quickSetFrequency(mhz, name, value == 'active');
-    });
+      ref: ref,
+      globalPosition: globalPosition,
+      mhz: mhz,
+      radioName: name,
+      onFrequencySet: (isActive) => _quickSetFrequency(mhz, name, isActive),
+    );
   }
 
 

@@ -79,6 +79,13 @@ class MapMetadataRepository {
     return await DatabaseService.getOpenAipFeature(id, type);
   }
 
+  /// Loads all records of the given type from the local SQLite database (offline map).
+  /// Use this instead of calling [DatabaseService.getAllOpenAipFeatures] directly
+  /// from other feature layers — keeps direct DB access inside the repository layer.
+  Future<List<Map<String, dynamic>>> fetchAllFeaturesFromDb(String type) async {
+    return await DatabaseService.getAllOpenAipFeatures(type);
+  }
+
   Future<Map<String, AirportMetadata>> fetchAirportsFromNetwork(
     String countryCode,
   ) async {
