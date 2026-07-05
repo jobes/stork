@@ -67,10 +67,7 @@ class AltitudeResolver {
 
       // QNH-based altitude
       final double activeQnh = qnh ?? 1013.25;
-      mslValue = AviationMath.pressureToAltitudeMeters(
-        airPressure,
-        activeQnh,
-      );
+      mslValue = AviationMath.pressureToAltitudeMeters(airPressure, activeQnh);
     } else if (gpsAltitude != null) {
       final double gpsFeet = gpsAltitude * 3.28084;
       flightLevel = gpsFeet / 100.0;

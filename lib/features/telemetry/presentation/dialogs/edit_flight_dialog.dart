@@ -8,7 +8,13 @@ import '../../domain/models/flight.dart';
 
 class EditFlightDialog extends ConsumerStatefulWidget {
   final Flight flight;
-  final Future<void> Function(String name, String? pilotId, String? airplaneId, String? notes) onSave;
+  final Future<void> Function(
+    String name,
+    String? pilotId,
+    String? airplaneId,
+    String? notes,
+  )
+  onSave;
 
   const EditFlightDialog({
     super.key,
@@ -33,9 +39,7 @@ class _EditFlightDialogState extends ConsumerState<EditFlightDialog> {
     _nameController = TextEditingController(text: widget.flight.name);
     _selectedPilotId = widget.flight.pilotId;
     _selectedAirplaneId = widget.flight.airplaneId;
-    _notesController = TextEditingController(
-      text: widget.flight.notes ?? '',
-    );
+    _notesController = TextEditingController(text: widget.flight.notes ?? '');
   }
 
   @override
@@ -80,7 +84,9 @@ class _EditFlightDialogState extends ConsumerState<EditFlightDialog> {
             // Pilot selection
             pilotsAsync.when(
               data: (pilots) {
-                final hasSelected = _selectedPilotId == null || pilots.any((p) => p.id == _selectedPilotId);
+                final hasSelected =
+                    _selectedPilotId == null ||
+                    pilots.any((p) => p.id == _selectedPilotId);
                 final dropdownValue = hasSelected ? _selectedPilotId : null;
                 return DropdownButtonFormField<String?>(
                   initialValue: dropdownValue,
@@ -94,10 +100,12 @@ class _EditFlightDialogState extends ConsumerState<EditFlightDialog> {
                       value: null,
                       child: Text(l10n.anonymousPilot),
                     ),
-                    ...pilots.map((p) => DropdownMenuItem<String?>(
-                          value: p.id,
-                          child: Text(p.name),
-                        )),
+                    ...pilots.map(
+                      (p) => DropdownMenuItem<String?>(
+                        value: p.id,
+                        child: Text(p.name),
+                      ),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -141,7 +149,9 @@ class _EditFlightDialogState extends ConsumerState<EditFlightDialog> {
             // Aircraft selection
             aircraftsAsync.when(
               data: (aircrafts) {
-                final hasSelected = _selectedAirplaneId == null || aircrafts.any((a) => a.id == _selectedAirplaneId);
+                final hasSelected =
+                    _selectedAirplaneId == null ||
+                    aircrafts.any((a) => a.id == _selectedAirplaneId);
                 final dropdownValue = hasSelected ? _selectedAirplaneId : null;
                 return DropdownButtonFormField<String?>(
                   initialValue: dropdownValue,
@@ -155,10 +165,12 @@ class _EditFlightDialogState extends ConsumerState<EditFlightDialog> {
                       value: null,
                       child: Text(l10n.unknownAircraft),
                     ),
-                    ...aircrafts.map((a) => DropdownMenuItem<String?>(
-                          value: a.id,
-                          child: Text(a.name),
-                        )),
+                    ...aircrafts.map(
+                      (a) => DropdownMenuItem<String?>(
+                        value: a.id,
+                        child: Text(a.name),
+                      ),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -223,10 +235,20 @@ class _EditFlightDialogState extends ConsumerState<EditFlightDialog> {
                       final name = _nameController.text.trim();
                       final notes = _notesController.text.trim();
                       // Sanitize pilot and aircraft IDs against current state
-                      final pilots = pilotsAsync.whenOrNull(data: (p) => p) ?? [];
-                      final aircrafts = aircraftsAsync.whenOrNull(data: (a) => a) ?? [];
-                      final sanitizedPilotId = (_selectedPilotId != null && pilots.any((p) => p.id == _selectedPilotId)) ? _selectedPilotId : null;
-                      final sanitizedAircraftId = (_selectedAirplaneId != null && aircrafts.any((a) => a.id == _selectedAirplaneId)) ? _selectedAirplaneId : null;
+                      final pilots =
+                          pilotsAsync.whenOrNull(data: (p) => p) ?? [];
+                      final aircrafts =
+                          aircraftsAsync.whenOrNull(data: (a) => a) ?? [];
+                      final sanitizedPilotId =
+                          (_selectedPilotId != null &&
+                              pilots.any((p) => p.id == _selectedPilotId))
+                          ? _selectedPilotId
+                          : null;
+                      final sanitizedAircraftId =
+                          (_selectedAirplaneId != null &&
+                              aircrafts.any((a) => a.id == _selectedAirplaneId))
+                          ? _selectedAirplaneId
+                          : null;
                       await widget.onSave(
                         name,
                         sanitizedPilotId,

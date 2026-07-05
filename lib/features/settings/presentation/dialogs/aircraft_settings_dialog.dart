@@ -7,7 +7,11 @@ import '../../domain/models/aircraft.dart';
 import '../providers/aircraft_provider.dart';
 import '../providers/settings_provider.dart';
 
-void showAircraftSettingsDialog(BuildContext context, WidgetRef ref, Aircraft aircraft) {
+void showAircraftSettingsDialog(
+  BuildContext context,
+  WidgetRef ref,
+  Aircraft aircraft,
+) {
   showDialog(
     context: context,
     builder: (dialogCtx) {
@@ -29,18 +33,24 @@ class _AircraftSettingsDialog extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_AircraftSettingsDialog> createState() => _AircraftSettingsDialogState();
+  ConsumerState<_AircraftSettingsDialog> createState() =>
+      _AircraftSettingsDialogState();
 }
 
-class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog> {
+class _AircraftSettingsDialogState
+    extends ConsumerState<_AircraftSettingsDialog> {
   late final TextEditingController _initialHoursController;
   late final TextEditingController _initialFlightsController;
 
   @override
   void initState() {
     super.initState();
-    _initialHoursController = TextEditingController(text: widget.aircraft.initialFlightHours.toString());
-    _initialFlightsController = TextEditingController(text: widget.aircraft.initialFlights.toString());
+    _initialHoursController = TextEditingController(
+      text: widget.aircraft.initialFlightHours.toString(),
+    );
+    _initialFlightsController = TextEditingController(
+      text: widget.aircraft.initialFlights.toString(),
+    );
   }
 
   @override
@@ -65,7 +75,9 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
         children: [
           Text(
             l10n.initialFlightHoursLabel,
-            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 8),
           Row(
@@ -73,11 +85,18 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
               Expanded(
                 child: TextFormField(
                   controller: _initialHoursController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: InputDecoration(
                     hintText: l10n.hoursExampleHint,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                   ),
                 ),
               ),
@@ -91,9 +110,16 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
                     );
                     return;
                   }
-                  final currentAircrafts = ref.read(aircraftStateProvider).value ?? [widget.aircraft];
-                  final currentAircraft = currentAircrafts.firstWhere((a) => a.id == widget.aircraft.id, orElse: () => widget.aircraft);
-                  await ref.read(aircraftStateProvider.notifier).updateAircraft(
+                  final currentAircrafts =
+                      ref.read(aircraftStateProvider).value ??
+                      [widget.aircraft];
+                  final currentAircraft = currentAircrafts.firstWhere(
+                    (a) => a.id == widget.aircraft.id,
+                    orElse: () => widget.aircraft,
+                  );
+                  await ref
+                      .read(aircraftStateProvider.notifier)
+                      .updateAircraft(
                         currentAircraft.copyWith(initialFlightHours: hours),
                       );
                   if (widget.parentContext.mounted) {
@@ -103,8 +129,13 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                 ),
                 child: Text(l10n.save),
               ),
@@ -113,7 +144,9 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
           const SizedBox(height: 16),
           Text(
             l10n.initialFlightsLabel,
-            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 8),
           Row(
@@ -125,8 +158,13 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(
                     hintText: l10n.flightsExampleHint,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                   ),
                 ),
               ),
@@ -140,9 +178,16 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
                     );
                     return;
                   }
-                  final currentAircrafts = ref.read(aircraftStateProvider).value ?? [widget.aircraft];
-                  final currentAircraft = currentAircrafts.firstWhere((a) => a.id == widget.aircraft.id, orElse: () => widget.aircraft);
-                  await ref.read(aircraftStateProvider.notifier).updateAircraft(
+                  final currentAircrafts =
+                      ref.read(aircraftStateProvider).value ??
+                      [widget.aircraft];
+                  final currentAircraft = currentAircrafts.firstWhere(
+                    (a) => a.id == widget.aircraft.id,
+                    orElse: () => widget.aircraft,
+                  );
+                  await ref
+                      .read(aircraftStateProvider.notifier)
+                      .updateAircraft(
                         currentAircraft.copyWith(initialFlights: flights),
                       );
                   if (widget.parentContext.mounted) {
@@ -152,8 +197,13 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                 ),
                 child: Text(l10n.save),
               ),
@@ -165,7 +215,10 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
             children: [
               TextButton.icon(
                 icon: const Icon(Icons.delete_outline, color: Colors.red),
-                label: Text(l10n.deleteAircraftButton, style: const TextStyle(color: Colors.red)),
+                label: Text(
+                  l10n.deleteAircraftButton,
+                  style: const TextStyle(color: Colors.red),
+                ),
                 onPressed: () async {
                   final dialogCtx = context;
                   Navigator.pop(dialogCtx);
@@ -173,7 +226,9 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
                     context: widget.parentContext,
                     builder: (context) => AlertDialog(
                       title: Text(l10n.deleteAircraftButton),
-                      content: Text(l10n.deleteAircraftConfirm(widget.aircraft.name)),
+                      content: Text(
+                        l10n.deleteAircraftConfirm(widget.aircraft.name),
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
@@ -181,7 +236,10 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+                          child: Text(
+                            l10n.delete,
+                            style: const TextStyle(color: Colors.red),
+                          ),
                         ),
                       ],
                     ),
@@ -189,12 +247,20 @@ class _AircraftSettingsDialogState extends ConsumerState<_AircraftSettingsDialog
                   if (confirmed == true) {
                     final settings = ref.read(appSettingsProvider).value;
                     if (settings?.airplaneId == widget.aircraft.id) {
-                       await ref.read(appSettingsProvider.notifier).updateAirplaneId(null);
+                      await ref
+                          .read(appSettingsProvider.notifier)
+                          .updateAirplaneId(null);
                     }
-                    await ref.read(aircraftStateProvider.notifier).deleteAircraft(widget.aircraft.id);
+                    await ref
+                        .read(aircraftStateProvider.notifier)
+                        .deleteAircraft(widget.aircraft.id);
                     if (widget.parentContext.mounted) {
                       ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                        SnackBar(content: Text(l10n.aircraftDeletedSnackbar(widget.aircraft.name))),
+                        SnackBar(
+                          content: Text(
+                            l10n.aircraftDeletedSnackbar(widget.aircraft.name),
+                          ),
+                        ),
                       );
                     }
                   }

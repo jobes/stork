@@ -133,12 +133,7 @@ class FlightStatisticsCalculator {
           final lLat = lastLat;
           final lLon = lastLon;
           if (lLat != null && lLon != null) {
-            final stepDist = GeoUtils.distanceBetween(
-              lLat,
-              lLon,
-              cLat,
-              cLon,
-            );
+            final stepDist = GeoUtils.distanceBetween(lLat, lLon, cLat, cLon);
             totalDist += stepDist;
           }
           lastLat = cLat;
@@ -165,14 +160,13 @@ class FlightStatisticsCalculator {
       maxIndicatedAirSpeed: maxIas,
       avgGroundSpeed: avgGs,
       avgIndicatedAirSpeed: avgIas,
-      totalDistance:
-          (lastLat != null && lastLon != null && totalDist > 0)
-              ? totalDist
-              : null,
+      totalDistance: (lastLat != null && lastLon != null && totalDist > 0)
+          ? totalDist
+          : null,
       maxDistanceFromTakeoff:
           (takeoffLat != null && takeoffLon != null && maxDistFromTakeoff > 0)
-              ? maxDistFromTakeoff
-              : null,
+          ? maxDistFromTakeoff
+          : null,
       avgEngineRPM: avgRpm,
     );
   }

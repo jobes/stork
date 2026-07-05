@@ -7,8 +7,6 @@ import 'black_box_database_stub.dart'
     if (dart.library.io) 'black_box_database_io.dart'
     if (dart.library.html) 'black_box_database_web.dart';
 
-
-
 abstract interface class BlackBoxDatabase {
   factory BlackBoxDatabase() => getDatabase();
 
@@ -46,11 +44,22 @@ abstract interface class BlackBoxDatabase {
   });
   Future<List<TelemetryEntry>> getGpxTelemetryForFlight(String flightUuid);
   Future<void> saveFlightStatistics(String flightUuid, FlightStatistics stats);
-  Future<List<TelemetryEntry>> getTelemetryForFlightPaginated(String flightUuid, int limit, int? lastId);
+  Future<List<TelemetryEntry>> getTelemetryForFlightPaginated(
+    String flightUuid,
+    int limit,
+    int? lastId,
+  );
   Future<void> calculateAndSaveFlightStatistics(String flightUuid);
-  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0, int initialFlights = 0});
-  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0, int initialFlights = 0});
+  Future<TimeBasedStats> getPilotTimeStats(
+    String pilotId, {
+    double initialHours = 0.0,
+    int initialFlights = 0,
+  });
+  Future<TimeBasedStats> getAircraftTimeStats(
+    String airplaneId, {
+    double initialHours = 0.0,
+    int initialFlights = 0,
+  });
   Future<List<String>> getUniquePilotIds();
   Future<List<String>> getUniqueAirplaneIds();
 }
-

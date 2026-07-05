@@ -12,20 +12,24 @@ class FuelStatusTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final fuelLevelPercent = ref.watch(telemetryProvider.select((t) => t.fuelLevelPercent));
-    final fuelVolumeLiters = ref.watch(telemetryProvider.select((t) => t.fuelVolumeLiters));
+    final fuelLevelPercent = ref.watch(
+      telemetryProvider.select((t) => t.fuelLevelPercent),
+    );
+    final fuelVolumeLiters = ref.watch(
+      telemetryProvider.select((t) => t.fuelVolumeLiters),
+    );
     final disableAnimations = ref.watch(
-      disableTelemetryAnimationsProvider.select((m) => m[TelemetryField.fuelLevelPercent] ?? false),
+      disableTelemetryAnimationsProvider.select(
+        (m) => m[TelemetryField.fuelLevelPercent] ?? false,
+      ),
     );
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
-    final thresholds = settings?.fuelThresholds ??
-        const RangeThresholds.raw(
-          minError: 10.0,
-          minWarning: 20.0,
-        );
+    final thresholds =
+        settings?.fuelThresholds ??
+        const RangeThresholds.raw(minError: 10.0, minWarning: 20.0);
 
     final double? rawPercent = fuelLevelPercent;
     final double? rawLiters = fuelVolumeLiters;

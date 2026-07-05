@@ -14,7 +14,6 @@ import 'telemetry_card.dart';
 class SpeedTelemetryWidget extends ConsumerWidget {
   const SpeedTelemetryWidget({super.key});
 
-
   Widget _buildSpeedRow(
     String value,
     String unit,
@@ -46,8 +45,12 @@ class SpeedTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final indicatedAirSpeed = ref.watch(telemetryProvider.select((t) => t.indicatedAirSpeed));
-    final groundSpeed = ref.watch(telemetryProvider.select((t) => t.groundSpeed));
+    final indicatedAirSpeed = ref.watch(
+      telemetryProvider.select((t) => t.indicatedAirSpeed),
+    );
+    final groundSpeed = ref.watch(
+      telemetryProvider.select((t) => t.groundSpeed),
+    );
     final isConnected = ref.watch(cannelloniServiceProvider);
     final settings = ref.watch(appSettingsProvider).value;
     final thresholds =

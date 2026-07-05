@@ -588,5 +588,106 @@
   "engineRpm": "Otáčky motora (RPM)",
   "engineRpmShort": "RPM",
   "rpmThresholds": "Prahové hodnoty otáčok motora",
-  "rpmMaxRange": "Maximálny rozsah posuvníka otáčok"
+  "rpmMaxRange": "Maximálny rozsah posuvníka otáčok",
+  "vhfRadioTitle": "Rádio COM{instance}",
+  "@vhfRadioTitle": {
+    "placeholders": {
+      "instance": { "type": "int" }
+    }
+  },
+  "vhfRadioActive": "AKTÍVNA",
+  "vhfRadioStandby": "STANDBY",
+  "vhfRadioNoName": "Bez názvu",
+  "vhfRadioSwapTooltip": "Prehodiť frekvencie",
+  "vhfRadioNearbyFrequencies": "Blízke frekvencie",
+  "vhfRadioAdvancedManual": "Rozšírené / Manuálne",
+  "vhfRadioNearbyAirports": "Blízke letiská",
+  "vhfRadioNoAirportsNearby": "V okolí nie sú žiadne letiská",
+  "vhfRadioFavourites": "Obľúbené",
+  "vhfRadioManage": "Spravovať",
+  "vhfRadioNoFavoriteFrequencies": "Žiadne obľúbené frekvencie",
+  "vhfRadioAirspaces": "Letecké priestory",
+  "vhfRadioNoAirspacesNearby": "V okolí nie sú žiadne letecké priestory",
+  "vhfRadioInside": "vo vnútri",
+  "vhfRadioBackToList": "Späť na zoznam",
+  "vhfRadioActiveFreqLabel": "Aktívna frekvencia (MHz)",
+  "vhfRadioActiveNameLabel": "Názov aktívnej stanice",
+  "vhfRadioApply": "Použiť",
+  "vhfRadioStandbyFreqLabel": "Standby frekvencia (MHz)",
+  "vhfRadioStandbyNameLabel": "Názov standby stanice",
+  "vhfRadioDualWatch": "Dual Watch",
+  "vhfRadioHideAudio": "Skryť audio nastavenia",
+  "vhfRadioShowAudio": "Zobraziť audio nastavenia",
+  "vhfRadioVolume": "Hlasitosť",
+  "vhfRadioSquelch": "Squelch",
+  "vhfRadioVox": "VOX citlivosť",
+  "vhfRadioIntercom": "Hlasitosť interkomu",
+  "vhfRadioMicrophonesGain": "Mikrofóny (zisk)",
+  "vhfRadioMicrophoneN": "Mikrofón {n}",
+  "@vhfRadioMicrophoneN": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "vhfRadioSaveChange": "Uložiť zmenu",
+  "vhfRadioErrorActiveFreq": "Aktívna frekvencia musí byť platná letecká frekvencia (118.000 \u2013 136.995 MHz).",
+  "vhfRadioErrorStandbyFreq": "Standby frekvencia musí byť platná letecká frekvencia (118.000 \u2013 136.995 MHz).",
+  "vhfRadioErrorTimeout": "DroneCAN neodpovedal na požiadavku {action} (timeout 1 s).",
+  "@vhfRadioErrorTimeout": {
+    "placeholders": {
+      "action": { "type": "String" }
+    }
+  },
+  "vhfRadioErrorGeneric": "Zlyhalo {action}: {error}",
+  "@vhfRadioErrorGeneric": {
+    "placeholders": {
+      "action": { "type": "String" },
+      "error": { "type": "String" }
+    }
+  },
+  "vhfRadioErrorFlip": "Prehodenie zlyhalo: {error}",
+  "@vhfRadioErrorFlip": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "vhfRadioErrorInvalidFreq": "Frekvencia {freq} MHz nie je platná.",
+  "@vhfRadioErrorInvalidFreq": {
+    "placeholders": {
+      "freq": { "type": "String" }
+    }
+  },
+  "vhfRadioDronecanError": "Chyba DroneCAN požiadavky (status: {status})",
+  "@vhfRadioDronecanError": {
+    "placeholders": {
+      "status": { "type": "int" }
+    }
+  },
+  "vhfRadioFreqOutOfBand": "Frekvencia je mimo leteckého pásma (118.000 \u2013 136.995 MHz).",
+  "manageFavoritesTitle": "Spravovať obľúbené",
+  "manageFavoritesAddNew": "Pridať novú frekvenciu",
+  "manageFavoritesFreqLabel": "Frekvencia (MHz)",
+  "manageFavoritesFreqHint": "118.000",
+  "manageFavoritesNameLabel": "Názov stanice",
+  "manageFavoritesNameHint": "FIR Bratislava",
+  "manageFavoritesAddToList": "Pridať do zoznamu",
+  "manageFavoritesListTitle": "Zoznam obľúbených (potiahnutím zmeňte poradie)",
+  "manageFavoritesEmpty": "Zoznam je prázdny.",
+  "manageFavoritesInvalidFreq": "Neplatná letecká frekvencia (118.000 - 136.975 MHz).",
+  "manageFavoritesNameRequired": "Názov nesmie byť prázdny.",
+  "manageFavoritesLoadError": "Chyba pri načítaní obľúbených: {error}",
+  "@manageFavoritesLoadError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "radioNotConnected": "Rádio nie je pripojené",
+  "radioSetAsActive": "Nastaviť ako AKTÍVNU",
+  "radioSetAsStandby": "Nastaviť ako STANDBY",
+  "radioSetFreqError": "Chyba nastavenia frekvencie: {error}",
+  "@radioSetFreqError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
 }

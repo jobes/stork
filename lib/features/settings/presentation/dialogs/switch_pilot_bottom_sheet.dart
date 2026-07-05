@@ -51,7 +51,9 @@ void showSwitchPilotBottomSheet(
                         children: [
                           Text(
                             l10n.switchPilotTitle,
-                            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),
@@ -65,7 +67,9 @@ void showSwitchPilotBottomSheet(
                         label: Text(l10n.addNewPilot),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onPressed: () {
                           Navigator.pop(context);
@@ -81,7 +85,9 @@ void showSwitchPilotBottomSheet(
                       const SizedBox(height: 20),
                       Text(
                         l10n.savedProfilesSection,
-                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       if (pilots.isEmpty)
@@ -89,9 +95,18 @@ void showSwitchPilotBottomSheet(
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           child: Column(
                             children: [
-                              Icon(Icons.people_outline, size: 40, color: Colors.grey[400]),
+                              Icon(
+                                Icons.people_outline,
+                                size: 40,
+                                color: Colors.grey[400],
+                              ),
                               const SizedBox(height: 8),
-                              Text(l10n.noPilotsCreated, style: const TextStyle(fontStyle: FontStyle.italic)),
+                              Text(
+                                l10n.noPilotsCreated,
+                                style: const TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
                             ],
                           ),
                         )
@@ -100,16 +115,19 @@ void showSwitchPilotBottomSheet(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: pilots.length + 1,
-                          separatorBuilder: (context, idx) => const SizedBox(height: 8),
+                          separatorBuilder: (context, idx) =>
+                              const SizedBox(height: 8),
                           itemBuilder: (context, idx) {
                             if (idx == pilots.length) {
-                                return TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    ref.read(appSettingsProvider.notifier).updatePilotId(null);
-                                  },
-                                  child: Text(l10n.deselectPilot),
-                                );
+                              return TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  ref
+                                      .read(appSettingsProvider.notifier)
+                                      .updatePilotId(null);
+                                },
+                                child: Text(l10n.deselectPilot),
+                              );
                             }
                             final pilot = pilots[idx];
                             final isActive = pilot.id == activePilotId;
@@ -119,53 +137,82 @@ void showSwitchPilotBottomSheet(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                                 side: isActive
-                                    ? BorderSide(color: theme.colorScheme.primary, width: 2)
+                                    ? BorderSide(
+                                        color: theme.colorScheme.primary,
+                                        width: 2,
+                                      )
                                     : BorderSide.none,
                               ),
                               color: isActive
-                                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.15)
-                                  : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                  ? theme.colorScheme.primaryContainer
+                                        .withValues(alpha: 0.15)
+                                  : theme.colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.3),
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () async {
                                   Navigator.pop(context);
                                   if (settings.pilotId == pilot.id) return;
-                                  
-                                  final success = await promptForPin(parentContext, pilot, l10n.selectPilotTitle);
+
+                                  final success = await promptForPin(
+                                    parentContext,
+                                    pilot,
+                                    l10n.selectPilotTitle,
+                                  );
                                   if (success) {
-                                    await ref.read(appSettingsProvider.notifier).updatePilotId(pilot.id);
+                                    await ref
+                                        .read(appSettingsProvider.notifier)
+                                        .updatePilotId(pilot.id);
                                     onPilotUnlocked(pilot.id);
                                   }
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
                                   child: Row(
                                     children: [
                                       CircleAvatar(
                                         radius: 20,
                                         backgroundColor: isActive
                                             ? theme.colorScheme.primary
-                                            : theme.colorScheme.surfaceContainerHighest,
+                                            : theme
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
                                         child: Icon(
                                           Icons.person,
-                                          color: isActive ? Colors.white : Colors.grey[700],
+                                          color: isActive
+                                              ? Colors.white
+                                              : Colors.grey[700],
                                           size: 20,
                                         ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               pilot.name,
-                                              style: theme.textTheme.bodyMedium?.copyWith(
-                                                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                                              ),
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    fontWeight: isActive
+                                                        ? FontWeight.bold
+                                                        : FontWeight.normal,
+                                                  ),
                                             ),
                                             Text(
-                                              pilot.pin != null && pilot.pin!.isNotEmpty ? l10n.protectedByPin : l10n.noPin,
-                                              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[600], fontSize: 11),
+                                              pilot.pin != null &&
+                                                      pilot.pin!.isNotEmpty
+                                                  ? l10n.protectedByPin
+                                                  : l10n.noPin,
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 11,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -182,7 +229,10 @@ void showSwitchPilotBottomSheet(
                 ),
               );
             },
-            loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+            loading: () => const SizedBox(
+              height: 200,
+              child: Center(child: CircularProgressIndicator()),
+            ),
             error: (err, stack) => Center(child: Text(l10n.errorPrefix)),
           );
         },

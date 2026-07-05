@@ -47,11 +47,13 @@ class FlightDuration extends _$FlightDuration {
     });
 
     ref.listen(
-      telemetryProvider.select((s) => (
-        isFlying: s.isFlying,
-        latitude: s.latitude,
-        longitude: s.longitude,
-      )),
+      telemetryProvider.select(
+        (s) => (
+          isFlying: s.isFlying,
+          latitude: s.latitude,
+          longitude: s.longitude,
+        ),
+      ),
       (previous, next) {
         _handleTelemetryChange(previous, next);
       },

@@ -13,16 +13,21 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final oilPressure = ref.watch(telemetryProvider.select((t) => t.oilPressure));
+    final oilPressure = ref.watch(
+      telemetryProvider.select((t) => t.oilPressure),
+    );
     final disableAnimations = ref.watch(
-      disableTelemetryAnimationsProvider.select((m) => m[TelemetryField.oilPressure] ?? false),
+      disableTelemetryAnimationsProvider.select(
+        (m) => m[TelemetryField.oilPressure] ?? false,
+      ),
     );
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
     final pressureUnit = settings?.pressureUnit ?? PressureUnit.bar;
-    final thresholds = settings?.oilPressureThresholds ??
+    final thresholds =
+        settings?.oilPressureThresholds ??
         const RangeThresholds.raw(
           inactiveMax: 50.0,
           minError: 80.0,
@@ -37,9 +42,9 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
         : ThresholdState.maxError;
 
     final String valueStr = rawPressure != null
-        ? (pressureUnit == PressureUnit.bar 
-            ? pressureUnit.convertFromKpa(rawPressure).toStringAsFixed(1)
-            : pressureUnit.convertFromKpa(rawPressure).toStringAsFixed(0))
+        ? (pressureUnit == PressureUnit.bar
+              ? pressureUnit.convertFromKpa(rawPressure).toStringAsFixed(1)
+              : pressureUnit.convertFromKpa(rawPressure).toStringAsFixed(0))
         : '---';
 
     final double maxVisualKpa = settings?.oilPressureMaxRange ?? 800.0;

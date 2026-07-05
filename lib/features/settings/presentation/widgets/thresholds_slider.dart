@@ -116,7 +116,11 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
         : widget.max;
 
     final double clampedValue = widget.decimalPlaces > 0
-        ? double.parse(rawValue.clamp(minVal, maxVal).toStringAsFixed(widget.decimalPlaces))
+        ? double.parse(
+            rawValue
+                .clamp(minVal, maxVal)
+                .toStringAsFixed(widget.decimalPlaces),
+          )
         : rawValue.clamp(minVal, maxVal).roundToDouble();
 
     if (_currentValues[_activeThumbIndex!] != clampedValue) {

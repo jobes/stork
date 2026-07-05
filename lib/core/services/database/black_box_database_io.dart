@@ -18,7 +18,7 @@ BlackBoxDatabase getDatabase() => IoBlackBoxDatabase();
 class IoBlackBoxDatabase implements BlackBoxDatabase {
   Database? _db;
   Future<Database>? _initFuture;
-  
+
   @visibleForTesting
   String? dbPathOverride;
 
@@ -32,13 +32,15 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     if (_db != null) return _db!;
     if (_initFuture != null) return _initFuture!;
 
-    _initFuture = _initDatabase().then((db) {
-      _db = db;
-      return db;
-    }).catchError((Object e, StackTrace s) {
-      _initFuture = null;
-      throw e;
-    });
+    _initFuture = _initDatabase()
+        .then((db) {
+          _db = db;
+          return db;
+        })
+        .catchError((Object e, StackTrace s) {
+          _initFuture = null;
+          throw e;
+        });
 
     return _initFuture!;
   }
@@ -97,6 +99,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     }
     await database;
   }
+
   void setupTables(Database db) {
     db.execute('''
       CREATE TABLE IF NOT EXISTS flights (
@@ -109,8 +112,6 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
           notes TEXT
       );
     ''');
-
-
 
     final telemetryColumns = [
       'id INTEGER PRIMARY KEY AUTOINCREMENT',
@@ -168,7 +169,6 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   }
 
   void _migrateSchema(Database db) {
-
     // Telemetry columns migration
     final pragmaResults = db.select('PRAGMA table_info(flight_telemetry)');
     final existingColumns = pragmaResults
@@ -226,15 +226,15 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   @override
   Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
     if (entries.isEmpty) return;
-    
-    // In unit tests, run synchronously to prevent conflicts with fakeAsync 
+
+    // In unit tests, run synchronously to prevent conflicts with fakeAsync
     // and to support pre-injected mocked/in-memory database connections.
     if (Platform.environment.containsKey('FLUTTER_TEST')) {
       final db = await database;
       _insertTelemetryEntriesSync(db, entries);
       return;
     }
-    
+
     // In production, offload writes to a background Isolate.
     // Since we use PRAGMA synchronous = FULL to ensure flight data is physically
     // committed to disk (preventing data loss during crashes), the commit operation
@@ -359,7 +359,8 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       columns.add(field.dbColumnName);
     }
 
-    final query = '''
+    final query =
+        '''
       SELECT ${columns.join(', ')} 
       FROM flight_telemetry 
       WHERE flight_uuid = ? 
@@ -422,7 +423,9 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     final params = <dynamic>[];
 
     if (lastStartTimeStr != null && lastUuid != null) {
-      whereClauses.add('(f.start_time < ? OR (f.start_time = ? AND f.uuid < ?))');
+      whereClauses.add(
+        '(f.start_time < ? OR (f.start_time = ? AND f.uuid < ?))',
+      );
       params.addAll([lastStartTimeStr, lastStartTimeStr, lastUuid]);
     }
 
@@ -440,11 +443,14 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       params.add(airplaneId);
     }
 
-    final whereString = whereClauses.isNotEmpty ? 'WHERE ${whereClauses.join(' AND ')}' : '';
+    final whereString = whereClauses.isNotEmpty
+        ? 'WHERE ${whereClauses.join(' AND ')}'
+        : '';
     params.add(limit);
     final limitParamIdx = params.length;
 
-    final sql = '''
+    final sql =
+        '''
       SELECT f.uuid, f.name, f.start_time, f.end_time, f.pilot_id, f.airplane_id, f.notes,
              s.max_altitude, s.total_ascent, s.total_descent, s.avg_altitude,
              s.max_ground_speed, s.max_indicated_air_speed, s.avg_ground_speed, s.avg_indicated_air_speed,
@@ -485,7 +491,9 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       params.add(airplaneId);
     }
 
-    final whereString = whereClauses.isNotEmpty ? 'WHERE ${whereClauses.join(' AND ')}' : '';
+    final whereString = whereClauses.isNotEmpty
+        ? 'WHERE ${whereClauses.join(' AND ')}'
+        : '';
     final sql = 'SELECT COUNT(*) as count FROM flights $whereString';
 
     final results = db.select(sql, params);
@@ -522,7 +530,8 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     final lonCol = TelemetryField.longitude.dbColumnName;
     final altCol = TelemetryField.gpsAltitude.dbColumnName;
 
-    final query = '''
+    final query =
+        '''
       SELECT id, flight_uuid, timestamp, is_snapshot, $latCol, $lonCol, $altCol
       FROM flight_telemetry 
       WHERE flight_uuid = ? 
@@ -600,7 +609,8 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     String query;
     List<Object?> params;
     if (lastId != null) {
-      query = '''
+      query =
+          '''
         SELECT ${columns.join(', ')} 
         FROM flight_telemetry 
         WHERE flight_uuid = ? AND id > ?
@@ -609,7 +619,8 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       ''';
       params = [flightUuid, lastId, limit];
     } else {
-      query = '''
+      query =
+          '''
         SELECT ${columns.join(', ')} 
         FROM flight_telemetry 
         WHERE flight_uuid = ? 
@@ -641,23 +652,29 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       );
     }).toList();
   }
+
   @override
   Future<void> calculateAndSaveFlightStatistics(String flightUuid) async {
     final path = await _dbPath;
     await Isolate.run(() => _calculateAndSaveStatsIsolate(path, flightUuid));
   }
 
-  TimeBasedStats _calculateStatsFromResults(ResultSet results, double initialHours, int initialFlights) {
+  TimeBasedStats _calculateStatsFromResults(
+    ResultSet results,
+    double initialHours,
+    int initialFlights,
+  ) {
     if (results.isEmpty) return TimeBasedStats.empty();
     final row = results.first;
-    
+
     return TimeBasedStats(
       totalHours: initialHours + (row['total_hours'] as num? ?? 0.0).toDouble(),
       thisYearHours: (row['year_hours'] as num? ?? 0.0).toDouble(),
       thisMonthHours: (row['month_hours'] as num? ?? 0.0).toDouble(),
       thisWeekHours: (row['week_hours'] as num? ?? 0.0).toDouble(),
       todayHours: (row['today_hours'] as num? ?? 0.0).toDouble(),
-      totalFlights: initialFlights + (row['total_flights'] as num? ?? 0).toInt(),
+      totalFlights:
+          initialFlights + (row['total_flights'] as num? ?? 0).toInt(),
       thisYearFlights: (row['year_flights'] as num? ?? 0).toInt(),
       thisMonthFlights: (row['month_flights'] as num? ?? 0).toInt(),
       thisWeekFlights: (row['week_flights'] as num? ?? 0).toInt(),
@@ -696,55 +713,88 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   List<Object?> _buildStatsParams(String filterValue) {
     final now = DateTime.now().toUtc();
     final nowStr = now.toIso8601String();
-    
+
     final localNow = DateTime.now();
-    final todayLimit = DateTime(localNow.year, localNow.month, localNow.day).toUtc().toIso8601String();
-    
+    final todayLimit = DateTime(
+      localNow.year,
+      localNow.month,
+      localNow.day,
+    ).toUtc().toIso8601String();
+
     final dayOfWeek = localNow.weekday; // 1 = Monday, 7 = Sunday
     final startDay = localNow.subtract(Duration(days: dayOfWeek - 1));
-    final weekLimit = DateTime(startDay.year, startDay.month, startDay.day).toUtc().toIso8601String();
-    
-    final monthLimit = DateTime(localNow.year, localNow.month, 1).toUtc().toIso8601String();
+    final weekLimit = DateTime(
+      startDay.year,
+      startDay.month,
+      startDay.day,
+    ).toUtc().toIso8601String();
+
+    final monthLimit = DateTime(
+      localNow.year,
+      localNow.month,
+      1,
+    ).toUtc().toIso8601String();
     final yearLimit = DateTime(localNow.year, 1, 1).toUtc().toIso8601String();
 
     return [
       nowStr,
       filterValue,
-      yearLimit, yearLimit,
-      monthLimit, monthLimit,
-      weekLimit, weekLimit,
-      todayLimit, todayLimit,
+      yearLimit,
+      yearLimit,
+      monthLimit,
+      monthLimit,
+      weekLimit,
+      weekLimit,
+      todayLimit,
+      todayLimit,
     ];
   }
 
   @override
-  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0, int initialFlights = 0}) async {
+  Future<TimeBasedStats> getPilotTimeStats(
+    String pilotId, {
+    double initialHours = 0.0,
+    int initialFlights = 0,
+  }) async {
     final db = await database;
-    final results = db.select(_buildStatsQuery('pilot_id'), _buildStatsParams(pilotId));
+    final results = db.select(
+      _buildStatsQuery('pilot_id'),
+      _buildStatsParams(pilotId),
+    );
     return _calculateStatsFromResults(results, initialHours, initialFlights);
   }
 
   @override
-  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0, int initialFlights = 0}) async {
+  Future<TimeBasedStats> getAircraftTimeStats(
+    String airplaneId, {
+    double initialHours = 0.0,
+    int initialFlights = 0,
+  }) async {
     final db = await database;
-    final results = db.select(_buildStatsQuery('airplane_id'), _buildStatsParams(airplaneId));
+    final results = db.select(
+      _buildStatsQuery('airplane_id'),
+      _buildStatsParams(airplaneId),
+    );
     return _calculateStatsFromResults(results, initialHours, initialFlights);
   }
 
   @override
   Future<List<String>> getUniquePilotIds() async {
     final db = await database;
-    final results = db.select('SELECT DISTINCT pilot_id FROM flights WHERE pilot_id IS NOT NULL');
+    final results = db.select(
+      'SELECT DISTINCT pilot_id FROM flights WHERE pilot_id IS NOT NULL',
+    );
     return results.map((r) => r['pilot_id'] as String).toList();
   }
 
   @override
   Future<List<String>> getUniqueAirplaneIds() async {
     final db = await database;
-    final results = db.select('SELECT DISTINCT airplane_id FROM flights WHERE airplane_id IS NOT NULL');
+    final results = db.select(
+      'SELECT DISTINCT airplane_id FROM flights WHERE airplane_id IS NOT NULL',
+    );
     return results.map((r) => r['airplane_id'] as String).toList();
   }
-
 }
 
 void _calculateAndSaveStatsIsolate(String dbPath, String flightUuid) {
@@ -761,14 +811,17 @@ void _calculateAndSaveStatsIsolate(String dbPath, String flightUuid) {
 
     while (hasMore) {
       final columns = ['id', 'flight_uuid', 'timestamp', 'is_snapshot'];
-      for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
+      for (final field in TelemetryField.values.where(
+        (f) => f.isBlackBoxField,
+      )) {
         columns.add(field.dbColumnName);
       }
 
       String query;
       List<Object?> params;
       if (lastId != null) {
-        query = '''
+        query =
+            '''
           SELECT ${columns.join(', ')} 
           FROM flight_telemetry 
           WHERE flight_uuid = ? AND id > ?
@@ -777,7 +830,8 @@ void _calculateAndSaveStatsIsolate(String dbPath, String flightUuid) {
         ''';
         params = [flightUuid, lastId, limit];
       } else {
-        query = '''
+        query =
+            '''
           SELECT ${columns.join(', ')} 
           FROM flight_telemetry 
           WHERE flight_uuid = ? 
@@ -856,7 +910,10 @@ void _calculateAndSaveStatsIsolate(String dbPath, String flightUuid) {
 
 // Runs on a background isolate. It must open a separate connection to the SQLite database
 // since raw sqlite3 pointers cannot be safely shared across Isolates.
-void _insertTelemetryEntriesIsolate(String dbPath, List<TelemetryEntry> entries) {
+void _insertTelemetryEntriesIsolate(
+  String dbPath,
+  List<TelemetryEntry> entries,
+) {
   final db = sqlite3.open(dbPath);
   db.execute('PRAGMA foreign_keys = ON;');
   db.execute('PRAGMA journal_mode = WAL;');
@@ -877,9 +934,7 @@ void _insertTelemetryEntriesSync(Database db, List<TelemetryEntry> entries) {
     final columns = ['flight_uuid', 'timestamp', 'is_snapshot'];
     final placeholders = ['?', '?', '?'];
 
-    for (final field in TelemetryField.values.where(
-      (f) => f.isBlackBoxField,
-    )) {
+    for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
       columns.add(field.dbColumnName);
       placeholders.add('?');
     }

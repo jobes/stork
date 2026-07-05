@@ -136,6 +136,27 @@ typedef StorkCanardRespond =
       int payloadLen,
     );
 
+typedef StorkCanardRequestNative =
+    Int16 Function(
+      Uint64 dataTypeSignature,
+      Uint16 dataTypeId,
+      Pointer<Uint8> inoutTransferId,
+      Uint8 destinationNodeId,
+      Uint8 priority,
+      Pointer<Uint8> payload,
+      Uint16 payloadLen,
+    );
+typedef StorkCanardRequest =
+    int Function(
+      int dataTypeSignature,
+      int dataTypeId,
+      Pointer<Uint8> inoutTransferId,
+      int destinationNodeId,
+      int priority,
+      Pointer<Uint8> payload,
+      int payloadLen,
+    );
+
 class CanardBindings {
   late DynamicLibrary _lib;
   late StorkCanardInit storkCanardInit;
@@ -148,6 +169,7 @@ class CanardBindings {
   late StorkCanardBroadcast storkCanardBroadcast;
   late StorkCanardGenerateTxPacket storkCanardGenerateTxPacket;
   late StorkCanardRespond storkCanardRespond;
+  late StorkCanardRequest storkCanardRequest;
 
   CanardBindings() {
     if (Platform.isLinux) {
@@ -208,6 +230,12 @@ class CanardBindings {
     storkCanardRespond = _lib
         .lookup<NativeFunction<StorkCanardRespondNative>>(
           'stork_canard_respond',
+        )
+        .asFunction();
+
+    storkCanardRequest = _lib
+        .lookup<NativeFunction<StorkCanardRequestNative>>(
+          'stork_canard_request',
         )
         .asFunction();
   }

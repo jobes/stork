@@ -2,6 +2,7 @@ import 'airspace_class.dart';
 import 'airspace_type.dart';
 import 'airspace_limit.dart';
 import 'airspace_activity.dart';
+import 'airspace_frequency.dart';
 
 class AirspaceMetadata {
   final String id;
@@ -15,6 +16,8 @@ class AirspaceMetadata {
   final bool? byNotam;
   final bool? onDemand;
   final bool? onRequest;
+  final List<AirspaceFrequency>? frequencies;
+  final Map<String, dynamic>? geometry;
 
   AirspaceMetadata({
     required this.id,
@@ -28,7 +31,42 @@ class AirspaceMetadata {
     this.byNotam,
     this.onDemand,
     this.onRequest,
+    this.frequencies,
+    this.geometry,
   });
+
+  List<List<List<List<double>>>> get polygons {
+    final geom = geometry;
+    if (geom == null) return const [];
+    try {
+      final String type = geom['type'] as String;
+      final List<dynamic> coords = geom['coordinates'] as List<dynamic>;
+      final List<List<List<List<double>>>> polygons = [];
+
+      List<List<List<double>>> parsePolygon(List<dynamic> polyCoords) {
+        final List<List<List<double>>> poly = [];
+        for (final dynamic ringObj in polyCoords) {
+          final List<List<double>> ring = [];
+          for (final dynamic pt in ringObj) {
+            ring.add([(pt[0] as num).toDouble(), (pt[1] as num).toDouble()]);
+          }
+          poly.add(ring);
+        }
+        return poly;
+      }
+
+      if (type == 'Polygon') {
+        polygons.add(parsePolygon(coords));
+      } else if (type == 'MultiPolygon') {
+        for (final dynamic polyObj in coords) {
+          polygons.add(parsePolygon(polyObj as List<dynamic>));
+        }
+      }
+      return polygons;
+    } catch (_) {
+      return const [];
+    }
+  }
 
   factory AirspaceMetadata.fromJson(Map<String, Object?> json) {
     final lowerLimitJson = json['lowerLimit'];
@@ -54,6 +92,17 @@ class AirspaceMetadata {
       byNotam: json['byNotam'] as bool?,
       onDemand: json['onDemand'] as bool?,
       onRequest: json['onRequest'] as bool?,
+      frequencies: (json['frequencies'] as List<dynamic>?)
+          ?.whereType<Map>()
+          .map(
+            (f) => AirspaceFrequency.fromJson(
+              f is Map<String, Object?> ? f : Map<String, Object?>.from(f),
+            ),
+          )
+          .toList(),
+      geometry: json['geometry'] != null
+          ? Map<String, dynamic>.from(json['geometry'] as Map)
+          : null,
     );
   }
 
@@ -74,6 +123,9 @@ class AirspaceMetadata {
       if (byNotam != null) 'byNotam': byNotam,
       if (onDemand != null) 'onDemand': onDemand,
       if (onRequest != null) 'onRequest': onRequest,
+      if (frequencies != null)
+        'frequencies': frequencies!.map((f) => f.toJson()).toList(),
+      if (geometry != null) 'geometry': geometry,
     };
   }
 }

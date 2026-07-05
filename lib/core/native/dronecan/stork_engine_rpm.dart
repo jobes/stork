@@ -12,7 +12,7 @@ import 'dronecan_message.dart';
 ///   uint7 throttle_position_percent
 class StorkEngineRpm implements DroneCanMessage {
   static const int messageId = 20120;
-  static const int messageSignature = 0xD8CD8D1076CA4884;
+  static const int messageSignature = 0xE615F33EF2D8D250;
   static const bool messageIsService = false;
 
   @override

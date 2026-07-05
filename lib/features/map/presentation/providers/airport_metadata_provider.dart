@@ -12,6 +12,8 @@ class AirportMetadataCache extends _$AirportMetadataCache {
   final Set<String> _downloadedCountries = {};
   final Map<String, Future<void>> _inflightDownloads = {};
 
+  Map<String, AirportMetadata> get memoryCache => _memoryCache;
+
   @override
   void build() {
     // Keep-alive provider that holds the session cache until app restart.
@@ -83,6 +85,8 @@ class AirportMetadataCache extends _$AirportMetadataCache {
     _memoryCache.clear();
     _downloadedCountries.clear();
     _inflightDownloads.clear();
+    // Invalidate all family instances so previously cached arguments refetch.
+    ref.invalidate(airportMetadataProvider);
   }
 }
 
@@ -91,11 +95,15 @@ Future<AirportMetadata?> airportMetadata(
   Ref ref,
   String airportId,
   String countryCode,
-) {
-  ref.keepAlive();
-  return ref
-      .watch(airportMetadataCacheProvider.notifier)
+) async {
+  final metadata = await ref
+      .read(airportMetadataCacheProvider.notifier)
       .getMetadata(airportId, countryCode);
+
+  if (metadata != null && ref.mounted) {
+    ref.keepAlive();
+  }
+  return metadata;
 }
 
 @riverpod

@@ -9,7 +9,7 @@ Welcome to the technical documentation for **Stork**, a high-performance aeronau
 Documents in this section cover the core infrastructure, networking protocols, hardware integration, and mathematical systems that power the application.
 
 *   [Telemetry and Network Architecture](architecture/telemetry-architecture.md)
-    *   *Details the CAN-over-IP telemetry pipeline using the Cannelloni UDP protocol, Multicast DNS (mDNS) service discovery, Dynamic Node ID Allocation (DNA), native C bindings (`libcanard`), and Telemetry State decay safety.*
+    *   *Details the CAN-over-IP telemetry pipeline using the Cannelloni UDP protocol, Multicast DNS (mDNS) service discovery, Dynamic Node ID Allocation (DNA), native C bindings (`libcanard`), Telemetry State decay safety, and DroneCAN service request/response pattern for VHF radio control.*
 *   [Altitude Resolution and Terrain Elevation](architecture/altitude-resolution-and-terrain.md)
     *   *Outlines how altitude is dynamically resolved from multiple physical/virtual sources, Web Mercator projection mechanics for zoom level 12 terrain tiles, Mapzen Terrarium PNG decoding, bilinear interpolation, LRU tile caching, and ground/in-flight Auto-QNH calibration (via a 2D Extended Kalman Filter).*
 *   [Local Data Storage and Database Architecture](architecture/local-data-storage.md)
@@ -47,4 +47,6 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Covers pilot and aircraft profile structures, CRUD repositories, JSON-based persistence, SQL time-based statistics calculations, optional PIN security, and dashboard integration.*
 *   [Engine Telemetry and Health Monitoring](features/engine-telemetry.md)
     *   *Details DroneCAN-based ICE (Internal Combustion Engine) monitoring, including RPM, fuel tank status, oil pressure/temperature, CHT, EGT, dynamic overlay widgets, custom segmented gauges, and threshold alarm logic.*
+*   [VHF Radio Control and Monitoring](features/vhf-radio.md)
+    *   *Describes the VHF radio DroneCAN protocol (FastStatus, FullStatus, Control service), the interactive radio control dialog with quick/advanced modes, the map overlay telemetry widget, nearby frequency discovery, and persistent favorite frequencies management.*
 

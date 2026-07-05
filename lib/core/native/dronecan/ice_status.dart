@@ -135,8 +135,10 @@ class IceStatus implements DroneCanMessage {
   final double? oilPressure;
   final double? oilTemperature;
   final double? fuelPressure;
+
   /// Fuel consumption rate in cm³/min.
   final double? fuelConsumptionRateCm3pm;
+
   /// Estimated consumed fuel volume since engine start, in cm³.
   final double? estimatedConsumedFuelVolumeCm3;
   final int throttlePositionPercent;
@@ -182,7 +184,6 @@ class IceStatus implements DroneCanMessage {
   /// A null entry means that cylinder has no EGT sensor.
   List<double?> get exhaustGasTemperatures =>
       cylinders.map((c) => c.exhaustGasTemperature).toList(growable: false);
-
 
   /// Returns true when any error-related flag bit is set or state is FAULT.
   bool get hasError =>
@@ -240,11 +241,11 @@ class IceStatus implements DroneCanMessage {
     final reader = BitReader(payload);
 
     // --- Required integer fields ---
-    final stateVal = reader.readUint(2);        // uint2   state
-    final flagsVal = reader.readUint(30);       // uint30  flags
-    reader.readUint(16);                        // void16  (reserved)
-    final engineLoad = reader.readUint(7);      // uint7   engine_load_percent
-    final rpmVal = reader.readUint(17);         // uint17  engine_speed_rpm
+    final stateVal = reader.readUint(2); // uint2   state
+    final flagsVal = reader.readUint(30); // uint30  flags
+    reader.readUint(16); // void16  (reserved)
+    final engineLoad = reader.readUint(7); // uint7   engine_load_percent
+    final rpmVal = reader.readUint(17); // uint17  engine_speed_rpm
 
     // --- Float fields (NaN → null) ---
     double? readFloat16OrNull() {
@@ -257,21 +258,21 @@ class IceStatus implements DroneCanMessage {
       return v.isNaN ? null : v;
     }
 
-    final sparkDwellTimeMs = readFloat16OrNull();            // float16
-    final atmosphericPressureKpa = readFloat16OrNull();      // float16
-    final intakeManifoldPressureKpa = readFloat16OrNull();   // float16
-    final intakeManifoldTemperature = readFloat16OrNull();   // float16
-    final coolantTemperature = readFloat16OrNull();          // float16
-    final oilPressure = readFloat16OrNull();                 // float16
-    final oilTemperature = readFloat16OrNull();              // float16
-    final fuelPressure = readFloat16OrNull();                // float16
-    final fuelConsumptionRateCm3pm = readFloat32OrNull();    // float32
+    final sparkDwellTimeMs = readFloat16OrNull(); // float16
+    final atmosphericPressureKpa = readFloat16OrNull(); // float16
+    final intakeManifoldPressureKpa = readFloat16OrNull(); // float16
+    final intakeManifoldTemperature = readFloat16OrNull(); // float16
+    final coolantTemperature = readFloat16OrNull(); // float16
+    final oilPressure = readFloat16OrNull(); // float16
+    final oilTemperature = readFloat16OrNull(); // float16
+    final fuelPressure = readFloat16OrNull(); // float16
+    final fuelConsumptionRateCm3pm = readFloat32OrNull(); // float32
     final estimatedConsumedFuelVolumeCm3 = readFloat32OrNull(); // float32
 
     // --- Remaining integer fields ---
-    final throttlePositionPercent = reader.readUint(7);      // uint7
-    final ecuIndex = reader.readUint(6);                     // uint6
-    final sparkPlugUsage = reader.readUint(3);               // uint3
+    final throttlePositionPercent = reader.readUint(7); // uint7
+    final ecuIndex = reader.readUint(6); // uint6
+    final sparkPlugUsage = reader.readUint(3); // uint3
 
     // --- Dynamic array of CylinderStatus ---
     // Since cylinders is the last field of uavcan.equipment.ice.reciprocating.Status,
@@ -281,7 +282,10 @@ class IceStatus implements DroneCanMessage {
     const cylinderBitsPerEntry = 80; // 5×16
 
     final remainingBits = (payload.length * 8) - reader.bitOffset;
-    final cylinderCount = (remainingBits / cylinderBitsPerEntry).floor().clamp(0, maxCylinders);
+    final cylinderCount = (remainingBits / cylinderBitsPerEntry).floor().clamp(
+      0,
+      maxCylinders,
+    );
 
     for (int i = 0; i < cylinderCount; i++) {
       if (reader.bitOffset + cylinderBitsPerEntry > payload.length * 8) break;

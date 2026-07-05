@@ -49,12 +49,7 @@ class SegmentedGaugePainter extends CustomPainter {
     final double yMaxError = getY(maxError);
 
     // Tube background path (rounded rectangle at both ends)
-    final tubeRect = Rect.fromLTWH(
-      tubeLeft,
-      0,
-      tubeWidth,
-      size.height,
-    );
+    final tubeRect = Rect.fromLTWH(tubeLeft, 0, tubeWidth, size.height);
     final tubeRRect = RRect.fromRectAndRadius(
       tubeRect,
       Radius.circular(tubeWidth / 2),
@@ -124,7 +119,10 @@ class SegmentedGaugePainter extends CustomPainter {
       width: tubeWidth + pointerOverflow,
       height: pointerThickness,
     );
-    final pointerRRect = RRect.fromRectAndRadius(pointerRect, Radius.circular(pointerThickness / 2));
+    final pointerRRect = RRect.fromRectAndRadius(
+      pointerRect,
+      Radius.circular(pointerThickness / 2),
+    );
     canvas.drawRRect(pointerRRect, pointerPaint);
 
     final outlinePaint = Paint()
@@ -135,7 +133,9 @@ class SegmentedGaugePainter extends CustomPainter {
 
     // 4. Draw horizontal tick marks for thresholds next to the tube
     final tickPaint = Paint()
-      ..color = isDark ? Colors.white.withAlpha(100) : Colors.black.withAlpha(80)
+      ..color = isDark
+          ? Colors.white.withAlpha(100)
+          : Colors.black.withAlpha(80)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -147,9 +147,17 @@ class SegmentedGaugePainter extends CustomPainter {
 
     for (final y in thresholdYs) {
       // Draw left tick
-      canvas.drawLine(Offset(tubeLeft - tickLength - 0.5, y), Offset(tubeLeft - 0.5, y), tickPaint);
+      canvas.drawLine(
+        Offset(tubeLeft - tickLength - 0.5, y),
+        Offset(tubeLeft - 0.5, y),
+        tickPaint,
+      );
       // Draw right tick
-      canvas.drawLine(Offset(tubeLeft + tubeWidth + 0.5, y), Offset(tubeLeft + tubeWidth + tickLength + 0.5, y), tickPaint);
+      canvas.drawLine(
+        Offset(tubeLeft + tubeWidth + 0.5, y),
+        Offset(tubeLeft + tubeWidth + tickLength + 0.5, y),
+        tickPaint,
+      );
     }
   }
 

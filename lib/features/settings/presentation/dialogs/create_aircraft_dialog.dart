@@ -28,7 +28,9 @@ void showCreateAircraftDialog(BuildContext context, WidgetRef ref) {
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: l10n.aircraftNameLabel,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(Icons.flight),
                 ),
                 validator: (value) {
@@ -51,13 +53,15 @@ void showCreateAircraftDialog(BuildContext context, WidgetRef ref) {
                     onPressed: () async {
                       if (formKey.currentState!.validate()) {
                         final name = nameController.text.trim();
-                        
-                        final newId = await ref.read(aircraftStateProvider.notifier).createAircraft(
-                              name: name,
-                            );
-                        
-                        final result = await ref.read(appSettingsProvider.notifier).updateAirplaneId(newId);
-                        
+
+                        final newId = await ref
+                            .read(aircraftStateProvider.notifier)
+                            .createAircraft(name: name);
+
+                        final result = await ref
+                            .read(appSettingsProvider.notifier)
+                            .updateAirplaneId(newId);
+
                         if (result is SettingsUpdateSuccess) {
                           if (dialogCtx.mounted) {
                             Navigator.of(dialogCtx).pop();
@@ -66,7 +70,11 @@ void showCreateAircraftDialog(BuildContext context, WidgetRef ref) {
                           if (dialogCtx.mounted) {
                             ScaffoldMessenger.of(dialogCtx).showSnackBar(
                               SnackBar(
-                                content: Text(l10n.settingsUpdateFailed(result.error.toString())),
+                                content: Text(
+                                  l10n.settingsUpdateFailed(
+                                    result.error.toString(),
+                                  ),
+                                ),
                               ),
                             );
                           }
@@ -74,7 +82,9 @@ void showCreateAircraftDialog(BuildContext context, WidgetRef ref) {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     child: Text(l10n.create),
                   ),

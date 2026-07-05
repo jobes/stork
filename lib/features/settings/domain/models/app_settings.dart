@@ -50,10 +50,10 @@ abstract class AppSettings with _$AppSettings {
     @Default(
       RangeThresholds.raw(
         inactiveMax: 303.15, // 30 °C
-        minError: 323.15,    // 50 °C
-        minWarning: 333.15,  // 60 °C
-        maxWarning: 383.15,  // 110 °C
-        maxError: 403.15,    // 130 °C
+        minError: 323.15, // 50 °C
+        minWarning: 333.15, // 60 °C
+        maxWarning: 383.15, // 110 °C
+        maxError: 403.15, // 130 °C
       ),
     )
     RangeThresholds oilTempThresholds,
@@ -61,29 +61,24 @@ abstract class AppSettings with _$AppSettings {
     @Default(PressureUnit.bar) PressureUnit pressureUnit,
     @Default(
       RangeThresholds.raw(
-        inactiveMax: 50.0,    // 0.5 bar
-        minError: 80.0,       // 0.8 bar
-        minWarning: 200.0,    // 2.0 bar
-        maxWarning: 500.0,    // 5.0 bar
-        maxError: 700.0,      // 7.0 bar
+        inactiveMax: 50.0, // 0.5 bar
+        minError: 80.0, // 0.8 bar
+        minWarning: 200.0, // 2.0 bar
+        maxWarning: 500.0, // 5.0 bar
+        maxError: 700.0, // 7.0 bar
       ),
     )
     RangeThresholds oilPressureThresholds,
     @Default(800.0) double oilPressureMaxRange, // 8.0 bar
-    @Default(
-      RangeThresholds.raw(
-        minError: 10.0,
-        minWarning: 20.0,
-      ),
-    )
+    @Default(RangeThresholds.raw(minError: 10.0, minWarning: 20.0))
     RangeThresholds fuelThresholds,
     @Default(
       RangeThresholds.raw(
         inactiveMax: 423.15, // 150 °C
-        minError: 773.15,    // 500 °C
-        minWarning: 973.15,  // 700 °C
+        minError: 773.15, // 500 °C
+        minWarning: 973.15, // 700 °C
         maxWarning: 1153.15, // 880 °C
-        maxError: 1173.15,   // 900 °C
+        maxError: 1173.15, // 900 °C
       ),
     )
     RangeThresholds egtThresholds,
@@ -91,10 +86,10 @@ abstract class AppSettings with _$AppSettings {
     @Default(
       RangeThresholds.raw(
         inactiveMax: 323.15, // 50 °C
-        minError: 333.15,    // 60 °C
-        minWarning: 348.15,  // 75 °C
-        maxWarning: 403.15,  // 130 °C
-        maxError: 423.15,    // 150 °C
+        minError: 333.15, // 60 °C
+        minWarning: 348.15, // 75 °C
+        maxWarning: 403.15, // 130 °C
+        maxError: 423.15, // 150 °C
       ),
     )
     RangeThresholds chtThresholds,
@@ -218,7 +213,9 @@ abstract class AppSettings with _$AppSettings {
   }) {
     double clampedMaxRangeActive = maxRange;
     if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
-      clampedMaxRangeActive = temperatureUnit.convertFromKelvin(defaultMaxRangeK);
+      clampedMaxRangeActive = temperatureUnit.convertFromKelvin(
+        defaultMaxRangeK,
+      );
     } else {
       clampedMaxRangeActive = clampedMaxRangeActive.clamp(
         minRangeLimit,
@@ -226,7 +223,9 @@ abstract class AppSettings with _$AppSettings {
       );
     }
 
-    final normalizedMaxRangeK = temperatureUnit.convertToKelvin(clampedMaxRangeActive);
+    final normalizedMaxRangeK = temperatureUnit.convertToKelvin(
+      clampedMaxRangeActive,
+    );
 
     final thresholds = oilTempThresholds;
     final inactiveMaxActive = temperatureUnit.convertFromKelvin(
@@ -294,7 +293,9 @@ abstract class AppSettings with _$AppSettings {
       );
     }
 
-    final normalizedMaxRangeKpa = pressureUnit.convertToKpa(clampedMaxRangeActive);
+    final normalizedMaxRangeKpa = pressureUnit.convertToKpa(
+      clampedMaxRangeActive,
+    );
 
     final thresholds = oilPressureThresholds;
     final inactiveMaxActive = pressureUnit.convertFromKpa(
@@ -325,9 +326,15 @@ abstract class AppSettings with _$AppSettings {
 
     final newMaxErrorActive = roundValue(maxErrorActive, clampedMaxRangeActive);
     final newMaxWarningActive = roundValue(maxWarningActive, newMaxErrorActive);
-    final newMinWarningActive = roundValue(minWarningActive, newMaxWarningActive);
+    final newMinWarningActive = roundValue(
+      minWarningActive,
+      newMaxWarningActive,
+    );
     final newMinErrorActive = roundValue(minErrorActive, newMinWarningActive);
-    final newInactiveMaxActive = roundValue(inactiveMaxActive, newMinErrorActive);
+    final newInactiveMaxActive = roundValue(
+      inactiveMaxActive,
+      newMinErrorActive,
+    );
 
     return copyWith(
       oilPressureMaxRange: normalizedMaxRangeKpa,
@@ -354,7 +361,9 @@ abstract class AppSettings with _$AppSettings {
   }) {
     double clampedMaxRangeActive = maxRange;
     if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
-      clampedMaxRangeActive = temperatureUnit.convertFromKelvin(defaultMaxRangeK);
+      clampedMaxRangeActive = temperatureUnit.convertFromKelvin(
+        defaultMaxRangeK,
+      );
     } else {
       clampedMaxRangeActive = clampedMaxRangeActive.clamp(
         minRangeLimit,
@@ -362,7 +371,9 @@ abstract class AppSettings with _$AppSettings {
       );
     }
 
-    final normalizedMaxRangeK = temperatureUnit.convertToKelvin(clampedMaxRangeActive);
+    final normalizedMaxRangeK = temperatureUnit.convertToKelvin(
+      clampedMaxRangeActive,
+    );
 
     final thresholds = egtThresholds;
     final inactiveMaxActive = temperatureUnit.convertFromKelvin(
@@ -422,7 +433,9 @@ abstract class AppSettings with _$AppSettings {
   }) {
     double clampedMaxRangeActive = maxRange;
     if (!clampedMaxRangeActive.isFinite || clampedMaxRangeActive <= 0.0) {
-      clampedMaxRangeActive = temperatureUnit.convertFromKelvin(defaultMaxRangeK);
+      clampedMaxRangeActive = temperatureUnit.convertFromKelvin(
+        defaultMaxRangeK,
+      );
     } else {
       clampedMaxRangeActive = clampedMaxRangeActive.clamp(
         minRangeLimit,
@@ -430,7 +443,9 @@ abstract class AppSettings with _$AppSettings {
       );
     }
 
-    final normalizedMaxRangeK = temperatureUnit.convertToKelvin(clampedMaxRangeActive);
+    final normalizedMaxRangeK = temperatureUnit.convertToKelvin(
+      clampedMaxRangeActive,
+    );
 
     final thresholds = chtThresholds;
     final inactiveMaxActive = temperatureUnit.convertFromKelvin(

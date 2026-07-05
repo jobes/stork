@@ -10,21 +10,24 @@ import 'telemetry_card.dart';
 class RpmHorizontalTelemetryWidget extends ConsumerWidget {
   const RpmHorizontalTelemetryWidget({super.key});
 
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final engineRPM = ref.watch(telemetryProvider.select((t) => t.engineRPM));
     final disableAnimations = ref.watch(
-      disableTelemetryAnimationsProvider.select((m) => m[TelemetryField.engineRPM] ?? false),
+      disableTelemetryAnimationsProvider.select(
+        (m) => m[TelemetryField.engineRPM] ?? false,
+      ),
     );
     final settings = ref.watch(appSettingsProvider).value;
-    final thresholds = settings?.rpmThresholds ?? const RangeThresholds.raw(
-      inactiveMax: 10.0,
-      minError: 1400.0,
-      minWarning: 1800.0,
-      maxWarning: 5500.0,
-      maxError: 5800.0,
-    );
+    final thresholds =
+        settings?.rpmThresholds ??
+        const RangeThresholds.raw(
+          inactiveMax: 10.0,
+          minError: 1400.0,
+          minWarning: 1800.0,
+          maxWarning: 5500.0,
+          maxError: 5800.0,
+        );
     final maxVisualValue = settings?.rpmMaxRange ?? 6000.0;
     const double minVisualValue = 0.0;
 
@@ -37,13 +40,16 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
         : Colors.grey.shade600;
 
     final int? currentRpm = engineRPM;
-    final String rpmText = currentRpm != null ? currentRpm.toString() : l10n.placeholderDash;
+    final String rpmText = currentRpm != null
+        ? currentRpm.toString()
+        : l10n.placeholderDash;
 
     final ThresholdState rpmState = currentRpm != null
         ? thresholds.evaluate(currentRpm.toDouble())
         : ThresholdState.maxError;
 
-    final bool isAbnormal = rpmState != ThresholdState.operational &&
+    final bool isAbnormal =
+        rpmState != ThresholdState.operational &&
         rpmState != ThresholdState.inactive;
 
     return TelemetryCard(
@@ -74,7 +80,9 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
                     ),
                   ),
                   AnimatedDefaultTextStyle(
-                    duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
+                    duration: disableAnimations
+                        ? Duration.zero
+                        : const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     style: TextStyle(
                       fontSize: (isAbnormal ? 18.0 : 15.0) * fontScale,
@@ -108,7 +116,9 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
                       child: Icon(
                         Icons.error_outline,
                         size: 16 * fontScale,
-                        color: isDark ? Colors.redAccent.shade200 : Colors.red.shade600,
+                        color: isDark
+                            ? Colors.redAccent.shade200
+                            : Colors.red.shade600,
                       ),
                     ),
             ),
@@ -166,12 +176,7 @@ class HorizontalSegmentedGaugePainter extends CustomPainter {
     final double xMaxError = getX(maxError);
 
     // Tube background path (rounded rectangle at both ends)
-    final tubeRect = Rect.fromLTWH(
-      0,
-      tubeTop,
-      size.width,
-      tubeHeight,
-    );
+    final tubeRect = Rect.fromLTWH(0, tubeTop, size.width, tubeHeight);
     final tubeRRect = RRect.fromRectAndRadius(
       tubeRect,
       Radius.circular(tubeHeight / 2),
@@ -241,7 +246,10 @@ class HorizontalSegmentedGaugePainter extends CustomPainter {
       width: pointerThickness,
       height: tubeHeight + pointerOverflow,
     );
-    final pointerRRect = RRect.fromRectAndRadius(pointerRect, Radius.circular(pointerThickness / 2));
+    final pointerRRect = RRect.fromRectAndRadius(
+      pointerRect,
+      Radius.circular(pointerThickness / 2),
+    );
     canvas.drawRRect(pointerRRect, pointerPaint);
 
     final outlinePaint = Paint()
@@ -252,7 +260,9 @@ class HorizontalSegmentedGaugePainter extends CustomPainter {
 
     // 4. Draw vertical tick marks for thresholds next to the tube
     final tickPaint = Paint()
-      ..color = isDark ? Colors.white.withAlpha(100) : Colors.black.withAlpha(80)
+      ..color = isDark
+          ? Colors.white.withAlpha(100)
+          : Colors.black.withAlpha(80)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -264,9 +274,17 @@ class HorizontalSegmentedGaugePainter extends CustomPainter {
 
     for (final x in thresholdXs) {
       // Draw top tick
-      canvas.drawLine(Offset(x, tubeTop - tickLength - 0.5), Offset(x, tubeTop - 0.5), tickPaint);
+      canvas.drawLine(
+        Offset(x, tubeTop - tickLength - 0.5),
+        Offset(x, tubeTop - 0.5),
+        tickPaint,
+      );
       // Draw bottom tick
-      canvas.drawLine(Offset(x, tubeTop + tubeHeight + 0.5), Offset(x, tubeTop + tubeHeight + tickLength + 0.5), tickPaint);
+      canvas.drawLine(
+        Offset(x, tubeTop + tubeHeight + 0.5),
+        Offset(x, tubeTop + tubeHeight + tickLength + 0.5),
+        tickPaint,
+      );
     }
   }
 

@@ -42,7 +42,7 @@ final class AirportMetadataCacheProvider
 }
 
 String _$airportMetadataCacheHash() =>
-    r'14fd9e4be1cf969c6de0c98f33cf6b1109ca5417';
+    r'b2bff9010dcb09c88d9313c4777b09e04bdca25e';
 
 abstract class _$AirportMetadataCache extends $Notifier<void> {
   void build();
@@ -117,7 +117,7 @@ final class AirportMetadataProvider
   }
 }
 
-String _$airportMetadataHash() => r'af7adf5f5472aa9113f11bc6bea6e69978d3633c';
+String _$airportMetadataHash() => r'4f3e83ae58a081e18ee93195b50dc65953af06fc';
 
 final class AirportMetadataFamily extends $Family
     with

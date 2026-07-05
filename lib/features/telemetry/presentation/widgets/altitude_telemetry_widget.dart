@@ -61,16 +61,22 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
     final aglState = ref.watch(aglProvider);
     final resolved = aglState.resolvedAltitude;
     final l10n = AppLocalizations.of(context)!;
-    
-    final fontScale = ref.watch(appSettingsProvider.select(
-      (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
-    ));
-    final activeUnit = ref.watch(appSettingsProvider.select(
-      (s) => s.value?.altitudeUnit ?? AltitudeUnit.feet,
-    ));
-    final heightUnit = ref.watch(appSettingsProvider.select(
-      (s) => s.value?.heightUnit ?? AltitudeUnit.meters,
-    ));
+
+    final fontScale = ref.watch(
+      appSettingsProvider.select(
+        (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
+      ),
+    );
+    final activeUnit = ref.watch(
+      appSettingsProvider.select(
+        (s) => s.value?.altitudeUnit ?? AltitudeUnit.feet,
+      ),
+    );
+    final heightUnit = ref.watch(
+      appSettingsProvider.select(
+        (s) => s.value?.heightUnit ?? AltitudeUnit.meters,
+      ),
+    );
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultTextColor = isDark
@@ -156,9 +162,7 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
         vertical: 8 * fontScale,
       ),
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: 126 * fontScale,
-        ),
+        constraints: BoxConstraints(minWidth: 126 * fontScale),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,

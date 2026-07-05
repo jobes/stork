@@ -126,7 +126,8 @@ class BlackBoxService extends _$BlackBoxService {
           // Only handle errors from saveFlight itself
           _flightCreationFuture = null;
           _activeFlightUuid = null;
-          _buffer.clear(); // Clear memory buffer on database initialization failure
+          _buffer
+              .clear(); // Clear memory buffer on database initialization failure
           debugPrint('Error starting flight in database: $e');
           throw e;
         });
@@ -263,9 +264,16 @@ class BlackBoxService extends _$BlackBoxService {
     return true;
   }
 
-  bool _areTelemetryFieldsEqual(TelemetryState a, TelemetryState b, TelemetryField field) {
+  bool _areTelemetryFieldsEqual(
+    TelemetryState a,
+    TelemetryState b,
+    TelemetryField field,
+  ) {
     if (field == TelemetryField.cylinderHeadTemperature) {
-      return _areListsEqual(a.cylinderHeadTemperatures, b.cylinderHeadTemperatures);
+      return _areListsEqual(
+        a.cylinderHeadTemperatures,
+        b.cylinderHeadTemperatures,
+      );
     }
     if (field == TelemetryField.exhaustGasTemperature) {
       return _areListsEqual(a.exhaustGasTemperatures, b.exhaustGasTemperatures);

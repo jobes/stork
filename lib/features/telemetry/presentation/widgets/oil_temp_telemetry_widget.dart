@@ -13,16 +13,21 @@ class OilTempTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final oilTemperature = ref.watch(telemetryProvider.select((t) => t.oilTemperature));
+    final oilTemperature = ref.watch(
+      telemetryProvider.select((t) => t.oilTemperature),
+    );
     final disableAnimations = ref.watch(
-      disableTelemetryAnimationsProvider.select((m) => m[TelemetryField.oilTemperature] ?? false),
+      disableTelemetryAnimationsProvider.select(
+        (m) => m[TelemetryField.oilTemperature] ?? false,
+      ),
     );
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
     final tempUnit = settings?.temperatureUnit ?? TemperatureUnit.celsius;
-    final thresholds = settings?.oilTempThresholds ??
+    final thresholds =
+        settings?.oilTempThresholds ??
         const RangeThresholds.raw(
           inactiveMax: 303.15,
           minError: 323.15,

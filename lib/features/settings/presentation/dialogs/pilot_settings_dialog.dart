@@ -8,10 +8,19 @@ import '../providers/pilot_provider.dart';
 import '../providers/settings_provider.dart';
 import 'pin_prompt_dialog.dart';
 
-void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {required VoidCallback onDelete}) {
+void showPilotSettingsDialog(
+  BuildContext context,
+  WidgetRef ref,
+  Pilot pilot, {
+  required VoidCallback onDelete,
+}) {
   final l10n = AppLocalizations.of(context)!;
-  final initialHoursController = TextEditingController(text: pilot.initialFlightHours.toString());
-  final initialFlightsController = TextEditingController(text: pilot.initialFlights.toString());
+  final initialHoursController = TextEditingController(
+    text: pilot.initialFlightHours.toString(),
+  );
+  final initialFlightsController = TextEditingController(
+    text: pilot.initialFlights.toString(),
+  );
   final pinConfirmController = TextEditingController();
   final theme = Theme.of(context);
 
@@ -29,7 +38,9 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
             // Initial flight hours
             Text(
               l10n.initialFlightHoursLabel,
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -37,11 +48,18 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                 Expanded(
                   child: TextFormField(
                     controller: initialHoursController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: InputDecoration(
                       hintText: l10n.hoursExampleHint,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
@@ -59,11 +77,16 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                       final async = ref.read(pilotStateProvider);
                       final list = async.asData?.value;
                       if (list != null) {
-                        return list.firstWhere((p) => p.id == pilot.id, orElse: () => pilot);
+                        return list.firstWhere(
+                          (p) => p.id == pilot.id,
+                          orElse: () => pilot,
+                        );
                       }
                       return pilot;
                     })();
-                    await ref.read(pilotStateProvider.notifier).updatePilot(
+                    await ref
+                        .read(pilotStateProvider.notifier)
+                        .updatePilot(
                           latestPilotHours.copyWith(initialFlightHours: hours),
                         );
                     if (context.mounted) {
@@ -73,8 +96,13 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                   ),
                   child: Text(l10n.save),
                 ),
@@ -85,7 +113,9 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
             // Initial flights
             Text(
               l10n.initialFlightsLabel,
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -97,8 +127,13 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       hintText: l10n.flightsExampleHint,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
@@ -116,11 +151,16 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                       final async = ref.read(pilotStateProvider);
                       final list = async.asData?.value;
                       if (list != null) {
-                        return list.firstWhere((p) => p.id == pilot.id, orElse: () => pilot);
+                        return list.firstWhere(
+                          (p) => p.id == pilot.id,
+                          orElse: () => pilot,
+                        );
                       }
                       return pilot;
                     })();
-                    await ref.read(pilotStateProvider.notifier).updatePilot(
+                    await ref
+                        .read(pilotStateProvider.notifier)
+                        .updatePilot(
                           latestPilotFlights.copyWith(initialFlights: flights),
                         );
                     if (context.mounted) {
@@ -130,8 +170,13 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                   ),
                   child: Text(l10n.save),
                 ),
@@ -142,7 +187,9 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
             // PIN
             Text(
               l10n.pinSecurityLabel,
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -155,8 +202,13 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       hintText: l10n.newPinHint,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
@@ -168,12 +220,19 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                       final async = ref.read(pilotStateProvider);
                       final list = async.asData?.value;
                       if (list != null) {
-                        return list.firstWhere((p) => p.id == pilot.id, orElse: () => pilot);
+                        return list.firstWhere(
+                          (p) => p.id == pilot.id,
+                          orElse: () => pilot,
+                        );
                       }
                       return pilot;
                     })();
-                    await ref.read(pilotStateProvider.notifier).updatePilot(
-                          latestPilotPin.copyWith(pin: pinText.isEmpty ? null : pinText),
+                    await ref
+                        .read(pilotStateProvider.notifier)
+                        .updatePilot(
+                          latestPilotPin.copyWith(
+                            pin: pinText.isEmpty ? null : pinText,
+                          ),
                         );
                     pinConfirmController.clear();
                     if (context.mounted) {
@@ -183,8 +242,13 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
                   ),
                   child: Text(l10n.save),
                 ),
@@ -197,7 +261,10 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
               children: [
                 TextButton.icon(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  label: Text(l10n.deletePilotTitle, style: const TextStyle(color: Colors.red)),
+                  label: Text(
+                    l10n.deletePilotTitle,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                   onPressed: () {
                     Navigator.pop(dialogCtx);
                     onDelete();
@@ -216,10 +283,14 @@ void showPilotSettingsDialog(BuildContext context, WidgetRef ref, Pilot pilot, {
   );
 }
 
-Future<void> requestDeletePilot(BuildContext context, WidgetRef ref, Pilot pilot) async {
+Future<void> requestDeletePilot(
+  BuildContext context,
+  WidgetRef ref,
+  Pilot pilot,
+) async {
   final l10n = AppLocalizations.of(context)!;
   final theme = Theme.of(context);
-  
+
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => BaseDetailsDialog(
@@ -248,7 +319,9 @@ Future<void> requestDeletePilot(BuildContext context, WidgetRef ref, Pilot pilot
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.error,
                   foregroundColor: theme.colorScheme.onError,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: Text(l10n.delete),
               ),
@@ -262,7 +335,11 @@ Future<void> requestDeletePilot(BuildContext context, WidgetRef ref, Pilot pilot
   if (confirmed != true) return;
 
   if (context.mounted) {
-    final success = await promptForPin(context, pilot, l10n.deletePilotPinPrompt);
+    final success = await promptForPin(
+      context,
+      pilot,
+      l10n.deletePilotPinPrompt,
+    );
     if (success) {
       final settings = ref.read(appSettingsProvider).value;
       await ref.read(pilotStateProvider.notifier).deletePilot(pilot.id);

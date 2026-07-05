@@ -17,6 +17,22 @@ import 'package:stork/core/services/mdns_service.dart';
 
 part 'cannelloni_service_io.g.dart';
 
+class PendingRequest {
+  final Completer<Uint8List> completer;
+  final int dataTypeId;
+  final int transferId;
+  final int destinationNodeId;
+  final Timer timeoutTimer;
+
+  PendingRequest({
+    required this.completer,
+    required this.dataTypeId,
+    required this.transferId,
+    required this.destinationNodeId,
+    required this.timeoutTimer,
+  });
+}
+
 CannelloniService? _activeInstance;
 
 @Riverpod(keepAlive: true)
@@ -32,6 +48,8 @@ class CannelloniService extends _$CannelloniService {
   DnaAllocationHandler? _dnaHandler;
   Timer? _nodeStatusTimer;
   Timer? _txTimer;
+
+  final Map<String, PendingRequest> _pendingRequests = {};
 
   @override
   bool build() {
@@ -355,6 +373,71 @@ class CannelloniService extends _$CannelloniService {
     });
   }
 
+  /// Sends a DroneCAN service request, tracking its completion and timeout.
+  Future<Uint8List> sendRequest({
+    required int destinationNodeId,
+    required int dataTypeId,
+    required int dataTypeSignature,
+    required Uint8List payload,
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    if (_canard == null || _socket == null || !state) {
+      throw StateError('DroneCAN service is not connected.');
+    }
+
+    final completer = Completer<Uint8List>();
+    final tidPtr = getTransferIdFor(VhfRadioControlRequest);
+    final tid = tidPtr.value;
+
+    final key = "$destinationNodeId-$dataTypeId-$tid";
+
+    final timeoutTimer = Timer(timeout, () {
+      _pendingRequests.remove(key);
+      if (!completer.isCompleted) {
+        completer.completeError(
+          TimeoutException(
+            'DroneCAN request timed out after ${timeout.inMilliseconds}ms',
+          ),
+        );
+      }
+    });
+
+    _pendingRequests[key] = PendingRequest(
+      completer: completer,
+      dataTypeId: dataTypeId,
+      transferId: tid,
+      destinationNodeId: destinationNodeId,
+      timeoutTimer: timeoutTimer,
+    );
+
+    _withNativePayload(payload, (pointer, len) {
+      try {
+        final res = _canard!.storkCanardRequest(
+          dataTypeSignature,
+          dataTypeId,
+          tidPtr,
+          destinationNodeId,
+          DroneCanPriority.highest.value,
+          pointer,
+          len,
+        );
+        if (res < 0) {
+          _pendingRequests.remove(key);
+          timeoutTimer.cancel();
+          completer.completeError(
+            Exception('Failed to send DroneCAN request (native result: $res)'),
+          );
+        }
+      } catch (e) {
+        _pendingRequests.remove(key);
+        timeoutTimer.cancel();
+        completer.completeError(e);
+      }
+    });
+
+    return completer.future;
+  }
+
   /// Broadcasts a DroneCAN message generically, handling native pointer allocation and cleanup.
   void broadcast(
     DroneCanRequestResponseMessage message, {
@@ -437,9 +520,42 @@ class CannelloniService extends _$CannelloniService {
   }
 
   void _updateTelemetryStorkEngineRpm(StorkEngineRpm msg) {
+    ref.read(telemetryProvider.notifier).updateEngineRPM(msg.engineSpeedRpm);
+  }
+
+  void _updateTelemetryVhfRadioFullStatus(
+    VhfRadioFullStatus msg,
+    int sourceNodeId,
+  ) {
     ref
         .read(telemetryProvider.notifier)
-        .updateEngineRPM(msg.engineSpeedRpm);
+        .updateVhfRadioFull(
+          radioInstance: msg.radioInstance,
+          activeFrequencyKhz: msg.activeFrequencyKhz,
+          standbyFrequencyKhz: msg.standbyFrequencyKhz,
+          flags: msg.flags,
+          activeStationName: msg.activeStationName,
+          standbyStationName: msg.standbyStationName,
+          nodeId: sourceNodeId,
+          volume: msg.volume,
+          squelch: msg.squelch,
+          vox: msg.vox,
+          intercom: msg.intercom,
+          micGain: msg.micGain,
+        );
+  }
+
+  void _updateTelemetryVhfRadioFastStatus(
+    VhfRadioFastStatus msg,
+    int sourceNodeId,
+  ) {
+    ref
+        .read(telemetryProvider.notifier)
+        .updateVhfRadioFast(
+          radioInstance: msg.radioInstance,
+          flags: msg.flags,
+          nodeId: sourceNodeId,
+        );
   }
 
   void _handleGetNodeInfoRequest({
@@ -499,6 +615,16 @@ void _storkCanardTransferCallback(
 
     final type = CanardTransferType.fromInt(transferType);
 
+    if (type == CanardTransferType.response) {
+      final key = "$sourceNodeId-$dataTypeId-$transferId";
+      final pending = _activeInstance!._pendingRequests.remove(key);
+      if (pending != null) {
+        pending.timeoutTimer.cancel();
+        pending.completer.complete(payloadBytes);
+      }
+      return;
+    }
+
     if (dataTypeId == DynamicNodeIdAllocation.messageId &&
         type == CanardTransferType.broadcast) {
       final allocation = DynamicNodeIdAllocation.fromPayload(payloadBytes);
@@ -530,6 +656,18 @@ void _storkCanardTransferCallback(
     } else if (dataTypeId == StorkEngineRpm.messageId) {
       final rpmMsg = StorkEngineRpm.fromPayload(payloadBytes);
       _activeInstance!._updateTelemetryStorkEngineRpm(rpmMsg);
+    } else if (dataTypeId == VhfRadioFullStatus.messageId) {
+      final radioFullMsg = VhfRadioFullStatus.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryVhfRadioFullStatus(
+        radioFullMsg,
+        sourceNodeId,
+      );
+    } else if (dataTypeId == VhfRadioFastStatus.messageId) {
+      final radioFastMsg = VhfRadioFastStatus.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryVhfRadioFastStatus(
+        radioFastMsg,
+        sourceNodeId,
+      );
     }
   } catch (e) {
     debugPrint('Error in native transfer callback: $e');
@@ -573,12 +711,26 @@ int _storkCanardShouldAcceptCallback(
         outDataTypeSignature.value = StorkEngineRpm.messageSignature;
         return 1;
       }
+      if (dataTypeId == VhfRadioFullStatus.messageId) {
+        outDataTypeSignature.value = VhfRadioFullStatus.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == VhfRadioFastStatus.messageId) {
+        outDataTypeSignature.value = VhfRadioFastStatus.messageSignature;
+        return 1;
+      }
     } else {
       // Service messages
       if (dataTypeId == GetNodeInfoResponse.messageId) {
         // We only accept request transfers for GET_NODE_INFO
         if (type == CanardTransferType.request) {
           outDataTypeSignature.value = GetNodeInfoResponse.messageSignature;
+          return 1;
+        }
+      }
+      if (dataTypeId == VhfRadioControlResponse.messageId) {
+        if (type == CanardTransferType.response) {
+          outDataTypeSignature.value = VhfRadioControlResponse.messageSignature;
           return 1;
         }
       }

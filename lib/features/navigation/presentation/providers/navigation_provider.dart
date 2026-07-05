@@ -16,12 +16,14 @@ part 'navigation_provider.g.dart';
 @Riverpod(keepAlive: true)
 void navigationAutoAdvance(Ref ref) {
   ref.listen(
-    telemetryProvider.select((s) => (
-      latitude: s.latitude,
-      longitude: s.longitude,
-      groundSpeed: s.groundSpeed,
-      isFlying: s.isFlying,
-    )),
+    telemetryProvider.select(
+      (s) => (
+        latitude: s.latitude,
+        longitude: s.longitude,
+        groundSpeed: s.groundSpeed,
+        isFlying: s.isFlying,
+      ),
+    ),
     (previous, next) {
       Future.microtask(() {
         if (ref.mounted) {

@@ -7,6 +7,9 @@ import '../../../domain/airspace_metadata.dart';
 import '../../providers/airspace_metadata_provider.dart';
 import '../../../utils/openaip_enums.dart';
 import 'base_details_dialog.dart';
+import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
+import 'package:stork/features/telemetry/presentation/utils/vhf_radio_frequency.dart';
 
 class AirspaceDetailsDialog extends StatelessWidget {
   final List<dynamic> features;
@@ -67,26 +70,28 @@ class AirspaceDetailsDialog extends StatelessWidget {
         children: [
           for (int index = 0; index < sortedFeatures.length; index++) ...[
             if (index > 0) const SizedBox(height: 10),
-            Builder(builder: (context) {
-              final feature = sortedFeatures[index] as Map;
-              final props = feature['properties'] as Map;
-              final airspaceId = props['source_id']?.toString() ?? '';
-              final country = props['country']?.toString() ?? '';
+            Builder(
+              builder: (context) {
+                final feature = sortedFeatures[index] as Map;
+                final props = feature['properties'] as Map;
+                final airspaceId = props['source_id']?.toString() ?? '';
+                final country = props['country']?.toString() ?? '';
 
-              final nameLabel = props['name_label'];
-              String fallbackName = '';
-              if (nameLabel != null) {
-                final lines = nameLabel.toString().split('\n');
-                fallbackName = lines.length > 1 ? lines[1] : lines.first;
-              }
+                final nameLabel = props['name_label'];
+                String fallbackName = '';
+                if (nameLabel != null) {
+                  final lines = nameLabel.toString().split('\n');
+                  fallbackName = lines.length > 1 ? lines[1] : lines.first;
+                }
 
-              return AirspaceDetailCard(
-                airspaceId: airspaceId,
-                countryCode: country,
-                fallbackName: fallbackName,
-              );
-            }),
-          ]
+                return AirspaceDetailCard(
+                  airspaceId: airspaceId,
+                  countryCode: country,
+                  fallbackName: fallbackName,
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -125,7 +130,7 @@ class AirspaceDetailCard extends ConsumerWidget {
           if (metadata == null) {
             return _buildError(l10n, isDark);
           }
-          return _buildContent(context, metadata, l10n, isDark);
+          return _buildContent(context, ref, metadata, l10n, isDark);
         },
         loading: () => _buildLoading(l10n, isDark),
         error: (err, stack) => _buildError(l10n, isDark),
@@ -179,6 +184,7 @@ class AirspaceDetailCard extends ConsumerWidget {
 
   Widget _buildContent(
     BuildContext context,
+    WidgetRef ref,
     AirspaceMetadata metadata,
     AppLocalizations l10n,
     bool isDark,
@@ -253,6 +259,10 @@ class AirspaceDetailCard extends ConsumerWidget {
 
         // Vertical Limits
         _buildLimitsRow(metadata, l10n, isDark),
+
+        // Optional Frequencies
+        if (metadata.frequencies != null && metadata.frequencies!.isNotEmpty)
+          _buildFrequenciesRow(context, ref, metadata, l10n, isDark),
 
         // Optional Activity
         if (metadata.activity != null &&
@@ -452,6 +462,168 @@ class AirspaceDetailCard extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
       child: Wrap(spacing: 6, runSpacing: 6, children: chips),
+    );
+  }
+
+  Widget _buildFrequenciesRow(
+    BuildContext context,
+    WidgetRef ref,
+    AirspaceMetadata metadata,
+    AppLocalizations l10n,
+    bool isDark,
+  ) {
+    final radioActiveFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioActiveFrequency),
+    );
+    final radioStandbyFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioStandbyFrequency),
+    );
+    final radioNodeId = ref.watch(
+      telemetryProvider.select((t) => t.radioNodeId),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(
+              Icons.radio,
+              size: 16,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${l10n.airspaceFrequencies}: ',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: metadata.frequencies!.map((f) {
+                final double? numericValue = double.tryParse(f.value);
+                int? btnFreqKhz;
+                if (numericValue != null) {
+                  btnFreqKhz = (numericValue * 1000).round();
+                }
+
+                final bool isCurrentlyActive =
+                    btnFreqKhz != null && radioActiveFreq == btnFreqKhz;
+                final bool isCurrentlyStandby =
+                    btnFreqKhz != null && radioStandbyFreq == btnFreqKhz;
+                final bool showActiveOption = !isCurrentlyActive;
+                final bool showStandbyOption = !isCurrentlyStandby;
+                final bool isClickable =
+                    radioNodeId != null &&
+                    (showActiveOption || showStandbyOption);
+
+                Color badgeColor;
+                Color textColor;
+                if (isCurrentlyActive) {
+                  badgeColor = Colors.green.withAlpha(40);
+                  textColor = Colors.greenAccent.shade700;
+                } else if (isCurrentlyStandby) {
+                  badgeColor = Colors.orange.withAlpha(40);
+                  textColor = Colors.orangeAccent.shade700;
+                } else {
+                  badgeColor = isDark
+                      ? Colors.white.withAlpha(15)
+                      : Colors.black.withAlpha(10);
+                  textColor = isDark ? Colors.white70 : Colors.black87;
+                }
+
+                TapDownDetails? tapDetails;
+
+                return GestureDetector(
+                  onTapDown: (details) {
+                    tapDetails = details;
+                  },
+                  onTap: isClickable
+                      ? () {
+                          if (btnFreqKhz == null) return;
+                          final freqKhz = btnFreqKhz;
+
+                          if (!isVhfRadioFrequencyInBand(freqKhz)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(l10n.vhfRadioFreqOutOfBand),
+                              ),
+                            );
+                            return;
+                          }
+
+                          if (tapDetails != null) {
+                            RadioPopupUtil.showRadioMenu(
+                              context: context,
+                              ref: ref,
+                              globalPosition: tapDetails!.globalPosition,
+                              mhz: freqKhz / 1000.0,
+                              radioName: metadata.name,
+                            );
+                          }
+                        }
+                      : null,
+                  child: MouseRegion(
+                    cursor: isClickable
+                        ? SystemMouseCursors.click
+                        : SystemMouseCursors.basic,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: badgeColor,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isCurrentlyActive
+                              ? Colors.green.withAlpha(80)
+                              : (isCurrentlyStandby
+                                    ? Colors.orange.withAlpha(80)
+                                    : (isDark
+                                          ? Colors.white12
+                                          : Colors.black12)),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${f.value} MHz',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight:
+                                  (isCurrentlyActive || isCurrentlyStandby)
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
+                              color: textColor,
+                            ),
+                          ),
+                          if (isClickable) ...[
+                            const SizedBox(width: 3),
+                            Icon(
+                              Icons.tune,
+                              size: 11,
+                              color: textColor.withAlpha(150),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

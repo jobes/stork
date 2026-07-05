@@ -41,7 +41,7 @@ final class FlightDurationProvider
   }
 }
 
-String _$flightDurationHash() => r'b7c07c41f0ac141bd6a8d2a262819e953f87358f';
+String _$flightDurationHash() => r'b41d5cf9e0fd6451e110a499dda3ddf221ef4546';
 
 abstract class _$FlightDuration extends $Notifier<FlightSummary> {
   FlightSummary build();

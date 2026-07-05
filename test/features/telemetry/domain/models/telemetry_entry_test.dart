@@ -10,11 +10,7 @@ void main() {
         flightUuid: 'flight-uuid-123',
         timestamp: now,
         isSnapshot: true,
-        data: {
-          'latitude': 37.7749,
-          'longitude': -122.4194,
-          'heading': 180.0,
-        },
+        data: {'latitude': 37.7749, 'longitude': -122.4194, 'heading': 180.0},
       );
 
       final map = entry.toMap();

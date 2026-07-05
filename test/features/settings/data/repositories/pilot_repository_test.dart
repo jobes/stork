@@ -22,8 +22,18 @@ void main() {
     test('getPilots parses a valid JSON list of pilots correctly', () async {
       final repository = PilotRepository(prefs);
       const originalPilots = [
-        Pilot(id: '1', name: 'John Doe', initialFlightHours: 15.5, initialFlights: 10),
-        Pilot(id: '2', name: 'Jane Smith', initialFlightHours: 2.0, initialFlights: 1),
+        Pilot(
+          id: '1',
+          name: 'John Doe',
+          initialFlightHours: 15.5,
+          initialFlights: 10,
+        ),
+        Pilot(
+          id: '2',
+          name: 'Jane Smith',
+          initialFlightHours: 2.0,
+          initialFlights: 1,
+        ),
       ];
 
       await prefs.setString(
@@ -44,28 +54,26 @@ void main() {
       // Malformed JSON (missing closing bracket/brace)
       await prefs.setString('app_pilots', '[{"id": "1", "name": "John Doe"');
 
-      expect(
-        () => repository.getPilots(),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => repository.getPilots(), throwsA(isA<FormatException>()));
     });
 
-    test('getPilots throws TypeError when JSON structure does not match expected schema', () async {
-      final repository = PilotRepository(prefs);
-      // "initialFlights" has invalid type (string instead of int)
-      await prefs.setString('app_pilots', '[{"id": "1", "name": "John Doe", "initialFlights": "ten"}]');
+    test(
+      'getPilots throws TypeError when JSON structure does not match expected schema',
+      () async {
+        final repository = PilotRepository(prefs);
+        // "initialFlights" has invalid type (string instead of int)
+        await prefs.setString(
+          'app_pilots',
+          '[{"id": "1", "name": "John Doe", "initialFlights": "ten"}]',
+        );
 
-      expect(
-        () => repository.getPilots(),
-        throwsA(isA<TypeError>()),
-      );
-    });
+        expect(() => repository.getPilots(), throwsA(isA<TypeError>()));
+      },
+    );
 
     test('savePilots successfully persists pilots', () async {
       final repository = PilotRepository(prefs);
-      const pilots = [
-        Pilot(id: '1', name: 'John Doe'),
-      ];
+      const pilots = [Pilot(id: '1', name: 'John Doe')];
 
       await repository.savePilots(pilots);
 

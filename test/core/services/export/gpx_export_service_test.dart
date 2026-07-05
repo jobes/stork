@@ -21,14 +21,14 @@ void main() {
     tempDir = Directory.systemTemp.createTempSync('stork_gpx_test');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getTemporaryDirectory') {
-          return tempDir.path;
-        }
-        return null;
-      },
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (MethodCall methodCall) async {
+            if (methodCall.method == 'getTemporaryDirectory') {
+              return tempDir.path;
+            }
+            return null;
+          },
+        );
   });
 
   tearDownAll(() {
@@ -48,10 +48,14 @@ void main() {
 
   group('GpxExportService', () {
     test('returns null when telemetry entries are empty', () async {
-      when(() => mockRepo.getGpxTelemetryForFlight(any()))
-          .thenAnswer((_) async => []);
+      when(
+        () => mockRepo.getGpxTelemetryForFlight(any()),
+      ).thenAnswer((_) async => []);
 
-      final result = await GpxExportService.generateFlightGpx(testFlight, mockRepo);
+      final result = await GpxExportService.generateFlightGpx(
+        testFlight,
+        mockRepo,
+      );
 
       expect(result, isNull);
     });
@@ -80,10 +84,14 @@ void main() {
         ),
       ];
 
-      when(() => mockRepo.getGpxTelemetryForFlight(any()))
-          .thenAnswer((_) async => entries);
+      when(
+        () => mockRepo.getGpxTelemetryForFlight(any()),
+      ).thenAnswer((_) async => entries);
 
-      final result = await GpxExportService.generateFlightGpx(testFlight, mockRepo);
+      final result = await GpxExportService.generateFlightGpx(
+        testFlight,
+        mockRepo,
+      );
 
       expect(result, isNotNull);
       expect(result, isA<XFile>());

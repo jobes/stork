@@ -27,9 +27,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final aircraftsAsync = ref.watch(aircraftStateProvider);
 
     final Widget body;
-    if (settingsAsync.isLoading || pilotsAsync.isLoading || aircraftsAsync.isLoading) {
+    if (settingsAsync.isLoading ||
+        pilotsAsync.isLoading ||
+        aircraftsAsync.isLoading) {
       body = const Center(child: CircularProgressIndicator());
-    } else if (settingsAsync.hasError || pilotsAsync.hasError || aircraftsAsync.hasError) {
+    } else if (settingsAsync.hasError ||
+        pilotsAsync.hasError ||
+        aircraftsAsync.hasError) {
       body = Center(child: Text(l10n.errorPrefix));
     } else {
       final settings = settingsAsync.requireValue;

@@ -78,6 +78,12 @@ class DatabaseService {
     return null;
   }
 
+  static Future<List<Map<String, dynamic>>> getAllOpenAipFeatures(
+    String type,
+  ) async {
+    return [];
+  }
+
   static Future<void> clearMapData() async {
     // No-op on web
   }

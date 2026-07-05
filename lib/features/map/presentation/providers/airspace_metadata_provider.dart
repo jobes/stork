@@ -11,6 +11,8 @@ class AirspaceMetadataCache extends _$AirspaceMetadataCache {
   final Set<String> _downloadedCountries = {};
   final Map<String, Future<void>> _inflightDownloads = {};
 
+  Map<String, AirspaceMetadata> get memoryCache => _memoryCache;
+
   @override
   void build() {
     // Keep-alive provider that holds the session cache until app restart.
@@ -87,9 +89,13 @@ Future<AirspaceMetadata?> airspaceMetadata(
   Ref ref,
   String airspaceId,
   String countryCode,
-) {
-  ref.keepAlive();
-  return ref
-      .watch(airspaceMetadataCacheProvider.notifier)
+) async {
+  final metadata = await ref
+      .read(airspaceMetadataCacheProvider.notifier)
       .getMetadata(airspaceId, countryCode);
+
+  if (metadata != null && ref.mounted) {
+    ref.keepAlive();
+  }
+  return metadata;
 }

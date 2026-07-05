@@ -1377,4 +1377,191 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rpmMaxRange => 'Maximum RPM slider range';
+
+  @override
+  String vhfRadioTitle(int instance) {
+    return 'Radio COM$instance';
+  }
+
+  @override
+  String get vhfRadioActive => 'ACTIVE';
+
+  @override
+  String get vhfRadioStandby => 'STANDBY';
+
+  @override
+  String get vhfRadioNoName => 'No name';
+
+  @override
+  String get vhfRadioSwapTooltip => 'Swap frequencies';
+
+  @override
+  String get vhfRadioNearbyFrequencies => 'Nearby frequencies';
+
+  @override
+  String get vhfRadioAdvancedManual => 'Advanced / Manual';
+
+  @override
+  String get vhfRadioNearbyAirports => 'Nearby airports';
+
+  @override
+  String get vhfRadioNoAirportsNearby => 'No airports nearby';
+
+  @override
+  String get vhfRadioFavourites => 'Favourites';
+
+  @override
+  String get vhfRadioManage => 'Manage';
+
+  @override
+  String get vhfRadioNoFavoriteFrequencies => 'No favourite frequencies';
+
+  @override
+  String get vhfRadioAirspaces => 'Airspaces';
+
+  @override
+  String get vhfRadioNoAirspacesNearby => 'No airspaces nearby';
+
+  @override
+  String get vhfRadioInside => 'inside';
+
+  @override
+  String get vhfRadioBackToList => 'Back to list';
+
+  @override
+  String get vhfRadioActiveFreqLabel => 'Active Frequency (MHz)';
+
+  @override
+  String get vhfRadioActiveNameLabel => 'Active station name';
+
+  @override
+  String get vhfRadioApply => 'Apply';
+
+  @override
+  String get vhfRadioStandbyFreqLabel => 'Standby Frequency (MHz)';
+
+  @override
+  String get vhfRadioStandbyNameLabel => 'Standby station name';
+
+  @override
+  String get vhfRadioDualWatch => 'Dual Watch';
+
+  @override
+  String get vhfRadioHideAudio => 'Hide audio settings';
+
+  @override
+  String get vhfRadioShowAudio => 'Show audio settings';
+
+  @override
+  String get vhfRadioVolume => 'Volume';
+
+  @override
+  String get vhfRadioSquelch => 'Squelch';
+
+  @override
+  String get vhfRadioVox => 'VOX Sensitivity';
+
+  @override
+  String get vhfRadioIntercom => 'Intercom Volume';
+
+  @override
+  String get vhfRadioMicrophonesGain => 'Microphones (Gain)';
+
+  @override
+  String vhfRadioMicrophoneN(int n) {
+    return 'Microphone $n';
+  }
+
+  @override
+  String get vhfRadioSaveChange => 'Save change';
+
+  @override
+  String get vhfRadioErrorActiveFreq =>
+      'Active frequency must be a valid aviation frequency (118.000 – 136.995 MHz).';
+
+  @override
+  String get vhfRadioErrorStandbyFreq =>
+      'Standby frequency must be a valid aviation frequency (118.000 – 136.995 MHz).';
+
+  @override
+  String vhfRadioErrorTimeout(String action) {
+    return 'DroneCAN did not respond to $action (timeout 1 s).';
+  }
+
+  @override
+  String vhfRadioErrorGeneric(String action, String error) {
+    return 'Failed to $action: $error';
+  }
+
+  @override
+  String vhfRadioErrorFlip(String error) {
+    return 'Flip failed: $error';
+  }
+
+  @override
+  String vhfRadioErrorInvalidFreq(String freq) {
+    return 'Frequency $freq MHz is not valid.';
+  }
+
+  @override
+  String vhfRadioDronecanError(int status) {
+    return 'DroneCAN request error (status: $status)';
+  }
+
+  @override
+  String get vhfRadioFreqOutOfBand =>
+      'Frequency is outside aviation band (118.000 – 136.995 MHz).';
+
+  @override
+  String get manageFavoritesTitle => 'Manage Favourites';
+
+  @override
+  String get manageFavoritesAddNew => 'Add new frequency';
+
+  @override
+  String get manageFavoritesFreqLabel => 'Frequency (MHz)';
+
+  @override
+  String get manageFavoritesFreqHint => '118.000';
+
+  @override
+  String get manageFavoritesNameLabel => 'Station name';
+
+  @override
+  String get manageFavoritesNameHint => 'FIR Bratislava';
+
+  @override
+  String get manageFavoritesAddToList => 'Add to list';
+
+  @override
+  String get manageFavoritesListTitle => 'Favourites list (drag to reorder)';
+
+  @override
+  String get manageFavoritesEmpty => 'The list is empty.';
+
+  @override
+  String get manageFavoritesInvalidFreq =>
+      'Invalid aviation frequency (118.000 - 136.975 MHz).';
+
+  @override
+  String get manageFavoritesNameRequired => 'Name must not be empty.';
+
+  @override
+  String manageFavoritesLoadError(String error) {
+    return 'Error loading favourites: $error';
+  }
+
+  @override
+  String get radioNotConnected => 'Radio is not connected';
+
+  @override
+  String get radioSetAsActive => 'Set as ACTIVE';
+
+  @override
+  String get radioSetAsStandby => 'Set as STANDBY';
+
+  @override
+  String radioSetFreqError(String error) {
+    return 'Error setting frequency: $error';
+  }
 }

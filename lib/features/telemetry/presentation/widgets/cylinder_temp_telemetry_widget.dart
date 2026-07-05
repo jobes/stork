@@ -28,24 +28,30 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cylinderHeadTemperatures = ref.watch(telemetryProvider.select((t) => t.cylinderHeadTemperatures));
+    final cylinderHeadTemperatures = ref.watch(
+      telemetryProvider.select((t) => t.cylinderHeadTemperatures),
+    );
     final disableAnimations = ref.watch(
-      disableTelemetryAnimationsProvider.select((m) => m[TelemetryField.cylinderHeadTemperature] ?? false),
+      disableTelemetryAnimationsProvider.select(
+        (m) => m[TelemetryField.cylinderHeadTemperature] ?? false,
+      ),
     );
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
     final tempUnit = settings?.temperatureUnit ?? TemperatureUnit.celsius;
-    
+
     // CHT thresholds loaded from settings
-    final thresholds = settings?.chtThresholds ?? const RangeThresholds.raw(
-      inactiveMax: 323.15, // 50 °C
-      minError: 333.15,    // 60 °C
-      minWarning: 348.15,  // 75 °C
-      maxWarning: 403.15,  // 130 °C
-      maxError: 423.15,    // 150 °C
-    );
+    final thresholds =
+        settings?.chtThresholds ??
+        const RangeThresholds.raw(
+          inactiveMax: 323.15, // 50 °C
+          minError: 333.15, // 60 °C
+          minWarning: 348.15, // 75 °C
+          maxWarning: 403.15, // 130 °C
+          maxError: 423.15, // 150 °C
+        );
 
     final double maxVisualK = settings?.chtMaxRange ?? 433.15; // 160 °C
     final double minVisualK = thresholds.inactiveMax ?? 323.15; // 50 °C
@@ -59,7 +65,9 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
     ThresholdState worstState = ThresholdState.inactive;
     int worstSeverity = -1;
     for (final temp in chts) {
-      final state = temp != null ? thresholds.evaluate(temp) : ThresholdState.maxError;
+      final state = temp != null
+          ? thresholds.evaluate(temp)
+          : ThresholdState.maxError;
       final sev = _stateSeverity(state);
       if (sev > worstSeverity) {
         worstSeverity = sev;
@@ -68,7 +76,9 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTextColor = isDark ? Colors.grey.shade300 : Colors.grey.shade700;
+    final defaultTextColor = isDark
+        ? Colors.grey.shade300
+        : Colors.grey.shade700;
 
     // Dynamically calculate column layout sizes
     final double colWidth = (chts.length <= 2 ? 36.0 : 28.0) * fontScale;
@@ -113,7 +123,8 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
                     ? tempUnit.convertFromKelvin(rawTemp).toStringAsFixed(0)
                     : '---';
 
-                final bool isAbnormal = tempState != ThresholdState.operational &&
+                final bool isAbnormal =
+                    tempState != ThresholdState.operational &&
                     tempState != ThresholdState.inactive;
 
                 return SizedBox(
@@ -127,8 +138,13 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
                         height: 80 * fontScale,
                         child: rawTemp != null
                             ? TweenAnimationBuilder<double>(
-                                tween: Tween<double>(begin: rawTemp, end: rawTemp),
-                                duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
+                                tween: Tween<double>(
+                                  begin: rawTemp,
+                                  end: rawTemp,
+                                ),
+                                duration: disableAnimations
+                                    ? Duration.zero
+                                    : const Duration(milliseconds: 300),
                                 curve: Curves.easeOut,
                                 builder: (context, animTemp, child) {
                                   return CustomPaint(
@@ -149,7 +165,9 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
                                 child: Icon(
                                   Icons.error_outline,
                                   size: 20 * fontScale,
-                                  color: isDark ? Colors.redAccent.shade200 : Colors.red.shade600,
+                                  color: isDark
+                                      ? Colors.redAccent.shade200
+                                      : Colors.red.shade600,
                                 ),
                               ),
                       ),
@@ -182,5 +200,3 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
     );
   }
 }
-
-

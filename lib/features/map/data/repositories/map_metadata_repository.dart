@@ -53,7 +53,11 @@ Map<String, AirspaceMetadata> parseAirspaceFeatures(String responseBody) {
         if (props != null) {
           final id = (props['_id'] ?? props['id'] ?? '').toString();
           if (id.isNotEmpty) {
-            result[id] = AirspaceMetadata.fromJson(props);
+            final map = Map<String, dynamic>.from(props);
+            if (f['geometry'] != null) {
+              map['geometry'] = f['geometry'];
+            }
+            result[id] = AirspaceMetadata.fromJson(map);
           }
         }
       }
@@ -75,12 +79,22 @@ class MapMetadataRepository {
     return await DatabaseService.getOpenAipFeature(id, type);
   }
 
+  /// Loads all records of the given type from the local SQLite database (offline map).
+  /// Use this instead of calling [DatabaseService.getAllOpenAipFeatures] directly
+  /// from other feature layers — keeps direct DB access inside the repository layer.
+  Future<List<Map<String, dynamic>>> fetchAllFeaturesFromDb(String type) async {
+    return await DatabaseService.getAllOpenAipFeatures(type);
+  }
+
   Future<Map<String, AirportMetadata>> fetchAirportsFromNetwork(
     String countryCode,
   ) async {
     final lowerCountryCode = countryCode.toLowerCase();
-    final url =
+    final rawUrl =
         '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_apt.geojson?alt=media';
+    final url = kIsWeb
+        ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
+        : rawUrl;
     final response = await _client
         .get(Uri.parse(url))
         .timeout(const Duration(seconds: 15));
@@ -96,8 +110,11 @@ class MapMetadataRepository {
     String countryCode,
   ) async {
     final lowerCountryCode = countryCode.toLowerCase();
-    final url =
+    final rawUrl =
         '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_asp.geojson?alt=media';
+    final url = kIsWeb
+        ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
+        : rawUrl;
     final response = await _client
         .get(Uri.parse(url))
         .timeout(const Duration(seconds: 15));
@@ -113,7 +130,7 @@ class MapMetadataRepository {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 MapMetadataRepository mapMetadataRepository(Ref ref) {
   final client = http.Client();
   ref.onDispose(() => client.close());

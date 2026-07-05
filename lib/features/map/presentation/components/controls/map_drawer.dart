@@ -68,8 +68,10 @@ class MapDrawer extends ConsumerWidget {
                       ? ref.watch(aircraftHoursProvider(airplaneId))
                       : null;
 
-                  final pilotNameText = activePilot?.name ?? l10n.anonymousPilot;
-                  final airplaneNameText = activeAircraft?.name ?? l10n.unknownAircraft;
+                  final pilotNameText =
+                      activePilot?.name ?? l10n.anonymousPilot;
+                  final airplaneNameText =
+                      activeAircraft?.name ?? l10n.unknownAircraft;
 
                   final pilotHoursText = statsAsync?.value != null
                       ? _formatHoursMinutes(statsAsync!.value!.totalHours, l10n)
@@ -121,7 +123,9 @@ class MapDrawer extends ConsumerWidget {
                                   Text(
                                     pilotNameText,
                                     style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onPrimary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimary,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),

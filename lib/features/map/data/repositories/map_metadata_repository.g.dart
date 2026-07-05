@@ -26,7 +26,7 @@ final class MapMetadataRepositoryProvider
         argument: null,
         retry: null,
         name: r'mapMetadataRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -55,4 +55,4 @@ final class MapMetadataRepositoryProvider
 }
 
 String _$mapMetadataRepositoryHash() =>
-    r'a5208fe08529d006ee693637b34803910bd54fea';
+    r'446054cc72959d63d0f5ae922c2b201fffc1f565';

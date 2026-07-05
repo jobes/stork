@@ -1,6 +1,7 @@
 import '../models/flight.dart';
 import '../models/telemetry_entry.dart';
 import '../models/time_based_stats.dart';
+
 abstract class BlackBoxRepository {
   Future<void> saveFlight(Flight flight);
   Future<void> updateFlightEndTime(String uuid, DateTime endTime);
@@ -36,6 +37,14 @@ abstract class BlackBoxRepository {
   Future<List<TelemetryEntry>> getGpxTelemetryForFlight(String flightUuid);
   Future<void> calculateAndSaveFlightStatistics(String flightUuid);
   Future<void> recoverUnfinishedFlights();
-  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0, int initialFlights = 0});
-  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0, int initialFlights = 0});
+  Future<TimeBasedStats> getPilotTimeStats(
+    String pilotId, {
+    double initialHours = 0.0,
+    int initialFlights = 0,
+  });
+  Future<TimeBasedStats> getAircraftTimeStats(
+    String airplaneId, {
+    double initialHours = 0.0,
+    int initialFlights = 0,
+  });
 }

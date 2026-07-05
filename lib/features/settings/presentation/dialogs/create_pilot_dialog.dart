@@ -6,7 +6,11 @@ import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../providers/pilot_provider.dart';
 import '../providers/settings_provider.dart';
 
-void showCreatePilotDialog(BuildContext context, WidgetRef ref, {void Function(String newPilotId)? onCreated}) {
+void showCreatePilotDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  void Function(String newPilotId)? onCreated,
+}) {
   final l10n = AppLocalizations.of(context)!;
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
@@ -30,7 +34,9 @@ void showCreatePilotDialog(BuildContext context, WidgetRef ref, {void Function(S
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: l10n.pilotNameLabel,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(Icons.person_outline),
                 ),
                 validator: (value) {
@@ -48,7 +54,9 @@ void showCreatePilotDialog(BuildContext context, WidgetRef ref, {void Function(S
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   labelText: l10n.optionalPinLabel,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(Icons.lock_outline),
                 ),
               ),
@@ -68,13 +76,17 @@ void showCreatePilotDialog(BuildContext context, WidgetRef ref, {void Function(S
                         final pin = pinController.text.trim();
                         final dialogNavigator = Navigator.of(dialogCtx);
 
-                        final newId = await ref.read(pilotStateProvider.notifier).createPilot(
-                          name: name,
-                          pin: pin.isEmpty ? null : pin,
-                        );
+                        final newId = await ref
+                            .read(pilotStateProvider.notifier)
+                            .createPilot(
+                              name: name,
+                              pin: pin.isEmpty ? null : pin,
+                            );
 
                         // Switch to the newly created pilot automatically
-                        final updateResult = await ref.read(appSettingsProvider.notifier).updatePilotId(newId);
+                        final updateResult = await ref
+                            .read(appSettingsProvider.notifier)
+                            .updatePilotId(newId);
 
                         if (updateResult is SettingsUpdateSuccess) {
                           if (onCreated != null) {
@@ -87,7 +99,9 @@ void showCreatePilotDialog(BuildContext context, WidgetRef ref, {void Function(S
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     child: Text(l10n.create),
                   ),

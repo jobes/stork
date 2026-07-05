@@ -11,6 +11,9 @@ import '../../../domain/airport_metadata.dart';
 import '../../../utils/openaip_enums.dart';
 import '../../providers/airport_metadata_provider.dart';
 import 'base_details_dialog.dart';
+import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
+import 'package:stork/features/telemetry/presentation/utils/vhf_radio_frequency.dart';
 
 class AirportDetailsDialog extends ConsumerWidget {
   final String airportId;
@@ -174,7 +177,7 @@ class AirportDetailsDialog extends ConsumerWidget {
       children: [
         _buildGeneralInfo(metadata, l10n, isDark),
         _buildWarnings(context, metadata, l10n),
-        _buildFrequencies(context, metadata, l10n, isDark),
+        _buildFrequencies(context, ref, metadata, l10n, isDark),
         _buildRunways(context, metadata, l10n, isDark),
         _buildImages(ref, metadata, l10n),
       ],
@@ -343,11 +346,22 @@ class AirportDetailsDialog extends ConsumerWidget {
 
   Widget _buildFrequencies(
     BuildContext context,
+    WidgetRef ref,
     AirportMetadata metadata,
     AppLocalizations l10n,
     bool isDark,
   ) {
     if (metadata.frequencies.isEmpty) return const SizedBox.shrink();
+
+    final radioActiveFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioActiveFrequency),
+    );
+    final radioStandbyFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioStandbyFrequency),
+    );
+    final radioNodeId = ref.watch(
+      telemetryProvider.select((t) => t.radioNodeId),
+    );
 
     final sortedFrequencies = List<AirportFrequency>.from(metadata.frequencies)
       ..sort((a, b) {
@@ -391,15 +405,57 @@ class AirportDetailsDialog extends ConsumerWidget {
                 : f.type.toLocalizedName(l10n);
             final freqValue = '${f.value} ${f.unit.symbol}';
 
+            final double? numericValue = double.tryParse(f.value);
+            int? btnFreqKhz;
+            if (numericValue != null) {
+              if (f.unit == OpenAipUnit.mhz) {
+                btnFreqKhz = (numericValue * 1000).round();
+              } else if (f.unit == OpenAipUnit.khz) {
+                btnFreqKhz = numericValue.round();
+              }
+            }
+
+            final bool isCurrentlyActive =
+                btnFreqKhz != null && radioActiveFreq == btnFreqKhz;
+            final bool isCurrentlyStandby =
+                btnFreqKhz != null && radioStandbyFreq == btnFreqKhz;
+
+            final bool showActiveOption = !isCurrentlyActive;
+            final bool showStandbyOption = !isCurrentlyStandby;
+            final bool isClickable =
+                radioNodeId != null && (showActiveOption || showStandbyOption);
+
+            TapDownDetails? tapDetails;
+
             return Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () {
-                  // Debug print requested by user
-                  debugPrint(
-                    'Setting radio frequency: $radioName - $freqValue',
-                  );
+                onTapDown: (details) {
+                  tapDetails = details;
                 },
+                onTap: isClickable
+                    ? () {
+                        if (btnFreqKhz == null) return;
+                        final freqKhz = btnFreqKhz;
+
+                        if (!isVhfRadioFrequencyInBand(freqKhz)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.vhfRadioFreqOutOfBand)),
+                          );
+                          return;
+                        }
+
+                        if (tapDetails != null) {
+                          RadioPopupUtil.showRadioMenu(
+                            context: context,
+                            ref: ref,
+                            globalPosition: tapDetails!.globalPosition,
+                            mhz: freqKhz / 1000.0,
+                            radioName: radioName,
+                          );
+                        }
+                      }
+                    : null,
                 borderRadius: BorderRadius.circular(12),
                 child: Ink(
                   padding: const EdgeInsets.symmetric(
@@ -494,33 +550,35 @@ class AirportDetailsDialog extends ConsumerWidget {
                                   : (isDark ? Colors.white : Colors.black87),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Text(
-                                l10n.tune,
-                                style: TextStyle(
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.bold,
+                          if (isClickable) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Text(
+                                  l10n.tune,
+                                  style: TextStyle(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: f.primary
+                                        ? Colors.blueAccent
+                                        : (isDark
+                                              ? Colors.white38
+                                              : Colors.black38),
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                Icon(
+                                  Icons.tune,
+                                  size: 9,
                                   color: f.primary
                                       ? Colors.blueAccent
                                       : (isDark
                                             ? Colors.white38
                                             : Colors.black38),
                                 ),
-                              ),
-                              const SizedBox(width: 2),
-                              Icon(
-                                Icons.tune,
-                                size: 9,
-                                color: f.primary
-                                    ? Colors.blueAccent
-                                    : (isDark
-                                          ? Colors.white38
-                                          : Colors.black38),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ],

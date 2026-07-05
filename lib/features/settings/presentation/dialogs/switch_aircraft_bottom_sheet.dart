@@ -49,7 +49,9 @@ void showSwitchAircraftBottomSheet(
                         children: [
                           Text(
                             l10n.switchAircraftTitle,
-                            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),
@@ -63,7 +65,9 @@ void showSwitchAircraftBottomSheet(
                         label: Text(l10n.addNewAircraft),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onPressed: () {
                           Navigator.pop(context);
@@ -73,7 +77,9 @@ void showSwitchAircraftBottomSheet(
                       const SizedBox(height: 20),
                       Text(
                         l10n.savedAircraftsSection,
-                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       if (aircrafts.isEmpty)
@@ -81,9 +87,18 @@ void showSwitchAircraftBottomSheet(
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           child: Column(
                             children: [
-                              Icon(Icons.airplanemode_inactive, size: 40, color: Colors.grey[400]),
+                              Icon(
+                                Icons.airplanemode_inactive,
+                                size: 40,
+                                color: Colors.grey[400],
+                              ),
                               const SizedBox(height: 8),
-                              Text(l10n.noAircraftsCreated, style: const TextStyle(fontStyle: FontStyle.italic)),
+                              Text(
+                                l10n.noAircraftsCreated,
+                                style: const TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
                             ],
                           ),
                         )
@@ -92,13 +107,16 @@ void showSwitchAircraftBottomSheet(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: aircrafts.length + 1, // +1 for Deselect
-                          separatorBuilder: (context, idx) => const SizedBox(height: 8),
+                          separatorBuilder: (context, idx) =>
+                              const SizedBox(height: 8),
                           itemBuilder: (context, idx) {
                             if (idx == aircrafts.length) {
                               return TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  ref.read(appSettingsProvider.notifier).updateAirplaneId(null);
+                                  ref
+                                      .read(appSettingsProvider.notifier)
+                                      .updateAirplaneId(null);
                                 },
                                 child: Text(l10n.deselectAircraft),
                               );
@@ -111,43 +129,61 @@ void showSwitchAircraftBottomSheet(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                                 side: isActive
-                                    ? BorderSide(color: theme.colorScheme.primary, width: 2)
+                                    ? BorderSide(
+                                        color: theme.colorScheme.primary,
+                                        width: 2,
+                                      )
                                     : BorderSide.none,
                               ),
                               color: isActive
-                                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.15)
-                                  : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                  ? theme.colorScheme.primaryContainer
+                                        .withValues(alpha: 0.15)
+                                  : theme.colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.3),
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () async {
                                   Navigator.pop(context);
-                                  await ref.read(appSettingsProvider.notifier).updateAirplaneId(aircraft.id);
+                                  await ref
+                                      .read(appSettingsProvider.notifier)
+                                      .updateAirplaneId(aircraft.id);
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
                                   child: Row(
                                     children: [
                                       CircleAvatar(
                                         radius: 20,
                                         backgroundColor: isActive
                                             ? theme.colorScheme.primary
-                                            : theme.colorScheme.surfaceContainerHighest,
+                                            : theme
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
                                         child: Icon(
                                           Icons.flight,
-                                          color: isActive ? Colors.white : Colors.grey[700],
+                                          color: isActive
+                                              ? Colors.white
+                                              : Colors.grey[700],
                                           size: 20,
                                         ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               aircraft.name,
-                                              style: theme.textTheme.bodyMedium?.copyWith(
-                                                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                                              ),
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    fontWeight: isActive
+                                                        ? FontWeight.bold
+                                                        : FontWeight.normal,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -164,7 +200,10 @@ void showSwitchAircraftBottomSheet(
                 ),
               );
             },
-            loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+            loading: () => const SizedBox(
+              height: 200,
+              child: Center(child: CircularProgressIndicator()),
+            ),
             error: (err, stack) => Center(child: Text(l10n.errorPrefix)),
           );
         },

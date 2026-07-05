@@ -84,42 +84,41 @@ class BaseDetailsDialog extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DraggableOverlayGestureDetector(
-                          child: Row(
-                            children: [
-                              if (leadingWidget != null) ...[
-                                leadingWidget,
-                                const SizedBox(width: 12),
+              child: Material(
+                color: Colors.transparent,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DraggableOverlayGestureDetector(
+                            child: Row(
+                              children: [
+                                if (leadingWidget != null) ...[
+                                  leadingWidget,
+                                  const SizedBox(width: 12),
+                                ],
+                                Expanded(child: titleWidget),
                               ],
-                              Expanded(child: titleWidget),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                      if (actions != null)
-                        ...actions!
-                      else
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(context).pop(),
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
-                    ],
-                  ),
-                  const Divider(height: 24),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      child: child,
+                        if (actions != null)
+                          ...actions!
+                        else
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(context).pop(),
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                      ],
                     ),
-                  ),
-                ],
+                    const Divider(height: 24),
+                    Flexible(child: SingleChildScrollView(child: child)),
+                  ],
+                ),
               ),
             ),
           ),
