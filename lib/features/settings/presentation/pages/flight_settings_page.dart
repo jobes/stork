@@ -545,8 +545,12 @@ class FlightSettingsPage extends ConsumerWidget {
                       initialValue: tempUnit
                           .convertFromKelvin(settings.oilTempMaxRange)
                           .roundToDouble(),
-                      min: tempUnit.convertFromKelvin(323.15).roundToDouble(), // 50 °C min limit
-                      max: tempUnit.convertFromKelvin(573.15).roundToDouble(), // 300 °C max limit
+                      min: tempUnit
+                          .convertFromKelvin(323.15)
+                          .roundToDouble(), // 50 °C min limit
+                      max: tempUnit
+                          .convertFromKelvin(573.15)
+                          .roundToDouble(), // 300 °C max limit
                       step: 5,
                       suffix: tempUnit.getAbbreviation(),
                       onChanged: (newValue) {
@@ -575,7 +579,9 @@ class FlightSettingsPage extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: ThresholdsSlider(
                   min: 0.0,
-                  max: pressureUnit.convertFromKpa(settings.oilPressureMaxRange),
+                  max: pressureUnit.convertFromKpa(
+                    settings.oilPressureMaxRange,
+                  ),
                   evaluate: currentOilPressureThresholds.evaluate,
                   unitLabel: pressureUnit.getAbbreviation(),
                   decimalPlaces: pressureUnit == PressureUnit.bar ? 1 : 0,
@@ -619,13 +625,27 @@ class FlightSettingsPage extends ConsumerWidget {
                     ),
                     NumberInput(
                       initialValue: pressureUnit == PressureUnit.bar
-                          ? double.parse(pressureUnit.convertFromKpa(settings.oilPressureMaxRange).toStringAsFixed(1))
-                          : pressureUnit.convertFromKpa(settings.oilPressureMaxRange).roundToDouble(),
+                          ? double.parse(
+                              pressureUnit
+                                  .convertFromKpa(settings.oilPressureMaxRange)
+                                  .toStringAsFixed(1),
+                            )
+                          : pressureUnit
+                                .convertFromKpa(settings.oilPressureMaxRange)
+                                .roundToDouble(),
                       min: pressureUnit == PressureUnit.bar
-                          ? double.parse(pressureUnit.convertFromKpa(100.0).toStringAsFixed(1))
+                          ? double.parse(
+                              pressureUnit
+                                  .convertFromKpa(100.0)
+                                  .toStringAsFixed(1),
+                            )
                           : pressureUnit.convertFromKpa(100.0).roundToDouble(),
                       max: pressureUnit == PressureUnit.bar
-                          ? double.parse(pressureUnit.convertFromKpa(2000.0).toStringAsFixed(1))
+                          ? double.parse(
+                              pressureUnit
+                                  .convertFromKpa(2000.0)
+                                  .toStringAsFixed(1),
+                            )
                           : pressureUnit.convertFromKpa(2000.0).roundToDouble(),
                       step: pressureUnit == PressureUnit.bar
                           ? 0.1
@@ -740,8 +760,12 @@ class FlightSettingsPage extends ConsumerWidget {
                       initialValue: tempUnit
                           .convertFromKelvin(settings.egtMaxRange)
                           .roundToDouble(),
-                      min: tempUnit.convertFromKelvin(273.15 + 100.0).roundToDouble(),
-                      max: tempUnit.convertFromKelvin(273.15 + 1500.0).roundToDouble(),
+                      min: tempUnit
+                          .convertFromKelvin(273.15 + 100.0)
+                          .roundToDouble(),
+                      max: tempUnit
+                          .convertFromKelvin(273.15 + 1500.0)
+                          .roundToDouble(),
                       step: 50,
                       suffix: tempUnit.getAbbreviation(),
                       onChanged: (newValue) {
@@ -818,8 +842,12 @@ class FlightSettingsPage extends ConsumerWidget {
                       initialValue: tempUnit
                           .convertFromKelvin(settings.chtMaxRange)
                           .roundToDouble(),
-                      min: tempUnit.convertFromKelvin(273.15 + 50.0).roundToDouble(),
-                      max: tempUnit.convertFromKelvin(273.15 + 300.0).roundToDouble(),
+                      min: tempUnit
+                          .convertFromKelvin(273.15 + 50.0)
+                          .roundToDouble(),
+                      max: tempUnit
+                          .convertFromKelvin(273.15 + 300.0)
+                          .roundToDouble(),
                       step: 10,
                       suffix: tempUnit.getAbbreviation(),
                       onChanged: (newValue) {

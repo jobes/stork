@@ -108,13 +108,14 @@ class TelemetryNotifier extends _$TelemetryNotifier {
               : state.copyWith(gpsVerticalAccuracy: TelemetryValue(val));
         },
       );
-  late final DecayableField<double> _coolantTemperature = DecayableField<double>(
-    onChanged: (val) {
-      state = val == null
-          ? state.resetField(TelemetryField.coolantTemperature)
-          : state.copyWith(coolantTemperature: TelemetryValue(val));
-    },
-  );
+  late final DecayableField<double> _coolantTemperature =
+      DecayableField<double>(
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.coolantTemperature)
+              : state.copyWith(coolantTemperature: TelemetryValue(val));
+        },
+      );
   late final DecayableField<double> _oilPressure = DecayableField<double>(
     onChanged: (val) {
       state = val == null
@@ -189,22 +190,24 @@ class TelemetryNotifier extends _$TelemetryNotifier {
           : state.copyWith(radioStandbyFrequency: TelemetryValue(val));
     },
   );
-  late final DecayableField<String> _radioActiveStationName = DecayableField<String>(
-    timeout: const Duration(seconds: 30),
-    onChanged: (val) {
-      state = val == null
-          ? state.resetField(TelemetryField.radioActiveStationName)
-          : state.copyWith(radioActiveStationName: TelemetryValue(val));
-    },
-  );
-  late final DecayableField<String> _radioStandbyStationName = DecayableField<String>(
-    timeout: const Duration(seconds: 30),
-    onChanged: (val) {
-      state = val == null
-          ? state.resetField(TelemetryField.radioStandbyStationName)
-          : state.copyWith(radioStandbyStationName: TelemetryValue(val));
-    },
-  );
+  late final DecayableField<String> _radioActiveStationName =
+      DecayableField<String>(
+        timeout: const Duration(seconds: 30),
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.radioActiveStationName)
+              : state.copyWith(radioActiveStationName: TelemetryValue(val));
+        },
+      );
+  late final DecayableField<String> _radioStandbyStationName =
+      DecayableField<String>(
+        timeout: const Duration(seconds: 30),
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.radioStandbyStationName)
+              : state.copyWith(radioStandbyStationName: TelemetryValue(val));
+        },
+      );
   late final DecayableField<int> _radioFlags = DecayableField<int>(
     timeout: const Duration(seconds: 30),
     onChanged: (val) {
@@ -261,14 +264,15 @@ class TelemetryNotifier extends _$TelemetryNotifier {
           : state.copyWith(radioIntercom: TelemetryValue(val));
     },
   );
-  late final DecayableField<List<int>> _radioMicGain = DecayableField<List<int>>(
-    timeout: const Duration(seconds: 30),
-    onChanged: (val) {
-      state = val == null
-          ? state.resetField(TelemetryField.radioMicGain)
-          : state.copyWith(radioMicGain: TelemetryValue(val));
-    },
-  );
+  late final DecayableField<List<int>> _radioMicGain =
+      DecayableField<List<int>>(
+        timeout: const Duration(seconds: 30),
+        onChanged: (val) {
+          state = val == null
+              ? state.resetField(TelemetryField.radioMicGain)
+              : state.copyWith(radioMicGain: TelemetryValue(val));
+        },
+      );
 
   DateTime? _lastDroneCanFixTime;
 
@@ -351,14 +355,28 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
     var newState = state.copyWith(
       isGpsDroneCan: isDroneCan,
-      latitude: latitude == _sentinel ? null : TelemetryValue(latitude as double?),
-      longitude: longitude == _sentinel ? null : TelemetryValue(longitude as double?),
+      latitude: latitude == _sentinel
+          ? null
+          : TelemetryValue(latitude as double?),
+      longitude: longitude == _sentinel
+          ? null
+          : TelemetryValue(longitude as double?),
       heading: heading == _sentinel ? null : TelemetryValue(heading as double?),
-      groundSpeed: groundSpeed == _sentinel ? null : TelemetryValue(groundSpeed as double?),
-      gpsSatelliteCount: gpsSatelliteCount == _sentinel ? null : TelemetryValue(gpsSatelliteCount as int?),
-      gpsHorizontalAccuracy: gpsHorizontalAccuracy == _sentinel ? null : TelemetryValue(gpsHorizontalAccuracy as double?),
-      gpsVerticalAccuracy: gpsVerticalAccuracy == _sentinel ? null : TelemetryValue(gpsVerticalAccuracy as double?),
-      gpsAltitude: gpsAltitude == _sentinel ? null : TelemetryValue(gpsAltitude as double?),
+      groundSpeed: groundSpeed == _sentinel
+          ? null
+          : TelemetryValue(groundSpeed as double?),
+      gpsSatelliteCount: gpsSatelliteCount == _sentinel
+          ? null
+          : TelemetryValue(gpsSatelliteCount as int?),
+      gpsHorizontalAccuracy: gpsHorizontalAccuracy == _sentinel
+          ? null
+          : TelemetryValue(gpsHorizontalAccuracy as double?),
+      gpsVerticalAccuracy: gpsVerticalAccuracy == _sentinel
+          ? null
+          : TelemetryValue(gpsVerticalAccuracy as double?),
+      gpsAltitude: gpsAltitude == _sentinel
+          ? null
+          : TelemetryValue(gpsAltitude as double?),
     );
 
     // Auto-transition to overview if GPS is filled and we are in init/waiting state
@@ -406,7 +424,8 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       oilPressure: TelemetryValue(oilPressure),
       oilTemperature: TelemetryValue(oilTemperature),
       isOilTempSupported: state.isOilTempSupported || oilTemperature != null,
-      isOilPressureSupported: state.isOilPressureSupported || oilPressure != null,
+      isOilPressureSupported:
+          state.isOilPressureSupported || oilPressure != null,
       isEngineRpmSupported: true,
       cylinderHeadTemperatures: TelemetryValue(cylinderHeadTemperatures),
       exhaustGasTemperatures: TelemetryValue(exhaustGasTemperatures),
@@ -597,9 +616,15 @@ class DisableTelemetryAnimations extends _$DisableTelemetryAnimations {
       for (final field in TelemetryField.values) {
         bool changed = false;
         if (field == TelemetryField.cylinderHeadTemperature) {
-          changed = !_areListsEqual(previous?.cylinderHeadTemperatures, next.cylinderHeadTemperatures);
+          changed = !_areListsEqual(
+            previous?.cylinderHeadTemperatures,
+            next.cylinderHeadTemperatures,
+          );
         } else if (field == TelemetryField.exhaustGasTemperature) {
-          changed = !_areListsEqual(previous?.exhaustGasTemperatures, next.exhaustGasTemperatures);
+          changed = !_areListsEqual(
+            previous?.exhaustGasTemperatures,
+            next.exhaustGasTemperatures,
+          );
         } else {
           final prevVal = previous?.getFieldValue(field);
           final nextVal = next.getFieldValue(field);

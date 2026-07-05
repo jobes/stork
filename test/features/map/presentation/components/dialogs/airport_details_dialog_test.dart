@@ -11,10 +11,7 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_provid
 class FakeTelemetryNotifier extends TelemetryNotifier {
   @override
   TelemetryState build() {
-    return const TelemetryState(
-      radioNodeId: 10,
-      isRadioSupported: true,
-    );
+    return const TelemetryState(radioNodeId: 10, isRadioSupported: true);
   }
 }
 

@@ -4,12 +4,10 @@ class FavoriteFrequency {
 
   FavoriteFrequency({required this.mhz, required this.name});
 
-  Map<String, dynamic> toJson() => {
-        'mhz': mhz,
-        'name': name,
-      };
+  Map<String, dynamic> toJson() => {'mhz': mhz, 'name': name};
 
-  factory FavoriteFrequency.fromJson(Map<String, dynamic> json) => FavoriteFrequency(
+  factory FavoriteFrequency.fromJson(Map<String, dynamic> json) =>
+      FavoriteFrequency(
         mhz: (json['mhz'] as num).toDouble(),
         name: json['name'] as String,
       );

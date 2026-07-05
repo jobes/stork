@@ -240,9 +240,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     );
   }
 
-  Future<SettingsUpdateResult> updateRpmThresholds(
-    RangeThresholds thresholds,
-  ) {
+  Future<SettingsUpdateResult> updateRpmThresholds(RangeThresholds thresholds) {
     return _updateSettings((s) {
       return s.copyWith(rpmThresholds: thresholds);
     });
@@ -347,8 +345,9 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     return _updateSettings((s) => s.copyWith(airplaneId: airplaneId));
   }
 
-  Future<SettingsUpdateResult> updateTemperatureUnit(TemperatureUnit temperatureUnit) =>
-      _updateSettings((s) => s.copyWith(temperatureUnit: temperatureUnit));
+  Future<SettingsUpdateResult> updateTemperatureUnit(
+    TemperatureUnit temperatureUnit,
+  ) => _updateSettings((s) => s.copyWith(temperatureUnit: temperatureUnit));
 
   Future<SettingsUpdateResult> updateOilTempThresholds(
     RangeThresholds thresholds,
@@ -431,8 +430,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
         defaultMinWarningKpa: 200.0,
         defaultMaxWarningKpa: 500.0,
         defaultMaxErrorKpa: 700.0,
-        minRangeLimit: s.pressureUnit.convertFromKpa(100.0), // 1.0 bar / 14.5 psi / 100 kPa
-        maxRangeLimit: s.pressureUnit.convertFromKpa(2000.0), // 20.0 bar / 290 psi / 2000 kPa
+        minRangeLimit: s.pressureUnit.convertFromKpa(
+          100.0,
+        ), // 1.0 bar / 14.5 psi / 100 kPa
+        maxRangeLimit: s.pressureUnit.convertFromKpa(
+          2000.0,
+        ), // 20.0 bar / 290 psi / 2000 kPa
       ),
     );
   }
@@ -445,9 +448,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     });
   }
 
-  Future<SettingsUpdateResult> updateEgtThresholds(
-    RangeThresholds thresholds,
-  ) {
+  Future<SettingsUpdateResult> updateEgtThresholds(RangeThresholds thresholds) {
     return _updateSettings((s) {
       final tempUnit = s.temperatureUnit;
       final thresholdsInKelvin = RangeThresholds(
@@ -487,9 +488,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     );
   }
 
-  Future<SettingsUpdateResult> updateChtThresholds(
-    RangeThresholds thresholds,
-  ) {
+  Future<SettingsUpdateResult> updateChtThresholds(RangeThresholds thresholds) {
     return _updateSettings((s) {
       final tempUnit = s.temperatureUnit;
       final thresholdsInKelvin = RangeThresholds(

@@ -4,13 +4,17 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../domain/models/pilot.dart';
 
-Future<bool> promptForPin(BuildContext context, Pilot pilot, String title) async {
+Future<bool> promptForPin(
+  BuildContext context,
+  Pilot pilot,
+  String title,
+) async {
   if (pilot.pin == null || pilot.pin!.isEmpty) return true;
 
   final l10n = AppLocalizations.of(context)!;
   final controller = TextEditingController();
   final formKey = GlobalKey<FormState>();
-  
+
   final result = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
@@ -25,7 +29,10 @@ Future<bool> promptForPin(BuildContext context, Pilot pilot, String title) async
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.enterPilotPin(pilot.name), style: const TextStyle(fontSize: 14)),
+            Text(
+              l10n.enterPilotPin(pilot.name),
+              style: const TextStyle(fontSize: 14),
+            ),
             const SizedBox(height: 16),
             TextFormField(
               controller: controller,
@@ -34,7 +41,9 @@ Future<bool> promptForPin(BuildContext context, Pilot pilot, String title) async
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
                 labelText: l10n.pinCode,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 prefixIcon: const Icon(Icons.lock_outline),
               ),
               validator: (val) {
@@ -60,7 +69,9 @@ Future<bool> promptForPin(BuildContext context, Pilot pilot, String title) async
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: Text(l10n.confirm),
                 ),

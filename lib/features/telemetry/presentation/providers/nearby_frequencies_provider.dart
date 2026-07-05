@@ -47,17 +47,23 @@ class NearbyFrequencies extends _$NearbyFrequencies {
 
     // --- Airports ---
     // Merge in-memory session cache with the offline DB.
-    final memoryAirports =
-        ref.read(airportMetadataCacheProvider.notifier).memoryCache.values.toList();
+    final memoryAirports = ref
+        .read(airportMetadataCacheProvider.notifier)
+        .memoryCache
+        .values
+        .toList();
 
     final dbAptRaw = await repo.fetchAllFeaturesFromDb('apt');
-    final dbAirports = dbAptRaw.map((json) {
-      try {
-        return AirportMetadata.fromJson(json);
-      } catch (_) {
-        return null;
-      }
-    }).whereType<AirportMetadata>().toList();
+    final dbAirports = dbAptRaw
+        .map((json) {
+          try {
+            return AirportMetadata.fromJson(json);
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<AirportMetadata>()
+        .toList();
 
     // DB records form the base; memory cache may overwrite with newer values.
     final allAirportsMap = <String, AirportMetadata>{};
@@ -73,23 +79,34 @@ class NearbyFrequencies extends _$NearbyFrequencies {
     }
 
     final airportsWithDistance = allAirportsMap.values.map((apt) {
-      final dist = GeoUtils.distanceBetween(lat, lon, apt.latitude!, apt.longitude!);
+      final dist = GeoUtils.distanceBetween(
+        lat,
+        lon,
+        apt.latitude!,
+        apt.longitude!,
+      );
       return MapEntry(apt, dist);
     }).toList();
     airportsWithDistance.sort((a, b) => a.value.compareTo(b.value));
 
     // --- Airspaces ---
-    final memoryAirspaces =
-        ref.read(airspaceMetadataCacheProvider.notifier).memoryCache.values.toList();
+    final memoryAirspaces = ref
+        .read(airspaceMetadataCacheProvider.notifier)
+        .memoryCache
+        .values
+        .toList();
 
     final dbAspRaw = await repo.fetchAllFeaturesFromDb('asp');
-    final dbAirspaces = dbAspRaw.map((json) {
-      try {
-        return AirspaceMetadata.fromJson(json);
-      } catch (_) {
-        return null;
-      }
-    }).whereType<AirspaceMetadata>().toList();
+    final dbAirspaces = dbAspRaw
+        .map((json) {
+          try {
+            return AirspaceMetadata.fromJson(json);
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<AirspaceMetadata>()
+        .toList();
 
     final allAirspacesMap = <String, AirspaceMetadata>{};
     for (final asp in dbAirspaces) {
@@ -108,8 +125,11 @@ class NearbyFrequencies extends _$NearbyFrequencies {
           final dist = GeoUtils.distanceToPolygons(lat, lon, asp.polygons);
           return MapEntry(asp, dist);
         })
-        .where((entry) =>
-            entry.key.frequencies != null && entry.key.frequencies!.isNotEmpty)
+        .where(
+          (entry) =>
+              entry.key.frequencies != null &&
+              entry.key.frequencies!.isNotEmpty,
+        )
         .toList();
 
     airspacesWithDistance.sort((a, b) {

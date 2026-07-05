@@ -51,7 +51,9 @@ class StatsDashboard extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.4),
+                color: theme.colorScheme.secondaryContainer.withValues(
+                  alpha: 0.4,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -63,13 +65,17 @@ class StatsDashboard extends ConsumerWidget {
             const SizedBox(height: 20),
             Text(
               l10n.noActivePilot,
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               l10n.noActivePilotInstructions,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
             ),
           ],
         ),
@@ -77,7 +83,11 @@ class StatsDashboard extends ConsumerWidget {
     );
   }
 
-  Widget _buildPilotStatsSection(BuildContext context, WidgetRef ref, Pilot pilot) {
+  Widget _buildPilotStatsSection(
+    BuildContext context,
+    WidgetRef ref,
+    Pilot pilot,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final statsAsync = ref.watch(pilotStatsProvider(pilot.id));
     final theme = Theme.of(context);
@@ -91,7 +101,9 @@ class StatsDashboard extends ConsumerWidget {
               padding: const EdgeInsets.only(left: 4.0, bottom: 12.0),
               child: Text(
                 l10n.pilotFlightStats,
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             GridView(
@@ -149,15 +161,27 @@ class StatsDashboard extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: Padding(padding: EdgeInsets.all(24.0), child: CircularProgressIndicator())),
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: CircularProgressIndicator(),
+        ),
+      ),
       error: (err, stack) => Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(l10n.statsCalcError, style: TextStyle(color: theme.colorScheme.error)),
+        child: Text(
+          l10n.statsCalcError,
+          style: TextStyle(color: theme.colorScheme.error),
+        ),
       ),
     );
   }
 
-  Widget _buildAircraftStatsSection(BuildContext context, WidgetRef ref, String airplaneId) {
+  Widget _buildAircraftStatsSection(
+    BuildContext context,
+    WidgetRef ref,
+    String airplaneId,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final statsAsync = ref.watch(aircraftStatsProvider(airplaneId));
     final theme = Theme.of(context);
@@ -171,7 +195,9 @@ class StatsDashboard extends ConsumerWidget {
               padding: const EdgeInsets.only(left: 4.0, bottom: 12.0),
               child: Text(
                 l10n.aircraftFlightStats,
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             GridView(
@@ -229,10 +255,18 @@ class StatsDashboard extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: Padding(padding: EdgeInsets.all(24.0), child: CircularProgressIndicator())),
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: CircularProgressIndicator(),
+        ),
+      ),
       error: (err, stack) => Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(l10n.aircraftStatsCalcError, style: TextStyle(color: theme.colorScheme.error)),
+        child: Text(
+          l10n.aircraftStatsCalcError,
+          style: TextStyle(color: theme.colorScheme.error),
+        ),
       ),
     );
   }
@@ -251,7 +285,9 @@ class StatsDashboard extends ConsumerWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),

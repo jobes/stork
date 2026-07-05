@@ -28,9 +28,7 @@ void main() {
             return MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              home: const Scaffold(
-                body: EgtTelemetryWidget(),
-              ),
+              home: const Scaffold(body: EgtTelemetryWidget()),
             );
           },
         ),
@@ -55,7 +53,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // 1073.15 K = 800 °C (operational/green), 423.15 K = 150 °C (inactive/gray)
-      providerContainer.read(telemetryProvider.notifier).updateIceStatus(
+      providerContainer
+          .read(telemetryProvider.notifier)
+          .updateIceStatus(
             engineSpeedRpm: 1200,
             exhaustGasTemperatures: [1073.15, 423.15],
           );
@@ -70,41 +70,43 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsNothing);
     });
 
-    testWidgets('enters error state (shows error outline and red border) when EGT is null (disconnected)', (
-      WidgetTester tester,
-    ) async {
-      SharedPreferences.setMockInitialValues({});
-      await tester.pumpWidget(buildTestWidget());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'enters error state (shows error outline and red border) when EGT is null (disconnected)',
+      (WidgetTester tester) async {
+        SharedPreferences.setMockInitialValues({});
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
 
-      // First set active EGT with 2 cylinders to establish they are supported
-      providerContainer.read(telemetryProvider.notifier).updateIceStatus(
-            engineSpeedRpm: 1200,
-            exhaustGasTemperatures: [1073.15, 423.15],
-          );
-      await tester.pumpAndSettle();
+        // First set active EGT with 2 cylinders to establish they are supported
+        providerContainer
+            .read(telemetryProvider.notifier)
+            .updateIceStatus(
+              engineSpeedRpm: 1200,
+              exhaustGasTemperatures: [1073.15, 423.15],
+            );
+        await tester.pumpAndSettle();
 
-      // Disconnect EGT (triggers decay to all nulls)
-      providerContainer.read(telemetryProvider.notifier).updateIceStatus(
-            engineSpeedRpm: 1200,
-            exhaustGasTemperatures: [null, null],
-          );
-      await tester.pumpAndSettle();
+        // Disconnect EGT (triggers decay to all nulls)
+        providerContainer
+            .read(telemetryProvider.notifier)
+            .updateIceStatus(
+              engineSpeedRpm: 1200,
+              exhaustGasTemperatures: [null, null],
+            );
+        await tester.pumpAndSettle();
 
-      expect(find.byType(TelemetryCard), findsOneWidget);
-      expect(find.text('EGT'), findsOneWidget);
+        expect(find.byType(TelemetryCard), findsOneWidget);
+        expect(find.text('EGT'), findsOneWidget);
 
-      // Verify "---" text is displayed for both cylinders
-      expect(find.text('---'), findsNWidgets(2));
-      expect(find.byIcon(Icons.error_outline), findsNWidgets(2));
+        // Verify "---" text is displayed for both cylinders
+        expect(find.text('---'), findsNWidgets(2));
+        expect(find.byIcon(Icons.error_outline), findsNWidgets(2));
 
-      // Verify card has red border (error)
-      final cardFinder = find.byType(TelemetryCard);
-      final TelemetryCard card = tester.widget(cardFinder);
-      expect(
-        card.state == ThresholdState.maxError,
-        isTrue,
-      );
-    });
+        // Verify card has red border (error)
+        final cardFinder = find.byType(TelemetryCard);
+        final TelemetryCard card = tester.widget(cardFinder);
+        expect(card.state == ThresholdState.maxError, isTrue);
+      },
+    );
   });
 }

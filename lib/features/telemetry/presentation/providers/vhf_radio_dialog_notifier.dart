@@ -184,7 +184,22 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
     if (mhz < 118.000 || mhz > 136.995) return null;
     final int totalKhzRounded = (mhz * 1000).round();
     const Set<int> validAviationOffsets = {
-      0, 5, 10, 15, 25, 30, 35, 40, 50, 55, 60, 65, 75, 80, 85, 90,
+      0,
+      5,
+      10,
+      15,
+      25,
+      30,
+      35,
+      40,
+      50,
+      55,
+      60,
+      65,
+      75,
+      80,
+      85,
+      90,
     };
     if (!validAviationOffsets.contains(totalKhzRounded % 100)) return null;
     return totalKhzRounded;
@@ -232,7 +247,9 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
     }
     state = state.copyWith(isSaving: true, errorMessage: () => null);
     try {
-      await ref.read(vhfRadioControllerProvider.notifier).setActiveFrequency(
+      await ref
+          .read(vhfRadioControllerProvider.notifier)
+          .setActiveFrequency(
             nodeId: nodeId,
             radioInstance: radioInstance,
             frequencyKhz: freqKhz,
@@ -267,7 +284,9 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
     }
     state = state.copyWith(isSaving: true, errorMessage: () => null);
     try {
-      await ref.read(vhfRadioControllerProvider.notifier).setStandbyFrequency(
+      await ref
+          .read(vhfRadioControllerProvider.notifier)
+          .setStandbyFrequency(
             nodeId: nodeId,
             radioInstance: radioInstance,
             frequencyKhz: freqKhz,
@@ -445,7 +464,9 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
     state = state.copyWith(isSaving: true, errorMessage: () => null);
     try {
       if (isActive) {
-        await ref.read(vhfRadioControllerProvider.notifier).setActiveFrequency(
+        await ref
+            .read(vhfRadioControllerProvider.notifier)
+            .setActiveFrequency(
               nodeId: nodeId,
               radioInstance: radioInstance,
               frequencyKhz: freqKhz,
@@ -459,7 +480,9 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
           isSaving: false,
         );
       } else {
-        await ref.read(vhfRadioControllerProvider.notifier).setStandbyFrequency(
+        await ref
+            .read(vhfRadioControllerProvider.notifier)
+            .setStandbyFrequency(
               nodeId: nodeId,
               radioInstance: radioInstance,
               frequencyKhz: freqKhz,

@@ -48,11 +48,17 @@ void main() {
     });
 
     test('getTelemetryForFlight throws UnsupportedError', () async {
-      expect(() => db.getTelemetryForFlight('test-uuid'), throwsUnsupportedError);
+      expect(
+        () => db.getTelemetryForFlight('test-uuid'),
+        throwsUnsupportedError,
+      );
     });
 
     test('getLastTelemetryForFlight throws UnsupportedError', () async {
-      expect(() => db.getLastTelemetryForFlight('test-uuid'), throwsUnsupportedError);
+      expect(
+        () => db.getLastTelemetryForFlight('test-uuid'),
+        throwsUnsupportedError,
+      );
     });
 
     test('saveFlightStatistics throws UnsupportedError', () async {
@@ -61,7 +67,10 @@ void main() {
         maxGroundSpeed: 100,
         totalDistance: 50,
       );
-      expect(() => db.saveFlightStatistics('test-uuid', stats), throwsUnsupportedError);
+      expect(
+        () => db.saveFlightStatistics('test-uuid', stats),
+        throwsUnsupportedError,
+      );
     });
 
     test('getTelemetryForFlightPaginated throws UnsupportedError', () async {
@@ -72,7 +81,10 @@ void main() {
     });
 
     test('getGpxTelemetryForFlight throws UnsupportedError', () async {
-      expect(() => db.getGpxTelemetryForFlight('test-uuid'), throwsUnsupportedError);
+      expect(
+        () => db.getGpxTelemetryForFlight('test-uuid'),
+        throwsUnsupportedError,
+      );
     });
 
     test('deleteFlight throws UnsupportedError', () async {

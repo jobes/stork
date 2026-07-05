@@ -29,9 +29,6 @@ final appRouter = GoRouter(
       path: '/flight-records',
       builder: (context, state) => const FlightRecordsPage(),
     ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfilePage(),
-    ),
+    GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
   ],
 );

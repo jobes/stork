@@ -154,7 +154,11 @@ class GeoUtils {
     if (dx == 0 && dy == 0) {
       return distanceBetween(lat, lon, lat1, lon1);
     }
-    final double t = (((lon - lon1) * dx + (lat - lat1) * dy) / (dx * dx + dy * dy)).clamp(0.0, 1.0);
+    final double t =
+        (((lon - lon1) * dx + (lat - lat1) * dy) / (dx * dx + dy * dy)).clamp(
+          0.0,
+          1.0,
+        );
     final double closestLon = lon1 + t * dx;
     final double closestLat = lat1 + t * dy;
     return distanceBetween(lat, lon, closestLat, closestLon);

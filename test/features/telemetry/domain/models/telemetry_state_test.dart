@@ -69,24 +69,39 @@ void main() {
       },
     );
 
-    test('TelemetryState.copyWithField cylinderHeadTemperature and exhaustGasTemperature supports both List and JSON String', () {
-      var state = const TelemetryState();
+    test(
+      'TelemetryState.copyWithField cylinderHeadTemperature and exhaustGasTemperature supports both List and JSON String',
+      () {
+        var state = const TelemetryState();
 
-      // Test List input
-      var updatedState = state.copyWithField(TelemetryField.cylinderHeadTemperature, [450.5, 451.0]);
-      expect(updatedState.cylinderHeadTemperatures, equals([450.5, 451.0]));
+        // Test List input
+        var updatedState = state.copyWithField(
+          TelemetryField.cylinderHeadTemperature,
+          [450.5, 451.0],
+        );
+        expect(updatedState.cylinderHeadTemperatures, equals([450.5, 451.0]));
 
-      // Test JSON String input
-      updatedState = state.copyWithField(TelemetryField.cylinderHeadTemperature, '[450.5, 451.0]');
-      expect(updatedState.cylinderHeadTemperatures, equals([450.5, 451.0]));
+        // Test JSON String input
+        updatedState = state.copyWithField(
+          TelemetryField.cylinderHeadTemperature,
+          '[450.5, 451.0]',
+        );
+        expect(updatedState.cylinderHeadTemperatures, equals([450.5, 451.0]));
 
-      // Test List input for EGT
-      updatedState = state.copyWithField(TelemetryField.exhaustGasTemperature, [650.5, 651.0]);
-      expect(updatedState.exhaustGasTemperatures, equals([650.5, 651.0]));
+        // Test List input for EGT
+        updatedState = state.copyWithField(
+          TelemetryField.exhaustGasTemperature,
+          [650.5, 651.0],
+        );
+        expect(updatedState.exhaustGasTemperatures, equals([650.5, 651.0]));
 
-      // Test JSON String input for EGT
-      updatedState = state.copyWithField(TelemetryField.exhaustGasTemperature, '[650.5, 651.0]');
-      expect(updatedState.exhaustGasTemperatures, equals([650.5, 651.0]));
-    });
+        // Test JSON String input for EGT
+        updatedState = state.copyWithField(
+          TelemetryField.exhaustGasTemperature,
+          '[650.5, 651.0]',
+        );
+        expect(updatedState.exhaustGasTemperatures, equals([650.5, 651.0]));
+      },
+    );
   });
 }

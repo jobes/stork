@@ -125,7 +125,9 @@ class VhfRadioControlResponse implements DroneCanMessage {
 
   factory VhfRadioControlResponse.fromPayload(Uint8List payload) {
     if (payload.isEmpty) {
-      throw const FormatException('Payload too short for VhfRadioControlResponse (got 0 bytes)');
+      throw const FormatException(
+        'Payload too short for VhfRadioControlResponse (got 0 bytes)',
+      );
     }
     // status is uint8 at the beginning of payload (or just first byte)
     return VhfRadioControlResponse(status: payload[0]);

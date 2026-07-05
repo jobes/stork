@@ -28,7 +28,6 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
     this.disableAnimations = false,
   });
 
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -36,8 +35,8 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
         ? Colors.grey.shade300
         : Colors.grey.shade700;
 
-    final bool isAbnormal = state != ThresholdState.operational &&
-        state != ThresholdState.inactive;
+    final bool isAbnormal =
+        state != ThresholdState.operational && state != ThresholdState.inactive;
 
     return TelemetryCard(
       state: state,
@@ -70,8 +69,13 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
               height: 80 * fontScale,
               child: currentValue != null
                   ? TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: currentValue!, end: currentValue!),
-                      duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
+                      tween: Tween<double>(
+                        begin: currentValue!,
+                        end: currentValue!,
+                      ),
+                      duration: disableAnimations
+                          ? Duration.zero
+                          : const Duration(milliseconds: 300),
                       curve: Curves.easeOut,
                       builder: (context, animValue, child) {
                         return CustomPaint(
@@ -92,7 +96,9 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
                       child: Icon(
                         Icons.error_outline,
                         size: 28 * fontScale,
-                        color: isDark ? Colors.redAccent.shade200 : Colors.red.shade600,
+                        color: isDark
+                            ? Colors.redAccent.shade200
+                            : Colors.red.shade600,
                       ),
                     ),
             ),
@@ -101,7 +107,9 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
               height: 26 * fontScale,
               child: Center(
                 child: AnimatedDefaultTextStyle(
-                  duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
+                  duration: disableAnimations
+                      ? Duration.zero
+                      : const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   style: TextStyle(
                     fontSize: (isAbnormal ? 24.0 : 18.0) * fontScale,
@@ -120,5 +128,3 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
     );
   }
 }
-
-

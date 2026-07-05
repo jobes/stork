@@ -10,10 +10,10 @@ void main() {
         pressureUnit: PressureUnit.bar,
         oilPressureThresholds: RangeThresholds.raw(
           inactiveMax: 50.0, // 0.5 bar
-          minError: 80.0,    // 0.8 bar
+          minError: 80.0, // 0.8 bar
           minWarning: 200.0, // 2.0 bar
           maxWarning: 500.0, // 5.0 bar
-          maxError: 700.0,   // 7.0 bar
+          maxError: 700.0, // 7.0 bar
         ),
         oilPressureMaxRange: 800.0, // 8.0 bar
       );

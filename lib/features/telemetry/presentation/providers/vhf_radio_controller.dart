@@ -132,7 +132,12 @@ class VhfRadioController extends _$VhfRadioController {
     );
   }
 
-  Future<void> setMicGain(int nodeId, int radioInstance, int index, int level) async {
+  Future<void> setMicGain(
+    int nodeId,
+    int radioInstance,
+    int index,
+    int level,
+  ) async {
     await _sendControlRequest(
       nodeId: nodeId,
       radioInstance: radioInstance,

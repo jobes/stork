@@ -12,18 +12,36 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final radioActiveFreq = ref.watch(telemetryProvider.select((t) => t.radioActiveFrequency));
-    final radioStandbyFreq = ref.watch(telemetryProvider.select((t) => t.radioStandbyFrequency));
-    final radioActiveName = ref.watch(telemetryProvider.select((t) => t.radioActiveStationName));
-    final radioStandbyName = ref.watch(telemetryProvider.select((t) => t.radioStandbyStationName));
-    final radioFlags = ref.watch(telemetryProvider.select((t) => t.radioFlags)) ?? 0;
-    final radioInstance = ref.watch(telemetryProvider.select((t) => t.radioInstance)) ?? 0;
-    final radioNodeId = ref.watch(telemetryProvider.select((t) => t.radioNodeId));
-    final radioVolume = ref.watch(telemetryProvider.select((t) => t.radioVolume)) ?? 50;
-    final radioSquelch = ref.watch(telemetryProvider.select((t) => t.radioSquelch)) ?? 10;
-    final radioVox = ref.watch(telemetryProvider.select((t) => t.radioVox)) ?? 20;
-    final radioIntercom = ref.watch(telemetryProvider.select((t) => t.radioIntercom)) ?? 30;
-    final radioMicGain = ref.watch(telemetryProvider.select((t) => t.radioMicGain));
+    final radioActiveFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioActiveFrequency),
+    );
+    final radioStandbyFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioStandbyFrequency),
+    );
+    final radioActiveName = ref.watch(
+      telemetryProvider.select((t) => t.radioActiveStationName),
+    );
+    final radioStandbyName = ref.watch(
+      telemetryProvider.select((t) => t.radioStandbyStationName),
+    );
+    final radioFlags =
+        ref.watch(telemetryProvider.select((t) => t.radioFlags)) ?? 0;
+    final radioInstance =
+        ref.watch(telemetryProvider.select((t) => t.radioInstance)) ?? 0;
+    final radioNodeId = ref.watch(
+      telemetryProvider.select((t) => t.radioNodeId),
+    );
+    final radioVolume =
+        ref.watch(telemetryProvider.select((t) => t.radioVolume)) ?? 50;
+    final radioSquelch =
+        ref.watch(telemetryProvider.select((t) => t.radioSquelch)) ?? 10;
+    final radioVox =
+        ref.watch(telemetryProvider.select((t) => t.radioVox)) ?? 20;
+    final radioIntercom =
+        ref.watch(telemetryProvider.select((t) => t.radioIntercom)) ?? 30;
+    final radioMicGain = ref.watch(
+      telemetryProvider.select((t) => t.radioMicGain),
+    );
 
     final settings = ref.watch(appSettingsProvider).value;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
@@ -37,9 +55,13 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
     final bool isErr = (radioFlags & 8) != 0 || isDisconnected;
 
     // Use error card state if disconnected or hardware error flag is set
-    final cardState = isErr ? ThresholdState.maxError : ThresholdState.operational;
+    final cardState = isErr
+        ? ThresholdState.maxError
+        : ThresholdState.operational;
 
-    final defaultTextColor = isDark ? Colors.grey.shade300 : Colors.grey.shade800;
+    final defaultTextColor = isDark
+        ? Colors.grey.shade300
+        : Colors.grey.shade800;
     final dimTextColor = isDark ? Colors.grey.shade500 : Colors.grey.shade600;
 
     // Helper to format frequency from kHz to MHz string
@@ -76,7 +98,9 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
 
     return TelemetryCard(
       state: cardState,
-      onTap: (isErr || isDisconnected || radioNodeId == null) ? null : openRadioDialog,
+      onTap: (isErr || isDisconnected || radioNodeId == null)
+          ? null
+          : openRadioDialog,
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
       child: SizedBox(
         width: 130.0 * fontScale,
@@ -88,22 +112,28 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  Icons.radio,
-                  size: 14 * fontScale,
-                  color: dimTextColor,
-                ),
+                Icon(Icons.radio, size: 14 * fontScale, color: dimTextColor),
                 // Flags side-by-side
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFlagIndicator('TX', isTx, Colors.orange, fontScale),
                     const SizedBox(width: 3),
-                    _buildFlagIndicator('RX', isRx, Colors.greenAccent.shade400, fontScale),
+                    _buildFlagIndicator(
+                      'RX',
+                      isRx,
+                      Colors.greenAccent.shade400,
+                      fontScale,
+                    ),
                     const SizedBox(width: 3),
                     _buildFlagIndicator('DUAL', isDual, Colors.cyan, fontScale),
                     const SizedBox(width: 3),
-                    _buildFlagIndicator('ERR', isErr, Colors.redAccent, fontScale),
+                    _buildFlagIndicator(
+                      'ERR',
+                      isErr,
+                      Colors.redAccent,
+                      fontScale,
+                    ),
                   ],
                 ),
               ],
@@ -173,7 +203,12 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildFlagIndicator(String label, bool isActive, Color activeColor, double fontScale) {
+  Widget _buildFlagIndicator(
+    String label,
+    bool isActive,
+    Color activeColor,
+    double fontScale,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
       decoration: BoxDecoration(

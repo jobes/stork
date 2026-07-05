@@ -104,7 +104,9 @@ enum TelemetryField {
         final raw = dbValue as String;
         if (raw.isEmpty) return <double>[];
         final list = jsonDecode(raw) as List<dynamic>;
-        return list.map((e) => e == null ? null : (e as num).toDouble()).toList();
+        return list
+            .map((e) => e == null ? null : (e as num).toDouble())
+            .toList();
       case TelemetryField.engineRPM:
         return (dbValue as num).toInt();
       case TelemetryField.latitude:
@@ -152,8 +154,10 @@ class TelemetryState {
   final bool isOilTempSupported;
   final bool isOilPressureSupported;
   final bool isEngineRpmSupported;
+
   /// CHT per cylinder, in Kelvin (null = no sensor for that cylinder, empty list = no data).
   final List<double?> cylinderHeadTemperatures;
+
   /// EGT per cylinder, in Kelvin (null = no sensor for that cylinder, empty list = no data).
   final List<double?> exhaustGasTemperatures;
   final bool isGpsDroneCan;
@@ -318,7 +322,9 @@ class TelemetryState {
       case TelemetryField.gpsSatelliteCount:
         return copyWith(gpsSatelliteCount: TelemetryValue(value as int?));
       case TelemetryField.gpsHorizontalAccuracy:
-        return copyWith(gpsHorizontalAccuracy: TelemetryValue(value as double?));
+        return copyWith(
+          gpsHorizontalAccuracy: TelemetryValue(value as double?),
+        );
       case TelemetryField.gpsVerticalAccuracy:
         return copyWith(gpsVerticalAccuracy: TelemetryValue(value as double?));
       case TelemetryField.coolantTemperature:
@@ -364,9 +370,13 @@ class TelemetryState {
       case TelemetryField.radioStandbyFrequency:
         return copyWith(radioStandbyFrequency: TelemetryValue(value as int?));
       case TelemetryField.radioActiveStationName:
-        return copyWith(radioActiveStationName: TelemetryValue(value as String?));
+        return copyWith(
+          radioActiveStationName: TelemetryValue(value as String?),
+        );
       case TelemetryField.radioStandbyStationName:
-        return copyWith(radioStandbyStationName: TelemetryValue(value as String?));
+        return copyWith(
+          radioStandbyStationName: TelemetryValue(value as String?),
+        );
       case TelemetryField.radioFlags:
         return copyWith(radioFlags: TelemetryValue(value as int?));
       case TelemetryField.radioInstance:
@@ -438,19 +448,32 @@ class TelemetryState {
       longitude: longitude != null ? longitude.value : this.longitude,
       heading: heading != null ? heading.value : this.heading,
       groundSpeed: groundSpeed != null ? groundSpeed.value : this.groundSpeed,
-      indicatedAirSpeed: indicatedAirSpeed != null ? indicatedAirSpeed.value : this.indicatedAirSpeed,
+      indicatedAirSpeed: indicatedAirSpeed != null
+          ? indicatedAirSpeed.value
+          : this.indicatedAirSpeed,
       isFlying: isFlying ?? this.isFlying,
       engineRPM: engineRPM != null ? engineRPM.value : this.engineRPM,
       airPressure: airPressure != null ? airPressure.value : this.airPressure,
       gpsAltitude: gpsAltitude != null ? gpsAltitude.value : this.gpsAltitude,
-      gpsSatelliteCount: gpsSatelliteCount != null ? gpsSatelliteCount.value : this.gpsSatelliteCount,
-      gpsHorizontalAccuracy: gpsHorizontalAccuracy != null ? gpsHorizontalAccuracy.value : this.gpsHorizontalAccuracy,
-      gpsVerticalAccuracy: gpsVerticalAccuracy != null ? gpsVerticalAccuracy.value : this.gpsVerticalAccuracy,
-      coolantTemperature: coolantTemperature != null ? coolantTemperature.value : this.coolantTemperature,
+      gpsSatelliteCount: gpsSatelliteCount != null
+          ? gpsSatelliteCount.value
+          : this.gpsSatelliteCount,
+      gpsHorizontalAccuracy: gpsHorizontalAccuracy != null
+          ? gpsHorizontalAccuracy.value
+          : this.gpsHorizontalAccuracy,
+      gpsVerticalAccuracy: gpsVerticalAccuracy != null
+          ? gpsVerticalAccuracy.value
+          : this.gpsVerticalAccuracy,
+      coolantTemperature: coolantTemperature != null
+          ? coolantTemperature.value
+          : this.coolantTemperature,
       oilPressure: oilPressure != null ? oilPressure.value : this.oilPressure,
-      oilTemperature: oilTemperature != null ? oilTemperature.value : this.oilTemperature,
+      oilTemperature: oilTemperature != null
+          ? oilTemperature.value
+          : this.oilTemperature,
       isOilTempSupported: isOilTempSupported ?? this.isOilTempSupported,
-      isOilPressureSupported: isOilPressureSupported ?? this.isOilPressureSupported,
+      isOilPressureSupported:
+          isOilPressureSupported ?? this.isOilPressureSupported,
       isEngineRpmSupported: isEngineRpmSupported ?? this.isEngineRpmSupported,
       cylinderHeadTemperatures: cylinderHeadTemperatures != null
           ? cylinderHeadTemperatures.value
@@ -460,21 +483,41 @@ class TelemetryState {
           : this.exhaustGasTemperatures,
       isGpsDroneCan: isGpsDroneCan ?? this.isGpsDroneCan,
       mapViewState: mapViewState ?? this.mapViewState,
-      fuelLevelPercent: fuelLevelPercent != null ? fuelLevelPercent.value : this.fuelLevelPercent,
-      fuelVolumeLiters: fuelVolumeLiters != null ? fuelVolumeLiters.value : this.fuelVolumeLiters,
+      fuelLevelPercent: fuelLevelPercent != null
+          ? fuelLevelPercent.value
+          : this.fuelLevelPercent,
+      fuelVolumeLiters: fuelVolumeLiters != null
+          ? fuelVolumeLiters.value
+          : this.fuelVolumeLiters,
       isFuelSupported: isFuelSupported ?? this.isFuelSupported,
-      radioActiveFrequency: radioActiveFrequency != null ? radioActiveFrequency.value : this.radioActiveFrequency,
-      radioStandbyFrequency: radioStandbyFrequency != null ? radioStandbyFrequency.value : this.radioStandbyFrequency,
-      radioActiveStationName: radioActiveStationName != null ? radioActiveStationName.value : this.radioActiveStationName,
-      radioStandbyStationName: radioStandbyStationName != null ? radioStandbyStationName.value : this.radioStandbyStationName,
+      radioActiveFrequency: radioActiveFrequency != null
+          ? radioActiveFrequency.value
+          : this.radioActiveFrequency,
+      radioStandbyFrequency: radioStandbyFrequency != null
+          ? radioStandbyFrequency.value
+          : this.radioStandbyFrequency,
+      radioActiveStationName: radioActiveStationName != null
+          ? radioActiveStationName.value
+          : this.radioActiveStationName,
+      radioStandbyStationName: radioStandbyStationName != null
+          ? radioStandbyStationName.value
+          : this.radioStandbyStationName,
       radioFlags: radioFlags != null ? radioFlags.value : this.radioFlags,
-      radioInstance: radioInstance != null ? radioInstance.value : this.radioInstance,
+      radioInstance: radioInstance != null
+          ? radioInstance.value
+          : this.radioInstance,
       radioNodeId: radioNodeId != null ? radioNodeId.value : this.radioNodeId,
       radioVolume: radioVolume != null ? radioVolume.value : this.radioVolume,
-      radioSquelch: radioSquelch != null ? radioSquelch.value : this.radioSquelch,
+      radioSquelch: radioSquelch != null
+          ? radioSquelch.value
+          : this.radioSquelch,
       radioVox: radioVox != null ? radioVox.value : this.radioVox,
-      radioIntercom: radioIntercom != null ? radioIntercom.value : this.radioIntercom,
-      radioMicGain: radioMicGain != null ? radioMicGain.value : this.radioMicGain,
+      radioIntercom: radioIntercom != null
+          ? radioIntercom.value
+          : this.radioIntercom,
+      radioMicGain: radioMicGain != null
+          ? radioMicGain.value
+          : this.radioMicGain,
       isRadioSupported: isRadioSupported ?? this.isRadioSupported,
     );
   }
@@ -505,7 +548,9 @@ class TelemetryState {
           ? null
           : coolantTemperature,
       oilPressure: field == TelemetryField.oilPressure ? null : oilPressure,
-      oilTemperature: field == TelemetryField.oilTemperature ? null : oilTemperature,
+      oilTemperature: field == TelemetryField.oilTemperature
+          ? null
+          : oilTemperature,
       isOilTempSupported: isOilTempSupported,
       isOilPressureSupported: isOilPressureSupported,
       isEngineRpmSupported: isEngineRpmSupported,
@@ -521,20 +566,36 @@ class TelemetryState {
           ? false
           : isGpsDroneCan,
       mapViewState: mapViewState,
-      fuelLevelPercent: field == TelemetryField.fuelLevelPercent ? null : fuelLevelPercent,
-      fuelVolumeLiters: field == TelemetryField.fuelVolumeLiters ? null : fuelVolumeLiters,
+      fuelLevelPercent: field == TelemetryField.fuelLevelPercent
+          ? null
+          : fuelLevelPercent,
+      fuelVolumeLiters: field == TelemetryField.fuelVolumeLiters
+          ? null
+          : fuelVolumeLiters,
       isFuelSupported: isFuelSupported,
-      radioActiveFrequency: field == TelemetryField.radioActiveFrequency ? null : radioActiveFrequency,
-      radioStandbyFrequency: field == TelemetryField.radioStandbyFrequency ? null : radioStandbyFrequency,
-      radioActiveStationName: field == TelemetryField.radioActiveStationName ? null : radioActiveStationName,
-      radioStandbyStationName: field == TelemetryField.radioStandbyStationName ? null : radioStandbyStationName,
+      radioActiveFrequency: field == TelemetryField.radioActiveFrequency
+          ? null
+          : radioActiveFrequency,
+      radioStandbyFrequency: field == TelemetryField.radioStandbyFrequency
+          ? null
+          : radioStandbyFrequency,
+      radioActiveStationName: field == TelemetryField.radioActiveStationName
+          ? null
+          : radioActiveStationName,
+      radioStandbyStationName: field == TelemetryField.radioStandbyStationName
+          ? null
+          : radioStandbyStationName,
       radioFlags: field == TelemetryField.radioFlags ? null : radioFlags,
-      radioInstance: field == TelemetryField.radioInstance ? null : radioInstance,
+      radioInstance: field == TelemetryField.radioInstance
+          ? null
+          : radioInstance,
       radioNodeId: field == TelemetryField.radioNodeId ? null : radioNodeId,
       radioVolume: field == TelemetryField.radioVolume ? null : radioVolume,
       radioSquelch: field == TelemetryField.radioSquelch ? null : radioSquelch,
       radioVox: field == TelemetryField.radioVox ? null : radioVox,
-      radioIntercom: field == TelemetryField.radioIntercom ? null : radioIntercom,
+      radioIntercom: field == TelemetryField.radioIntercom
+          ? null
+          : radioIntercom,
       radioMicGain: field == TelemetryField.radioMicGain ? [] : radioMicGain,
       isRadioSupported: isRadioSupported,
     );

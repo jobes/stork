@@ -253,9 +253,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.grey.shade800
-                        : Colors.grey.shade100,
+                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isDark ? Colors.white24 : Colors.black12,
@@ -274,19 +272,14 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                   child: Icon(
                     Icons.help_outline,
                     size: 20,
-                    color: isDark
-                        ? Colors.blue.shade300
-                        : Colors.blue.shade700,
+                    color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.white.withAlpha(15)
@@ -394,9 +387,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                                     _isEditing = hasFocus;
                                   });
                                   if (!hasFocus) {
-                                    _validateAndSubmitQnh(
-                                      _qnhController.text,
-                                    );
+                                    _validateAndSubmitQnh(_qnhController.text);
                                   }
                                 },
                                 child: TextField(
@@ -415,9 +406,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'monospace',
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black,
+                                    color: isDark ? Colors.white : Colors.black,
                                   ),
                                   decoration: InputDecoration(
                                     suffixText: 'hPa',
@@ -428,20 +417,15 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                                           : Colors.black54,
                                     ),
                                     errorText: _errorMessage,
-                                    contentPadding:
-                                        const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 12,
-                                        ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 12,
+                                    ),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        12,
-                                      ),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        12,
-                                      ),
+                                      borderRadius: BorderRadius.circular(12),
                                       borderSide: const BorderSide(
                                         color: Colors.blueAccent,
                                         width: 2,

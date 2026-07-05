@@ -341,7 +341,7 @@ void main() {
         mockByteData.setUint8(1, 144);
         mockByteData.setUint8(2, 0);
         mockByteData.setUint8(3, 255);
-        
+
         service.setMockCache(2048, 2048, mockByteData);
 
         // Set initial coordinates
@@ -384,7 +384,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
         agl = container.read(aglProvider);
         expect(agl.terrainElevation, equals(8848.0));
-        
+
         service.clearCache();
 
         // 3. Move a larger distance (> 200m).
@@ -392,7 +392,7 @@ void main() {
         container
             .read(telemetryProvider.notifier)
             .updateGPS(latitude: 0.005, longitude: 0.0, gpsAltitude: 10000.0);
-        
+
         // It should immediately invalidate because it's too far!
         agl = container.read(aglProvider);
         expect(agl.terrainElevation, isNull); // Invalidated due to distance!

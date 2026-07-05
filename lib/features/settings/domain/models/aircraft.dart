@@ -12,5 +12,6 @@ abstract class Aircraft with _$Aircraft {
     @Default(0) int initialFlights,
   }) = _Aircraft;
 
-  factory Aircraft.fromJson(Map<String, dynamic> json) => _$AircraftFromJson(json);
+  factory Aircraft.fromJson(Map<String, dynamic> json) =>
+      _$AircraftFromJson(json);
 }

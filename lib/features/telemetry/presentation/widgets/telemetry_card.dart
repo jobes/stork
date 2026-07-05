@@ -37,14 +37,21 @@ class TelemetryCard extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final areWidgetsDraggable = settings?.areWidgetsDraggable ?? false;
 
-    final isError = state == ThresholdState.minError || state == ThresholdState.maxError;
-    final isWarning = state == ThresholdState.minWarning || state == ThresholdState.maxWarning;
+    final isError =
+        state == ThresholdState.minError || state == ThresholdState.maxError;
+    final isWarning =
+        state == ThresholdState.minWarning ||
+        state == ThresholdState.maxWarning;
 
     final Color defaultBorderColor;
     if (isError) {
-      defaultBorderColor = isDark ? Colors.redAccent.shade400 : Colors.red.shade700;
+      defaultBorderColor = isDark
+          ? Colors.redAccent.shade400
+          : Colors.red.shade700;
     } else if (isWarning) {
-      defaultBorderColor = isDark ? Colors.orangeAccent : Colors.orange.shade700;
+      defaultBorderColor = isDark
+          ? Colors.orangeAccent
+          : Colors.orange.shade700;
     } else {
       defaultBorderColor = isDark
           ? Colors.white.withAlpha(76)
@@ -59,20 +66,12 @@ class TelemetryCard extends ConsumerWidget {
     if (isError) {
       final color = isDark ? Colors.redAccent.shade400 : Colors.red.shade600;
       defaultBoxShadow = [
-        BoxShadow(
-          color: color.withAlpha(180),
-          blurRadius: 24,
-          spreadRadius: 6,
-        ),
+        BoxShadow(color: color.withAlpha(180), blurRadius: 24, spreadRadius: 6),
       ];
     } else if (isWarning) {
       final color = isDark ? Colors.amber : Colors.orange.shade800;
       defaultBoxShadow = [
-        BoxShadow(
-          color: color.withAlpha(100),
-          blurRadius: 16,
-          spreadRadius: 3,
-        ),
+        BoxShadow(color: color.withAlpha(100), blurRadius: 16, spreadRadius: 3),
       ];
     } else {
       defaultBoxShadow = [
@@ -91,10 +90,7 @@ class TelemetryCard extends ConsumerWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: isDark
-            ? [
-                Colors.red.shade800.withAlpha(180),
-                Colors.black.withAlpha(240),
-              ]
+            ? [Colors.red.shade800.withAlpha(180), Colors.black.withAlpha(240)]
             : [
                 Colors.red.shade100.withAlpha(240),
                 Colors.red.shade50.withAlpha(200),
@@ -119,10 +115,7 @@ class TelemetryCard extends ConsumerWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: isDark
-            ? [
-                Colors.black.withAlpha(210),
-                Colors.grey.shade900.withAlpha(235),
-              ]
+            ? [Colors.black.withAlpha(210), Colors.grey.shade900.withAlpha(235)]
             : [
                 Colors.white.withAlpha(235),
                 Colors.grey.shade100.withAlpha(210),
@@ -131,7 +124,9 @@ class TelemetryCard extends ConsumerWidget {
     }
 
     final widgetContent = AnimatedContainer(
-      duration: disableAnimations ? Duration.zero : const Duration(milliseconds: 300),
+      duration: disableAnimations
+          ? Duration.zero
+          : const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       padding: padding,
       decoration: BoxDecoration(

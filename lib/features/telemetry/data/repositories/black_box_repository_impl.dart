@@ -44,16 +44,15 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
     String? airplaneId,
     bool? pilotAnonymous,
     bool? airplaneAnonymous,
-  }) =>
-      _database.getFlightsPaginated(
-        limit,
-        lastStartTime: lastStartTime,
-        lastUuid: lastUuid,
-        pilotId: pilotId,
-        airplaneId: airplaneId,
-        pilotAnonymous: pilotAnonymous,
-        airplaneAnonymous: airplaneAnonymous,
-      );
+  }) => _database.getFlightsPaginated(
+    limit,
+    lastStartTime: lastStartTime,
+    lastUuid: lastUuid,
+    pilotId: pilotId,
+    airplaneId: airplaneId,
+    pilotAnonymous: pilotAnonymous,
+    airplaneAnonymous: airplaneAnonymous,
+  );
 
   @override
   Future<int> getFlightsCount({
@@ -61,13 +60,12 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
     String? airplaneId,
     bool? pilotAnonymous,
     bool? airplaneAnonymous,
-  }) =>
-      _database.getFlightsCount(
-        pilotId: pilotId,
-        airplaneId: airplaneId,
-        pilotAnonymous: pilotAnonymous,
-        airplaneAnonymous: airplaneAnonymous,
-      );
+  }) => _database.getFlightsCount(
+    pilotId: pilotId,
+    airplaneId: airplaneId,
+    pilotAnonymous: pilotAnonymous,
+    airplaneAnonymous: airplaneAnonymous,
+  );
 
   @override
   Future<void> updateFlightDetails({
@@ -104,17 +102,31 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
   }
 
   @override
-  Future<TimeBasedStats> getPilotTimeStats(String pilotId, {double initialHours = 0.0, int initialFlights = 0}) =>
-      _database.getPilotTimeStats(pilotId, initialHours: initialHours, initialFlights: initialFlights);
+  Future<TimeBasedStats> getPilotTimeStats(
+    String pilotId, {
+    double initialHours = 0.0,
+    int initialFlights = 0,
+  }) => _database.getPilotTimeStats(
+    pilotId,
+    initialHours: initialHours,
+    initialFlights: initialFlights,
+  );
 
   @override
-  Future<TimeBasedStats> getAircraftTimeStats(String airplaneId, {double initialHours = 0.0, int initialFlights = 0}) =>
-      _database.getAircraftTimeStats(airplaneId, initialHours: initialHours, initialFlights: initialFlights);
+  Future<TimeBasedStats> getAircraftTimeStats(
+    String airplaneId, {
+    double initialHours = 0.0,
+    int initialFlights = 0,
+  }) => _database.getAircraftTimeStats(
+    airplaneId,
+    initialHours: initialHours,
+    initialFlights: initialFlights,
+  );
 
   @override
   Future<List<String>> getUniquePilotIds() => _database.getUniquePilotIds();
 
   @override
-  Future<List<String>> getUniqueAirplaneIds() => _database.getUniqueAirplaneIds();
-
+  Future<List<String>> getUniqueAirplaneIds() =>
+      _database.getUniqueAirplaneIds();
 }

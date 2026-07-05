@@ -57,11 +57,18 @@ Future<double> aircraftHours(Ref ref, String airplaneId) async {
 
   final repository = ref.watch(blackBoxRepositoryProvider);
   final aircrafts = await ref.watch(aircraftStateProvider.future);
-  final aircraft = aircrafts.cast<Aircraft?>().firstWhere((a) => a?.id == airplaneId, orElse: () => null);
+  final aircraft = aircrafts.cast<Aircraft?>().firstWhere(
+    (a) => a?.id == airplaneId,
+    orElse: () => null,
+  );
   final initialHours = aircraft?.initialFlightHours ?? 0.0;
   final initialFlights = aircraft?.initialFlights ?? 0;
 
-  final stats = await repository.getAircraftTimeStats(airplaneId, initialHours: initialHours, initialFlights: initialFlights);
+  final stats = await repository.getAircraftTimeStats(
+    airplaneId,
+    initialHours: initialHours,
+    initialFlights: initialFlights,
+  );
   return stats.totalHours;
 }
 
@@ -73,7 +80,10 @@ Future<TimeBasedStats> aircraftStats(Ref ref, String airplaneId) async {
 
   final repository = ref.watch(blackBoxRepositoryProvider);
   final aircrafts = await ref.watch(aircraftStateProvider.future);
-  final aircraft = aircrafts.cast<Aircraft?>().firstWhere((a) => a?.id == airplaneId, orElse: () => null);
+  final aircraft = aircrafts.cast<Aircraft?>().firstWhere(
+    (a) => a?.id == airplaneId,
+    orElse: () => null,
+  );
   final initialHours = aircraft?.initialFlightHours ?? 0.0;
   final initialFlights = aircraft?.initialFlights ?? 0;
 

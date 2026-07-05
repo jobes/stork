@@ -394,7 +394,11 @@ class CannelloniService extends _$CannelloniService {
     final timeoutTimer = Timer(timeout, () {
       _pendingRequests.remove(key);
       if (!completer.isCompleted) {
-        completer.completeError(TimeoutException('DroneCAN request timed out after ${timeout.inMilliseconds}ms'));
+        completer.completeError(
+          TimeoutException(
+            'DroneCAN request timed out after ${timeout.inMilliseconds}ms',
+          ),
+        );
       }
     });
 
@@ -516,13 +520,16 @@ class CannelloniService extends _$CannelloniService {
   }
 
   void _updateTelemetryStorkEngineRpm(StorkEngineRpm msg) {
-    ref
-        .read(telemetryProvider.notifier)
-        .updateEngineRPM(msg.engineSpeedRpm);
+    ref.read(telemetryProvider.notifier).updateEngineRPM(msg.engineSpeedRpm);
   }
 
-  void _updateTelemetryVhfRadioFullStatus(VhfRadioFullStatus msg, int sourceNodeId) {
-    ref.read(telemetryProvider.notifier).updateVhfRadioFull(
+  void _updateTelemetryVhfRadioFullStatus(
+    VhfRadioFullStatus msg,
+    int sourceNodeId,
+  ) {
+    ref
+        .read(telemetryProvider.notifier)
+        .updateVhfRadioFull(
           radioInstance: msg.radioInstance,
           activeFrequencyKhz: msg.activeFrequencyKhz,
           standbyFrequencyKhz: msg.standbyFrequencyKhz,
@@ -538,8 +545,13 @@ class CannelloniService extends _$CannelloniService {
         );
   }
 
-  void _updateTelemetryVhfRadioFastStatus(VhfRadioFastStatus msg, int sourceNodeId) {
-    ref.read(telemetryProvider.notifier).updateVhfRadioFast(
+  void _updateTelemetryVhfRadioFastStatus(
+    VhfRadioFastStatus msg,
+    int sourceNodeId,
+  ) {
+    ref
+        .read(telemetryProvider.notifier)
+        .updateVhfRadioFast(
           radioInstance: msg.radioInstance,
           flags: msg.flags,
           nodeId: sourceNodeId,
@@ -646,10 +658,16 @@ void _storkCanardTransferCallback(
       _activeInstance!._updateTelemetryStorkEngineRpm(rpmMsg);
     } else if (dataTypeId == VhfRadioFullStatus.messageId) {
       final radioFullMsg = VhfRadioFullStatus.fromPayload(payloadBytes);
-      _activeInstance!._updateTelemetryVhfRadioFullStatus(radioFullMsg, sourceNodeId);
+      _activeInstance!._updateTelemetryVhfRadioFullStatus(
+        radioFullMsg,
+        sourceNodeId,
+      );
     } else if (dataTypeId == VhfRadioFastStatus.messageId) {
       final radioFastMsg = VhfRadioFastStatus.fromPayload(payloadBytes);
-      _activeInstance!._updateTelemetryVhfRadioFastStatus(radioFastMsg, sourceNodeId);
+      _activeInstance!._updateTelemetryVhfRadioFastStatus(
+        radioFastMsg,
+        sourceNodeId,
+      );
     }
   } catch (e) {
     debugPrint('Error in native transfer callback: $e');

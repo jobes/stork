@@ -13,4 +13,3 @@ export 'dronecan/bit_reader.dart';
 export 'dronecan/vhf_radio_full_status.dart';
 export 'dronecan/vhf_radio_fast_status.dart';
 export 'dronecan/vhf_radio_control.dart';
-

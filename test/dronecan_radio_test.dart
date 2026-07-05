@@ -52,28 +52,34 @@ void main() {
         final bytesCount = (bitCount + 7) ~/ 8;
         final rem = bitCount % 8;
         for (int byteIdx = 0; byteIdx < bytesCount; byteIdx++) {
-          final bitsInThisByte = (byteIdx == bytesCount - 1) && (rem != 0) ? rem : 8;
+          final bitsInThisByte = (byteIdx == bytesCount - 1) && (rem != 0)
+              ? rem
+              : 8;
           final startBitOfByte = byteIdx * 8;
-          for (int bitInByteIdx = bitsInThisByte - 1; bitInByteIdx >= 0; bitInByteIdx--) {
+          for (
+            int bitInByteIdx = bitsInThisByte - 1;
+            bitInByteIdx >= 0;
+            bitInByteIdx--
+          ) {
             final bitPos = startBitOfByte + bitInByteIdx;
             bits.add((value >> bitPos) & 1);
           }
         }
       }
 
-      addUavcanBits(2, 2);      // radio_instance = 2
+      addUavcanBits(2, 2); // radio_instance = 2
       addUavcanBits(118500, 18); // active_frequency_khz = 118.5 MHz
       addUavcanBits(121900, 18); // standby_frequency_khz = 121.9 MHz
-      addUavcanBits(12, 8);      // flags = 12 (flagDualActive | flagGeneralError)
-      addUavcanBits(80, 7);      // volume = 80
-      addUavcanBits(50, 7);      // squelch = 50
-      addUavcanBits(0, 7);       // vox = 0
-      addUavcanBits(30, 7);      // intercom = 30
+      addUavcanBits(12, 8); // flags = 12 (flagDualActive | flagGeneralError)
+      addUavcanBits(80, 7); // volume = 80
+      addUavcanBits(50, 7); // squelch = 50
+      addUavcanBits(0, 7); // vox = 0
+      addUavcanBits(30, 7); // intercom = 30
 
       // mic_gain: uint7[<=8]
-      addUavcanBits(2, 4);       // len = 2
-      addUavcanBits(90, 7);      // element 0 = 90
-      addUavcanBits(85, 7);      // element 1 = 85
+      addUavcanBits(2, 4); // len = 2
+      addUavcanBits(90, 7); // element 0 = 90
+      addUavcanBits(85, 7); // element 1 = 85
 
       // active_station_name: uint8[<=20]
       final activeName = "KOSH TWR";
@@ -143,7 +149,10 @@ void main() {
       final decodedName = String.fromCharCodes(decodedNameBytes);
 
       expect(decodedRadioInstance, equals(1));
-      expect(decodedAction, equals(VhfRadioControlRequest.actionSetStandbyFreq));
+      expect(
+        decodedAction,
+        equals(VhfRadioControlRequest.actionSetStandbyFreq),
+      );
       expect(decodedLevel, equals(0));
       expect(decodedIndex, equals(0));
       expect(decodedFreq, equals(121500));

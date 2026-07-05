@@ -49,15 +49,17 @@ class MapCamera extends _$MapCamera {
 
     // Listen to telemetry updates to move camera
     ref.listen(
-      telemetryProvider.select((s) => (
-        latitude: s.latitude,
-        longitude: s.longitude,
-        heading: s.heading,
-        groundSpeed: s.groundSpeed,
-        indicatedAirSpeed: s.indicatedAirSpeed,
-        isFlying: s.isFlying,
-        mapViewState: s.mapViewState,
-      )),
+      telemetryProvider.select(
+        (s) => (
+          latitude: s.latitude,
+          longitude: s.longitude,
+          heading: s.heading,
+          groundSpeed: s.groundSpeed,
+          indicatedAirSpeed: s.indicatedAirSpeed,
+          isFlying: s.isFlying,
+          mapViewState: s.mapViewState,
+        ),
+      ),
       (previous, next) {
         if (_mapController == null) return;
 
@@ -115,12 +117,13 @@ class MapCamera extends _$MapCamera {
               !_isTransitionAnimating) {
             final isContinuousFollow =
                 previous?.mapViewState == MapViewState.follow;
-            
+
             // Only interpolate if coordinates or heading actually changed
-            final coordsChanged = previous?.latitude != next.latitude ||
+            final coordsChanged =
+                previous?.latitude != next.latitude ||
                 previous?.longitude != next.longitude ||
                 previous?.heading != next.heading;
-                
+
             if (isContinuousFollow && !coordsChanged) {
               return;
             }
@@ -178,7 +181,8 @@ class MapCamera extends _$MapCamera {
                   zoom: settings?.mapOverviewZoom ?? 10.0,
                   pitch: 0,
                   bearing: 0,
-                  animate: kIsWeb && previous?.mapViewState != MapViewState.follow
+                  animate:
+                      kIsWeb && previous?.mapViewState != MapViewState.follow
                       ? false
                       : !coordsBecameValid,
                 ),

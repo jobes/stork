@@ -24,7 +24,9 @@ class FavoriteFrequencies extends _$FavoriteFrequencies {
       return defaults;
     }
 
-    return listJson.map((s) => FavoriteFrequency.fromJson(json.decode(s))).toList();
+    return listJson
+        .map((s) => FavoriteFrequency.fromJson(json.decode(s)))
+        .toList();
   }
 
   Future<void> addFavorite(double mhz, String name) async {

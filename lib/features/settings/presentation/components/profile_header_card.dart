@@ -36,7 +36,8 @@ class ProfileHeaderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final isLocked = activePilot != null &&
+    final isLocked =
+        activePilot != null &&
         activePilot!.pin != null &&
         activePilot!.pin!.isNotEmpty &&
         unlockedPilotId != activePilot!.id;
@@ -92,7 +93,8 @@ class ProfileHeaderCard extends ConsumerWidget {
                                 Text(
                                   l10n.pilotUppercase,
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.7),
+                                    color: theme.colorScheme.onPrimary
+                                        .withValues(alpha: 0.7),
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 1.2,
                                   ),
@@ -108,7 +110,11 @@ class ProfileHeaderCard extends ConsumerWidget {
                                     padding: EdgeInsets.zero,
                                     onPressed: () async {
                                       if (isLocked) {
-                                        final success = await promptForPin(context, activePilot!, l10n.accessSettingsTitle);
+                                        final success = await promptForPin(
+                                          context,
+                                          activePilot!,
+                                          l10n.accessSettingsTitle,
+                                        );
                                         if (success) {
                                           onPilotUnlocked(activePilot!.id);
                                           if (context.mounted) {
@@ -116,7 +122,12 @@ class ProfileHeaderCard extends ConsumerWidget {
                                               context,
                                               ref,
                                               activePilot!,
-                                              onDelete: () => requestDeletePilot(context, ref, activePilot!),
+                                              onDelete: () =>
+                                                  requestDeletePilot(
+                                                    context,
+                                                    ref,
+                                                    activePilot!,
+                                                  ),
                                             );
                                           }
                                         }
@@ -125,7 +136,11 @@ class ProfileHeaderCard extends ConsumerWidget {
                                           context,
                                           ref,
                                           activePilot!,
-                                          onDelete: () => requestDeletePilot(context, ref, activePilot!),
+                                          onDelete: () => requestDeletePilot(
+                                            context,
+                                            ref,
+                                            activePilot!,
+                                          ),
                                         );
                                       }
                                     },
@@ -150,16 +165,23 @@ class ProfileHeaderCard extends ConsumerWidget {
                                 const SizedBox(width: 4),
                                 Icon(
                                   Icons.keyboard_arrow_down_rounded,
-                                  color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
+                                  color: theme.colorScheme.onPrimary.withValues(
+                                    alpha: 0.8,
+                                  ),
                                   size: 20,
                                 ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.onPrimary.withValues(alpha: 0.15),
+                                color: theme.colorScheme.onPrimary.withValues(
+                                  alpha: 0.15,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -190,7 +212,12 @@ class ProfileHeaderCard extends ConsumerWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () => showSwitchAircraftBottomSheet(context, ref, settings, aircraftsAsync),
+                      onTap: () => showSwitchAircraftBottomSheet(
+                        context,
+                        ref,
+                        settings,
+                        aircraftsAsync,
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
                         child: Column(
@@ -202,7 +229,8 @@ class ProfileHeaderCard extends ConsumerWidget {
                                 Text(
                                   l10n.aircraftUppercase,
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.7),
+                                    color: theme.colorScheme.onPrimary
+                                        .withValues(alpha: 0.7),
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 1.2,
                                   ),
@@ -217,7 +245,11 @@ class ProfileHeaderCard extends ConsumerWidget {
                                     constraints: const BoxConstraints(),
                                     padding: EdgeInsets.zero,
                                     onPressed: () {
-                                      showAircraftSettingsDialog(context, ref, activeAircraft!);
+                                      showAircraftSettingsDialog(
+                                        context,
+                                        ref,
+                                        activeAircraft!,
+                                      );
                                     },
                                   ),
                               ],
@@ -240,7 +272,9 @@ class ProfileHeaderCard extends ConsumerWidget {
                                 const SizedBox(width: 4),
                                 Icon(
                                   Icons.keyboard_arrow_down_rounded,
-                                  color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
+                                  color: theme.colorScheme.onPrimary.withValues(
+                                    alpha: 0.8,
+                                  ),
                                   size: 20,
                                 ),
                               ],
@@ -249,13 +283,18 @@ class ProfileHeaderCard extends ConsumerWidget {
                             Text(
                               aircraftHoursAsync != null
                                   ? aircraftHoursAsync!.when(
-                                      data: (hrs) => l10n.hoursFlown(_formatHours(l10n, hrs)),
+                                      data: (hrs) => l10n.hoursFlown(
+                                        _formatHours(l10n, hrs),
+                                      ),
                                       loading: () => l10n.hoursFlown('...'),
-                                      error: (err, stack) => l10n.hoursFlown('--'),
+                                      error: (err, stack) =>
+                                          l10n.hoursFlown('--'),
                                     )
                                   : l10n.hoursFlown(_formatHours(l10n, 0.0)),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onPrimary.withValues(alpha: 0.85),
+                                color: theme.colorScheme.onPrimary.withValues(
+                                  alpha: 0.85,
+                                ),
                               ),
                             ),
                           ],

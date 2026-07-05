@@ -33,11 +33,7 @@ void main() {
         'activity': 1,
         'byNotam': true,
         'frequencies': [
-          {
-            '_id': 'freq_1',
-            'value': '118.305',
-            'primary': true,
-          }
+          {'_id': 'freq_1', 'value': '118.305', 'primary': true},
         ],
       };
 

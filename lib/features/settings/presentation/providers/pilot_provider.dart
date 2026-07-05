@@ -55,7 +55,10 @@ class PilotState extends _$PilotState {
 Future<TimeBasedStats> pilotStats(Ref ref, String pilotId) async {
   final repository = ref.watch(blackBoxRepositoryProvider);
   final pilots = await ref.watch(pilotStateProvider.future);
-  final pilot = pilots.cast<Pilot?>().firstWhere((p) => p?.id == pilotId, orElse: () => null);
+  final pilot = pilots.cast<Pilot?>().firstWhere(
+    (p) => p?.id == pilotId,
+    orElse: () => null,
+  );
   if (pilot == null) {
     return TimeBasedStats.empty();
   }
@@ -65,4 +68,3 @@ Future<TimeBasedStats> pilotStats(Ref ref, String pilotId) async {
     initialFlights: pilot.initialFlights,
   );
 }
-

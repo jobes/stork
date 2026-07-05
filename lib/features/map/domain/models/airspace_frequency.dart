@@ -3,11 +3,7 @@ class AirspaceFrequency {
   final String value;
   final bool? primary;
 
-  AirspaceFrequency({
-    required this.id,
-    required this.value,
-    this.primary,
-  });
+  AirspaceFrequency({required this.id, required this.value, this.primary});
 
   factory AirspaceFrequency.fromJson(Map<String, Object?> json) {
     return AirspaceFrequency(
@@ -18,10 +14,6 @@ class AirspaceFrequency {
   }
 
   Map<String, Object?> toJson() {
-    return {
-      '_id': id,
-      'value': value,
-      if (primary != null) 'primary': primary,
-    };
+    return {'_id': id, 'value': value, if (primary != null) 'primary': primary};
   }
 }

@@ -36,8 +36,12 @@ class FlightRecordsState {
       totalCount: totalCount ?? this.totalCount,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMore: hasMore ?? this.hasMore,
-      filterPilotId: filterPilotId != null ? filterPilotId() : this.filterPilotId,
-      filterAirplaneId: filterAirplaneId != null ? filterAirplaneId() : this.filterAirplaneId,
+      filterPilotId: filterPilotId != null
+          ? filterPilotId()
+          : this.filterPilotId,
+      filterAirplaneId: filterAirplaneId != null
+          ? filterAirplaneId()
+          : this.filterAirplaneId,
     );
   }
 }
@@ -86,12 +90,26 @@ class FlightRecords extends _$FlightRecords {
 
     try {
       final repo = ref.read(blackBoxRepositoryProvider);
-      final lastFlight = currentState.flights.isNotEmpty ? currentState.flights.last : null;
+      final lastFlight = currentState.flights.isNotEmpty
+          ? currentState.flights.last
+          : null;
 
-      final pilotAnonymous = currentState.filterPilotId == 'anonymous' ? true : null;
-      final pilotId = (currentState.filterPilotId != null && currentState.filterPilotId != 'anonymous') ? currentState.filterPilotId : null;
-      final airplaneAnonymous = currentState.filterAirplaneId == 'anonymous' ? true : null;
-      final airplaneId = (currentState.filterAirplaneId != null && currentState.filterAirplaneId != 'anonymous') ? currentState.filterAirplaneId : null;
+      final pilotAnonymous = currentState.filterPilotId == 'anonymous'
+          ? true
+          : null;
+      final pilotId =
+          (currentState.filterPilotId != null &&
+              currentState.filterPilotId != 'anonymous')
+          ? currentState.filterPilotId
+          : null;
+      final airplaneAnonymous = currentState.filterAirplaneId == 'anonymous'
+          ? true
+          : null;
+      final airplaneId =
+          (currentState.filterAirplaneId != null &&
+              currentState.filterAirplaneId != 'anonymous')
+          ? currentState.filterAirplaneId
+          : null;
 
       final nextFlights = await repo.getFlightsPaginated(
         _pageSize,
@@ -130,9 +148,14 @@ class FlightRecords extends _$FlightRecords {
       final repo = ref.read(blackBoxRepositoryProvider);
 
       final pilotAnonymous = filterPilotId == 'anonymous' ? true : null;
-      final pilotId = (filterPilotId != null && filterPilotId != 'anonymous') ? filterPilotId : null;
+      final pilotId = (filterPilotId != null && filterPilotId != 'anonymous')
+          ? filterPilotId
+          : null;
       final airplaneAnonymous = filterAirplaneId == 'anonymous' ? true : null;
-      final airplaneId = (filterAirplaneId != null && filterAirplaneId != 'anonymous') ? filterAirplaneId : null;
+      final airplaneId =
+          (filterAirplaneId != null && filterAirplaneId != 'anonymous')
+          ? filterAirplaneId
+          : null;
 
       final count = await repo.getFlightsCount(
         pilotId: pilotId,
@@ -151,14 +174,16 @@ class FlightRecords extends _$FlightRecords {
       );
       if (!ref.mounted) return;
 
-      state = AsyncData(FlightRecordsState(
-        flights: flights,
-        totalCount: count,
-        isLoadingMore: false,
-        hasMore: flights.length < count,
-        filterPilotId: filterPilotId,
-        filterAirplaneId: filterAirplaneId,
-      ));
+      state = AsyncData(
+        FlightRecordsState(
+          flights: flights,
+          totalCount: count,
+          isLoadingMore: false,
+          hasMore: flights.length < count,
+          filterPilotId: filterPilotId,
+          filterAirplaneId: filterAirplaneId,
+        ),
+      );
     } catch (e, st) {
       if (!ref.mounted) return;
       state = AsyncError(e, st);

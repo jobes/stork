@@ -35,32 +35,38 @@ void main() {
     test('calculates distance to segment correctly', () {
       // SF to LA segment approx
       final distance = GeoUtils.distanceToSegment(
-        37.7749, -122.4194, // SF
-        37.7749, -122.4194, // SF
-        34.0522, -118.2437, // LA
+        37.7749,
+        -122.4194, // SF
+        37.7749,
+        -122.4194, // SF
+        34.0522,
+        -118.2437, // LA
       );
       expect(distance, closeTo(0.0, 0.001));
     });
 
-    test('calculates distance to polygons (inside is 0, outside is positive)', () {
-      final polygons = [
-        [
+    test(
+      'calculates distance to polygons (inside is 0, outside is positive)',
+      () {
+        final polygons = [
           [
-            [0.0, 0.0],
-            [10.0, 0.0],
-            [10.0, 10.0],
-            [0.0, 10.0],
-            [0.0, 0.0],
-          ]
-        ]
-      ];
-      // Point inside polygon
-      final insideDist = GeoUtils.distanceToPolygons(5.0, 5.0, polygons);
-      expect(insideDist, 0.0);
+            [
+              [0.0, 0.0],
+              [10.0, 0.0],
+              [10.0, 10.0],
+              [0.0, 10.0],
+              [0.0, 0.0],
+            ],
+          ],
+        ];
+        // Point inside polygon
+        final insideDist = GeoUtils.distanceToPolygons(5.0, 5.0, polygons);
+        expect(insideDist, 0.0);
 
-      // Point outside polygon
-      final outsideDist = GeoUtils.distanceToPolygons(11.0, 5.0, polygons);
-      expect(outsideDist, greaterThan(0.0));
-    });
+        // Point outside polygon
+        final outsideDist = GeoUtils.distanceToPolygons(11.0, 5.0, polygons);
+        expect(outsideDist, greaterThan(0.0));
+      },
+    );
   });
 }

@@ -56,7 +56,9 @@ class _CompassBarState extends ConsumerState<CompassBar> {
         ? Colors.black.withAlpha(100)
         : Colors.white.withAlpha(100);
 
-    if (_lastFontScale != fontScale || _lastColor != color || _lastShadowColor != shadowColor) {
+    if (_lastFontScale != fontScale ||
+        _lastColor != color ||
+        _lastShadowColor != shadowColor) {
       _painterCache.clear();
       _lastFontScale = fontScale;
       _lastColor = color;
@@ -153,8 +155,7 @@ class _CompassBarState extends ConsumerState<CompassBar> {
                         : '---°',
                     style: TextStyle(
                       color: colorScheme.onSurface,
-                      fontSize:
-                          _CompassLayout.headingFontSizeBase * fontScale,
+                      fontSize: _CompassLayout.headingFontSizeBase * fontScale,
                       fontFamily: 'Roboto Mono',
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2 * fontScale,
@@ -233,25 +234,31 @@ class CompassPainter extends CustomPainter {
             markerHeight -
             (_CompassLayout.labelOffsetBase * fontScale);
 
-        final (shadowPainter, foregroundPainter) = painterCache.putIfAbsent(label, () {
-          final baseStyle = TextStyle(
-            color: color,
-            fontSize: _CompassLayout.labelFontSizeBase * fontScale,
-            fontWeight: normalizedDegree % 90 == 0
-                ? FontWeight.bold
-                : FontWeight.normal,
-            fontFamily: 'Roboto',
-          );
-          final sp = TextPainter(
-            text: TextSpan(text: label, style: baseStyle.copyWith(color: shadowColor)),
-            textDirection: TextDirection.ltr,
-          )..layout();
-          final fp = TextPainter(
-            text: TextSpan(text: label, style: baseStyle),
-            textDirection: TextDirection.ltr,
-          )..layout();
-          return (sp, fp);
-        });
+        final (shadowPainter, foregroundPainter) = painterCache.putIfAbsent(
+          label,
+          () {
+            final baseStyle = TextStyle(
+              color: color,
+              fontSize: _CompassLayout.labelFontSizeBase * fontScale,
+              fontWeight: normalizedDegree % 90 == 0
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+              fontFamily: 'Roboto',
+            );
+            final sp = TextPainter(
+              text: TextSpan(
+                text: label,
+                style: baseStyle.copyWith(color: shadowColor),
+              ),
+              textDirection: TextDirection.ltr,
+            )..layout();
+            final fp = TextPainter(
+              text: TextSpan(text: label, style: baseStyle),
+              textDirection: TextDirection.ltr,
+            )..layout();
+            return (sp, fp);
+          },
+        );
 
         final double shadowOffset = 1.2 * fontScale;
         final double textX = x - foregroundPainter.width / 2;

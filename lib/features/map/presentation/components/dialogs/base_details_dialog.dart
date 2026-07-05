@@ -116,11 +116,7 @@ class BaseDetailsDialog extends StatelessWidget {
                       ],
                     ),
                     const Divider(height: 24),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: child,
-                      ),
-                    ),
+                    Flexible(child: SingleChildScrollView(child: child)),
                   ],
                 ),
               ),
