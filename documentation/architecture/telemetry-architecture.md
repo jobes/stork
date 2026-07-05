@@ -92,6 +92,31 @@ During startup, `CannelloniService` loads the native library and performs three 
 | **`IceStatus`** | `1120` | `0xD38AA3EE75537EC6` | Decodes engine status, including oil temp/pressure, coolant temp, fuel rates, CHTs, and EGTs. |
 | **`FuelTankStatus`** | `1129` | `0x286B4A387BA84BC4` | Decodes fuel tank levels, volumes, consumption rates, and temperatures. |
 | **`StorkEngineRpm`** | `20120` | `0xD8CD8D1076CA4884` | Decodes custom engine speed (RPM), load, throttle position, and ECU index. |
+| **`VhfRadioFastStatus`** | `20122` | `0x5C070F2D19DBC8F1` | Fast VHF radio status — TX/RX/DUAL/Error flag bits. |
+| **`VhfRadioFullStatus`** | `20123` | `0x77FF345C05600F4F` | Full VHF radio status — active/standby frequencies (kHz), station names, volume, squelch, VOX, intercom, microphone gains. |
+| **`VhfRadioControl` (Request/Response)** | `221` | `0xB15B04E1F5473B6C` | DroneCAN service for controlling VHF radio — set frequencies, flip active/standby, adjust volume/squelch/VOX/intercom/mic gain, toggle dual watch, PTT. |
+
+### 5.1. Cannelloni Service Request/Response Pattern
+
+The Cannelloni service supports bidirectional DroneCAN service calls (request/response) in addition to one-way message publishing. This is used by the VHF radio control feature.
+
+The `sendRequest` method in [CannelloniService](../../lib/core/services/cannelloni_service_io.dart) tracks pending requests with:
+
+- **A `Completer<Uint8List>`**: Resolves when the matching response frame arrives from the DroneCAN node.
+- **A `Transfer ID`**: Uniquely identifies the request to match the response.
+- **A `Timeout Timer`** (default 1 second): If the node does not respond within the timeout window, the completer completes with a `TimeoutException`.
+
+```dart
+// Example: Sending a DroneCAN service request
+final response = await cannelloni.sendRequest(
+  destinationNodeId: nodeId,
+  dataTypeId: VhfRadioControlRequest.messageId,
+  dataTypeSignature: VhfRadioControlRequest.messageSignature,
+  payload: request.toPayload(),
+);
+```
+
+Pending requests are tracked in a `Map<String, PendingRequest>` keyed by `"$destinationNodeId-$dataTypeId-$transferId"` and are cleaned up on success, timeout, or native error.
 
 ---
 
@@ -147,3 +172,15 @@ late final DecayableField<double> _heading = DecayableField<double>(
 | **`fuelLevelPercent`** | `1.5 seconds` | Fuel level status decay. |
 | **`fuelVolumeLiters`** | `1.5 seconds` | Fuel volume status decay. |
 | **`airPressure`** | `1 second` | Essential sensor input. |
+| **`radioActiveFrequency`** | `30 seconds` | VHF radio active frequency (kHz). Long timeout since frequencies change infrequently. |
+| **`radioStandbyFrequency`** | `30 seconds` | VHF radio standby frequency (kHz). |
+| **`radioActiveStationName`** | `30 seconds` | VHF radio active station name (ASCII, max 20 chars). |
+| **`radioStandbyStationName`** | `30 seconds` | VHF radio standby station name (ASCII, max 20 chars). |
+| **`radioFlags`** | `30 seconds` | VHF radio status flags (TX/RX/DUAL/Error). |
+| **`radioInstance`** | `30 seconds` | VHF radio instance index (0 = COM1, 1 = COM2...). |
+| **`radioNodeId`** | `30 seconds` | DroneCAN node ID of the radio. |
+| **`radioVolume`** | `30 seconds` | VHF radio volume level (0–100). |
+| **`radioSquelch`** | `30 seconds` | VHF radio squelch level (0–100). |
+| **`radioVox`** | `30 seconds` | VHF radio VOX threshold (0–100). |
+| **`radioIntercom`** | `30 seconds` | VHF radio intercom volume (0–100). |
+| **`radioMicGain`** | `30 seconds` | VHF radio microphone gain levels (0–100 each). |
