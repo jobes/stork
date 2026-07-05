@@ -5,6 +5,7 @@ import 'package:stork/features/telemetry/presentation/providers/nearby_frequenci
 import 'package:stork/features/telemetry/presentation/providers/vhf_radio_dialog_notifier.dart';
 import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
 import 'package:stork/features/telemetry/presentation/widgets/manage_favorites_dialog.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 
 part 'vhf_radio_dialog_quick_ext.dart';
@@ -93,17 +94,19 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
       initialIsDual: widget.initialIsDual,
     );
 
-    final initialActiveText =
-        (widget.initialActiveKhz / 1000.0).toStringAsFixed(3);
-    final initialStandbyText =
-        (widget.initialStandbyKhz / 1000.0).toStringAsFixed(3);
+    final initialActiveText = (widget.initialActiveKhz / 1000.0)
+        .toStringAsFixed(3);
+    final initialStandbyText = (widget.initialStandbyKhz / 1000.0)
+        .toStringAsFixed(3);
 
     _activeController = TextEditingController(text: initialActiveText);
-    _activeNameController =
-        TextEditingController(text: widget.initialActiveName);
+    _activeNameController = TextEditingController(
+      text: widget.initialActiveName,
+    );
     _standbyController = TextEditingController(text: initialStandbyText);
-    _standbyNameController =
-        TextEditingController(text: widget.initialStandbyName);
+    _standbyNameController = TextEditingController(
+      text: widget.initialStandbyName,
+    );
 
     // Rebuild on every text change so the "Apply" checkmark dirty state updates.
     _activeController.addListener(_onTextChanged);

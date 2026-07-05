@@ -69,26 +69,28 @@ class AirspaceDetailsDialog extends StatelessWidget {
         children: [
           for (int index = 0; index < sortedFeatures.length; index++) ...[
             if (index > 0) const SizedBox(height: 10),
-            Builder(builder: (context) {
-              final feature = sortedFeatures[index] as Map;
-              final props = feature['properties'] as Map;
-              final airspaceId = props['source_id']?.toString() ?? '';
-              final country = props['country']?.toString() ?? '';
+            Builder(
+              builder: (context) {
+                final feature = sortedFeatures[index] as Map;
+                final props = feature['properties'] as Map;
+                final airspaceId = props['source_id']?.toString() ?? '';
+                final country = props['country']?.toString() ?? '';
 
-              final nameLabel = props['name_label'];
-              String fallbackName = '';
-              if (nameLabel != null) {
-                final lines = nameLabel.toString().split('\n');
-                fallbackName = lines.length > 1 ? lines[1] : lines.first;
-              }
+                final nameLabel = props['name_label'];
+                String fallbackName = '';
+                if (nameLabel != null) {
+                  final lines = nameLabel.toString().split('\n');
+                  fallbackName = lines.length > 1 ? lines[1] : lines.first;
+                }
 
-              return AirspaceDetailCard(
-                airspaceId: airspaceId,
-                countryCode: country,
-                fallbackName: fallbackName,
-              );
-            }),
-          ]
+                return AirspaceDetailCard(
+                  airspaceId: airspaceId,
+                  countryCode: country,
+                  fallbackName: fallbackName,
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -469,9 +471,15 @@ class AirspaceDetailCard extends ConsumerWidget {
     AppLocalizations l10n,
     bool isDark,
   ) {
-    final radioActiveFreq = ref.watch(telemetryProvider.select((t) => t.radioActiveFrequency));
-    final radioStandbyFreq = ref.watch(telemetryProvider.select((t) => t.radioStandbyFrequency));
-    final radioNodeId = ref.watch(telemetryProvider.select((t) => t.radioNodeId));
+    final radioActiveFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioActiveFrequency),
+    );
+    final radioStandbyFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioStandbyFrequency),
+    );
+    final radioNodeId = ref.watch(
+      telemetryProvider.select((t) => t.radioNodeId),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -505,11 +513,15 @@ class AirspaceDetailCard extends ConsumerWidget {
                   btnFreqKhz = (numericValue * 1000).round();
                 }
 
-                final bool isCurrentlyActive = btnFreqKhz != null && radioActiveFreq == btnFreqKhz;
-                final bool isCurrentlyStandby = btnFreqKhz != null && radioStandbyFreq == btnFreqKhz;
+                final bool isCurrentlyActive =
+                    btnFreqKhz != null && radioActiveFreq == btnFreqKhz;
+                final bool isCurrentlyStandby =
+                    btnFreqKhz != null && radioStandbyFreq == btnFreqKhz;
                 final bool showActiveOption = !isCurrentlyActive;
                 final bool showStandbyOption = !isCurrentlyStandby;
-                final bool isClickable = radioNodeId != null && (showActiveOption || showStandbyOption);
+                final bool isClickable =
+                    radioNodeId != null &&
+                    (showActiveOption || showStandbyOption);
 
                 Color badgeColor;
                 Color textColor;
@@ -520,7 +532,9 @@ class AirspaceDetailCard extends ConsumerWidget {
                   badgeColor = Colors.orange.withAlpha(40);
                   textColor = Colors.orangeAccent.shade700;
                 } else {
-                  badgeColor = isDark ? Colors.white.withAlpha(15) : Colors.black.withAlpha(10);
+                  badgeColor = isDark
+                      ? Colors.white.withAlpha(15)
+                      : Colors.black.withAlpha(10);
                   textColor = isDark ? Colors.white70 : Colors.black87;
                 }
 
@@ -530,33 +544,40 @@ class AirspaceDetailCard extends ConsumerWidget {
                   onTapDown: (details) {
                     tapDetails = details;
                   },
-                  onTap: isClickable ? () {
-                    if (btnFreqKhz == null) return;
-                    final freqKhz = btnFreqKhz;
+                  onTap: isClickable
+                      ? () {
+                          if (btnFreqKhz == null) return;
+                          final freqKhz = btnFreqKhz;
 
-                    if (freqKhz < 118000 || freqKhz > 136995) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Frekvencia je mimo leteckého pásma (118.000 - 136.995 MHz)'),
-                        ),
-                      );
-                      return;
-                    }
+                          if (freqKhz < 118000 || freqKhz > 136995) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(l10n.vhfRadioFreqOutOfBand),
+                              ),
+                            );
+                            return;
+                          }
 
-                    if (tapDetails != null) {
-                      RadioPopupUtil.showRadioMenu(
-                        context: context,
-                        ref: ref,
-                        globalPosition: tapDetails!.globalPosition,
-                        mhz: freqKhz / 1000.0,
-                        radioName: metadata.name,
-                      );
-                    }
-                  } : null,
+                          if (tapDetails != null) {
+                            RadioPopupUtil.showRadioMenu(
+                              context: context,
+                              ref: ref,
+                              globalPosition: tapDetails!.globalPosition,
+                              mhz: freqKhz / 1000.0,
+                              radioName: metadata.name,
+                            );
+                          }
+                        }
+                      : null,
                   child: MouseRegion(
-                    cursor: isClickable ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                    cursor: isClickable
+                        ? SystemMouseCursors.click
+                        : SystemMouseCursors.basic,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: badgeColor,
                         borderRadius: BorderRadius.circular(6),
@@ -564,8 +585,10 @@ class AirspaceDetailCard extends ConsumerWidget {
                           color: isCurrentlyActive
                               ? Colors.green.withAlpha(80)
                               : (isCurrentlyStandby
-                                  ? Colors.orange.withAlpha(80)
-                                  : (isDark ? Colors.white12 : Colors.black12)),
+                                    ? Colors.orange.withAlpha(80)
+                                    : (isDark
+                                          ? Colors.white12
+                                          : Colors.black12)),
                         ),
                       ),
                       child: Row(
@@ -575,7 +598,8 @@ class AirspaceDetailCard extends ConsumerWidget {
                             '${f.value} MHz',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: (isCurrentlyActive || isCurrentlyStandby)
+                              fontWeight:
+                                  (isCurrentlyActive || isCurrentlyStandby)
                                   ? FontWeight.bold
                                   : FontWeight.w600,
                               color: textColor,
@@ -601,5 +625,4 @@ class AirspaceDetailCard extends ConsumerWidget {
       ),
     );
   }
-
 }

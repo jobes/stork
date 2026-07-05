@@ -1,12 +1,16 @@
 part of 'vhf_radio_dialog.dart';
 
 extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
-  Widget _buildQuickContent(BuildContext context, VhfRadioDialogUiState uiState) {
+  Widget _buildQuickContent(
+    BuildContext context,
+    VhfRadioDialogUiState uiState,
+  ) {
     final favoritesAsync = ref.watch(favoriteFrequenciesProvider);
     final nearbyAsync = ref.watch(nearbyFrequenciesProvider);
 
+    final l10n = AppLocalizations.of(context)!;
     return BaseDetailsDialog(
-      titleText: 'Radio COM${widget.radioInstance + 1}',
+      titleText: l10n.vhfRadioTitle(widget.radioInstance + 1),
       icon: Icons.radio,
       child: Stack(
         children: [
@@ -24,12 +28,16 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                       color: Colors.red.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color: Colors.red.shade400, width: 0.5),
+                        color: Colors.red.shade400,
+                        width: 0.5,
+                      ),
                     ),
                     child: Text(
                       uiState.errorMessage!,
                       style: const TextStyle(
-                          color: Colors.redAccent, fontSize: 13),
+                        color: Colors.redAccent,
+                        fontSize: 13,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -38,15 +46,14 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: Theme.of(context)
-                            .dividerColor
-                            .withValues(alpha: 0.5)),
+                      color: Theme.of(
+                        context,
+                      ).dividerColor.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -56,7 +63,7 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'ACTIVE',
+                              l10n.vhfRadioActive,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
@@ -77,13 +84,13 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                             ),
                             Text(
                               uiState.activeNameText.isEmpty
-                                  ? 'No name'
+                                  ? l10n.vhfRadioNoName
                                   : uiState.activeNameText,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -93,21 +100,20 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                       ),
                       // Swap
                       IconButton(
-                        icon: const Icon(Icons.swap_horiz,
-                            size: 28, color: Colors.blueAccent),
+                        icon: const Icon(
+                          Icons.swap_horiz,
+                          size: 28,
+                          color: Colors.blueAccent,
+                        ),
                         onPressed: uiState.isSaving
                             ? null
                             : () => _notifier.flipFrequencies(
-                                  currentActiveText:
-                                      uiState.activeFreqText,
-                                  currentActiveName:
-                                      uiState.activeNameText,
-                                  currentStandbyText:
-                                      uiState.standbyFreqText,
-                                  currentStandbyName:
-                                      uiState.standbyNameText,
-                                ),
-                        tooltip: 'Swap frequencies',
+                                currentActiveText: uiState.activeFreqText,
+                                currentActiveName: uiState.activeNameText,
+                                currentStandbyText: uiState.standbyFreqText,
+                                currentStandbyName: uiState.standbyNameText,
+                              ),
+                        tooltip: l10n.vhfRadioSwapTooltip,
                       ),
                       // Standby
                       Expanded(
@@ -115,7 +121,7 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'STANDBY',
+                              l10n.vhfRadioStandby,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
@@ -136,13 +142,13 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                             ),
                             Text(
                               uiState.standbyNameText.isEmpty
-                                  ? 'No name'
+                                  ? l10n.vhfRadioNoName
                                   : uiState.standbyNameText,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -160,57 +166,66 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Nearby frequencies',
-                      style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.bold),
+                    Text(
+                      l10n.vhfRadioNearbyFrequencies,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     TextButton.icon(
                       onPressed: () => _notifier.toggleAdvancedMode(),
                       icon: const Icon(Icons.tune, size: 16),
-                      label: const Text('Advanced / Manual',
-                          style: TextStyle(fontSize: 12)),
+                      label: Text(
+                        l10n.vhfRadioAdvancedManual,
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 4),
 
-                _buildSectionHeader('Nearby airports'),
+                _buildSectionHeader(l10n.vhfRadioNearbyAirports),
                 ...nearbyAsync.when(
                   data: (nearbyState) {
                     final airports = nearbyState.nearbyAirports;
                     if (airports.isEmpty) {
                       return [
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12.0),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
                           child: Text(
-                            'No airports nearby',
-                            style:
-                                TextStyle(fontSize: 12, color: Colors.grey),
+                            l10n.vhfRadioNoAirportsNearby,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
                             textAlign: TextAlign.center,
                           ),
-                        )
+                        ),
                       ];
                     }
                     return airports.map((entry) {
                       final apt = entry.key;
                       final distance = entry.value;
-                      final distanceStr =
-                          (distance / 1000.0).toStringAsFixed(1);
+                      final distanceStr = (distance / 1000.0).toStringAsFixed(
+                        1,
+                      );
                       final displayLabel =
                           apt.icaoCode != null && apt.icaoCode!.isNotEmpty
-                              ? '${apt.icaoCode} ${apt.name} ($distanceStr km)'
-                              : '${apt.name} ($distanceStr km)';
+                          ? '${apt.icaoCode} ${apt.name} ($distanceStr km)'
+                          : '${apt.name} ($distanceStr km)';
 
-                      final freqs = apt.frequencies.map((f) {
-                        final val = double.tryParse(f.value) ?? 0.0;
-                        return _FrequencyInfo(
-                            val,
-                            f.name.isNotEmpty
-                                ? f.name
-                                : f.type.name);
-                      }).where((f) => f.mhz > 0.0).toList();
+                      final freqs = apt.frequencies
+                          .map((f) {
+                            final val = double.tryParse(f.value) ?? 0.0;
+                            return _FrequencyInfo(
+                              val,
+                              f.name.isNotEmpty ? f.name : f.type.name,
+                            );
+                          })
+                          .where((f) => f.mhz > 0.0)
+                          .toList();
 
                       return _buildAirportItem(displayLabel, freqs);
                     });
@@ -222,20 +237,19 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                         child: SizedBox(
                           width: 24,
                           height: 24,
-                          child:
-                              CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                    )
+                    ),
                   ],
                   error: (err, stack) => [
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 12.0),
-                      child: Text('Error: $err',
-                          style: const TextStyle(
-                              color: Colors.red, fontSize: 12)),
-                    )
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: Text(
+                        'Error: $err',
+                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
                   ],
                 ),
 
@@ -244,21 +258,21 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildSectionHeader('Favourites'),
+                    _buildSectionHeader(l10n.vhfRadioFavourites),
                     TextButton.icon(
                       onPressed: () {
                         showDialog(
                           context: context,
-                          builder: (context) =>
-                              const ManageFavoritesDialog(),
+                          builder: (context) => const ManageFavoritesDialog(),
                         );
                       },
                       icon: const Icon(Icons.edit, size: 14),
-                      label: const Text('Manage',
-                          style: TextStyle(fontSize: 12)),
+                      label: Text(
+                        l10n.vhfRadioManage,
+                        style: const TextStyle(fontSize: 12),
+                      ),
                       style: TextButton.styleFrom(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
@@ -269,20 +283,24 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                 favoritesAsync.when(
                   data: (list) {
                     if (list.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Text(
-                          'No favourite frequencies',
-                          style:
-                              TextStyle(fontSize: 12, color: Colors.grey),
+                          l10n.vhfRadioNoFavoriteFrequencies,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       );
                     }
                     return Column(
                       children: list
-                          .map((f) => _buildSimpleFrequencyRow(
-                              f.name, f.mhz, f.name))
+                          .map(
+                            (f) =>
+                                _buildSimpleFrequencyRow(f.name, f.mhz, f.name),
+                          )
                           .toList(),
                     );
                   },
@@ -292,8 +310,7 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                       child: SizedBox(
                         width: 20,
                         height: 20,
-                        child:
-                            CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
                   ),
@@ -302,35 +319,40 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
 
                 const Divider(height: 16),
 
-                _buildSectionHeader('Airspaces'),
+                _buildSectionHeader(l10n.vhfRadioAirspaces),
                 ...nearbyAsync.when(
                   data: (nearbyState) {
                     final airspaces = nearbyState.nearbyAirspaces;
                     if (airspaces.isEmpty) {
                       return [
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12.0),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
                           child: Text(
-                            'No airspaces nearby',
-                            style:
-                                TextStyle(fontSize: 12, color: Colors.grey),
+                            l10n.vhfRadioNoAirspacesNearby,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
                             textAlign: TextAlign.center,
                           ),
-                        )
+                        ),
                       ];
                     }
                     return airspaces.map((entry) {
                       final asp = entry.key;
                       final distance = entry.value;
                       final distanceStr = distance == 0.0
-                          ? 'inside'
+                          ? l10n.vhfRadioInside
                           : '${(distance / 1000.0).toStringAsFixed(1)} km';
                       final displayLabel = '${asp.name} ($distanceStr)';
 
-                      final freqs = asp.frequencies!.map((f) {
-                        final val = double.tryParse(f.value) ?? 0.0;
-                        return _FrequencyInfo(val, asp.name);
-                      }).where((f) => f.mhz > 0.0).toList();
+                      final freqs = asp.frequencies!
+                          .map((f) {
+                            final val = double.tryParse(f.value) ?? 0.0;
+                            return _FrequencyInfo(val, asp.name);
+                          })
+                          .where((f) => f.mhz > 0.0)
+                          .toList();
 
                       return _buildAirportItem(displayLabel, freqs);
                     });
@@ -342,11 +364,10 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                         child: SizedBox(
                           width: 24,
                           height: 24,
-                          child:
-                              CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                    )
+                    ),
                   ],
                   error: (err, stack) => [],
                 ),

@@ -679,5 +679,104 @@
   "engineRpm": "Engine RPM",
   "engineRpmShort": "RPM",
   "rpmThresholds": "Engine RPM Thresholds",
-  "rpmMaxRange": "Maximum RPM slider range"
+  "rpmMaxRange": "Maximum RPM slider range",
+  "vhfRadioTitle": "Radio COM{instance}",
+  "@vhfRadioTitle": {
+    "placeholders": {
+      "instance": { "type": "int" }
+    }
+  },
+  "vhfRadioActive": "ACTIVE",
+  "vhfRadioStandby": "STANDBY",
+  "vhfRadioNoName": "No name",
+  "vhfRadioSwapTooltip": "Swap frequencies",
+  "vhfRadioNearbyFrequencies": "Nearby frequencies",
+  "vhfRadioAdvancedManual": "Advanced / Manual",
+  "vhfRadioNearbyAirports": "Nearby airports",
+  "vhfRadioNoAirportsNearby": "No airports nearby",
+  "vhfRadioFavourites": "Favourites",
+  "vhfRadioManage": "Manage",
+  "vhfRadioNoFavoriteFrequencies": "No favourite frequencies",
+  "vhfRadioAirspaces": "Airspaces",
+  "vhfRadioNoAirspacesNearby": "No airspaces nearby",
+  "vhfRadioInside": "inside",
+  "vhfRadioBackToList": "Back to list",
+  "vhfRadioActiveFreqLabel": "Active Frequency (MHz)",
+  "vhfRadioActiveNameLabel": "Active station name",
+  "vhfRadioApply": "Apply",
+  "vhfRadioStandbyFreqLabel": "Standby Frequency (MHz)",
+  "vhfRadioStandbyNameLabel": "Standby station name",
+  "vhfRadioDualWatch": "Dual Watch",
+  "vhfRadioHideAudio": "Hide audio settings",
+  "vhfRadioShowAudio": "Show audio settings",
+  "vhfRadioVolume": "Volume",
+  "vhfRadioSquelch": "Squelch",
+  "vhfRadioVox": "VOX Sensitivity",
+  "vhfRadioIntercom": "Intercom Volume",
+  "vhfRadioMicrophonesGain": "Microphones (Gain)",
+  "vhfRadioMicrophoneN": "Microphone {n}",
+  "@vhfRadioMicrophoneN": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "vhfRadioSaveChange": "Save change",
+  "vhfRadioErrorActiveFreq": "Active frequency must be a valid aviation frequency (118.000 \u2013 136.975 MHz).",
+  "vhfRadioErrorStandbyFreq": "Standby frequency must be a valid aviation frequency (118.000 \u2013 136.975 MHz).",
+  "vhfRadioErrorTimeout": "DroneCAN did not respond to {action} (timeout 1 s).",
+  "@vhfRadioErrorTimeout": {
+    "placeholders": {
+      "action": { "type": "String" }
+    }
+  },
+  "vhfRadioErrorGeneric": "Failed to {action}: {error}",
+  "@vhfRadioErrorGeneric": {
+    "placeholders": {
+      "action": { "type": "String" },
+      "error": { "type": "String" }
+    }
+  },
+  "vhfRadioErrorFlip": "Flip failed: {error}",
+  "@vhfRadioErrorFlip": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "vhfRadioErrorInvalidFreq": "Frequency {freq} MHz is not valid.",
+  "@vhfRadioErrorInvalidFreq": {
+    "placeholders": {
+      "freq": { "type": "String" }
+    }
+  },
+  "vhfRadioDronecanError": "DroneCAN request error (status: {status})",
+  "@vhfRadioDronecanError": {
+    "placeholders": {
+      "status": { "type": "int" }
+    }
+  },
+  "vhfRadioFreqOutOfBand": "Frequency is outside aviation band (118.000 - 136.995 MHz)",
+  "manageFavoritesTitle": "Manage Favourites",
+  "manageFavoritesAddNew": "Add new frequency",
+  "manageFavoritesFreqLabel": "Frequency (MHz)",
+  "manageFavoritesNameLabel": "Station name",
+  "manageFavoritesAddToList": "Add to list",
+  "manageFavoritesListTitle": "Favourites list (drag to reorder)",
+  "manageFavoritesEmpty": "The list is empty.",
+  "manageFavoritesInvalidFreq": "Invalid aviation frequency (118.000 - 136.975 MHz).",
+  "manageFavoritesNameRequired": "Name must not be empty.",
+  "manageFavoritesLoadError": "Error loading favourites: {error}",
+  "@manageFavoritesLoadError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "radioNotConnected": "Radio is not connected",
+  "radioSetAsActive": "Set as ACTIVE",
+  "radioSetAsStandby": "Set as STANDBY",
+  "radioSetFreqError": "Error setting frequency: {error}",
+  "@radioSetFreqError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
 }

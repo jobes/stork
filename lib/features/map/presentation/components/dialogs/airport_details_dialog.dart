@@ -352,9 +352,15 @@ class AirportDetailsDialog extends ConsumerWidget {
   ) {
     if (metadata.frequencies.isEmpty) return const SizedBox.shrink();
 
-    final radioActiveFreq = ref.watch(telemetryProvider.select((t) => t.radioActiveFrequency));
-    final radioStandbyFreq = ref.watch(telemetryProvider.select((t) => t.radioStandbyFrequency));
-    final radioNodeId = ref.watch(telemetryProvider.select((t) => t.radioNodeId));
+    final radioActiveFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioActiveFrequency),
+    );
+    final radioStandbyFreq = ref.watch(
+      telemetryProvider.select((t) => t.radioStandbyFrequency),
+    );
+    final radioNodeId = ref.watch(
+      telemetryProvider.select((t) => t.radioNodeId),
+    );
 
     final sortedFrequencies = List<AirportFrequency>.from(metadata.frequencies)
       ..sort((a, b) {
@@ -408,12 +414,15 @@ class AirportDetailsDialog extends ConsumerWidget {
               }
             }
 
-            final bool isCurrentlyActive = btnFreqKhz != null && radioActiveFreq == btnFreqKhz;
-            final bool isCurrentlyStandby = btnFreqKhz != null && radioStandbyFreq == btnFreqKhz;
+            final bool isCurrentlyActive =
+                btnFreqKhz != null && radioActiveFreq == btnFreqKhz;
+            final bool isCurrentlyStandby =
+                btnFreqKhz != null && radioStandbyFreq == btnFreqKhz;
 
             final bool showActiveOption = !isCurrentlyActive;
             final bool showStandbyOption = !isCurrentlyStandby;
-            final bool isClickable = radioNodeId != null && (showActiveOption || showStandbyOption);
+            final bool isClickable =
+                radioNodeId != null && (showActiveOption || showStandbyOption);
 
             TapDownDetails? tapDetails;
 
@@ -423,29 +432,29 @@ class AirportDetailsDialog extends ConsumerWidget {
                 onTapDown: (details) {
                   tapDetails = details;
                 },
-                onTap: isClickable ? () {
-                  if (btnFreqKhz == null) return;
-                  final freqKhz = btnFreqKhz;
+                onTap: isClickable
+                    ? () {
+                        if (btnFreqKhz == null) return;
+                        final freqKhz = btnFreqKhz;
 
-                  if (freqKhz < 118000 || freqKhz > 136995) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Frekvencia je mimo leteckého pásma (118.000 - 136.995 MHz)'),
-                      ),
-                    );
-                    return;
-                  }
+                        if (freqKhz < 118000 || freqKhz > 136995) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.vhfRadioFreqOutOfBand)),
+                          );
+                          return;
+                        }
 
-                  if (tapDetails != null) {
-                    RadioPopupUtil.showRadioMenu(
-                      context: context,
-                      ref: ref,
-                      globalPosition: tapDetails!.globalPosition,
-                      mhz: freqKhz / 1000.0,
-                      radioName: radioName,
-                    );
-                  }
-                } : null,
+                        if (tapDetails != null) {
+                          RadioPopupUtil.showRadioMenu(
+                            context: context,
+                            ref: ref,
+                            globalPosition: tapDetails!.globalPosition,
+                            mhz: freqKhz / 1000.0,
+                            radioName: radioName,
+                          );
+                        }
+                      }
+                    : null,
                 borderRadius: BorderRadius.circular(12),
                 child: Ink(
                   padding: const EdgeInsets.symmetric(
@@ -481,7 +490,7 @@ class AirportDetailsDialog extends ConsumerWidget {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                           Icons.radio,
+                          Icons.radio,
                           size: 15,
                           color: f.primary
                               ? Colors.blueAccent
@@ -900,5 +909,4 @@ class AirportDetailsDialog extends ConsumerWidget {
       },
     );
   }
-
 }

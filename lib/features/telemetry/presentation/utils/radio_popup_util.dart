@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/vhf_radio_controller.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class RadioPopupUtil {
   static void showRadioMenu({
@@ -18,17 +19,19 @@ class RadioPopupUtil {
     final freqKhz = (mhz * 1000).round();
     final telemetry = ref.read(telemetryProvider);
     final currentRadioNodeId = telemetry.radioNodeId;
-    
+
     if (currentRadioNodeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Rádio nie je pripojené')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.radioNotConnected),
+        ),
       );
       return;
     }
 
     final activeFreqKhz = telemetry.radioActiveFrequency;
     final standbyFreqKhz = telemetry.radioStandbyFrequency;
-    
+
     final isAlreadyActive = (activeFreqKhz == freqKhz);
     final isAlreadyStandby = (standbyFreqKhz == freqKhz);
 
@@ -36,7 +39,8 @@ class RadioPopupUtil {
       return;
     }
 
-    final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+        Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(globalPosition, globalPosition),
       Offset.zero & overlay.size,
@@ -47,20 +51,23 @@ class RadioPopupUtil {
       position: position,
       items: [
         if (!isAlreadyActive)
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: 'active',
             child: ListTile(
-              leading: Icon(Icons.radio, color: Colors.green),
-              title: Text('Nastaviť ako AKTÍVNU'),
+              leading: const Icon(Icons.radio, color: Colors.green),
+              title: Text(AppLocalizations.of(context)!.radioSetAsActive),
               dense: true,
             ),
           ),
         if (!isAlreadyStandby)
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: 'standby',
             child: ListTile(
-              leading: Icon(Icons.settings_input_antenna, color: Colors.blue),
-              title: Text('Nastaviť ako STANDBY'),
+              leading: const Icon(
+                Icons.settings_input_antenna,
+                color: Colors.blue,
+              ),
+              title: Text(AppLocalizations.of(context)!.radioSetAsStandby),
               dense: true,
             ),
           ),
@@ -68,7 +75,7 @@ class RadioPopupUtil {
     ).then((String? value) {
       if (value == null) return;
       if (!context.mounted) return;
-      
+
       final isActive = value == 'active';
       _setFrequency(
         context: context,
@@ -78,7 +85,9 @@ class RadioPopupUtil {
         freqKhz: freqKhz,
         radioName: radioName,
         isActive: isActive,
-        onSuccess: onFrequencySet == null ? null : () => onFrequencySet(isActive),
+        onSuccess: onFrequencySet == null
+            ? null
+            : () => onFrequencySet(isActive),
       );
     });
   }
@@ -114,7 +123,11 @@ class RadioPopupUtil {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Chyba nastavenia frekvencie: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.radioSetFreqError(e.toString()),
+            ),
+          ),
         );
       }
     }

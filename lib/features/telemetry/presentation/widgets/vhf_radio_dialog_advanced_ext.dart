@@ -1,29 +1,33 @@
 part of 'vhf_radio_dialog.dart';
 
 extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
-  Widget _buildAdvancedContent(BuildContext context, VhfRadioDialogUiState uiState) {
+  Widget _buildAdvancedContent(
+    BuildContext context,
+    VhfRadioDialogUiState uiState,
+  ) {
     final activeText = _activeController.text.trim();
     final isActiveChanged =
         (activeText != uiState.savedActiveText ||
             _activeNameController.text != uiState.savedActiveName) &&
-            RegExp(r'^\d{3}\.\d{3}$').hasMatch(activeText) &&
-            VhfRadioDialogNotifier.parseAviationFrequency(activeText) != null;
+        RegExp(r'^\d{3}\.\d{3}$').hasMatch(activeText) &&
+        VhfRadioDialogNotifier.parseAviationFrequency(activeText) != null;
 
     final standbyText = _standbyController.text.trim();
     final isStandbyChanged =
         (standbyText != uiState.savedStandbyText ||
             _standbyNameController.text != uiState.savedStandbyName) &&
-            RegExp(r'^\d{3}\.\d{3}$').hasMatch(standbyText) &&
-            VhfRadioDialogNotifier.parseAviationFrequency(standbyText) != null;
+        RegExp(r'^\d{3}\.\d{3}$').hasMatch(standbyText) &&
+        VhfRadioDialogNotifier.parseAviationFrequency(standbyText) != null;
 
+    final l10n = AppLocalizations.of(context)!;
     return BaseDetailsDialog(
-      titleText: 'Radio COM${widget.radioInstance + 1}',
+      titleText: l10n.vhfRadioTitle(widget.radioInstance + 1),
       icon: Icons.radio,
       actions: [
         IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => _notifier.setAdvancedMode(false),
-          tooltip: 'Back to list',
+          tooltip: l10n.vhfRadioBackToList,
         ),
         IconButton(
           icon: const Icon(Icons.close),
@@ -45,13 +49,17 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                     decoration: BoxDecoration(
                       color: Colors.red.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
-                      border:
-                          Border.all(color: Colors.red.shade400, width: 0.5),
+                      border: Border.all(
+                        color: Colors.red.shade400,
+                        width: 0.5,
+                      ),
                     ),
                     child: Text(
                       uiState.errorMessage!,
                       style: const TextStyle(
-                          color: Colors.redAccent, fontSize: 13),
+                        color: Colors.redAccent,
+                        fontSize: 13,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -68,29 +76,35 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                             controller: _activeController,
                             enabled: !uiState.isSaving,
                             keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            decoration: const InputDecoration(
-                              labelText: 'Active Frequency (MHz)',
+                              decimal: true,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: l10n.vhfRadioActiveFreqLabel,
                               hintText: '118.000',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
+                              border: const OutlineInputBorder(),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
                             ),
                             style: const TextStyle(
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15),
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _activeNameController,
                             enabled: !uiState.isSaving,
-                            decoration: const InputDecoration(
-                              labelText: 'Active station name',
+                            decoration: InputDecoration(
+                              labelText: l10n.vhfRadioActiveNameLabel,
                               hintText: 'COM1 ACT',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
+                              border: const OutlineInputBorder(),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
                             ),
                             style: const TextStyle(fontSize: 14),
                           ),
@@ -99,20 +113,25 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                             onPressed: (uiState.isSaving || !isActiveChanged)
                                 ? null
                                 : () => _notifier.saveActiveFrequency(
-                                      _activeController.text,
-                                      _activeNameController.text,
-                                    ),
+                                    _activeController.text,
+                                    _activeNameController.text,
+                                  ),
                             icon: const Icon(Icons.check, size: 14),
-                            label: const Text('Apply',
-                                style: TextStyle(fontSize: 11)),
+                            label: Text(
+                              l10n.vhfRadioApply,
+                              style: const TextStyle(fontSize: 11),
+                            ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.green,
                               side: BorderSide(
-                                  color: isActiveChanged
-                                      ? Colors.green
-                                      : Colors.grey.shade400),
+                                color: isActiveChanged
+                                    ? Colors.green
+                                    : Colors.grey.shade400,
+                              ),
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 6, horizontal: 10),
+                                vertical: 6,
+                                horizontal: 10,
+                              ),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
@@ -124,20 +143,24 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                     // Flip/Swap button
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0, vertical: 24.0),
+                        horizontal: 8.0,
+                        vertical: 24.0,
+                      ),
                       child: IconButton(
-                        icon: const Icon(Icons.swap_horiz,
-                            size: 28, color: Colors.blueAccent),
+                        icon: const Icon(
+                          Icons.swap_horiz,
+                          size: 28,
+                          color: Colors.blueAccent,
+                        ),
                         onPressed: uiState.isSaving
                             ? null
                             : () => _notifier.flipFrequencies(
-                                  currentActiveText: _activeController.text,
-                                  currentActiveName: _activeNameController.text,
-                                  currentStandbyText: _standbyController.text,
-                                  currentStandbyName:
-                                      _standbyNameController.text,
-                                ),
-                        tooltip: 'Swap frequencies',
+                                currentActiveText: _activeController.text,
+                                currentActiveName: _activeNameController.text,
+                                currentStandbyText: _standbyController.text,
+                                currentStandbyName: _standbyNameController.text,
+                              ),
+                        tooltip: l10n.vhfRadioSwapTooltip,
                       ),
                     ),
 
@@ -150,29 +173,35 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                             controller: _standbyController,
                             enabled: !uiState.isSaving,
                             keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            decoration: const InputDecoration(
-                              labelText: 'Standby Frequency (MHz)',
+                              decimal: true,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: l10n.vhfRadioStandbyFreqLabel,
                               hintText: '121.500',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
+                              border: const OutlineInputBorder(),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
                             ),
                             style: const TextStyle(
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15),
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _standbyNameController,
                             enabled: !uiState.isSaving,
-                            decoration: const InputDecoration(
-                              labelText: 'Standby station name',
+                            decoration: InputDecoration(
+                              labelText: l10n.vhfRadioStandbyNameLabel,
                               hintText: 'COM1 STB',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
+                              border: const OutlineInputBorder(),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
                             ),
                             style: const TextStyle(fontSize: 14),
                           ),
@@ -181,20 +210,25 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                             onPressed: (uiState.isSaving || !isStandbyChanged)
                                 ? null
                                 : () => _notifier.saveStandbyFrequency(
-                                      _standbyController.text,
-                                      _standbyNameController.text,
-                                    ),
+                                    _standbyController.text,
+                                    _standbyNameController.text,
+                                  ),
                             icon: const Icon(Icons.check, size: 14),
-                            label: const Text('Apply',
-                                style: TextStyle(fontSize: 11)),
+                            label: Text(
+                              l10n.vhfRadioApply,
+                              style: const TextStyle(fontSize: 11),
+                            ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.green,
                               side: BorderSide(
-                                  color: isStandbyChanged
-                                      ? Colors.green
-                                      : Colors.grey.shade400),
+                                color: isStandbyChanged
+                                    ? Colors.green
+                                    : Colors.grey.shade400,
+                              ),
                               padding: const EdgeInsets.symmetric(
-                                  vertical: 6, horizontal: 10),
+                                vertical: 6,
+                                horizontal: 10,
+                              ),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
@@ -210,12 +244,17 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                 // Dual Watch Switch
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Dual Watch',
-                      style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w500)),
+                  title: Text(
+                    l10n.vhfRadioDualWatch,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   value: uiState.isDual,
-                  onChanged:
-                      uiState.isSaving ? null : _notifier.toggleDualWatch,
+                  onChanged: uiState.isSaving
+                      ? null
+                      : _notifier.toggleDualWatch,
                 ),
 
                 const Divider(height: 24),
@@ -226,7 +265,9 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 4.0),
+                      vertical: 8.0,
+                      horizontal: 4.0,
+                    ),
                     child: Row(
                       children: [
                         Icon(
@@ -239,8 +280,8 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                         const SizedBox(width: 8),
                         Text(
                           uiState.showAudioControls
-                              ? 'Hide audio settings'
-                              : 'Show audio settings',
+                              ? l10n.vhfRadioHideAudio
+                              : l10n.vhfRadioShowAudio,
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -255,7 +296,7 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                 if (uiState.showAudioControls) ...[
                   const SizedBox(height: 12),
                   _buildLabeledSlider(
-                    label: 'Volume',
+                    label: l10n.vhfRadioVolume,
                     value: uiState.volume,
                     onChanged: _notifier.updateVolume,
                     onSave: _notifier.saveVolume,
@@ -265,7 +306,7 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                     icon: Icons.volume_up,
                   ),
                   _buildLabeledSlider(
-                    label: 'Squelch',
+                    label: l10n.vhfRadioSquelch,
                     value: uiState.squelch,
                     onChanged: _notifier.updateSquelch,
                     onSave: _notifier.saveSquelch,
@@ -275,7 +316,7 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                     icon: Icons.filter_list,
                   ),
                   _buildLabeledSlider(
-                    label: 'VOX Sensitivity',
+                    label: l10n.vhfRadioVox,
                     value: uiState.vox,
                     onChanged: _notifier.updateVox,
                     onSave: _notifier.saveVox,
@@ -284,7 +325,7 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                     icon: Icons.keyboard_voice,
                   ),
                   _buildLabeledSlider(
-                    label: 'Intercom Volume',
+                    label: l10n.vhfRadioIntercom,
                     value: uiState.intercom,
                     onChanged: _notifier.updateIntercom,
                     onSave: _notifier.saveIntercom,
@@ -296,16 +337,20 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
 
                   if (uiState.micGains.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    const Text('Microphones (Gain)',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(
+                      l10n.vhfRadioMicrophonesGain,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     ...List.generate(uiState.micGains.length, (idx) {
                       final savedVal = idx < uiState.savedMicGains.length
                           ? uiState.savedMicGains[idx]
                           : 0;
                       return _buildLabeledSlider(
-                        label: 'Microphone ${idx + 1}',
+                        label: l10n.vhfRadioMicrophoneN(idx + 1),
                         value: uiState.micGains[idx],
                         onChanged: (val) => _notifier.updateMicGain(idx, val),
                         onSave: () => _notifier.saveMicGain(idx),

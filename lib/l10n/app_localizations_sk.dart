@@ -1378,4 +1378,187 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get rpmMaxRange => 'Maximálny rozsah posuvníka otáčok';
+
+  @override
+  String vhfRadioTitle(int instance) {
+    return 'Rádio COM$instance';
+  }
+
+  @override
+  String get vhfRadioActive => 'AKTÍVNA';
+
+  @override
+  String get vhfRadioStandby => 'STANDBY';
+
+  @override
+  String get vhfRadioNoName => 'Bez názvu';
+
+  @override
+  String get vhfRadioSwapTooltip => 'Prehodiť frekvencie';
+
+  @override
+  String get vhfRadioNearbyFrequencies => 'Blízke frekvencie';
+
+  @override
+  String get vhfRadioAdvancedManual => 'Rozšírené / Manuálne';
+
+  @override
+  String get vhfRadioNearbyAirports => 'Blízke letiská';
+
+  @override
+  String get vhfRadioNoAirportsNearby => 'V okolí nie sú žiadne letiská';
+
+  @override
+  String get vhfRadioFavourites => 'Obľúbené';
+
+  @override
+  String get vhfRadioManage => 'Spravovať';
+
+  @override
+  String get vhfRadioNoFavoriteFrequencies => 'Žiadne obľúbené frekvencie';
+
+  @override
+  String get vhfRadioAirspaces => 'Letecké priestory';
+
+  @override
+  String get vhfRadioNoAirspacesNearby =>
+      'V okolí nie sú žiadne letecké priestory';
+
+  @override
+  String get vhfRadioInside => 'vo vnútri';
+
+  @override
+  String get vhfRadioBackToList => 'Späť na zoznam';
+
+  @override
+  String get vhfRadioActiveFreqLabel => 'Aktívna frekvencia (MHz)';
+
+  @override
+  String get vhfRadioActiveNameLabel => 'Názov aktívnej stanice';
+
+  @override
+  String get vhfRadioApply => 'Použiť';
+
+  @override
+  String get vhfRadioStandbyFreqLabel => 'Standby frekvencia (MHz)';
+
+  @override
+  String get vhfRadioStandbyNameLabel => 'Názov standby stanice';
+
+  @override
+  String get vhfRadioDualWatch => 'Dual Watch';
+
+  @override
+  String get vhfRadioHideAudio => 'Skryť audio nastavenia';
+
+  @override
+  String get vhfRadioShowAudio => 'Zobraziť audio nastavenia';
+
+  @override
+  String get vhfRadioVolume => 'Hlasitosť';
+
+  @override
+  String get vhfRadioSquelch => 'Squelch';
+
+  @override
+  String get vhfRadioVox => 'VOX citlivosť';
+
+  @override
+  String get vhfRadioIntercom => 'Hlasitosť interkomu';
+
+  @override
+  String get vhfRadioMicrophonesGain => 'Mikrofóny (zisk)';
+
+  @override
+  String vhfRadioMicrophoneN(int n) {
+    return 'Mikrofón $n';
+  }
+
+  @override
+  String get vhfRadioSaveChange => 'Uložiť zmenu';
+
+  @override
+  String get vhfRadioErrorActiveFreq =>
+      'Aktívna frekvencia musí byť platná letecká frekvencia (118.000 – 136.975 MHz).';
+
+  @override
+  String get vhfRadioErrorStandbyFreq =>
+      'Standby frekvencia musí byť platná letecká frekvencia (118.000 – 136.975 MHz).';
+
+  @override
+  String vhfRadioErrorTimeout(String action) {
+    return 'DroneCAN neodpovedal na požiadavku $action (timeout 1 s).';
+  }
+
+  @override
+  String vhfRadioErrorGeneric(String action, String error) {
+    return 'Zlyhalo $action: $error';
+  }
+
+  @override
+  String vhfRadioErrorFlip(String error) {
+    return 'Prehodenie zlyhalo: $error';
+  }
+
+  @override
+  String vhfRadioErrorInvalidFreq(String freq) {
+    return 'Frekvencia $freq MHz nie je platná.';
+  }
+
+  @override
+  String vhfRadioDronecanError(int status) {
+    return 'Chyba DroneCAN požiadavky (status: $status)';
+  }
+
+  @override
+  String get vhfRadioFreqOutOfBand =>
+      'Frekvencia je mimo leteckého pásma (118.000 - 136.995 MHz)';
+
+  @override
+  String get manageFavoritesTitle => 'Spravovať obľúbené';
+
+  @override
+  String get manageFavoritesAddNew => 'Pridať novú frekvenciu';
+
+  @override
+  String get manageFavoritesFreqLabel => 'Frekvencia (MHz)';
+
+  @override
+  String get manageFavoritesNameLabel => 'Názov stanice';
+
+  @override
+  String get manageFavoritesAddToList => 'Pridať do zoznamu';
+
+  @override
+  String get manageFavoritesListTitle =>
+      'Zoznam obľúbených (potiahnutím zmeňte poradie)';
+
+  @override
+  String get manageFavoritesEmpty => 'Zoznam je prázdny.';
+
+  @override
+  String get manageFavoritesInvalidFreq =>
+      'Neplatná letecká frekvencia (118.000 - 136.975 MHz).';
+
+  @override
+  String get manageFavoritesNameRequired => 'Názov nesmie byť prázdny.';
+
+  @override
+  String manageFavoritesLoadError(String error) {
+    return 'Chyba pri načítaní obľúbených: $error';
+  }
+
+  @override
+  String get radioNotConnected => 'Rádio nie je pripojené';
+
+  @override
+  String get radioSetAsActive => 'Nastaviť ako AKTÍVNU';
+
+  @override
+  String get radioSetAsStandby => 'Nastaviť ako STANDBY';
+
+  @override
+  String radioSetFreqError(String error) {
+    return 'Chyba nastavenia frekvencie: $error';
+  }
 }

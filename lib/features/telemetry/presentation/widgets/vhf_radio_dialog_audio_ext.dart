@@ -16,12 +16,14 @@ extension _VhfRadioDialogAudioExt on _VhfRadioDialogState {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w500, fontSize: 14)),
-            Text('${value.round()}%',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+            ),
+            Text(
+              '${value.round()}%',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
           ],
         ),
         Row(
@@ -39,11 +41,10 @@ extension _VhfRadioDialogAudioExt on _VhfRadioDialogState {
             IconButton(
               icon: Icon(
                 Icons.check_circle_outline,
-                color:
-                    isSaveEnabled ? Colors.green : Colors.grey.shade400,
+                color: isSaveEnabled ? Colors.green : Colors.grey.shade400,
               ),
               onPressed: (isSaving || !isSaveEnabled) ? null : onSave,
-              tooltip: 'Save change',
+              tooltip: AppLocalizations.of(context)!.vhfRadioSaveChange,
             ),
           ],
         ),

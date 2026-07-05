@@ -2695,6 +2695,324 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maximum RPM slider range'**
   String get rpmMaxRange;
+
+  /// No description provided for @vhfRadioTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio COM{instance}'**
+  String vhfRadioTitle(int instance);
+
+  /// No description provided for @vhfRadioActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get vhfRadioActive;
+
+  /// No description provided for @vhfRadioStandby.
+  ///
+  /// In en, this message translates to:
+  /// **'STANDBY'**
+  String get vhfRadioStandby;
+
+  /// No description provided for @vhfRadioNoName.
+  ///
+  /// In en, this message translates to:
+  /// **'No name'**
+  String get vhfRadioNoName;
+
+  /// No description provided for @vhfRadioSwapTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap frequencies'**
+  String get vhfRadioSwapTooltip;
+
+  /// No description provided for @vhfRadioNearbyFrequencies.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby frequencies'**
+  String get vhfRadioNearbyFrequencies;
+
+  /// No description provided for @vhfRadioAdvancedManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced / Manual'**
+  String get vhfRadioAdvancedManual;
+
+  /// No description provided for @vhfRadioNearbyAirports.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby airports'**
+  String get vhfRadioNearbyAirports;
+
+  /// No description provided for @vhfRadioNoAirportsNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'No airports nearby'**
+  String get vhfRadioNoAirportsNearby;
+
+  /// No description provided for @vhfRadioFavourites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourites'**
+  String get vhfRadioFavourites;
+
+  /// No description provided for @vhfRadioManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get vhfRadioManage;
+
+  /// No description provided for @vhfRadioNoFavoriteFrequencies.
+  ///
+  /// In en, this message translates to:
+  /// **'No favourite frequencies'**
+  String get vhfRadioNoFavoriteFrequencies;
+
+  /// No description provided for @vhfRadioAirspaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Airspaces'**
+  String get vhfRadioAirspaces;
+
+  /// No description provided for @vhfRadioNoAirspacesNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'No airspaces nearby'**
+  String get vhfRadioNoAirspacesNearby;
+
+  /// No description provided for @vhfRadioInside.
+  ///
+  /// In en, this message translates to:
+  /// **'inside'**
+  String get vhfRadioInside;
+
+  /// No description provided for @vhfRadioBackToList.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to list'**
+  String get vhfRadioBackToList;
+
+  /// No description provided for @vhfRadioActiveFreqLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Frequency (MHz)'**
+  String get vhfRadioActiveFreqLabel;
+
+  /// No description provided for @vhfRadioActiveNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active station name'**
+  String get vhfRadioActiveNameLabel;
+
+  /// No description provided for @vhfRadioApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get vhfRadioApply;
+
+  /// No description provided for @vhfRadioStandbyFreqLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Standby Frequency (MHz)'**
+  String get vhfRadioStandbyFreqLabel;
+
+  /// No description provided for @vhfRadioStandbyNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Standby station name'**
+  String get vhfRadioStandbyNameLabel;
+
+  /// No description provided for @vhfRadioDualWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Dual Watch'**
+  String get vhfRadioDualWatch;
+
+  /// No description provided for @vhfRadioHideAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide audio settings'**
+  String get vhfRadioHideAudio;
+
+  /// No description provided for @vhfRadioShowAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Show audio settings'**
+  String get vhfRadioShowAudio;
+
+  /// No description provided for @vhfRadioVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get vhfRadioVolume;
+
+  /// No description provided for @vhfRadioSquelch.
+  ///
+  /// In en, this message translates to:
+  /// **'Squelch'**
+  String get vhfRadioSquelch;
+
+  /// No description provided for @vhfRadioVox.
+  ///
+  /// In en, this message translates to:
+  /// **'VOX Sensitivity'**
+  String get vhfRadioVox;
+
+  /// No description provided for @vhfRadioIntercom.
+  ///
+  /// In en, this message translates to:
+  /// **'Intercom Volume'**
+  String get vhfRadioIntercom;
+
+  /// No description provided for @vhfRadioMicrophonesGain.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphones (Gain)'**
+  String get vhfRadioMicrophonesGain;
+
+  /// No description provided for @vhfRadioMicrophoneN.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone {n}'**
+  String vhfRadioMicrophoneN(int n);
+
+  /// No description provided for @vhfRadioSaveChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Save change'**
+  String get vhfRadioSaveChange;
+
+  /// No description provided for @vhfRadioErrorActiveFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Active frequency must be a valid aviation frequency (118.000 – 136.975 MHz).'**
+  String get vhfRadioErrorActiveFreq;
+
+  /// No description provided for @vhfRadioErrorStandbyFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Standby frequency must be a valid aviation frequency (118.000 – 136.975 MHz).'**
+  String get vhfRadioErrorStandbyFreq;
+
+  /// No description provided for @vhfRadioErrorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'DroneCAN did not respond to {action} (timeout 1 s).'**
+  String vhfRadioErrorTimeout(String action);
+
+  /// No description provided for @vhfRadioErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to {action}: {error}'**
+  String vhfRadioErrorGeneric(String action, String error);
+
+  /// No description provided for @vhfRadioErrorFlip.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip failed: {error}'**
+  String vhfRadioErrorFlip(String error);
+
+  /// No description provided for @vhfRadioErrorInvalidFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency {freq} MHz is not valid.'**
+  String vhfRadioErrorInvalidFreq(String freq);
+
+  /// No description provided for @vhfRadioDronecanError.
+  ///
+  /// In en, this message translates to:
+  /// **'DroneCAN request error (status: {status})'**
+  String vhfRadioDronecanError(int status);
+
+  /// No description provided for @vhfRadioFreqOutOfBand.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency is outside aviation band (118.000 - 136.995 MHz)'**
+  String get vhfRadioFreqOutOfBand;
+
+  /// No description provided for @manageFavoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Favourites'**
+  String get manageFavoritesTitle;
+
+  /// No description provided for @manageFavoritesAddNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new frequency'**
+  String get manageFavoritesAddNew;
+
+  /// No description provided for @manageFavoritesFreqLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency (MHz)'**
+  String get manageFavoritesFreqLabel;
+
+  /// No description provided for @manageFavoritesNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Station name'**
+  String get manageFavoritesNameLabel;
+
+  /// No description provided for @manageFavoritesAddToList.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to list'**
+  String get manageFavoritesAddToList;
+
+  /// No description provided for @manageFavoritesListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourites list (drag to reorder)'**
+  String get manageFavoritesListTitle;
+
+  /// No description provided for @manageFavoritesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The list is empty.'**
+  String get manageFavoritesEmpty;
+
+  /// No description provided for @manageFavoritesInvalidFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid aviation frequency (118.000 - 136.975 MHz).'**
+  String get manageFavoritesInvalidFreq;
+
+  /// No description provided for @manageFavoritesNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name must not be empty.'**
+  String get manageFavoritesNameRequired;
+
+  /// No description provided for @manageFavoritesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading favourites: {error}'**
+  String manageFavoritesLoadError(String error);
+
+  /// No description provided for @radioNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio is not connected'**
+  String get radioNotConnected;
+
+  /// No description provided for @radioSetAsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as ACTIVE'**
+  String get radioSetAsActive;
+
+  /// No description provided for @radioSetAsStandby.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as STANDBY'**
+  String get radioSetAsStandby;
+
+  /// No description provided for @radioSetFreqError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error setting frequency: {error}'**
+  String radioSetFreqError(String error);
 }
 
 class _AppLocalizationsDelegate
