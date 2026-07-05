@@ -74,7 +74,11 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
     final standbyFreqStr = formatFreq(radioStandbyFreq);
 
     void openRadioDialog() {
-      if (isErr || radioNodeId == null || radioStandbyFreq == null) {
+      final activeFreq = radioActiveFreq;
+      if (isErr ||
+          radioNodeId == null ||
+          activeFreq == null ||
+          radioStandbyFreq == null) {
         return;
       }
       showDialog(
@@ -82,7 +86,7 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
         builder: (context) => VhfRadioDialog(
           radioInstance: radioInstance,
           nodeId: radioNodeId,
-          initialActiveKhz: radioActiveFreq,
+          initialActiveKhz: activeFreq,
           initialStandbyKhz: radioStandbyFreq,
           initialActiveName: radioActiveName ?? '',
           initialStandbyName: radioStandbyName ?? '',

@@ -2885,13 +2885,13 @@ abstract class AppLocalizations {
   /// No description provided for @vhfRadioErrorActiveFreq.
   ///
   /// In en, this message translates to:
-  /// **'Active frequency must be a valid aviation frequency (118.000 – 136.975 MHz).'**
+  /// **'Active frequency must be a valid aviation frequency (118.000 – 136.995 MHz).'**
   String get vhfRadioErrorActiveFreq;
 
   /// No description provided for @vhfRadioErrorStandbyFreq.
   ///
   /// In en, this message translates to:
-  /// **'Standby frequency must be a valid aviation frequency (118.000 – 136.975 MHz).'**
+  /// **'Standby frequency must be a valid aviation frequency (118.000 – 136.995 MHz).'**
   String get vhfRadioErrorStandbyFreq;
 
   /// No description provided for @vhfRadioErrorTimeout.
@@ -2927,7 +2927,7 @@ abstract class AppLocalizations {
   /// No description provided for @vhfRadioFreqOutOfBand.
   ///
   /// In en, this message translates to:
-  /// **'Frequency is outside aviation band (118.000 - 136.995 MHz)'**
+  /// **'Frequency is outside aviation band (118.000 – 136.995 MHz).'**
   String get vhfRadioFreqOutOfBand;
 
   /// No description provided for @manageFavoritesTitle.
@@ -2948,11 +2948,23 @@ abstract class AppLocalizations {
   /// **'Frequency (MHz)'**
   String get manageFavoritesFreqLabel;
 
+  /// No description provided for @manageFavoritesFreqHint.
+  ///
+  /// In en, this message translates to:
+  /// **'118.000'**
+  String get manageFavoritesFreqHint;
+
   /// No description provided for @manageFavoritesNameLabel.
   ///
   /// In en, this message translates to:
   /// **'Station name'**
   String get manageFavoritesNameLabel;
+
+  /// No description provided for @manageFavoritesNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'FIR Bratislava'**
+  String get manageFavoritesNameHint;
 
   /// No description provided for @manageFavoritesAddToList.
   ///

@@ -9,6 +9,7 @@ import '../../../utils/openaip_enums.dart';
 import 'base_details_dialog.dart';
 import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
+import 'package:stork/features/telemetry/presentation/utils/vhf_radio_frequency.dart';
 
 class AirspaceDetailsDialog extends StatelessWidget {
   final List<dynamic> features;
@@ -549,7 +550,7 @@ class AirspaceDetailCard extends ConsumerWidget {
                           if (btnFreqKhz == null) return;
                           final freqKhz = btnFreqKhz;
 
-                          if (freqKhz < 118000 || freqKhz > 136995) {
+                          if (!isVhfRadioFrequencyInBand(freqKhz)) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(l10n.vhfRadioFreqOutOfBand),

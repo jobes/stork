@@ -630,8 +630,8 @@
     }
   },
   "vhfRadioSaveChange": "Uložiť zmenu",
-  "vhfRadioErrorActiveFreq": "Aktívna frekvencia musí byť platná letecká frekvencia (118.000 \u2013 136.975 MHz).",
-  "vhfRadioErrorStandbyFreq": "Standby frekvencia musí byť platná letecká frekvencia (118.000 \u2013 136.975 MHz).",
+  "vhfRadioErrorActiveFreq": "Aktívna frekvencia musí byť platná letecká frekvencia (118.000 \u2013 136.995 MHz).",
+  "vhfRadioErrorStandbyFreq": "Standby frekvencia musí byť platná letecká frekvencia (118.000 \u2013 136.995 MHz).",
   "vhfRadioErrorTimeout": "DroneCAN neodpovedal na požiadavku {action} (timeout 1 s).",
   "@vhfRadioErrorTimeout": {
     "placeholders": {
@@ -663,11 +663,13 @@
       "status": { "type": "int" }
     }
   },
-  "vhfRadioFreqOutOfBand": "Frekvencia je mimo leteckého pásma (118.000 - 136.995 MHz)",
+  "vhfRadioFreqOutOfBand": "Frekvencia je mimo leteckého pásma (118.000 \u2013 136.995 MHz).",
   "manageFavoritesTitle": "Spravovať obľúbené",
   "manageFavoritesAddNew": "Pridať novú frekvenciu",
   "manageFavoritesFreqLabel": "Frekvencia (MHz)",
+  "manageFavoritesFreqHint": "118.000",
   "manageFavoritesNameLabel": "Názov stanice",
+  "manageFavoritesNameHint": "FIR Bratislava",
   "manageFavoritesAddToList": "Pridať do zoznamu",
   "manageFavoritesListTitle": "Zoznam obľúbených (potiahnutím zmeňte poradie)",
   "manageFavoritesEmpty": "Zoznam je prázdny.",

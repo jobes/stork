@@ -1,8 +1,31 @@
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stork/features/telemetry/presentation/providers/vhf_radio_controller.dart';
+import 'package:stork/features/telemetry/presentation/utils/vhf_radio_frequency.dart';
 
 part 'vhf_radio_dialog_notifier.g.dart';
+
+enum VhfRadioDialogErrorCode {
+  invalidActiveFrequency,
+  invalidStandbyFrequency,
+  invalidQuickFrequency,
+  timeout,
+  generic,
+  genericFlip,
+}
+
+enum VhfRadioDialogErrorAction {
+  activeFrequency,
+  standbyFrequency,
+  flipFrequencies,
+  dualWatch,
+  volume,
+  squelch,
+  vox,
+  intercom,
+  micGain,
+  frequency,
+}
 
 // ---------------------------------------------------------------------------
 // Immutable state
@@ -45,7 +68,10 @@ class VhfRadioDialogUiState {
 
   // UI state
   final bool isSaving;
-  final String? errorMessage;
+  final VhfRadioDialogErrorCode? errorCode;
+  final VhfRadioDialogErrorAction? errorAction;
+  final String? errorDetails;
+  final String? invalidFrequencyText;
   final bool showAudioControls;
   final bool showAdvancedMode;
 
@@ -70,7 +96,10 @@ class VhfRadioDialogUiState {
     required this.savedMicGains,
     required this.isDual,
     this.isSaving = false,
-    this.errorMessage,
+    this.errorCode,
+    this.errorAction,
+    this.errorDetails,
+    this.invalidFrequencyText,
     this.showAudioControls = false,
     this.showAdvancedMode = false,
   });
@@ -96,7 +125,10 @@ class VhfRadioDialogUiState {
     List<int>? savedMicGains,
     bool? isDual,
     bool? isSaving,
-    String? Function()? errorMessage,
+    VhfRadioDialogErrorCode? Function()? errorCode,
+    VhfRadioDialogErrorAction? Function()? errorAction,
+    String? Function()? errorDetails,
+    String? Function()? invalidFrequencyText,
     bool? showAudioControls,
     bool? showAdvancedMode,
   }) {
@@ -121,7 +153,12 @@ class VhfRadioDialogUiState {
       savedMicGains: savedMicGains ?? this.savedMicGains,
       isDual: isDual ?? this.isDual,
       isSaving: isSaving ?? this.isSaving,
-      errorMessage: errorMessage != null ? errorMessage() : this.errorMessage,
+      errorCode: errorCode != null ? errorCode() : this.errorCode,
+      errorAction: errorAction != null ? errorAction() : this.errorAction,
+      errorDetails: errorDetails != null ? errorDetails() : this.errorDetails,
+      invalidFrequencyText: invalidFrequencyText != null
+          ? invalidFrequencyText()
+          : this.invalidFrequencyText,
       showAudioControls: showAudioControls ?? this.showAudioControls,
       showAdvancedMode: showAdvancedMode ?? this.showAdvancedMode,
     );
@@ -134,6 +171,36 @@ class VhfRadioDialogUiState {
 
 @riverpod
 class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
+  void _clearErrorAndSetSaving() {
+    state = state.copyWith(
+      isSaving: true,
+      errorCode: () => null,
+      errorAction: () => null,
+      errorDetails: () => null,
+      invalidFrequencyText: () => null,
+    );
+  }
+
+  void _setTimeoutError(VhfRadioDialogErrorAction action) {
+    state = state.copyWith(
+      isSaving: false,
+      errorCode: () => VhfRadioDialogErrorCode.timeout,
+      errorAction: () => action,
+      errorDetails: () => null,
+      invalidFrequencyText: () => null,
+    );
+  }
+
+  void _setGenericError(VhfRadioDialogErrorAction action, Object error) {
+    state = state.copyWith(
+      isSaving: false,
+      errorCode: () => VhfRadioDialogErrorCode.generic,
+      errorAction: () => action,
+      errorDetails: () => error.toString(),
+      invalidFrequencyText: () => null,
+    );
+  }
+
   @override
   VhfRadioDialogUiState build(
     int nodeId,
@@ -178,31 +245,7 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
   // ---- Validation ----------------------------------------------------------
 
   static int? parseAviationFrequency(String text) {
-    if (!RegExp(r'^\d{3}\.\d{3}$').hasMatch(text.trim())) return null;
-    final double? mhz = double.tryParse(text.trim());
-    if (mhz == null) return null;
-    if (mhz < 118.000 || mhz > 136.995) return null;
-    final int totalKhzRounded = (mhz * 1000).round();
-    const Set<int> validAviationOffsets = {
-      0,
-      5,
-      10,
-      15,
-      25,
-      30,
-      35,
-      40,
-      50,
-      55,
-      60,
-      65,
-      75,
-      80,
-      85,
-      90,
-    };
-    if (!validAviationOffsets.contains(totalKhzRounded % 100)) return null;
-    return totalKhzRounded;
+    return parseVhfRadioFrequency(text);
   }
 
   // ---- UI toggles ----------------------------------------------------------
@@ -240,12 +283,14 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
     if (freqKhz == null) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: () =>
-            'Active frequency must be a valid aviation frequency (118.000 – 136.975 MHz).',
+        errorCode: () => VhfRadioDialogErrorCode.invalidActiveFrequency,
+        errorAction: () => null,
+        errorDetails: () => null,
+        invalidFrequencyText: () => null,
       );
       return;
     }
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       await ref
           .read(vhfRadioControllerProvider.notifier)
@@ -263,12 +308,11 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
         isSaving: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond to active frequency request (timeout 1 s).'
-            : 'Failed to set active frequency: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.activeFrequency);
+      } else {
+        _setGenericError(VhfRadioDialogErrorAction.activeFrequency, e);
+      }
     }
   }
 
@@ -277,12 +321,14 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
     if (freqKhz == null) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: () =>
-            'Standby frequency must be a valid aviation frequency (118.000 – 136.975 MHz).',
+        errorCode: () => VhfRadioDialogErrorCode.invalidStandbyFrequency,
+        errorAction: () => null,
+        errorDetails: () => null,
+        invalidFrequencyText: () => null,
       );
       return;
     }
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       await ref
           .read(vhfRadioControllerProvider.notifier)
@@ -300,12 +346,11 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
         isSaving: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond to standby frequency request (timeout 1 s).'
-            : 'Failed to set standby frequency: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.standbyFrequency);
+      } else {
+        _setGenericError(VhfRadioDialogErrorAction.standbyFrequency, e);
+      }
     }
   }
 
@@ -315,7 +360,7 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
     required String currentStandbyText,
     required String currentStandbyName,
   }) async {
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       await ref
           .read(vhfRadioControllerProvider.notifier)
@@ -333,107 +378,107 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
         isSaving: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond to flip request (timeout 1 s).'
-            : 'Flip failed: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.flipFrequencies);
+      } else {
+        state = state.copyWith(
+          isSaving: false,
+          errorCode: () => VhfRadioDialogErrorCode.genericFlip,
+          errorAction: () => null,
+          errorDetails: () => e.toString(),
+          invalidFrequencyText: () => null,
+        );
+      }
     }
   }
 
   Future<void> toggleDualWatch(bool val) async {
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       await ref
           .read(vhfRadioControllerProvider.notifier)
           .toggleDualWatch(nodeId: nodeId, radioInstance: radioInstance);
       state = state.copyWith(isDual: val, isSaving: false);
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond to Dual Watch request (timeout 1 s).'
-            : 'Dual Watch failed: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.dualWatch);
+      } else {
+        _setGenericError(VhfRadioDialogErrorAction.dualWatch, e);
+      }
     }
   }
 
   Future<void> saveVolume() async {
     final target = state.volume.round();
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       await ref
           .read(vhfRadioControllerProvider.notifier)
           .setVolume(nodeId, radioInstance, target);
       state = state.copyWith(savedVolume: target, isSaving: false);
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond to volume change (timeout 1 s).'
-            : 'Failed to save volume: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.volume);
+      } else {
+        _setGenericError(VhfRadioDialogErrorAction.volume, e);
+      }
     }
   }
 
   Future<void> saveSquelch() async {
     final target = state.squelch.round();
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       await ref
           .read(vhfRadioControllerProvider.notifier)
           .setSquelch(nodeId, radioInstance, target);
       state = state.copyWith(savedSquelch: target, isSaving: false);
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond to squelch change (timeout 1 s).'
-            : 'Failed to save squelch: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.squelch);
+      } else {
+        _setGenericError(VhfRadioDialogErrorAction.squelch, e);
+      }
     }
   }
 
   Future<void> saveVox() async {
     final target = state.vox.round();
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       await ref
           .read(vhfRadioControllerProvider.notifier)
           .setVox(nodeId, radioInstance, target);
       state = state.copyWith(savedVox: target, isSaving: false);
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond to VOX change (timeout 1 s).'
-            : 'Failed to save VOX: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.vox);
+      } else {
+        _setGenericError(VhfRadioDialogErrorAction.vox, e);
+      }
     }
   }
 
   Future<void> saveIntercom() async {
     final target = state.intercom.round();
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       await ref
           .read(vhfRadioControllerProvider.notifier)
           .setIntercom(nodeId, radioInstance, target);
       state = state.copyWith(savedIntercom: target, isSaving: false);
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond to intercom change (timeout 1 s).'
-            : 'Failed to save intercom: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.intercom);
+      } else {
+        _setGenericError(VhfRadioDialogErrorAction.intercom, e);
+      }
     }
   }
 
   Future<void> saveMicGain(int index) async {
     final target = state.micGains[index].round();
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       await ref
           .read(vhfRadioControllerProvider.notifier)
@@ -442,12 +487,11 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
       updated[index] = target;
       state = state.copyWith(savedMicGains: updated, isSaving: false);
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond to mic gain change (timeout 1 s).'
-            : 'Failed to save mic gain: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.micGain);
+      } else {
+        _setGenericError(VhfRadioDialogErrorAction.micGain, e);
+      }
     }
   }
 
@@ -457,11 +501,14 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
     if (freqKhz == null) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: () => 'Frequency $freqStr MHz is not valid.',
+        errorCode: () => VhfRadioDialogErrorCode.invalidQuickFrequency,
+        errorAction: () => null,
+        errorDetails: () => null,
+        invalidFrequencyText: () => freqStr,
       );
       return;
     }
-    state = state.copyWith(isSaving: true, errorMessage: () => null);
+    _clearErrorAndSetSaving();
     try {
       if (isActive) {
         await ref
@@ -497,12 +544,11 @@ class VhfRadioDialogNotifier extends _$VhfRadioDialogNotifier {
         );
       }
     } catch (e) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: () => e is TimeoutException
-            ? 'DroneCAN did not respond (timeout 1 s).'
-            : 'Failed to set frequency: ${e.toString()}',
-      );
+      if (e is TimeoutException) {
+        _setTimeoutError(VhfRadioDialogErrorAction.frequency);
+      } else {
+        _setGenericError(VhfRadioDialogErrorAction.frequency, e);
+      }
     }
   }
 }

@@ -1479,11 +1479,11 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get vhfRadioErrorActiveFreq =>
-      'Aktívna frekvencia musí byť platná letecká frekvencia (118.000 – 136.975 MHz).';
+      'Aktívna frekvencia musí byť platná letecká frekvencia (118.000 – 136.995 MHz).';
 
   @override
   String get vhfRadioErrorStandbyFreq =>
-      'Standby frekvencia musí byť platná letecká frekvencia (118.000 – 136.975 MHz).';
+      'Standby frekvencia musí byť platná letecká frekvencia (118.000 – 136.995 MHz).';
 
   @override
   String vhfRadioErrorTimeout(String action) {
@@ -1512,7 +1512,7 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get vhfRadioFreqOutOfBand =>
-      'Frekvencia je mimo leteckého pásma (118.000 - 136.995 MHz)';
+      'Frekvencia je mimo leteckého pásma (118.000 – 136.995 MHz).';
 
   @override
   String get manageFavoritesTitle => 'Spravovať obľúbené';
@@ -1524,7 +1524,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String get manageFavoritesFreqLabel => 'Frekvencia (MHz)';
 
   @override
+  String get manageFavoritesFreqHint => '118.000';
+
+  @override
   String get manageFavoritesNameLabel => 'Názov stanice';
+
+  @override
+  String get manageFavoritesNameHint => 'FIR Bratislava';
 
   @override
   String get manageFavoritesAddToList => 'Pridať do zoznamu';

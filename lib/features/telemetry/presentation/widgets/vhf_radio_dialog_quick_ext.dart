@@ -9,6 +9,7 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
     final nearbyAsync = ref.watch(nearbyFrequenciesProvider);
 
     final l10n = AppLocalizations.of(context)!;
+    final errorText = _resolveErrorMessage(context, uiState);
     return BaseDetailsDialog(
       titleText: l10n.vhfRadioTitle(widget.radioInstance + 1),
       icon: Icons.radio,
@@ -20,7 +21,7 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (uiState.errorMessage != null)
+                if (errorText != null)
                   Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(8),
@@ -33,7 +34,7 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                       ),
                     ),
                     child: Text(
-                      uiState.errorMessage!,
+                      errorText,
                       style: const TextStyle(
                         color: Colors.redAccent,
                         fontSize: 13,
@@ -246,7 +247,7 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12.0),
                       child: Text(
-                        'Error: $err',
+                        '${l10n.errorPrefix}: $err',
                         style: const TextStyle(color: Colors.red, fontSize: 12),
                       ),
                     ),
@@ -314,7 +315,8 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                       ),
                     ),
                   ),
-                  error: (err, stack) => Text('Error: $err'),
+                  error: (err, stack) =>
+                      Text(l10n.manageFavoritesLoadError(err.toString())),
                 ),
 
                 const Divider(height: 16),
@@ -346,7 +348,7 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                           : '${(distance / 1000.0).toStringAsFixed(1)} km';
                       final displayLabel = '${asp.name} ($distanceStr)';
 
-                      final freqs = asp.frequencies!
+                      final freqs = (asp.frequencies ?? const [])
                           .map((f) {
                             final val = double.tryParse(f.value) ?? 0.0;
                             return _FrequencyInfo(val, asp.name);

@@ -93,9 +93,11 @@ class AirspaceMetadata {
       onDemand: json['onDemand'] as bool?,
       onRequest: json['onRequest'] as bool?,
       frequencies: (json['frequencies'] as List<dynamic>?)
-          ?.map(
-            (f) =>
-                AirspaceFrequency.fromJson(Map<String, Object?>.from(f as Map)),
+          ?.whereType<Map>()
+          .map(
+            (f) => AirspaceFrequency.fromJson(
+              f is Map<String, Object?> ? f : Map<String, Object?>.from(f),
+            ),
           )
           .toList(),
       geometry: json['geometry'] != null

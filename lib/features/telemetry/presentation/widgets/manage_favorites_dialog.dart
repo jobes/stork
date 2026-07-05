@@ -126,7 +126,7 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                         ),
                         decoration: InputDecoration(
                           labelText: l10n.manageFavoritesFreqLabel,
-                          hintText: '118.000',
+                          hintText: l10n.manageFavoritesFreqHint,
                           border: const OutlineInputBorder(),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -147,7 +147,7 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                         controller: _nameController,
                         decoration: InputDecoration(
                           labelText: l10n.manageFavoritesNameLabel,
-                          hintText: 'FIR Bratislava',
+                          hintText: l10n.manageFavoritesNameHint,
                           border: const OutlineInputBorder(),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10,

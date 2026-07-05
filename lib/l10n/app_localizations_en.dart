@@ -1477,11 +1477,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vhfRadioErrorActiveFreq =>
-      'Active frequency must be a valid aviation frequency (118.000 – 136.975 MHz).';
+      'Active frequency must be a valid aviation frequency (118.000 – 136.995 MHz).';
 
   @override
   String get vhfRadioErrorStandbyFreq =>
-      'Standby frequency must be a valid aviation frequency (118.000 – 136.975 MHz).';
+      'Standby frequency must be a valid aviation frequency (118.000 – 136.995 MHz).';
 
   @override
   String vhfRadioErrorTimeout(String action) {
@@ -1510,7 +1510,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vhfRadioFreqOutOfBand =>
-      'Frequency is outside aviation band (118.000 - 136.995 MHz)';
+      'Frequency is outside aviation band (118.000 – 136.995 MHz).';
 
   @override
   String get manageFavoritesTitle => 'Manage Favourites';
@@ -1522,7 +1522,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageFavoritesFreqLabel => 'Frequency (MHz)';
 
   @override
+  String get manageFavoritesFreqHint => '118.000';
+
+  @override
   String get manageFavoritesNameLabel => 'Station name';
+
+  @override
+  String get manageFavoritesNameHint => 'FIR Bratislava';
 
   @override
   String get manageFavoritesAddToList => 'Add to list';

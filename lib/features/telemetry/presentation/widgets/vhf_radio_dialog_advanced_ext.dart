@@ -20,6 +20,7 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
         VhfRadioDialogNotifier.parseAviationFrequency(standbyText) != null;
 
     final l10n = AppLocalizations.of(context)!;
+    final errorText = _resolveErrorMessage(context, uiState);
     return BaseDetailsDialog(
       titleText: l10n.vhfRadioTitle(widget.radioInstance + 1),
       icon: Icons.radio,
@@ -42,7 +43,7 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (uiState.errorMessage != null)
+                if (errorText != null)
                   Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(8),
@@ -55,7 +56,7 @@ extension _VhfRadioDialogAdvancedExt on _VhfRadioDialogState {
                       ),
                     ),
                     child: Text(
-                      uiState.errorMessage!,
+                      errorText,
                       style: const TextStyle(
                         color: Colors.redAccent,
                         fontSize: 13,

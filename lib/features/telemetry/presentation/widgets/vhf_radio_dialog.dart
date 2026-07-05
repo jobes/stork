@@ -67,6 +67,7 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
   late final TextEditingController _activeNameController;
   late final TextEditingController _standbyController;
   late final TextEditingController _standbyNameController;
+  late final ProviderSubscription<VhfRadioDialogUiState> _providerSubscription;
 
   // Cached provider instance — avoids reconstructing the named-parameter record
   // (i.e. the family argument tuple) on every _notifier access, ref.watch call,
@@ -74,6 +75,56 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
   late final VhfRadioDialogNotifierProvider _provider;
 
   VhfRadioDialogNotifier get _notifier => ref.read(_provider.notifier);
+
+  String? _resolveErrorMessage(
+    BuildContext context,
+    VhfRadioDialogUiState uiState,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final code = uiState.errorCode;
+    if (code == null) {
+      return null;
+    }
+
+    return switch (code) {
+      VhfRadioDialogErrorCode.invalidActiveFrequency =>
+        l10n.vhfRadioErrorActiveFreq,
+      VhfRadioDialogErrorCode.invalidStandbyFrequency =>
+        l10n.vhfRadioErrorStandbyFreq,
+      VhfRadioDialogErrorCode.invalidQuickFrequency =>
+        l10n.vhfRadioErrorInvalidFreq(uiState.invalidFrequencyText ?? ''),
+      VhfRadioDialogErrorCode.timeout => l10n.vhfRadioErrorTimeout(
+        _localizedErrorAction(l10n, uiState.errorAction),
+      ),
+      VhfRadioDialogErrorCode.generic => l10n.vhfRadioErrorGeneric(
+        _localizedErrorAction(l10n, uiState.errorAction),
+        uiState.errorDetails ?? '',
+      ),
+      VhfRadioDialogErrorCode.genericFlip => l10n.vhfRadioErrorFlip(
+        uiState.errorDetails ?? '',
+      ),
+    };
+  }
+
+  String _localizedErrorAction(
+    AppLocalizations l10n,
+    VhfRadioDialogErrorAction? action,
+  ) {
+    return switch (action) {
+      VhfRadioDialogErrorAction.activeFrequency => l10n.vhfRadioActiveFreqLabel,
+      VhfRadioDialogErrorAction.standbyFrequency =>
+        l10n.vhfRadioStandbyFreqLabel,
+      VhfRadioDialogErrorAction.flipFrequencies => l10n.vhfRadioSwapTooltip,
+      VhfRadioDialogErrorAction.dualWatch => l10n.vhfRadioDualWatch,
+      VhfRadioDialogErrorAction.volume => l10n.vhfRadioVolume,
+      VhfRadioDialogErrorAction.squelch => l10n.vhfRadioSquelch,
+      VhfRadioDialogErrorAction.vox => l10n.vhfRadioVox,
+      VhfRadioDialogErrorAction.intercom => l10n.vhfRadioIntercom,
+      VhfRadioDialogErrorAction.micGain => l10n.vhfRadioMicrophonesGain,
+      VhfRadioDialogErrorAction.frequency => l10n.vhfRadioNearbyFrequencies,
+      null => l10n.errorPrefix,
+    };
+  }
 
   @override
   void initState() {
@@ -118,7 +169,7 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
     // freq/name fields (flip, quick-set from the list). Only update when the
     // value actually differs to avoid disrupting cursor position during typing.
     // Registered once in initState — never re-registered on subsequent rebuilds.
-    ref.listenManual(_provider, (previous, next) {
+    _providerSubscription = ref.listenManual(_provider, (previous, next) {
       if (_activeController.text != next.activeFreqText) {
         _activeController.text = next.activeFreqText;
       }
@@ -142,6 +193,7 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
     _activeNameController.removeListener(_onTextChanged);
     _standbyController.removeListener(_onTextChanged);
     _standbyNameController.removeListener(_onTextChanged);
+    _providerSubscription.close();
     _activeController.dispose();
     _activeNameController.dispose();
     _standbyController.dispose();

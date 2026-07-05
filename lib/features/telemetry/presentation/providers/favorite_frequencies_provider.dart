@@ -25,7 +25,14 @@ class FavoriteFrequencies extends _$FavoriteFrequencies {
     }
 
     return listJson
-        .map((s) => FavoriteFrequency.fromJson(json.decode(s)))
+        .map((s) {
+          try {
+            return FavoriteFrequency.fromJson(json.decode(s));
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<FavoriteFrequency>()
         .toList();
   }
 

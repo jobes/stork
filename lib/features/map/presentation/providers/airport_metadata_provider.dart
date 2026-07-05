@@ -85,6 +85,8 @@ class AirportMetadataCache extends _$AirportMetadataCache {
     _memoryCache.clear();
     _downloadedCountries.clear();
     _inflightDownloads.clear();
+    // Invalidate all family instances so previously cached arguments refetch.
+    ref.invalidate(airportMetadataProvider);
   }
 }
 

@@ -721,8 +721,8 @@
     }
   },
   "vhfRadioSaveChange": "Save change",
-  "vhfRadioErrorActiveFreq": "Active frequency must be a valid aviation frequency (118.000 \u2013 136.975 MHz).",
-  "vhfRadioErrorStandbyFreq": "Standby frequency must be a valid aviation frequency (118.000 \u2013 136.975 MHz).",
+  "vhfRadioErrorActiveFreq": "Active frequency must be a valid aviation frequency (118.000 \u2013 136.995 MHz).",
+  "vhfRadioErrorStandbyFreq": "Standby frequency must be a valid aviation frequency (118.000 \u2013 136.995 MHz).",
   "vhfRadioErrorTimeout": "DroneCAN did not respond to {action} (timeout 1 s).",
   "@vhfRadioErrorTimeout": {
     "placeholders": {
@@ -754,11 +754,13 @@
       "status": { "type": "int" }
     }
   },
-  "vhfRadioFreqOutOfBand": "Frequency is outside aviation band (118.000 - 136.995 MHz)",
+  "vhfRadioFreqOutOfBand": "Frequency is outside aviation band (118.000 \u2013 136.995 MHz).",
   "manageFavoritesTitle": "Manage Favourites",
   "manageFavoritesAddNew": "Add new frequency",
   "manageFavoritesFreqLabel": "Frequency (MHz)",
+  "manageFavoritesFreqHint": "118.000",
   "manageFavoritesNameLabel": "Station name",
+  "manageFavoritesNameHint": "FIR Bratislava",
   "manageFavoritesAddToList": "Add to list",
   "manageFavoritesListTitle": "Favourites list (drag to reorder)",
   "manageFavoritesEmpty": "The list is empty.",
