@@ -1,5 +1,4 @@
 part of 'vhf_radio_dialog.dart';
-// ignore_for_file: invalid_use_of_protected_member
 
 extension _VhfRadioDialogAudioExt on _VhfRadioDialogState {
   Widget _buildLabeledSlider({
@@ -8,6 +7,7 @@ extension _VhfRadioDialogAudioExt on _VhfRadioDialogState {
     required ValueChanged<double> onChanged,
     required VoidCallback onSave,
     required bool isSaveEnabled,
+    required bool isSaving,
     IconData icon = Icons.volume_up,
   }) {
     return Column(
@@ -16,8 +16,12 @@ extension _VhfRadioDialogAudioExt on _VhfRadioDialogState {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-            Text("${value.round()}%", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(label,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w500, fontSize: 14)),
+            Text('${value.round()}%',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 14)),
           ],
         ),
         Row(
@@ -29,18 +33,21 @@ extension _VhfRadioDialogAudioExt on _VhfRadioDialogState {
                 min: 0,
                 max: 100,
                 divisions: 100,
-                onChanged: _isSaving ? null : onChanged,
+                onChanged: isSaving ? null : onChanged,
               ),
             ),
             IconButton(
-              icon: Icon(Icons.check_circle_outline, color: isSaveEnabled ? Colors.green : Colors.grey.shade400),
-              onPressed: (_isSaving || !isSaveEnabled) ? null : onSave,
-              tooltip: "Uložiť zmenu",
+              icon: Icon(
+                Icons.check_circle_outline,
+                color:
+                    isSaveEnabled ? Colors.green : Colors.grey.shade400,
+              ),
+              onPressed: (isSaving || !isSaveEnabled) ? null : onSave,
+              tooltip: 'Save change',
             ),
           ],
         ),
       ],
     );
   }
-
 }

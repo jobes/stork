@@ -1,5 +1,4 @@
 part of 'vhf_radio_dialog.dart';
-// ignore_for_file: invalid_use_of_protected_member
 
 extension _VhfRadioDialogListsExt on _VhfRadioDialogState {
   Widget _buildSectionHeader(String title) {
@@ -20,10 +19,11 @@ extension _VhfRadioDialogListsExt on _VhfRadioDialogState {
   Widget _buildAirportItem(String airportName, List<_FrequencyInfo> freqs) {
     if (freqs.length == 1) {
       final f = freqs.first;
-      final cleanName = f.name.contains(" ")
-          ? f.name.substring(f.name.indexOf(" ") + 1)
+      final cleanName = f.name.contains(' ')
+          ? f.name.substring(f.name.indexOf(' ') + 1)
           : f.name;
-      return _buildSimpleFrequencyRow("$airportName ($cleanName)", f.mhz, f.name);
+      return _buildSimpleFrequencyRow(
+          '$airportName ($cleanName)', f.mhz, f.name);
     }
 
     return Card(
@@ -31,7 +31,8 @@ extension _VhfRadioDialogListsExt on _VhfRadioDialogState {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
+        side: BorderSide(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -39,10 +40,12 @@ extension _VhfRadioDialogListsExt on _VhfRadioDialogState {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
               child: Text(
                 airportName,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ),
             const SizedBox(height: 4),
@@ -53,20 +56,24 @@ extension _VhfRadioDialogListsExt on _VhfRadioDialogState {
     );
   }
 
-  Widget _buildSimpleFrequencyRow(String label, double mhz, String radioName) {
+  Widget _buildSimpleFrequencyRow(
+      String label, double mhz, String radioName) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
+        side: BorderSide(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
       ),
       child: InkWell(
-        onTapUp: (details) => _showFrequencyMenu(details.globalPosition, mhz, radioName),
+        onTapUp: (details) =>
+            _showFrequencyMenu(details.globalPosition, mhz, radioName),
         onTap: () {},
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           child: Row(
             children: [
               Expanded(
@@ -75,11 +82,15 @@ extension _VhfRadioDialogListsExt on _VhfRadioDialogState {
                   children: [
                     Text(
                       label,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w500),
                     ),
                     Text(
-                      "${mhz.toStringAsFixed(3)} MHz",
-                      style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: Colors.grey),
+                      '${mhz.toStringAsFixed(3)} MHz',
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'monospace',
+                          color: Colors.grey),
                     ),
                   ],
                 ),
@@ -92,14 +103,17 @@ extension _VhfRadioDialogListsExt on _VhfRadioDialogState {
     );
   }
 
-  Widget _buildFrequencyRow(String label, double mhz, {String? nameOverride}) {
+  Widget _buildFrequencyRow(String label, double mhz,
+      {String? nameOverride}) {
     final freqStr = mhz.toStringAsFixed(3);
     final radioName = nameOverride ?? label;
     return InkWell(
-      onTapUp: (details) => _showFrequencyMenu(details.globalPosition, mhz, radioName),
+      onTapUp: (details) =>
+          _showFrequencyMenu(details.globalPosition, mhz, radioName),
       onTap: () {},
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
         child: Row(
           children: [
             Expanded(
@@ -108,11 +122,15 @@ extension _VhfRadioDialogListsExt on _VhfRadioDialogState {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w500),
                   ),
                   Text(
-                    "$freqStr MHz",
-                    style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: Colors.grey),
+                    '$freqStr MHz',
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                        color: Colors.grey),
                   ),
                 ],
               ),
@@ -123,5 +141,4 @@ extension _VhfRadioDialogListsExt on _VhfRadioDialogState {
       ),
     );
   }
-
 }

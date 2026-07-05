@@ -1,16 +1,14 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stork/features/telemetry/presentation/providers/vhf_radio_controller.dart';
 import 'package:stork/features/telemetry/presentation/providers/favorite_frequencies_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/nearby_frequencies_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/vhf_radio_dialog_notifier.dart';
 import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
 import 'package:stork/features/telemetry/presentation/widgets/manage_favorites_dialog.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 
 part 'vhf_radio_dialog_quick_ext.dart';
 part 'vhf_radio_dialog_advanced_ext.dart';
-
 part 'vhf_radio_dialog_lists_ext.dart';
 part 'vhf_radio_dialog_audio_ext.dart';
 
@@ -58,70 +56,89 @@ class VhfRadioDialog extends ConsumerStatefulWidget {
 }
 
 class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
+  // TextEditingControllers must remain in widget state because they hold
+  // Flutter-lifecycle-bound resources that require explicit dispose().
+  // The notifier (VhfRadioDialogNotifier) is the source of truth for all other
+  // state; controllers are kept in sync with the notifier via ref.listenManual
+  // so that notifier-driven changes (e.g. flip, quick-set) are reflected in the
+  // text fields.
   late final TextEditingController _activeController;
   late final TextEditingController _activeNameController;
   late final TextEditingController _standbyController;
   late final TextEditingController _standbyNameController;
-  
-  late double _volume;
-  late double _squelch;
-  late double _vox;
-  late double _intercom;
-  late List<double> _micGains;
-  late bool _isDual;
 
-  // Track currently saved values locally to determine dirty state
-  late String _savedActiveText;
-  late String _savedActiveName;
-  late String _savedStandbyText;
-  late String _savedStandbyName;
-  
-  late int _savedVolume;
-  late int _savedSquelch;
-  late int _savedVox;
-  late int _savedIntercom;
-  late List<int> _savedMicGains;
+  // Cached provider instance — avoids reconstructing the named-parameter record
+  // (i.e. the family argument tuple) on every _notifier access, ref.watch call,
+  // and ref.listenManual registration.
+  late final VhfRadioDialogNotifierProvider _provider;
 
-  bool _isSaving = false;
-  String? _errorMessage;
-  bool _showAudioControls = false;
-  bool _showAdvancedMode = false;
+  VhfRadioDialogNotifier get _notifier => ref.read(_provider.notifier);
 
   @override
   void initState() {
     super.initState();
-    _activeController = TextEditingController(text: (widget.initialActiveKhz / 1000.0).toStringAsFixed(3));
-    _activeNameController = TextEditingController(text: widget.initialActiveName);
-    _standbyController = TextEditingController(text: (widget.initialStandbyKhz / 1000.0).toStringAsFixed(3));
-    _standbyNameController = TextEditingController(text: widget.initialStandbyName);
-    
-    _volume = widget.initialVolume.toDouble();
-    _squelch = widget.initialSquelch.toDouble();
-    _vox = widget.initialVox.toDouble();
-    _intercom = widget.initialIntercom.toDouble();
-    _micGains = widget.initialMicGain.map((g) => g.toDouble()).toList();
-    _isDual = widget.initialIsDual;
 
-    _savedActiveText = (widget.initialActiveKhz / 1000.0).toStringAsFixed(3);
-    _savedActiveName = widget.initialActiveName;
-    _savedStandbyText = (widget.initialStandbyKhz / 1000.0).toStringAsFixed(3);
-    _savedStandbyName = widget.initialStandbyName;
+    _provider = vhfRadioDialogProvider(
+      widget.nodeId,
+      widget.radioInstance,
+      initialActiveKhz: widget.initialActiveKhz,
+      initialStandbyKhz: widget.initialStandbyKhz,
+      initialActiveName: widget.initialActiveName,
+      initialStandbyName: widget.initialStandbyName,
+      initialVolume: widget.initialVolume,
+      initialSquelch: widget.initialSquelch,
+      initialVox: widget.initialVox,
+      initialIntercom: widget.initialIntercom,
+      initialMicGain: widget.initialMicGain,
+      initialIsDual: widget.initialIsDual,
+    );
 
-    _savedVolume = widget.initialVolume;
-    _savedSquelch = widget.initialSquelch;
-    _savedVox = widget.initialVox;
-    _savedIntercom = widget.initialIntercom;
-    _savedMicGains = List<int>.from(widget.initialMicGain);
+    final initialActiveText =
+        (widget.initialActiveKhz / 1000.0).toStringAsFixed(3);
+    final initialStandbyText =
+        (widget.initialStandbyKhz / 1000.0).toStringAsFixed(3);
 
-    // Listen to changes on text controllers to update the green save checkmark state on keystrokes
-    _activeController.addListener(() => setState(() {}));
-    _activeNameController.addListener(() => setState(() {}));
-    _standbyController.addListener(() => setState(() {}));
-    _standbyNameController.addListener(() => setState(() {}));
+    _activeController = TextEditingController(text: initialActiveText);
+    _activeNameController =
+        TextEditingController(text: widget.initialActiveName);
+    _standbyController = TextEditingController(text: initialStandbyText);
+    _standbyNameController =
+        TextEditingController(text: widget.initialStandbyName);
+
+    // Rebuild on every text change so the "Apply" checkmark dirty state updates.
+    _activeController.addListener(_onTextChanged);
+    _activeNameController.addListener(_onTextChanged);
+    _standbyController.addListener(_onTextChanged);
+    _standbyNameController.addListener(_onTextChanged);
+
+    // Sync TextEditingControllers whenever the notifier pushes a change to the
+    // freq/name fields (flip, quick-set from the list). Only update when the
+    // value actually differs to avoid disrupting cursor position during typing.
+    // Registered once in initState — never re-registered on subsequent rebuilds.
+    ref.listenManual(_provider, (previous, next) {
+      if (_activeController.text != next.activeFreqText) {
+        _activeController.text = next.activeFreqText;
+      }
+      if (_activeNameController.text != next.activeNameText) {
+        _activeNameController.text = next.activeNameText;
+      }
+      if (_standbyController.text != next.standbyFreqText) {
+        _standbyController.text = next.standbyFreqText;
+      }
+      if (_standbyNameController.text != next.standbyNameText) {
+        _standbyNameController.text = next.standbyNameText;
+      }
+    });
   }
+
+  void _onTextChanged() => setState(() {});
 
   @override
   void dispose() {
+    _activeController.removeListener(_onTextChanged);
+    _activeNameController.removeListener(_onTextChanged);
+    _standbyController.removeListener(_onTextChanged);
+    _standbyNameController.removeListener(_onTextChanged);
     _activeController.dispose();
     _activeNameController.dispose();
     _standbyController.dispose();
@@ -129,377 +146,9 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
     super.dispose();
   }
 
-  Future<void> _quickSetFrequency(double mhz, String name, bool isActive) async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    final freqStr = mhz.toStringAsFixed(3);
-    final freqKhz = _parseAviationFrequency(freqStr);
-    if (freqKhz == null) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = "Frekvencia $freqStr MHz nie je platná.";
-      });
-      return;
-    }
-
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      if (isActive) {
-        await controller.setActiveFrequency(
-          nodeId: widget.nodeId,
-          radioInstance: widget.radioInstance,
-          frequencyKhz: freqKhz,
-          name: name,
-        );
-      } else {
-        await controller.setStandbyFrequency(
-          nodeId: widget.nodeId,
-          radioInstance: widget.radioInstance,
-          frequencyKhz: freqKhz,
-          name: name,
-        );
-      }
-      
-      setState(() {
-        if (isActive) {
-          _activeController.text = freqStr;
-          _activeNameController.text = name;
-          _savedActiveText = freqStr;
-          _savedActiveName = name;
-        } else {
-          _standbyController.text = freqStr;
-          _standbyNameController.text = name;
-          _savedStandbyText = freqStr;
-          _savedStandbyName = name;
-        }
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException
-            ? "DroneCAN neodpovedal (Timeout 1s)."
-            : "Chyba rýchleho nastavenia frekvencie: ${e.toString()}";
-      });
-    }
-  }
-
-  int? _parseAviationFrequency(String text) {
-    if (!RegExp(r'^\d{3}\.\d{3}$').hasMatch(text.trim())) return null;
-
-    final double? mhz = double.tryParse(text.trim());
-    if (mhz == null) return null;
-    if (mhz < 118.000 || mhz > 136.995) return null;
-
-    final int totalKzRounded = (mhz * 1000).round();
-    final int offset = totalKzRounded % 100;
-
-    const Set<int> validAviationOffsets = {
-      0, 5, 10, 15, 25, 30, 35, 40, 50, 55, 60, 65, 75, 80, 85, 90,
-    };
-
-    if (!validAviationOffsets.contains(offset)) {
-      return null;
-    }
-
-    return totalKzRounded;
-  }
-
-  Future<void> _flipFrequencies() async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      await controller.flipFrequencies(
-        nodeId: widget.nodeId,
-        radioInstance: widget.radioInstance,
-      );
-      
-      final tempFreq = _activeController.text;
-      _activeController.text = _standbyController.text;
-      _standbyController.text = tempFreq;
-
-      final tempName = _activeNameController.text;
-      _activeNameController.text = _standbyNameController.text;
-      _standbyNameController.text = tempName;
-
-      // Swap the saved variables too so the checkmarks react correctly
-      final tempSavedText = _savedActiveText;
-      _savedActiveText = _savedStandbyText;
-      _savedStandbyText = tempSavedText;
-
-      final tempSavedName = _savedActiveName;
-      _savedActiveName = _savedStandbyName;
-      _savedStandbyName = tempSavedName;
-
-      setState(() {
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException 
-            ? "DroneCAN neodpovedal na Flip (Timeout 1s)." 
-            : "Chyba Flip: ${e.toString()}";
-      });
-    }
-  }
-
-  Future<void> _toggleDualWatch(bool val) async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      await controller.toggleDualWatch(
-        nodeId: widget.nodeId,
-        radioInstance: widget.radioInstance,
-      );
-
-      setState(() {
-        _isDual = val;
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException
-            ? "DroneCAN neodpovedal na Dual Watch (Timeout 1s)."
-            : "Chyba Dual Watch: ${e.toString()}";
-      });
-    }
-  }
-
-  Future<void> _saveActive() async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    final activeKhz = _parseAviationFrequency(_activeController.text);
-    if (activeKhz == null) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = "Aktívna frekvencia musí byť platná letecká frekvencia (118.000 - 136.975 MHz).";
-      });
-      return;
-    }
-
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      await controller.setActiveFrequency(
-        nodeId: widget.nodeId,
-        radioInstance: widget.radioInstance,
-        frequencyKhz: activeKhz,
-        name: _activeNameController.text,
-      );
-      setState(() {
-        _savedActiveText = _activeController.text.trim();
-        _savedActiveName = _activeNameController.text;
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException 
-            ? "DroneCAN neodpovedal na aktívnu frekvenciu (Timeout 1s)." 
-            : "Chyba uloženia aktívnej frekvencie: ${e.toString()}";
-      });
-    }
-  }
-
-  Future<void> _saveStandby() async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    final standbyKhz = _parseAviationFrequency(_standbyController.text);
-    if (standbyKhz == null) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = "Standby frekvencia musí byť platná letecká frekvencia (118.000 - 136.975 MHz).";
-      });
-      return;
-    }
-
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      await controller.setStandbyFrequency(
-        nodeId: widget.nodeId,
-        radioInstance: widget.radioInstance,
-        frequencyKhz: standbyKhz,
-        name: _standbyNameController.text,
-      );
-      setState(() {
-        _savedStandbyText = _standbyController.text.trim();
-        _savedStandbyName = _standbyNameController.text;
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException 
-            ? "DroneCAN neodpovedal na standby frekvenciu (Timeout 1s)." 
-            : "Chyba uloženia standby frekvencie: ${e.toString()}";
-      });
-    }
-  }
-
-  Future<void> _saveVolume() async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    final targetVol = _volume.round();
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      await controller.setVolume(
-        widget.nodeId,
-        widget.radioInstance,
-        targetVol,
-      );
-      setState(() {
-        _savedVolume = targetVol;
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException 
-            ? "DroneCAN neodpovedal na zmenu hlasitosti (Timeout 1s)." 
-            : "Chyba uloženia hlasitosti: ${e.toString()}";
-      });
-    }
-  }
-
-  Future<void> _saveSquelch() async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    final targetSquelch = _squelch.round();
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      await controller.setSquelch(
-        widget.nodeId,
-        widget.radioInstance,
-        targetSquelch,
-      );
-      setState(() {
-        _savedSquelch = targetSquelch;
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException 
-            ? "DroneCAN neodpovedal na squelch (Timeout 1s)." 
-            : "Chyba uloženia squelch: ${e.toString()}";
-      });
-    }
-  }
-
-  Future<void> _saveVox() async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    final targetVox = _vox.round();
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      await controller.setVox(
-        widget.nodeId,
-        widget.radioInstance,
-        targetVox,
-      );
-      setState(() {
-        _savedVox = targetVox;
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException 
-            ? "DroneCAN neodpovedal na VOX (Timeout 1s)." 
-            : "Chyba uloženia VOX: ${e.toString()}";
-      });
-    }
-  }
-
-  Future<void> _saveIntercom() async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    final targetIntercom = _intercom.round();
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      await controller.setIntercom(
-        widget.nodeId,
-        widget.radioInstance,
-        targetIntercom,
-      );
-      setState(() {
-        _savedIntercom = targetIntercom;
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException 
-            ? "DroneCAN neodpovedal na intercom (Timeout 1s)." 
-            : "Chyba uloženia intercomu: ${e.toString()}";
-      });
-    }
-  }
-
-  Future<void> _saveMicGain(int index) async {
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
-
-    final targetGain = _micGains[index].round();
-    try {
-      final controller = ref.read(vhfRadioControllerProvider.notifier);
-      await controller.setMicGain(
-        widget.nodeId,
-        widget.radioInstance,
-        index,
-        targetGain,
-      );
-      setState(() {
-        _savedMicGains[index] = targetGain;
-        _isSaving = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _errorMessage = e is TimeoutException 
-            ? "DroneCAN neodpovedal na mic gain (Timeout 1s)." 
-            : "Chyba uloženia mic gain: ${e.toString()}";
-      });
-    }
-  }
-
-
-
   // Delegates the frequency selection menu to RadioPopupUtil, which reads the current
   // radio state directly from telemetryProvider. After the user picks an option,
-  // _quickSetFrequency is called to keep the local dialog snapshot consistent.
+  // the notifier's quickSetFrequency is called to keep the dialog snapshot consistent.
   void _showFrequencyMenu(Offset globalPosition, double mhz, String name) {
     RadioPopupUtil.showRadioMenu(
       context: context,
@@ -507,21 +156,21 @@ class _VhfRadioDialogState extends ConsumerState<VhfRadioDialog> {
       globalPosition: globalPosition,
       mhz: mhz,
       radioName: name,
-      onFrequencySet: (isActive) => _quickSetFrequency(mhz, name, isActive),
+      onFrequencySet: (isActive) =>
+          _notifier.quickSetFrequency(mhz, name, isActive),
     );
   }
 
-
-
-
   @override
   Widget build(BuildContext context) {
-    if (!_showAdvancedMode) {
-      return _buildQuickContent(context);
+    final uiState = ref.watch(_provider);
+    if (!uiState.showAdvancedMode) {
+      return _buildQuickContent(context, uiState);
     }
-    return _buildAdvancedContent(context);
+    return _buildAdvancedContent(context, uiState);
   }
 }
+
 class _FrequencyInfo {
   final double mhz;
   final String name;
