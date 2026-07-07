@@ -49,6 +49,10 @@ class CannelloniService extends _$CannelloniService {
   Timer? _nodeStatusTimer;
   Timer? _txTimer;
 
+  DateTime? _lastDataReceivedTime;
+  bool _isDiscovered = true;
+  Timer? _disconnectTimer;
+
   final Map<String, PendingRequest> _pendingRequests = {};
 
   @override
@@ -135,9 +139,32 @@ class CannelloniService extends _$CannelloniService {
 
       final discoveredDevices = devicesAsync.value ?? [];
       final isDiscovered = discoveredDevices.any((d) => d == device);
+      _isDiscovered = isDiscovered;
 
       if (!isDiscovered) {
-        _disconnect();
+        final now = DateTime.now();
+        final lastData = _lastDataReceivedTime;
+        if (_socket != null &&
+            lastData != null &&
+            now.difference(lastData) < const Duration(milliseconds: 1500)) {
+          final remaining = const Duration(milliseconds: 1500) - now.difference(lastData);
+          _disconnectTimer?.cancel();
+          _disconnectTimer = Timer(remaining, () {
+            debugPrint(
+              'CannelloniService: No data received for 1500ms after mDNS became unavailable. Disconnecting...',
+            );
+            _disconnect();
+          });
+        } else {
+          _disconnect();
+        }
+        return;
+      } else {
+        _disconnectTimer?.cancel();
+        _disconnectTimer = null;
+      }
+
+      if (_socket != null && device.ip == _lastIp && device.port == _lastPort) {
         return;
       }
 
@@ -174,9 +201,26 @@ class CannelloniService extends _$CannelloniService {
     _lastIp = null;
     _lastPort = null;
 
+    _disconnectTimer?.cancel();
+    _disconnectTimer = null;
+    _lastDataReceivedTime = null;
+    _isDiscovered = true;
+
     // Clear DroneCAN and remove Node ID (0 is anonymous)
     _canard?.storkCanardInit(0);
     state = false;
+  }
+
+  void _resetDisconnectTimerIfNeeded() {
+    if (!_isDiscovered && _socket != null) {
+      _disconnectTimer?.cancel();
+      _disconnectTimer = Timer(const Duration(milliseconds: 1500), () {
+        debugPrint(
+          'CannelloniService: No data received for 1500ms while mDNS is unavailable. Disconnecting...',
+        );
+        _disconnect();
+      });
+    }
   }
 
   void _listenToSocket() {
@@ -188,6 +232,9 @@ class CannelloniService extends _$CannelloniService {
               datagram.data.isNotEmpty &&
               _canard != null &&
               _packetDataBuffer != null) {
+            _lastDataReceivedTime = DateTime.now();
+            _resetDisconnectTimerIfNeeded();
+
             final data = datagram.data;
             final len = data.length;
             final copyLen = len > 4096 ? 4096 : len;
@@ -583,6 +630,22 @@ class CannelloniService extends _$CannelloniService {
   @visibleForTesting
   Future<Uint8List> loadOrGenerateUniqueIdForTesting() =>
       _loadOrGenerateUniqueId();
+
+  @visibleForTesting
+  RawDatagramSocket? get socketForTesting => _socket;
+  @visibleForTesting
+  set socketForTesting(RawDatagramSocket? val) => _socket = val;
+
+  @visibleForTesting
+  DateTime? get lastDataReceivedTimeForTesting => _lastDataReceivedTime;
+  @visibleForTesting
+  set lastDataReceivedTimeForTesting(DateTime? val) => _lastDataReceivedTime = val;
+
+  @visibleForTesting
+  Timer? get disconnectTimerForTesting => _disconnectTimer;
+
+  @visibleForTesting
+  void updateConnectionForTesting() => _updateConnection();
 }
 
 @pragma('vm:entry-point')
