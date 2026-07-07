@@ -56,8 +56,12 @@ class EgtTelemetryWidget extends ConsumerWidget {
     final double maxVisualK = settings?.egtMaxRange ?? 1223.15; // 950 °C
     final double minVisualK = thresholds.inactiveMax ?? 423.15; // 150 °C
 
+    final isEgtSupported = ref.watch(
+      telemetryProvider.select((t) => t.isEgtSupported),
+    );
+
     final egts = exhaustGasTemperatures;
-    if (egts.isEmpty) {
+    if (!isEgtSupported || egts.isEmpty) {
       return const SizedBox.shrink();
     }
 

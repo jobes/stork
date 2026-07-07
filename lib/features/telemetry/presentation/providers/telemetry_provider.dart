@@ -427,6 +427,10 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       isOilPressureSupported:
           state.isOilPressureSupported || oilPressure != null,
       isEngineRpmSupported: true,
+      isChtSupported: state.isChtSupported ||
+          cylinderHeadTemperatures.any((t) => t != null && !t.isNaN),
+      isEgtSupported: state.isEgtSupported ||
+          exhaustGasTemperatures.any((t) => t != null && !t.isNaN),
       cylinderHeadTemperatures: TelemetryValue(cylinderHeadTemperatures),
       exhaustGasTemperatures: TelemetryValue(exhaustGasTemperatures),
     );

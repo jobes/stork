@@ -79,10 +79,10 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
       telemetryProvider.select((t) => t.isOilPressureSupported),
     );
     final hasCylinderTemp = ref.watch(
-      telemetryProvider.select((t) => t.cylinderHeadTemperatures.isNotEmpty),
+      telemetryProvider.select((t) => t.isChtSupported),
     );
     final hasEgt = ref.watch(
-      telemetryProvider.select((t) => t.exhaustGasTemperatures.isNotEmpty),
+      telemetryProvider.select((t) => t.isEgtSupported),
     );
     final isFuelSupported = ref.watch(
       telemetryProvider.select((t) => t.isFuelSupported),

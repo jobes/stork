@@ -154,6 +154,8 @@ class TelemetryState {
   final bool isOilTempSupported;
   final bool isOilPressureSupported;
   final bool isEngineRpmSupported;
+  final bool isChtSupported;
+  final bool isEgtSupported;
 
   /// CHT per cylinder, in Kelvin (null = no sensor for that cylinder, empty list = no data).
   final List<double?> cylinderHeadTemperatures;
@@ -200,6 +202,8 @@ class TelemetryState {
     this.isOilTempSupported = false,
     this.isOilPressureSupported = false,
     this.isEngineRpmSupported = false,
+    this.isChtSupported = false,
+    this.isEgtSupported = false,
     this.cylinderHeadTemperatures = const [],
     this.exhaustGasTemperatures = const [],
     this.isGpsDroneCan = false,
@@ -422,6 +426,8 @@ class TelemetryState {
     bool? isOilTempSupported,
     bool? isOilPressureSupported,
     bool? isEngineRpmSupported,
+    bool? isChtSupported,
+    bool? isEgtSupported,
     TelemetryValue<List<double?>>? cylinderHeadTemperatures,
     TelemetryValue<List<double?>>? exhaustGasTemperatures,
     bool? isGpsDroneCan,
@@ -475,6 +481,8 @@ class TelemetryState {
       isOilPressureSupported:
           isOilPressureSupported ?? this.isOilPressureSupported,
       isEngineRpmSupported: isEngineRpmSupported ?? this.isEngineRpmSupported,
+      isChtSupported: isChtSupported ?? this.isChtSupported,
+      isEgtSupported: isEgtSupported ?? this.isEgtSupported,
       cylinderHeadTemperatures: cylinderHeadTemperatures != null
           ? cylinderHeadTemperatures.value
           : this.cylinderHeadTemperatures,
@@ -554,6 +562,8 @@ class TelemetryState {
       isOilTempSupported: isOilTempSupported,
       isOilPressureSupported: isOilPressureSupported,
       isEngineRpmSupported: isEngineRpmSupported,
+      isChtSupported: isChtSupported,
+      isEgtSupported: isEgtSupported,
       cylinderHeadTemperatures: field == TelemetryField.cylinderHeadTemperature
           ? List<double?>.filled(cylinderHeadTemperatures.length, null)
           : cylinderHeadTemperatures,
