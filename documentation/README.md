@@ -47,6 +47,8 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Covers pilot and aircraft profile structures, CRUD repositories, JSON-based persistence, SQL time-based statistics calculations, optional PIN security, and dashboard integration.*
 *   [Engine Telemetry and Health Monitoring](features/engine-telemetry.md)
     *   *Details DroneCAN-based ICE (Internal Combustion Engine) monitoring, including RPM, fuel tank status, oil pressure/temperature, CHT, EGT, dynamic overlay widgets, custom segmented gauges, and threshold alarm logic.*
+*   [Airspeed Telemetry (IAS)](features/airspeed-telemetry.md)
+    *   *Documents the DroneCAN IndicatedAirspeed message (ID 1021), half-precision float16 DSDL parsing, telemetry decay safety with 1-second timeout, is-flying detection integration, and speed unit conversion.*
 *   [VHF Radio Control and Monitoring](features/vhf-radio.md)
     *   *Describes the VHF radio DroneCAN protocol (FastStatus, FullStatus, Control service), the interactive radio control dialog with quick/advanced modes, the map overlay telemetry widget, nearby frequency discovery, and persistent favorite frequencies management.*
 *   [Variometer (Vertical Speed Indicator)](features/vario.md)

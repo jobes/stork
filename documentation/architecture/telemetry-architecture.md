@@ -109,6 +109,7 @@ During startup, `CannelloniService` loads the native library and performs three 
 | **`Fix2`** | `1063` | `0xCA41E7000F37435F` | Decodes high-accuracy GPS/GNSS telemetry data (latitude, longitude, heading, ground speed, altitude, satellite count, accuracy). |
 | **`IceStatus`** | `1120` | `0xD38AA3EE75537EC6` | Decodes engine status, including oil temp/pressure, coolant temp, fuel rates, CHTs, and EGTs. |
 | **`FuelTankStatus`** | `1129` | `0x286B4A387BA84BC4` | Decodes fuel tank levels, volumes, consumption rates, and temperatures. |
+| **`IndicatedAirspeed`** | `1021` | `0x0A1892D72AB8945F` | Decodes indicated airspeed (IAS) from pitot-static system — feeds `indicatedAirSpeed` telemetry field. |
 | **`StorkEngineRpm`** | `20120` | `0xD8CD8D1076CA4884` | Decodes custom engine speed (RPM), load, throttle position, and ECU index. |
 | **`VhfRadioFastStatus`** | `20122` | `0x5C070F2D19DBC8F1` | Fast VHF radio status — TX/RX/DUAL/Error flag bits. |
 | **`VhfRadioFullStatus`** | `20123` | `0x77FF345C05600F4F` | Full VHF radio status — active/standby frequencies (kHz), station names, volume, squelch, VOX, intercom, microphone gains. |

@@ -617,6 +617,10 @@ class CannelloniService extends _$CannelloniService {
     ref.read(telemetryProvider.notifier).updateEngineRPM(msg.engineSpeedRpm);
   }
 
+  void _updateTelemetryIndicatedAirspeed(IndicatedAirspeed msg) {
+    ref.read(telemetryProvider.notifier).updateAirSpeed(msg.indicatedAirspeed);
+  }
+
   void _updateTelemetryVhfRadioFullStatus(
     VhfRadioFullStatus msg,
     int sourceNodeId,
@@ -767,6 +771,9 @@ void _storkCanardTransferCallback(
     } else if (dataTypeId == StorkEngineRpm.messageId) {
       final rpmMsg = StorkEngineRpm.fromPayload(payloadBytes);
       _activeInstance!._updateTelemetryStorkEngineRpm(rpmMsg);
+    } else if (dataTypeId == IndicatedAirspeed.messageId) {
+      final iasMsg = IndicatedAirspeed.fromPayload(payloadBytes);
+      _activeInstance!._updateTelemetryIndicatedAirspeed(iasMsg);
     } else if (dataTypeId == VhfRadioFullStatus.messageId) {
       final radioFullMsg = VhfRadioFullStatus.fromPayload(payloadBytes);
       _activeInstance!._updateTelemetryVhfRadioFullStatus(
@@ -820,6 +827,10 @@ int _storkCanardShouldAcceptCallback(
       }
       if (dataTypeId == StorkEngineRpm.messageId) {
         outDataTypeSignature.value = StorkEngineRpm.messageSignature;
+        return 1;
+      }
+      if (dataTypeId == IndicatedAirspeed.messageId) {
+        outDataTypeSignature.value = IndicatedAirspeed.messageSignature;
         return 1;
       }
       if (dataTypeId == VhfRadioFullStatus.messageId) {
