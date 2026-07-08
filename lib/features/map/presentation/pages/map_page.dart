@@ -185,7 +185,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 150.0,
                 const AltitudeTelemetryWidget(),
               ),
-              buildWidget('vario_widget', 120.0, const VarioTelemetryWidget()),
+              buildWidget('vario_widget', 150.0, const VarioTelemetryWidget()),
               buildWidget(
                 'flight_time_widget',
                 150.0,

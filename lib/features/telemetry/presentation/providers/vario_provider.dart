@@ -267,9 +267,10 @@ class VarioNotifier extends _$VarioNotifier {
     _timer?.cancel();
     _timer = null;
     _samples.clear();
-    _gpsSamples.clear();
-    _lastGpsVarioTime = null;
-    _hasFilteredVario = false;
-    _lastFilterUpdate = null;
+    // GPS samples, EMA state, and last-GPS-time are preserved here so that
+    // _computeGpsVario (called right after _stopTimer in the GPS fallback
+    // path) can continue accumulating samples with EMA continuity.
+    // Full reset of all fields is done explicitly in the none-state branch
+    // of _onTelemetryChanged.
   }
 }

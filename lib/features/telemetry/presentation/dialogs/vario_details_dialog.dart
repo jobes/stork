@@ -18,48 +18,29 @@ class VarioDetailsDialog extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Source info
-    String sourceText = l10n.varioSourceNone;
-    IconData sourceIcon = Icons.report_problem_outlined;
-    Color sourceColor = Colors.grey;
+    // Source info — switch expression returning a record
+    final (sourceText, sourceIcon, sourceColor) = switch (vario.source) {
+      VarioSource.baro => (l10n.varioSourceBaro, Icons.compress, Colors.green),
+      VarioSource.gps => (
+        l10n.varioSourceGps,
+        Icons.satellite_alt,
+        Colors.blueAccent,
+      ),
+      VarioSource.none => (
+        l10n.varioSourceNone,
+        Icons.report_problem_outlined,
+        Colors.grey,
+      ),
+    };
 
-    switch (vario.source) {
-      case VarioSource.baro:
-        sourceText = l10n.varioSourceBaro;
-        sourceIcon = Icons.compress;
-        sourceColor = Colors.green;
-        break;
-      case VarioSource.gps:
-        sourceText = l10n.varioSourceGps;
-        sourceIcon = Icons.satellite_alt;
-        sourceColor = Colors.blueAccent;
-        break;
-      case VarioSource.none:
-        sourceText = l10n.varioSourceNone;
-        sourceIcon = Icons.report_problem_outlined;
-        sourceColor = Colors.grey;
-        break;
-    }
-
-    // Trend arrow
-    IconData trendIcon;
-    Color trendColor;
-    if (vario.verticalSpeed == null) {
-      trendIcon = Icons.remove;
-      trendColor = Colors.grey;
-    } else if (vario.verticalSpeed!.abs() < 0.05) {
-      trendIcon = Icons.arrow_forward;
-      trendColor = Colors.grey;
-    } else if (vario.verticalSpeed! > 0.5) {
-      trendIcon = Icons.arrow_upward;
-      trendColor = Colors.green;
-    } else if (vario.verticalSpeed! < -0.5) {
-      trendIcon = Icons.arrow_downward;
-      trendColor = Colors.red;
-    } else {
-      trendIcon = Icons.arrow_forward;
-      trendColor = Colors.grey;
-    }
+    // Trend arrow — switch expression on verticalSpeed returning a record
+    final (trendIcon, trendColor) = switch (vario.verticalSpeed) {
+      null => (Icons.remove, Colors.grey),
+      final v when v.abs() < 0.05 => (Icons.arrow_forward, Colors.grey),
+      final v when v > 0.5 => (Icons.arrow_upward, Colors.green),
+      final v when v < -0.5 => (Icons.arrow_downward, Colors.red),
+      _ => (Icons.arrow_forward, Colors.grey),
+    };
 
     return BaseDetailsDialog(
       titleText: l10n.varioDetailsTitle,

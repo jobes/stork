@@ -48,7 +48,7 @@ Documents in this section detail user-facing features, overlay widgets, custom c
 *   [Engine Telemetry and Health Monitoring](features/engine-telemetry.md)
     *   *Details DroneCAN-based ICE (Internal Combustion Engine) monitoring, including RPM, fuel tank status, oil pressure/temperature, CHT, EGT, dynamic overlay widgets, custom segmented gauges, and threshold alarm logic.*
 *   [VHF Radio Control and Monitoring](features/vhf-radio.md)
+    *   *Describes the VHF radio DroneCAN protocol (FastStatus, FullStatus, Control service), the interactive radio control dialog with quick/advanced modes, the map overlay telemetry widget, nearby frequency discovery, and persistent favorite frequencies management.*
 *   [Variometer (Vertical Speed Indicator)](features/vario.md)
     *   *Documents the barometric and GPS-based vertical speed estimation pipeline with linear regression smoothing, EMA output filtering, and the fallback logic between pressure and GPS sources. Covers noise rejection strategy, display formatting, and all tunable parameters.*
-    *   *Describes the VHF radio DroneCAN protocol (FastStatus, FullStatus, Control service), the interactive radio control dialog with quick/advanced modes, the map overlay telemetry widget, nearby frequency discovery, and persistent favorite frequencies management.*
 
