@@ -9,12 +9,17 @@ class _NumberFormatCache {
 
   NumberFormat _get(String locale, int decimals) {
     final key = '$locale-$decimals';
-    return _map.putIfAbsent(
-      key,
-      () => NumberFormat.decimalPattern(locale)
-        ..minimumFractionDigits = decimals
-        ..maximumFractionDigits = decimals,
-    );
+    return _map.putIfAbsent(key, () {
+      try {
+        return NumberFormat.decimalPattern(locale)
+          ..minimumFractionDigits = decimals
+          ..maximumFractionDigits = decimals;
+      } catch (_) {
+        return NumberFormat.decimalPattern()
+          ..minimumFractionDigits = decimals
+          ..maximumFractionDigits = decimals;
+      }
+    });
   }
 }
 
