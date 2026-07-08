@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/cannelloni_device.dart';
 
@@ -32,7 +34,7 @@ class SliderSetting extends StatelessWidget {
             children: [
               Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
               Text(
-                value.toStringAsFixed(1),
+                context.formatNumber(value, 1),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.bold,
@@ -99,7 +101,9 @@ class DeviceDropdownSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final uniqueDevices = devices.toSet().toList();
-    if (selectedDevice != null && isConnected && !uniqueDevices.any((d) => d == selectedDevice)) {
+    if (selectedDevice != null &&
+        isConnected &&
+        !uniqueDevices.any((d) => d == selectedDevice)) {
       uniqueDevices.add(selectedDevice!);
     }
 

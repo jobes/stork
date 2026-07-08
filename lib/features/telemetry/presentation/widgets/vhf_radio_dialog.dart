@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stork/core/utils/number_formatter.dart';
 import 'package:stork/features/telemetry/presentation/providers/favorite_frequencies_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/nearby_frequencies_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/vhf_radio_dialog_notifier.dart';

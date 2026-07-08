@@ -209,7 +209,8 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                     return airports.map((entry) {
                       final apt = entry.key;
                       final distance = entry.value;
-                      final distanceStr = (distance / 1000.0).toStringAsFixed(
+                      final distanceStr = context.formatNumber(
+                        distance / 1000.0,
                         1,
                       );
                       final displayLabel =
@@ -345,7 +346,7 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                       final distance = entry.value;
                       final distanceStr = distance == 0.0
                           ? l10n.vhfRadioInside
-                          : '${(distance / 1000.0).toStringAsFixed(1)} km';
+                          : '${context.formatNumber(distance / 1000.0, 1)} km';
                       final displayLabel = '${asp.name} ($distanceStr)';
 
                       final freqs = (asp.frequencies ?? const [])

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clock/clock.dart';
 
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
@@ -173,14 +174,14 @@ class NavigationDetailsDialog extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${l10n.leg}: ${legDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(context, legDuration)}',
+                            '${l10n.leg}: ${context.formatNumber(legDistanceKm, 1)} km • ${_formatDurationNoSeconds(context, legDuration)}',
                             style: TextStyle(
                               fontSize: 11,
                               color: defaultTextColor,
                             ),
                           ),
                           Text(
-                            '${l10n.total}: ${cumulativeDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(context, cumulativeDuration)} (${l10n.etaLabel}: $etaWaypointFormatted)',
+                            '${l10n.total}: ${context.formatNumber(cumulativeDistanceKm, 1)} km • ${_formatDurationNoSeconds(context, cumulativeDuration)} (${l10n.etaLabel}: $etaWaypointFormatted)',
                             style: TextStyle(
                               fontSize: 11,
                               color: defaultTextColor,
@@ -266,10 +267,10 @@ class NavigationDetailsDialog extends ConsumerWidget {
         final destPointName = points.last.name;
 
         final distToNearestStr = distToNearest != null
-            ? '${(distToNearest / 1000.0).toStringAsFixed(2)} km'
+            ? '${context.formatNumber(distToNearest / 1000.0, 2)} km'
             : l10n.placeholderDash;
         final distToDestStr = distToDest != null
-            ? '${(distToDest / 1000.0).toStringAsFixed(2)} km'
+            ? '${context.formatNumber(distToDest / 1000.0, 2)} km'
             : l10n.placeholderDash;
 
         final timeToNearestStr = timeToNearest != null

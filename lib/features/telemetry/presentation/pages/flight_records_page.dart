@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/services/export/gpx_export_service.dart';
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/flight.dart';
 import '../../domain/models/flight_statistics.dart';
@@ -694,7 +695,8 @@ class _FlightStatisticsWidget extends ConsumerWidget {
             _InfoChip(
               icon: Icons.map,
               label: l10n.flownDistanceLabel,
-              value: '${displayVal.toStringAsFixed(val >= 1000 ? 2 : 0)} $unit',
+              value:
+                  '${val >= 1000 ? context.formatNumber(displayVal, 2) : displayVal.toStringAsFixed(0)} $unit',
             ),
           );
         }
@@ -708,7 +710,8 @@ class _FlightStatisticsWidget extends ConsumerWidget {
             _InfoChip(
               icon: Icons.explore,
               label: l10n.maxDistanceTakeoffLabel,
-              value: '${displayVal.toStringAsFixed(val >= 1000 ? 2 : 0)} $unit',
+              value:
+                  '${val >= 1000 ? context.formatNumber(displayVal, 2) : displayVal.toStringAsFixed(0)} $unit',
             ),
           );
         }

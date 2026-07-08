@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/utils/number_formatter.dart';
+
 class NumberInput extends StatefulWidget {
   final double initialValue;
   final double min;
@@ -35,7 +37,7 @@ class _NumberInputState extends State<NumberInput> {
     super.initState();
     _currentValue = widget.initialValue;
     _controller = TextEditingController(
-      text: _currentValue.toStringAsFixed(widget.decimalPlaces),
+      text: context.formatNumber(_currentValue, widget.decimalPlaces),
     );
     _focusNode = FocusNode();
     _focusNode.addListener(_onFocusChange);
@@ -47,7 +49,10 @@ class _NumberInputState extends State<NumberInput> {
     if (widget.initialValue != oldWidget.initialValue && !_focusNode.hasFocus) {
       setState(() {
         _currentValue = widget.initialValue;
-        _controller.text = _currentValue.toStringAsFixed(widget.decimalPlaces);
+        _controller.text = context.formatNumber(
+          _currentValue,
+          widget.decimalPlaces,
+        );
       });
     }
   }
@@ -68,7 +73,7 @@ class _NumberInputState extends State<NumberInput> {
 
   void _submit() {
     final text = _controller.text;
-    if (text == _currentValue.toStringAsFixed(widget.decimalPlaces)) {
+    if (text == context.formatNumber(_currentValue, widget.decimalPlaces)) {
       return;
     }
     double? parsed;
@@ -82,12 +87,15 @@ class _NumberInputState extends State<NumberInput> {
       final clamped = parsed.clamp(widget.min, widget.max);
       setState(() {
         _currentValue = clamped;
-        _controller.text = clamped.toStringAsFixed(widget.decimalPlaces);
+        _controller.text = context.formatNumber(clamped, widget.decimalPlaces);
       });
       widget.onChanged(clamped);
     } else {
       setState(() {
-        _controller.text = _currentValue.toStringAsFixed(widget.decimalPlaces);
+        _controller.text = context.formatNumber(
+          _currentValue,
+          widget.decimalPlaces,
+        );
       });
     }
   }
@@ -99,7 +107,7 @@ class _NumberInputState extends State<NumberInput> {
     );
     setState(() {
       _currentValue = newValue;
-      _controller.text = newValue.toStringAsFixed(widget.decimalPlaces);
+      _controller.text = context.formatNumber(newValue, widget.decimalPlaces);
     });
     widget.onChanged(newValue);
   }
@@ -111,7 +119,7 @@ class _NumberInputState extends State<NumberInput> {
     );
     setState(() {
       _currentValue = newValue;
-      _controller.text = newValue.toStringAsFixed(widget.decimalPlaces);
+      _controller.text = context.formatNumber(newValue, widget.decimalPlaces);
     });
     widget.onChanged(newValue);
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/domain/models/pressure_unit.dart';
@@ -43,7 +44,10 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
 
     final String valueStr = rawPressure != null
         ? (pressureUnit == PressureUnit.bar
-              ? pressureUnit.convertFromKpa(rawPressure).toStringAsFixed(1)
+              ? context.formatNumber(
+                  pressureUnit.convertFromKpa(rawPressure),
+                  1,
+                )
               : pressureUnit.convertFromKpa(rawPressure).toStringAsFixed(0))
         : '---';
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/utils/time_utils.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/flight_duration_provider.dart';
@@ -64,7 +65,7 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
               icon: Icons.map_outlined,
               iconColor: Colors.green,
               label: l10n.flightDistance,
-              value: '${distanceKm.toStringAsFixed(2)} km',
+              value: '${context.formatNumber(distanceKm, 2)} km',
               isDark: isDark,
             ),
           ],
