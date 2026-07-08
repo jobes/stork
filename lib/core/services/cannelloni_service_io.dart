@@ -252,7 +252,13 @@ class CannelloniService extends _$CannelloniService {
       );
       final ip = _lastIp!;
       final port = _lastPort!;
-      _connect(ip, port);
+      _connect(ip, port).catchError((e) {
+        debugPrint(
+          'CannelloniService: Watchdog reconnect failed: $e. '
+          'Restarting watchdog for next attempt.',
+        );
+        _startReceiveWatchdog();
+      });
     }
   }
 
