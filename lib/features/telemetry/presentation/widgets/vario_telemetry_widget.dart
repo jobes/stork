@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
@@ -36,10 +37,10 @@ class VarioTelemetryWidget extends ConsumerWidget {
     if (hasData) {
       final v = varioState.verticalSpeed!;
       if (v.abs() < 0.05) {
-        valueStr = '0.0';
+        valueStr = context.formatNumber(0.0, 1);
       } else {
         final sign = v >= 0 ? '+' : '';
-        valueStr = '$sign${v.toStringAsFixed(1)}';
+        valueStr = '$sign${context.formatNumber(v, 1)}';
       }
     } else {
       valueStr = l10n.placeholderDash;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/vario_state.dart';
 import '../providers/vario_provider.dart';
@@ -77,8 +78,8 @@ class VarioDetailsDialog extends ConsumerWidget {
                   Text(
                     () {
                       final v = vario.verticalSpeed!;
-                      if (v.abs() < 0.05) return '0.0';
-                      return '${v >= 0 ? '+' : ''}${v.toStringAsFixed(1)}';
+                      if (v.abs() < 0.05) return context.formatNumber(0.0, 1);
+                      return '${v >= 0 ? '+' : ''}${context.formatNumber(v, 1)}';
                     }(),
                     style: TextStyle(
                       fontSize: 28,
@@ -169,7 +170,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                   iconColor: Colors.blueAccent,
                   label: l10n.varioAirPressure,
                   value: telemetry.airPressure != null
-                      ? '${(telemetry.airPressure! / 100).toStringAsFixed(1)} hPa'
+                      ? '${context.formatNumber(telemetry.airPressure! / 100, 1)} hPa'
                       : l10n.valueNotAvailable,
                   isDark: isDark,
                 ),
@@ -179,7 +180,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                   iconColor: Colors.orange,
                   label: l10n.varioQnhUsed,
                   value:
-                      '${ref.watch(appSettingsProvider).value?.qnh.toStringAsFixed(2) ?? '1013.25'} hPa',
+                      '${context.formatNumber(ref.watch(appSettingsProvider).value?.qnh ?? 1013.25, 2)} hPa',
                   isDark: isDark,
                 ),
               ],
@@ -193,7 +194,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                   iconColor: Colors.blueAccent,
                   label: l10n.verticalAccuracy,
                   value: telemetry.gpsVerticalAccuracy != null
-                      ? '± ${telemetry.gpsVerticalAccuracy!.toStringAsFixed(1)} m'
+                      ? '± ${context.formatNumber(telemetry.gpsVerticalAccuracy!, 1)} m'
                       : l10n.valueNotAvailable,
                   isDark: isDark,
                 ),

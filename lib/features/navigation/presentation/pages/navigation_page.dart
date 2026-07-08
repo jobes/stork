@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clock/clock.dart';
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
@@ -247,7 +248,7 @@ class NavigationPage extends ConsumerWidget {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          '${totalDistanceKm.toStringAsFixed(2)} km',
+                                          '${context.formatNumber(totalDistanceKm, 2)} km',
                                           style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
@@ -496,7 +497,7 @@ class NavigationPage extends ConsumerWidget {
                                               ),
                                             ),
                                             Text(
-                                              '${legDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(context, leg.legDuration)}',
+                                              '${context.formatNumber(legDistanceKm, 1)} km • ${_formatDurationNoSeconds(context, leg.legDuration)}',
                                               style: const TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
@@ -517,7 +518,7 @@ class NavigationPage extends ConsumerWidget {
                                               ),
                                             ),
                                             Text(
-                                              '${cumulativeDistanceKm.toStringAsFixed(1)} km • ${_formatDurationNoSeconds(context, leg.cumulativeDuration)}',
+                                              '${context.formatNumber(cumulativeDistanceKm, 1)} km • ${_formatDurationNoSeconds(context, leg.cumulativeDuration)}',
                                               style: const TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,

@@ -6,6 +6,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
 
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
 import '../providers/offline_maps_provider.dart';
@@ -613,11 +614,13 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
 
   String _formatBytes(int bytes) {
     if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    if (bytes < 1024 * 1024) {
+      return '${context.formatNumber(bytes / 1024, 1)} KB';
     }
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${context.formatNumber(bytes / (1024 * 1024), 1)} MB';
+    }
+    return '${context.formatNumber(bytes / (1024 * 1024 * 1024), 1)} GB';
   }
 }
 

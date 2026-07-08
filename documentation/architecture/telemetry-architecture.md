@@ -32,6 +32,24 @@ The system is managed by [CannelloniService](../../lib/core/services/cannelloni_
 - **Dynamic Connection**: It listens to settings changes ([appSettingsProvider](../../lib/features/settings/presentation/providers/settings_provider.dart)). When a target device is selected, it binds to a local UDP socket on an ephemeral port and connects to the target IP and port.
 - **Bi-Directional Sockets**: Using a `RawDatagramSocket`, it listens asynchronously for incoming packets, extracts payload chunks, and immediately forwards them to the native C layer for processing.
 
+### Connection Resilience
+
+UDP over Wi-Fi is inherently unreliable — packets can be dropped, and sockets can die silently (e.g., OS background suspension, network interface reset). Stork implements a layered defence against these failures:
+
+#### Grace Period (3000 ms)
+When mDNS reports the device as unavailable (`_isDiscovered = false`) but the UDP socket is still receiving data, the service waits a **grace period of 3000 ms** before disconnecting. Each received packet resets this timer.
+
+| Parameter | Value | Rationale |
+| :--- | :--- | :--- |
+| Data interval | ~1000 ms | DroneCAN `NodeStatus` broadcasts at 1 Hz |
+| Grace period | 3000 ms | Tolerates **2 consecutive lost UDP packets** on unreliable Wi-Fi |
+
+#### Silent Socket Detection (`onDone`)
+A `RawDatagramSocket` stream can end without an explicit error — for example, when the OS suspends the app or the network interface goes down. The service registers an **`onDone` handler** on the socket listen stream. If the stream terminates unexpectedly, the connection state is immediately cleaned up, preventing the app from hanging in a "connected but dead" state.
+
+#### Receive Watchdog (5 seconds)
+As an independent safety net (decoupled from mDNS), a periodic **watchdog timer** checks every second whether data has been received within the last **5 seconds**. If no data arrives within this window — regardless of mDNS status — the service automatically triggers a full reconnect (`_connect`). This guards against scenarios where mDNS still sees the device but the data stream has stalled.
+
 ### TX Processing Queue (10Hz)
 To ensure reliable frame delivery and prevent network congestion, outbound messages are processed in a periodic loop:
 - A `Timer` runs at **10Hz** (every 100ms on IO platforms).

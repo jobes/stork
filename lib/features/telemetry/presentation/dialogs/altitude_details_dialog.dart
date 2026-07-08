@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/resolved_altitude.dart';
@@ -343,7 +344,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                             ),
                           ),
                           child: Text(
-                            '${currentQnh.toStringAsFixed(2)} hPa',
+                            '${context.formatNumber(currentQnh, 2)} hPa',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

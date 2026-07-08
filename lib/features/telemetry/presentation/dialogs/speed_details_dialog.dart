@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/domain/models/speed_unit.dart';
@@ -185,7 +186,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                   iconColor: Colors.blueAccent,
                   label: l10n.horizontalAccuracy,
                   value: telemetry.gpsHorizontalAccuracy != null
-                      ? '± ${telemetry.gpsHorizontalAccuracy!.toStringAsFixed(1)} m'
+                      ? '± ${context.formatNumber(telemetry.gpsHorizontalAccuracy!, 1)} m'
                       : l10n.valueNotAvailable,
                   isDark: isDark,
                 ),
@@ -196,7 +197,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                   iconColor: Colors.blueAccent,
                   label: l10n.verticalAccuracy,
                   value: telemetry.gpsVerticalAccuracy != null
-                      ? '± ${telemetry.gpsVerticalAccuracy!.toStringAsFixed(1)} m'
+                      ? '± ${context.formatNumber(telemetry.gpsVerticalAccuracy!, 1)} m'
                       : l10n.valueNotAvailable,
                   isDark: isDark,
                 ),
