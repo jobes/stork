@@ -46,7 +46,7 @@ factory IndicatedAirspeed.fromPayload(Uint8List payload) {
 }
 ```
 
-The payload is deserialised using the existing `BitReader` utility which handles IEEE 754 half-precision float (float16) decoding via its `readFloat16()` method, implemented using the `canardConvertFloat16ToNativeFloat` C function from `libcanard`.
+The payload is deserialised using the existing `BitReader` utility which handles IEEE 754 half-precision float (float16) decoding via its pure Dart `readFloat16()` method. The method reads 16 bits, then manually decodes the half-precision value using bitwise operations: extracting sign, exponent (5 bits), and fraction (10 bits), handling normalised, subnormal, zero, infinity, and NaN cases — no C or FFI dependency.
 
 ### 2.3. Message Parsing Flow
 
@@ -83,9 +83,9 @@ late final DecayableField<double> _indicatedAirSpeed = DecayableField<double>(
 
 | Parameter | Timeout | Safety Rationale |
 | :--- | :--- | :--- |
-| **`indicatedAirSpeed`** | 1 second | Critical flight dynamic data; must expire immediately if lost. |
+| **`indicatedAirSpeed`** | 1500ms | Critical flight dynamic data; must expire quickly if lost. |
 
-If no `IndicatedAirspeed` DroneCAN message is received within 1 second, the field value automatically decays to `null`, preventing the display of stale airspeed data.
+If no `IndicatedAirspeed` DroneCAN message is received within 1500ms, the field value automatically decays to `null`, preventing the display of stale airspeed data.
 
 ### 3.3. Is-Flying Detection
 

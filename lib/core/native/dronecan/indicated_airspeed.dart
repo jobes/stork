@@ -49,9 +49,14 @@ class IndicatedAirspeed implements DroneCanMessage {
     );
   }
 
+  /// Formats a [value] as a fixed‑point string, falling back to [value.toString]
+  /// for non‑finite (NaN, Infinity) values that [toStringAsFixed] cannot handle.
+  static String _finitesafe(double value) =>
+      value.isFinite ? value.toStringAsFixed(2) : value.toString();
+
   @override
   String toString() {
-    return 'IndicatedAirspeed(${indicatedAirspeed.toStringAsFixed(2)} m/s, '
-        'variance=${indicatedAirspeedVariance.toStringAsFixed(2)})';
+    return 'IndicatedAirspeed(${_finitesafe(indicatedAirspeed)} m/s, '
+        'variance=${_finitesafe(indicatedAirspeedVariance)})';
   }
 }
