@@ -1567,4 +1567,37 @@ class AppLocalizationsSk extends AppLocalizations {
   String radioSetFreqError(String error) {
     return 'Chyba nastavenia frekvencie: $error';
   }
+
+  @override
+  String get varioTitle => 'Vario';
+
+  @override
+  String get varioDetailsTitle => 'Detaily varia';
+
+  @override
+  String get varioUnitMs => 'm/s';
+
+  @override
+  String get varioSourceBaro => 'BARO (Tlak)';
+
+  @override
+  String get varioSourceGps => 'GPS';
+
+  @override
+  String get varioSourceNone => 'N/A';
+
+  @override
+  String get varioCurrentValue => 'Vertikálna rýchlosť';
+
+  @override
+  String get varioSourceLabel => 'Zdroj';
+
+  @override
+  String get varioAirPressure => 'Tlak vzduchu';
+
+  @override
+  String get varioQnhUsed => 'Použité QNH';
+
+  @override
+  String get varioLastUpdate => 'Posledná aktualizácia';
 }

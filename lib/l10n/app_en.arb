@@ -780,5 +780,16 @@
     "placeholders": {
       "error": { "type": "String" }
     }
-  }
+  },
+  "varioTitle": "Vario",
+  "varioDetailsTitle": "Vario Details",
+  "varioUnitMs": "m/s",
+  "varioSourceBaro": "BARO (Pressure)",
+  "varioSourceGps": "GPS",
+  "varioSourceNone": "N/A",
+  "varioCurrentValue": "Vertical Speed",
+  "varioSourceLabel": "Source",
+  "varioAirPressure": "Air Pressure",
+  "varioQnhUsed": "QNH used",
+  "varioLastUpdate": "Last Update"
 }

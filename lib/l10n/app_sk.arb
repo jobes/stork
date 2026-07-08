@@ -689,5 +689,16 @@
     "placeholders": {
       "error": { "type": "String" }
     }
-  }
+  },
+  "varioTitle": "Vario",
+  "varioDetailsTitle": "Detaily varia",
+  "varioUnitMs": "m/s",
+  "varioSourceBaro": "BARO (Tlak)",
+  "varioSourceGps": "GPS",
+  "varioSourceNone": "N/A",
+  "varioCurrentValue": "Vertikálna rýchlosť",
+  "varioSourceLabel": "Zdroj",
+  "varioAirPressure": "Tlak vzduchu",
+  "varioQnhUsed": "Použité QNH",
+  "varioLastUpdate": "Posledná aktualizácia"
 }

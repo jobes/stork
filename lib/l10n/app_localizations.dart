@@ -3025,6 +3025,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error setting frequency: {error}'**
   String radioSetFreqError(String error);
+
+  /// No description provided for @varioTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vario'**
+  String get varioTitle;
+
+  /// No description provided for @varioDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vario Details'**
+  String get varioDetailsTitle;
+
+  /// No description provided for @varioUnitMs.
+  ///
+  /// In en, this message translates to:
+  /// **'m/s'**
+  String get varioUnitMs;
+
+  /// No description provided for @varioSourceBaro.
+  ///
+  /// In en, this message translates to:
+  /// **'BARO (Pressure)'**
+  String get varioSourceBaro;
+
+  /// No description provided for @varioSourceGps.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS'**
+  String get varioSourceGps;
+
+  /// No description provided for @varioSourceNone.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get varioSourceNone;
+
+  /// No description provided for @varioCurrentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical Speed'**
+  String get varioCurrentValue;
+
+  /// No description provided for @varioSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get varioSourceLabel;
+
+  /// No description provided for @varioAirPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Air Pressure'**
+  String get varioAirPressure;
+
+  /// No description provided for @varioQnhUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'QNH used'**
+  String get varioQnhUsed;
+
+  /// No description provided for @varioLastUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Update'**
+  String get varioLastUpdate;
 }
 
 class _AppLocalizationsDelegate
