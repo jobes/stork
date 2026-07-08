@@ -22,6 +22,7 @@ import '../../../telemetry/presentation/widgets/egt_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/fuel_status_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/rpm_horizontal_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/vhf_radio_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/vario_telemetry_widget.dart';
 import '../components/controls/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
@@ -81,9 +82,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
     final hasCylinderTemp = ref.watch(
       telemetryProvider.select((t) => t.isChtSupported),
     );
-    final hasEgt = ref.watch(
-      telemetryProvider.select((t) => t.isEgtSupported),
-    );
+    final hasEgt = ref.watch(telemetryProvider.select((t) => t.isEgtSupported));
     final isFuelSupported = ref.watch(
       telemetryProvider.select((t) => t.isFuelSupported),
     );
@@ -186,6 +185,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 150.0,
                 const AltitudeTelemetryWidget(),
               ),
+              buildWidget('vario_widget', 150.0, const VarioTelemetryWidget()),
               buildWidget(
                 'flight_time_widget',
                 150.0,

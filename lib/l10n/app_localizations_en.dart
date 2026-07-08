@@ -1564,4 +1564,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String radioSetFreqError(String error) {
     return 'Error setting frequency: $error';
   }
+
+  @override
+  String get varioTitle => 'Vario';
+
+  @override
+  String get varioDetailsTitle => 'Vario Details';
+
+  @override
+  String get varioUnitMs => 'm/s';
+
+  @override
+  String get varioSourceBaro => 'BARO (Pressure)';
+
+  @override
+  String get varioSourceGps => 'GPS';
+
+  @override
+  String get varioSourceNone => 'N/A';
+
+  @override
+  String get varioCurrentValue => 'Vertical Speed';
+
+  @override
+  String get varioSourceLabel => 'Source';
+
+  @override
+  String get varioAirPressure => 'Air Pressure';
+
+  @override
+  String get varioQnhUsed => 'QNH used';
+
+  @override
+  String get varioLastUpdate => 'Last Update';
 }

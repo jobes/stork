@@ -74,7 +74,7 @@ final class VhfRadioDialogNotifierProvider
 }
 
 String _$vhfRadioDialogNotifierHash() =>
-    r'886fbfa1a848c8a9338a1e14fd49c5a031837d27';
+    r'cb90b25d2103708bb0b4d60103297f243a1eaebe';
 
 final class VhfRadioDialogNotifierFamily extends $Family
     with

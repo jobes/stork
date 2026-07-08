@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'cannelloni_service_io.dart';
+part of 'vario_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,51 @@ part of 'cannelloni_service_io.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(CannelloniService)
-final cannelloniServiceProvider = CannelloniServiceProvider._();
+@ProviderFor(VarioNotifier)
+final varioProvider = VarioNotifierProvider._();
 
-final class CannelloniServiceProvider
-    extends $NotifierProvider<CannelloniService, bool> {
-  CannelloniServiceProvider._()
+final class VarioNotifierProvider
+    extends $NotifierProvider<VarioNotifier, VarioState> {
+  VarioNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'cannelloniServiceProvider',
+        name: r'varioProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$cannelloniServiceHash();
+  String debugGetCreateSourceHash() => _$varioNotifierHash();
 
   @$internal
   @override
-  CannelloniService create() => CannelloniService();
+  VarioNotifier create() => VarioNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(bool value) {
+  Override overrideWithValue(VarioState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<bool>(value),
+      providerOverride: $SyncValueProvider<VarioState>(value),
     );
   }
 }
 
-String _$cannelloniServiceHash() => r'70292047a858b1685310c753379c09f990509c32';
+String _$varioNotifierHash() => r'e9e77ef94207f0e8ab02e77672415bcf1361fb14';
 
-abstract class _$CannelloniService extends $Notifier<bool> {
-  bool build();
+abstract class _$VarioNotifier extends $Notifier<VarioState> {
+  VarioState build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<bool, bool>;
+    final ref = this.ref as $Ref<VarioState, VarioState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<bool, bool>,
-              bool,
+              AnyNotifier<VarioState, VarioState>,
+              VarioState,
               Object?,
               Object?
             >;
