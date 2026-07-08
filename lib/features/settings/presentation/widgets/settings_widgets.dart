@@ -82,6 +82,7 @@ class DeviceDropdownSetting extends StatelessWidget {
   final CannelloniDevice? selectedDevice;
   final List<CannelloniDevice> devices;
   final bool enabled;
+  final bool isConnected;
   final ValueChanged<CannelloniDevice?> onChanged;
 
   const DeviceDropdownSetting({
@@ -90,6 +91,7 @@ class DeviceDropdownSetting extends StatelessWidget {
     required this.selectedDevice,
     required this.devices,
     required this.enabled,
+    required this.isConnected,
     required this.onChanged,
   });
 
@@ -97,6 +99,9 @@ class DeviceDropdownSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final uniqueDevices = devices.toSet().toList();
+    if (selectedDevice != null && isConnected && !uniqueDevices.any((d) => d == selectedDevice)) {
+      uniqueDevices.add(selectedDevice!);
+    }
 
     // Check if the currently selected device is in the list
     CannelloniDevice? value;
