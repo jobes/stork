@@ -56,8 +56,12 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
     final double maxVisualK = settings?.chtMaxRange ?? 433.15; // 160 °C
     final double minVisualK = thresholds.inactiveMax ?? 323.15; // 50 °C
 
+    final isChtSupported = ref.watch(
+      telemetryProvider.select((t) => t.isChtSupported),
+    );
+
     final chts = cylinderHeadTemperatures;
-    if (chts.isEmpty) {
+    if (!isChtSupported || chts.isEmpty) {
       return const SizedBox.shrink();
     }
 
