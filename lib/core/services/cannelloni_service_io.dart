@@ -37,6 +37,8 @@ CannelloniService? _activeInstance;
 
 @Riverpod(keepAlive: true)
 class CannelloniService extends _$CannelloniService {
+  static const _disconnectGracePeriod = Duration(milliseconds: 1500);
+
   RawDatagramSocket? _socket;
   String? _lastIp;
   int? _lastPort;
@@ -146,15 +148,9 @@ class CannelloniService extends _$CannelloniService {
         final lastData = _lastDataReceivedTime;
         if (_socket != null &&
             lastData != null &&
-            now.difference(lastData) < const Duration(milliseconds: 1500)) {
-          final remaining = const Duration(milliseconds: 1500) - now.difference(lastData);
-          _disconnectTimer?.cancel();
-          _disconnectTimer = Timer(remaining, () {
-            debugPrint(
-              'CannelloniService: No data received for 1500ms after mDNS became unavailable. Disconnecting...',
-            );
-            _disconnect();
-          });
+            now.difference(lastData) < _disconnectGracePeriod) {
+          final remaining = _disconnectGracePeriod - now.difference(lastData);
+          _startDisconnectTimer(remaining, 'after mDNS became unavailable');
         } else {
           _disconnect();
         }
@@ -211,15 +207,19 @@ class CannelloniService extends _$CannelloniService {
     state = false;
   }
 
+  void _startDisconnectTimer(Duration duration, String contextMessage) {
+    _disconnectTimer?.cancel();
+    _disconnectTimer = Timer(duration, () {
+      debugPrint(
+        'CannelloniService: No data received for ${_disconnectGracePeriod.inMilliseconds}ms $contextMessage. Disconnecting...',
+      );
+      _disconnect();
+    });
+  }
+
   void _resetDisconnectTimerIfNeeded() {
     if (!_isDiscovered && _socket != null) {
-      _disconnectTimer?.cancel();
-      _disconnectTimer = Timer(const Duration(milliseconds: 1500), () {
-        debugPrint(
-          'CannelloniService: No data received for 1500ms while mDNS is unavailable. Disconnecting...',
-        );
-        _disconnect();
-      });
+      _startDisconnectTimer(_disconnectGracePeriod, 'while mDNS is unavailable');
     }
   }
 

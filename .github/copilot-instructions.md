@@ -3,11 +3,13 @@
 Stork is a Flutter aviation app (EFB) for glider/aircraft pilots.
 Targets Android, iOS, Linux, macOS, Windows, and Web.
 
+All code and comments must be in English.
+
 ## Architecture
 
 **Clean Architecture + Riverpod** — strictly three layers per feature: `data` → `domain` → `presentation`.
 
-```
+```text
 lib/
 ├── core/          # Shared infrastructure (router, theme, services, utils, providers)
 └── features/
@@ -156,7 +158,7 @@ void showMyDialog(BuildContext context, WidgetRef ref) {
   showDialog(
     context: context,
     builder: (_) => BaseDetailsDialog(
-      titleText: 'Title',
+      titleText: AppLocalizations.of(context)!.myDialogTitle,
       icon: Icons.info_outline,
       child: ...,
     ),
@@ -211,7 +213,7 @@ See [documentation/architecture/localization.md](../documentation/architecture/l
 
 Mirror `lib/` structure under `test/`. Use `mocktail` for mocks, `fake_async` for async tests.
 
-```
+```text
 test/
 ├── core/
 └── features/
