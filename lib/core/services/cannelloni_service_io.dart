@@ -37,7 +37,8 @@ CannelloniService? _activeInstance;
 
 @Riverpod(keepAlive: true)
 class CannelloniService extends _$CannelloniService {
-  static const _disconnectGracePeriod = Duration(milliseconds: 1500);
+  static const _disconnectGracePeriod = Duration(milliseconds: 3000);
+  static const _receiveWatchdogPeriod = Duration(seconds: 5);
 
   RawDatagramSocket? _socket;
   String? _lastIp;
@@ -54,6 +55,7 @@ class CannelloniService extends _$CannelloniService {
   DateTime? _lastDataReceivedTime;
   bool _isDiscovered = true;
   Timer? _disconnectTimer;
+  Timer? _receiveWatchdogTimer;
 
   final Map<String, PendingRequest> _pendingRequests = {};
 
@@ -199,6 +201,8 @@ class CannelloniService extends _$CannelloniService {
 
     _disconnectTimer?.cancel();
     _disconnectTimer = null;
+    _receiveWatchdogTimer?.cancel();
+    _receiveWatchdogTimer = null;
     _lastDataReceivedTime = null;
     _isDiscovered = true;
 
@@ -219,7 +223,36 @@ class CannelloniService extends _$CannelloniService {
 
   void _resetDisconnectTimerIfNeeded() {
     if (!_isDiscovered && _socket != null) {
-      _startDisconnectTimer(_disconnectGracePeriod, 'while mDNS is unavailable');
+      _startDisconnectTimer(
+        _disconnectGracePeriod,
+        'while mDNS is unavailable',
+      );
+    }
+  }
+
+  void _startReceiveWatchdog() {
+    _receiveWatchdogTimer?.cancel();
+    _receiveWatchdogTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _checkReceiveWatchdog(),
+    );
+  }
+
+  void _checkReceiveWatchdog() {
+    if (_socket == null || _lastIp == null || _lastPort == null) return;
+
+    final lastData = _lastDataReceivedTime;
+    if (lastData == null) return;
+
+    final elapsed = DateTime.now().difference(lastData);
+    if (elapsed >= _receiveWatchdogPeriod) {
+      debugPrint(
+        'CannelloniService: No data received for ${elapsed.inSeconds}s. '
+        'Watchdog triggered — reconnecting to $_lastIp:$_lastPort',
+      );
+      final ip = _lastIp!;
+      final port = _lastPort!;
+      _connect(ip, port);
     }
   }
 
@@ -255,7 +288,15 @@ class CannelloniService extends _$CannelloniService {
       onError: (e) {
         debugPrint('CannelloniService: Socket error: $e');
       },
+      onDone: () {
+        debugPrint(
+          'CannelloniService: Socket stream ended unexpectedly. '
+          'Last IP: $_lastIp, Last data: $_lastDataReceivedTime',
+        );
+        _resetConnectionState();
+      },
     );
+    _startReceiveWatchdog();
   }
 
   Future<Uint8List> _loadOrGenerateUniqueId() async {
@@ -639,7 +680,8 @@ class CannelloniService extends _$CannelloniService {
   @visibleForTesting
   DateTime? get lastDataReceivedTimeForTesting => _lastDataReceivedTime;
   @visibleForTesting
-  set lastDataReceivedTimeForTesting(DateTime? val) => _lastDataReceivedTime = val;
+  set lastDataReceivedTimeForTesting(DateTime? val) =>
+      _lastDataReceivedTime = val;
 
   @visibleForTesting
   Timer? get disconnectTimerForTesting => _disconnectTimer;
