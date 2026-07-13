@@ -46,9 +46,6 @@ positionStream(Ref ref) {
   final isGpsDroneCan = ref.watch(
     telemetryProvider.select((s) => s.isGpsDroneCan),
   );
-  if (isGpsDroneCan) {
-    return const Stream.empty();
-  }
 
   final geo.LocationSettings locationSettings;
   if (defaultTargetPlatform == TargetPlatform.android) {
@@ -60,24 +57,42 @@ positionStream(Ref ref) {
     final l10n = lookupAppLocalizations(supportedLocale);
 
     locationSettings = geo.AndroidSettings(
-      accuracy: geo.LocationAccuracy.bestForNavigation,
-      intervalDuration: const Duration(seconds: 1),
-      useMSLAltitude: true,
+      accuracy: isGpsDroneCan ? geo.LocationAccuracy.lowest : geo.LocationAccuracy.bestForNavigation,
+      distanceFilter: isGpsDroneCan ? 100000 : 0,
+      intervalDuration: isGpsDroneCan ? const Duration(seconds: 10) : const Duration(seconds: 1),
+      useMSLAltitude: !isGpsDroneCan,
       foregroundNotificationConfig: geo.ForegroundNotificationConfig(
         notificationTitle: l10n.gpsNotificationTitle,
         notificationText: l10n.gpsNotificationText,
         enableWakeLock: true,
       ),
     );
+  } else if (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS) {
+    locationSettings = geo.AppleSettings(
+      accuracy: isGpsDroneCan ? geo.LocationAccuracy.lowest : geo.LocationAccuracy.bestForNavigation,
+      distanceFilter: isGpsDroneCan ? 100000 : 0,
+      activityType: geo.ActivityType.otherNavigation,
+      allowBackgroundLocationUpdates: true,
+      pauseLocationUpdatesAutomatically: false,
+    );
   } else {
-    locationSettings = const geo.LocationSettings(
-      accuracy: geo.LocationAccuracy.bestForNavigation,
+    locationSettings = geo.LocationSettings(
+      accuracy: isGpsDroneCan ? geo.LocationAccuracy.lowest : geo.LocationAccuracy.bestForNavigation,
+      distanceFilter: isGpsDroneCan ? 100000 : 0,
     );
   }
 
-  return geo.Geolocator.getPositionStream(
+  var stream = geo.Geolocator.getPositionStream(
     locationSettings: locationSettings,
-  ).map(
+  );
+
+  if (isGpsDroneCan) {
+    // Keep the stream alive to prevent the OS from suspending the app,
+    // but ignore all actual position updates.
+    stream = stream.where((_) => false);
+  }
+
+  return stream.map(
     (pos) => (
       lat: pos.latitude,
       lon: pos.longitude,

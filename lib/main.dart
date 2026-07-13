@@ -14,6 +14,7 @@ import 'package:stork/core/services/cannelloni_service.dart';
 import 'package:stork/core/utils/time_utils.dart';
 import 'package:stork/features/map/domain/utils/fir_utils.dart';
 import 'package:stork/features/telemetry/presentation/providers/black_box_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 
 Future<void> main() async {
   appStopwatch.start();
@@ -45,6 +46,8 @@ class _StorkAppState extends ConsumerState<StorkApp>
     ref.read(cannelloniServiceProvider);
     // Warm up the Black Box service at startup so it records flights in the background
     ref.read(blackBoxServiceProvider);
+    // Warm up the GPS Listener to ensure background location updates run continuously
+    ref.read(gpsListenerProvider);
   }
 
   @override

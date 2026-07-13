@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/telemetry_state.dart';
 import '../../domain/models/map_view_state.dart';
@@ -275,10 +276,12 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       );
 
   DateTime? _lastDroneCanFixTime;
+  Timer? _droneCanGpsTimeoutTimer;
 
   @override
   TelemetryState build() {
     ref.onDispose(() {
+      _droneCanGpsTimeoutTimer?.cancel();
       _latitude.cancel();
       _longitude.cancel();
       _heading.cancel();
@@ -329,6 +332,10 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   }) {
     if (isDroneCan) {
       _lastDroneCanFixTime = DateTime.now();
+      _droneCanGpsTimeoutTimer?.cancel();
+      _droneCanGpsTimeoutTimer = Timer(const Duration(seconds: 5), () {
+        state = state.copyWith(isGpsDroneCan: false);
+      });
     } else if (_lastDroneCanFixTime != null &&
         DateTime.now().difference(_lastDroneCanFixTime!) <=
             const Duration(seconds: 2)) {
@@ -567,7 +574,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 void gpsListener(Ref ref) {
   // Listen to high-frequency GPS stream
   ref.listen(positionStreamProvider, (previous, next) {

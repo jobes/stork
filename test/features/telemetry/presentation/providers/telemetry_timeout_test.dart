@@ -178,5 +178,34 @@ void main() {
         expect(recordedValue, equals(42.0));
       });
     });
+
+    test('isGpsDroneCan becomes true with DroneCAN updates and decays to false after 5 seconds', () {
+      fakeAsync((async) {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final notifier = container.read(telemetryProvider.notifier);
+
+        // Initially false
+        expect(container.read(telemetryProvider).isGpsDroneCan, isFalse);
+
+        // Receive DroneCAN update
+        notifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          isDroneCan: true,
+        );
+
+        expect(container.read(telemetryProvider).isGpsDroneCan, isTrue);
+
+        // Advance 4.9 seconds, should still be true
+        async.elapse(const Duration(milliseconds: 4900));
+        expect(container.read(telemetryProvider).isGpsDroneCan, isTrue);
+
+        // Advance over 5 seconds (5.1 seconds total)
+        async.elapse(const Duration(milliseconds: 200));
+        expect(container.read(telemetryProvider).isGpsDroneCan, isFalse);
+      });
+    });
   });
 }
