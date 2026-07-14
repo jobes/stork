@@ -178,5 +178,81 @@ void main() {
         expect(recordedValue, equals(42.0));
       });
     });
+
+    test('isGpsDroneCan becomes true with DroneCAN updates and decays to false after 5 seconds', () {
+      fakeAsync((async) {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final notifier = container.read(telemetryProvider.notifier);
+
+        // Initially false
+        expect(container.read(telemetryProvider).isGpsDroneCan, isFalse);
+
+        // Receive DroneCAN update
+        notifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          isDroneCan: true,
+        );
+
+        expect(container.read(telemetryProvider).isGpsDroneCan, isTrue);
+
+        // Advance 4.9 seconds, should still be true
+        async.elapse(const Duration(milliseconds: 4900));
+        expect(container.read(telemetryProvider).isGpsDroneCan, isTrue);
+
+        // Advance over 5 seconds (5.1 seconds total)
+        async.elapse(const Duration(milliseconds: 200));
+        expect(container.read(telemetryProvider).isGpsDroneCan, isFalse);
+      });
+    });
+
+    test('phone-GPS updates are suppressed for 5 seconds after DroneCAN update and allowed after timeout', () {
+      fakeAsync((async) {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final notifier = container.read(telemetryProvider.notifier);
+
+        // Receive DroneCAN update
+        notifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          isDroneCan: true,
+        );
+
+        expect(container.read(telemetryProvider).latitude, equals(48.0));
+        expect(container.read(telemetryProvider).longitude, equals(17.0));
+
+        // Try updating with phone-GPS (not DroneCAN) after 4 seconds
+        async.elapse(const Duration(seconds: 4));
+        notifier.updateGPS(
+          latitude: 49.0,
+          longitude: 18.0,
+          isDroneCan: false,
+        );
+
+        // Should ignore/discard and keep original DroneCAN values
+        expect(container.read(telemetryProvider).latitude, equals(48.0));
+        expect(container.read(telemetryProvider).longitude, equals(17.0));
+
+        // Wait another 1.1 seconds (5.1 seconds total since DroneCAN update)
+        // This triggers the 5-second timer to clear last DroneCAN fix and reset isGpsDroneCan
+        async.elapse(const Duration(milliseconds: 1100));
+        expect(container.read(telemetryProvider).isGpsDroneCan, isFalse);
+
+        // Try updating with phone-GPS again
+        notifier.updateGPS(
+          latitude: 50.0,
+          longitude: 19.0,
+          isDroneCan: false,
+        );
+
+        // Should now be accepted
+        expect(container.read(telemetryProvider).latitude, equals(50.0));
+        expect(container.read(telemetryProvider).longitude, equals(19.0));
+      });
+    });
   });
 }

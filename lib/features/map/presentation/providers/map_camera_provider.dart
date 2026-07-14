@@ -45,8 +45,6 @@ class MapCamera extends _$MapCamera {
 
   @override
   void build() {
-    ref.watch(gpsListenerProvider);
-
     // Listen to telemetry updates to move camera
     ref.listen(
       telemetryProvider.select(

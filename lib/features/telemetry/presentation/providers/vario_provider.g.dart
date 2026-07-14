@@ -41,7 +41,7 @@ final class VarioNotifierProvider
   }
 }
 
-String _$varioNotifierHash() => r'e9e77ef94207f0e8ab02e77672415bcf1361fb14';
+String _$varioNotifierHash() => r'ea8df40c99a851c972c62172bfe416b076cdc2f5';
 
 abstract class _$VarioNotifier extends $Notifier<VarioState> {
   VarioState build();

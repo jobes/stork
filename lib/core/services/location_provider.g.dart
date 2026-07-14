@@ -163,7 +163,7 @@ final class PositionStreamProvider
   }
 }
 
-String _$positionStreamHash() => r'ec877d190ae806923c41d7fd9f7a4ed4bed1c6ea';
+String _$positionStreamHash() => r'4f5ebabe278d53a6f5a38e698bc5541b9e8f7b2e';
 
 @ProviderFor(compassStream)
 final compassStreamProvider = CompassStreamProvider._();
