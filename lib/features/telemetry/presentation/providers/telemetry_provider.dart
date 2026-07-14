@@ -334,11 +334,12 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _lastDroneCanFixTime = DateTime.now();
       _droneCanGpsTimeoutTimer?.cancel();
       _droneCanGpsTimeoutTimer = Timer(const Duration(seconds: 5), () {
+        _lastDroneCanFixTime = null;
         state = state.copyWith(isGpsDroneCan: false);
       });
     } else if (_lastDroneCanFixTime != null &&
         DateTime.now().difference(_lastDroneCanFixTime!) <=
-            const Duration(seconds: 2)) {
+            const Duration(seconds: 5)) {
       // Discard/ignore phone's GPS data to avoid conflict with active DroneCAN Fix2 data
       return;
     }

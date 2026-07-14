@@ -42,7 +42,7 @@ positionStream(Ref ref) {
     return const Stream.empty();
   }
 
-  // Turn off internal GPS when DroneCAN GPS is active to save battery
+  // Keep the native GPS stream active with lowest accuracy and filtered emissions to save battery when DroneCAN GPS is active
   final isGpsDroneCan = ref.watch(
     telemetryProvider.select((s) => s.isGpsDroneCan),
   );
@@ -57,9 +57,13 @@ positionStream(Ref ref) {
     final l10n = lookupAppLocalizations(supportedLocale);
 
     locationSettings = geo.AndroidSettings(
-      accuracy: isGpsDroneCan ? geo.LocationAccuracy.lowest : geo.LocationAccuracy.bestForNavigation,
+      accuracy: isGpsDroneCan
+          ? geo.LocationAccuracy.lowest
+          : geo.LocationAccuracy.bestForNavigation,
       distanceFilter: isGpsDroneCan ? 100000 : 0,
-      intervalDuration: isGpsDroneCan ? const Duration(seconds: 10) : const Duration(seconds: 1),
+      intervalDuration: isGpsDroneCan
+          ? const Duration(seconds: 10)
+          : const Duration(seconds: 1),
       useMSLAltitude: !isGpsDroneCan,
       foregroundNotificationConfig: geo.ForegroundNotificationConfig(
         notificationTitle: l10n.gpsNotificationTitle,
@@ -67,9 +71,12 @@ positionStream(Ref ref) {
         enableWakeLock: true,
       ),
     );
-  } else if (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS) {
+  } else if (defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS) {
     locationSettings = geo.AppleSettings(
-      accuracy: isGpsDroneCan ? geo.LocationAccuracy.lowest : geo.LocationAccuracy.bestForNavigation,
+      accuracy: isGpsDroneCan
+          ? geo.LocationAccuracy.lowest
+          : geo.LocationAccuracy.bestForNavigation,
       distanceFilter: isGpsDroneCan ? 100000 : 0,
       activityType: geo.ActivityType.otherNavigation,
       allowBackgroundLocationUpdates: true,
@@ -77,7 +84,9 @@ positionStream(Ref ref) {
     );
   } else {
     locationSettings = geo.LocationSettings(
-      accuracy: isGpsDroneCan ? geo.LocationAccuracy.lowest : geo.LocationAccuracy.bestForNavigation,
+      accuracy: isGpsDroneCan
+          ? geo.LocationAccuracy.lowest
+          : geo.LocationAccuracy.bestForNavigation,
       distanceFilter: isGpsDroneCan ? 100000 : 0,
     );
   }
