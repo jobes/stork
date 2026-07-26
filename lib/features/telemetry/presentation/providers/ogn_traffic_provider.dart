@@ -10,7 +10,13 @@ import 'telemetry_provider.dart';
 import 'vario_provider.dart';
 import '../../data/ogn_aprs_service.dart';
 
+import 'agl_provider.dart';
+
 part 'ogn_traffic_provider.g.dart';
+
+const double kOgnFilterSignificantShiftMeters = 1500.0;
+const Duration kOgnFilterMaxUnsentDuration = Duration(seconds: 15);
+const Duration kOgnFilterDebounceDuration = Duration(seconds: 1);
 
 @Riverpod(keepAlive: true)
 class OgnTraffic extends _$OgnTraffic {
@@ -170,14 +176,14 @@ class OgnTraffic extends _$OgnTraffic {
       final newCenterLon = (bounds.longitudeEast + bounds.longitudeWest) / 2;
 
       final dist = GeoUtils.distanceBetween(oldCenterLat, oldCenterLon, newCenterLat, newCenterLon);
-      // Trigger instant update if camera center shifted by > 1.5 km (e.g. sharp 180° turn or fast pan)
-      if (dist > 1500) {
+      // Trigger instant update if camera center shifted significantly (e.g. sharp 180° turn or fast pan)
+      if (dist > kOgnFilterSignificantShiftMeters) {
         significantShift = true;
       }
     }
 
     // Force immediate filter update if time elapsed >= 15s OR if camera turned/shifted significantly
-    if (timeSinceLastSent >= const Duration(seconds: 15) || significantShift) {
+    if (timeSinceLastSent >= kOgnFilterMaxUnsentDuration || significantShift) {
       _filterDebounceTimer?.cancel();
       _sendFilter(bounds);
       return;
@@ -185,7 +191,7 @@ class OgnTraffic extends _$OgnTraffic {
 
     // Trailing debounce for minor manual panning/zooming
     _filterDebounceTimer?.cancel();
-    _filterDebounceTimer = Timer(const Duration(seconds: 1), () {
+    _filterDebounceTimer = Timer(kOgnFilterDebounceDuration, () {
       _sendFilter(bounds);
     });
   }
@@ -266,4 +272,43 @@ class OgnTraffic extends _$OgnTraffic {
     _outboundManager?.stop();
     _outboundManager = null;
   }
+}
+
+@riverpod
+List<OgnTrafficAircraft> filteredOgnTraffic(Ref ref) {
+  final traffic = ref.watch(ognTrafficProvider);
+  final settings = ref.watch(appSettingsProvider).value;
+  final telemetry = ref.watch(telemetryProvider);
+  final resolvedAlt = ref.watch(resolvedAltitudeProvider).mslValue;
+
+  if (settings == null) return traffic;
+
+  return traffic.where((ac) {
+    if (settings.trafficFilterMaxHorizontalDistanceEnabled) {
+      if (telemetry.latitude != null &&
+          telemetry.longitude != null &&
+          telemetry.latitude != 0.0 &&
+          telemetry.longitude != 0.0) {
+        final distMeters = GeoUtils.distanceBetween(
+          telemetry.latitude!,
+          telemetry.longitude!,
+          ac.latitude,
+          ac.longitude,
+        );
+        if (distMeters > settings.trafficMaxHorizontalDistance) {
+          return false;
+        }
+      }
+    }
+    if (settings.trafficFilterMaxVerticalDistanceEnabled) {
+      final myAlt = resolvedAlt ?? telemetry.gpsAltitude;
+      if (myAlt != null) {
+        final vertDiffMeters = (myAlt - ac.altitude).abs();
+        if (vertDiffMeters > settings.trafficMaxVerticalDistance) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }).toList();
 }

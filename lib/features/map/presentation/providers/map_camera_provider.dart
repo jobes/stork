@@ -17,7 +17,6 @@ import '../../../settings/domain/models/aircraft_type.dart';
 import '../../../telemetry/data/ogn_aprs_service.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
-import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../telemetry/presentation/providers/ogn_traffic_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import 'notams_provider.dart';
@@ -26,6 +25,9 @@ import '../../utils/geojson_builder.dart';
 part 'map_camera_provider.g.dart';
 part 'map_camera_interpolation.dart';
 part 'map_camera_style.dart';
+
+const double kTrafficLookaheadPeriodSeconds = 10.0;
+const double kTrafficBaseIconSizePx = 64.0;
 
 @riverpod
 class MapCamera extends _$MapCamera {
@@ -249,14 +251,17 @@ class MapCamera extends _$MapCamera {
     });
 
     // Listen to OGN traffic updates to redraw traffic on map
-    ref.listen(ognTrafficProvider, (previous, next) {
+    ref.listen(filteredOgnTrafficProvider, (previous, next) {
       updateTrafficOnMap(next);
     });
 
     // Periodic timer to recalculate possible location cone as time elapses
     final trafficTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (_mapController != null && _isAircraftSymbolInitialized) {
-        updateTrafficOnMap();
+        final currentTraffic = ref.read(filteredOgnTrafficProvider);
+        if (currentTraffic.isNotEmpty) {
+          updateTrafficOnMap(currentTraffic);
+        }
       }
     });
 
@@ -517,45 +522,21 @@ class MapCamera extends _$MapCamera {
       return;
     }
 
-    final traffic = trafficList ?? ref.read(ognTrafficProvider);
-    if (traffic == null) return;
+    final traffic = trafficList ?? ref.read(filteredOgnTrafficProvider);
+    if (traffic == null || traffic.isEmpty) {
+      _mapController!.style!.updateGeoJsonSource(
+        id: 'traffic-source',
+        data: jsonEncode({
+          'type': 'FeatureCollection',
+          'features': [],
+        }),
+      );
+      return;
+    }
+
     final now = DateTime.now();
-    final settings = ref.read(appSettingsProvider).value;
-    final telemetry = ref.read(telemetryProvider);
 
-    final filteredTraffic = traffic.where((ac) {
-      if (settings != null) {
-        if (settings.trafficFilterMaxHorizontalDistanceEnabled) {
-          if (telemetry.latitude != null &&
-              telemetry.longitude != null &&
-              telemetry.latitude != 0.0 &&
-              telemetry.longitude != 0.0) {
-            final distMeters = GeoUtils.distanceBetween(
-              telemetry.latitude!,
-              telemetry.longitude!,
-              ac.latitude,
-              ac.longitude,
-            );
-            if (distMeters > settings.trafficMaxHorizontalDistance) {
-              return false;
-            }
-          }
-        }
-        if (settings.trafficFilterMaxVerticalDistanceEnabled) {
-          final resolvedAlt = ref.read(resolvedAltitudeProvider).mslValue;
-          final myAlt = resolvedAlt ?? telemetry.gpsAltitude;
-          if (myAlt != null) {
-            final vertDiffMeters = (myAlt - ac.altitude).abs();
-            if (vertDiffMeters > settings.trafficMaxVerticalDistance) {
-              return false;
-            }
-          }
-        }
-      }
-      return true;
-    });
-
-    final features = filteredTraffic.map((ac) {
+    final features = traffic.map((ac) {
       final acType = AircraftType.fromOgnCode(ac.aircraftType);
       final isFlying = ac.groundSpeed > 1.0;
       final iconId = isFlying ? acType.trafficMapIconId : acType.inactiveTrafficMapIconId;
@@ -563,8 +544,7 @@ class MapCamera extends _$MapCamera {
       double possiblePositionRatio = 0.0;
       if (isFlying && ac.groundSpeed > 0) {
         final elapsedSeconds = now.difference(ac.lastSeen).inMilliseconds / 1000.0;
-        final actualizationPeriod = 10.0; // 10 seconds lookahead period
-        final delay = elapsedSeconds + actualizationPeriod;
+        final delay = elapsedSeconds + kTrafficLookaheadPeriodSeconds;
 
         if (delay > 0) {
           final distanceMeters = ac.groundSpeed * delay;
@@ -575,8 +555,7 @@ class MapCamera extends _$MapCamera {
             final p1 = _mapController!.toScreenLocation(startCoord);
             final p2 = _mapController!.toScreenLocation(destCoord);
             final distancePoints = (p1 - p2).distance;
-            // possible-loc.png is 64x64 px (base iconSize = 64)
-            possiblePositionRatio = distancePoints / 64.0;
+            possiblePositionRatio = distancePoints / kTrafficBaseIconSizePx;
           } catch (_) {
             possiblePositionRatio = 0.0;
           }
