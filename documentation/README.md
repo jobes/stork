@@ -53,4 +53,7 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Describes the VHF radio DroneCAN protocol (FastStatus, FullStatus, Control service), the interactive radio control dialog with quick/advanced modes, the map overlay telemetry widget, nearby frequency discovery, and persistent favorite frequencies management.*
 *   [Variometer (Vertical Speed Indicator)](features/vario.md)
     *   *Documents the barometric and GPS-based vertical speed estimation pipeline with linear regression smoothing, EMA output filtering, and the fallback logic between pressure and GPS sources. Covers noise rejection strategy, display formatting, and all tunable parameters.*
+*   [OGN Traffic Monitoring and Live Beaconing](features/traffic.md)
+    *   *Details the Open Glider Network (OGN) APRS protocol client, dynamic spatial viewport filtering, regex coordinate/comment parsing, DDB metadata lookup API, background Isolate position broadcasting, horizontal/vertical filtering providers, MapLibre dynamic icon rotation with trajectory lookahead, and interactive traffic details dialog.*
+
 
