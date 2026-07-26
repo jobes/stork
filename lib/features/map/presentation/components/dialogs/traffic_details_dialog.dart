@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../l10n/app_localizations.dart';
@@ -23,9 +24,17 @@ class TrafficDetailsDialog extends ConsumerStatefulWidget {
 }
 
 class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     super.initState();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ids = widget.features
           .map((f) => f['id']?.toString() ?? '')
@@ -33,6 +42,12 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
           .toList();
       ref.read(ognTrafficProvider.notifier).loadDdbDetailsMultiple(ids);
     });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override

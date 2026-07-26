@@ -11,8 +11,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/services/location_provider.dart';
 import '../../../../core/services/location_service.dart';
+import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/aircraft_type.dart';
+import '../../../telemetry/data/ogn_aprs_service.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/presentation/providers/ogn_traffic_provider.dart';
@@ -246,47 +248,19 @@ class MapCamera extends _$MapCamera {
 
     // Listen to OGN traffic updates to redraw traffic on map
     ref.listen(ognTrafficProvider, (previous, next) {
-      if (_mapController == null ||
-          !_isAircraftSymbolInitialized ||
-          _mapController?.style == null) {
-        return;
+      updateTrafficOnMap(next);
+    });
+
+    // Periodic timer to recalculate possible location cone as time elapses
+    final trafficTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (_mapController != null && _isAircraftSymbolInitialized) {
+        updateTrafficOnMap();
       }
-
-      final features = next.map((ac) {
-        final acType = AircraftType.fromOgnCode(ac.aircraftType);
-        final isFlying = ac.groundSpeed > 1.0;
-        final iconId = isFlying ? acType.trafficMapIconId : acType.inactiveTrafficMapIconId;
-
-        return {
-          'type': 'Feature',
-          'id': ac.id,
-          'geometry': {
-            'type': 'Point',
-            'coordinates': [ac.longitude, ac.latitude],
-          },
-          'properties': {
-            'id': ac.id,
-            'heading': ac.track,
-            'title': ac.callsign,
-            'altitude': ac.altitude,
-            'groundSpeed': ac.groundSpeed,
-            'verticalSpeed': ac.verticalSpeed,
-            'icon-image': iconId,
-          }
-        };
-      }).toList();
-
-      _mapController!.style!.updateGeoJsonSource(
-        id: 'traffic-source',
-        data: jsonEncode({
-          'type': 'FeatureCollection',
-          'features': features,
-        }),
-      );
     });
 
     // Clean up timer on dispose
     ref.onDispose(() {
+      trafficTimer.cancel();
       _followResumeTimer?.cancel();
       _cancelInterpolation();
     });
@@ -524,6 +498,7 @@ class MapCamera extends _$MapCamera {
     }
     if (event is MapEventCameraIdle) {
       _updateOgnFilter();
+      updateTrafficOnMap();
     }
     if (event is MapEventClick) {
       debugPrint('Map clicked at ${event.point}');
@@ -531,6 +506,74 @@ class MapCamera extends _$MapCamera {
         _handleMapClick(event, onFeaturesTapped);
       }
     }
+  }
+
+  void updateTrafficOnMap([List<OgnTrafficAircraft>? trafficList]) {
+    if (_mapController == null ||
+        !_isAircraftSymbolInitialized ||
+        _mapController?.style == null) {
+      return;
+    }
+
+    final traffic = trafficList ?? ref.read(ognTrafficProvider);
+    if (traffic == null) return;
+    final now = DateTime.now();
+
+    final features = traffic.map((ac) {
+      final acType = AircraftType.fromOgnCode(ac.aircraftType);
+      final isFlying = ac.groundSpeed > 1.0;
+      final iconId = isFlying ? acType.trafficMapIconId : acType.inactiveTrafficMapIconId;
+
+      double possiblePositionRatio = 0.0;
+      if (isFlying && ac.groundSpeed > 0) {
+        final elapsedSeconds = now.difference(ac.lastSeen).inMilliseconds / 1000.0;
+        final actualizationPeriod = 10.0; // 10 seconds lookahead period
+        final delay = elapsedSeconds + actualizationPeriod;
+
+        if (delay > 0) {
+          final distanceMeters = ac.groundSpeed * delay;
+          final startCoord = Geographic(lat: ac.latitude, lon: ac.longitude);
+          final destCoord = GeoUtils.calculateDestination(startCoord, ac.track, distanceMeters);
+
+          try {
+            final p1 = _mapController!.toScreenLocation(startCoord);
+            final p2 = _mapController!.toScreenLocation(destCoord);
+            final distancePoints = (p1 - p2).distance;
+            // possible-loc.png is 64x64 px (base iconSize = 64)
+            possiblePositionRatio = distancePoints / 64.0;
+          } catch (_) {
+            possiblePositionRatio = 0.0;
+          }
+        }
+      }
+
+      return {
+        'type': 'Feature',
+        'id': ac.id,
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [ac.longitude, ac.latitude],
+        },
+        'properties': {
+          'id': ac.id,
+          'heading': ac.track,
+          'title': ac.callsign,
+          'altitude': ac.altitude,
+          'groundSpeed': ac.groundSpeed,
+          'verticalSpeed': ac.verticalSpeed,
+          'icon-image': iconId,
+          'possiblePositionRatio': possiblePositionRatio,
+        }
+      };
+    }).toList();
+
+    _mapController!.style!.updateGeoJsonSource(
+      id: 'traffic-source',
+      data: jsonEncode({
+        'type': 'FeatureCollection',
+        'features': features,
+      }),
+    );
   }
 
   void _updateOgnFilter() {

@@ -28,6 +28,13 @@ extension MapCameraStyle on MapCamera {
         if (!refAccess.mounted) return;
       }
 
+      // Traffic possible location indicator image
+      await style.addImageFromAssets(
+        id: 'possibleLoc',
+        asset: 'assets/images/possible-loc.png',
+      );
+      if (!refAccess.mounted) return;
+
       // Legacy fallbacks
       await style.addImageFromAssets(
         id: 'aircraft-icon',
@@ -162,6 +169,25 @@ extension MapCameraStyle on MapCamera {
         GeoJsonSource(
           id: 'traffic-source',
           data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        SymbolStyleLayer(
+          id: 'traffic-possible-layer',
+          sourceId: 'traffic-source',
+          layout: {
+            'icon-image': 'possibleLoc',
+            'icon-size': ['get', 'possiblePositionRatio'],
+            'icon-rotate': ['get', 'heading'],
+            'icon-rotation-alignment': 'map',
+            'icon-pitch-alignment': 'map',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': false,
+            'icon-optional': false,
+            'icon-anchor': 'bottom',
+          },
         ),
       );
       if (!refAccess.mounted) return;

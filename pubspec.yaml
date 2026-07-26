@@ -110,8 +110,6 @@ flutter:
   assets:
     - assets/images/
     - assets/images/aircraft_types/
-    - assets/images/aircraft.png
-    - assets/images/app_icon.png
     - assets/openaip/styles.json
     - assets/openaip/sprite.pbf
     - assets/openaip/sprite.png

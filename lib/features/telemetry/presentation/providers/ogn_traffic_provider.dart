@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:maplibre/maplibre.dart';
+import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/domain/models/aircraft.dart';
@@ -152,14 +153,49 @@ class OgnTraffic extends _$OgnTraffic {
   }
 
   Timer? _filterDebounceTimer;
+  DateTime? _lastFilterSentTime;
+  LngLatBounds? _lastSentBounds;
 
   void updateViewport(LngLatBounds bounds) {
+    final now = DateTime.now();
+    final timeSinceLastSent = _lastFilterSentTime != null
+        ? now.difference(_lastFilterSentTime!)
+        : const Duration(seconds: 999);
+
+    bool significantShift = false;
+    if (_lastSentBounds != null) {
+      final oldCenterLat = (_lastSentBounds!.latitudeNorth + _lastSentBounds!.latitudeSouth) / 2;
+      final oldCenterLon = (_lastSentBounds!.longitudeEast + _lastSentBounds!.longitudeWest) / 2;
+      final newCenterLat = (bounds.latitudeNorth + bounds.latitudeSouth) / 2;
+      final newCenterLon = (bounds.longitudeEast + bounds.longitudeWest) / 2;
+
+      final dist = GeoUtils.distanceBetween(oldCenterLat, oldCenterLon, newCenterLat, newCenterLon);
+      // Trigger instant update if camera center shifted by > 1.5 km (e.g. sharp 180° turn or fast pan)
+      if (dist > 1500) {
+        significantShift = true;
+      }
+    }
+
+    // Force immediate filter update if time elapsed >= 15s OR if camera turned/shifted significantly
+    if (timeSinceLastSent >= const Duration(seconds: 15) || significantShift) {
+      _filterDebounceTimer?.cancel();
+      _sendFilter(bounds);
+      return;
+    }
+
+    // Trailing debounce for minor manual panning/zooming
     _filterDebounceTimer?.cancel();
-    _filterDebounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (_inboundConnection == null) return;
-      final filterCommand = 'filter a/${bounds.latitudeNorth.toStringAsFixed(4)}/${bounds.longitudeWest.toStringAsFixed(4)}/${bounds.latitudeSouth.toStringAsFixed(4)}/${bounds.longitudeEast.toStringAsFixed(4)}';
-      _inboundConnection!.updateFilter(filterCommand);
+    _filterDebounceTimer = Timer(const Duration(seconds: 1), () {
+      _sendFilter(bounds);
     });
+  }
+
+  void _sendFilter(LngLatBounds bounds) {
+    if (_inboundConnection == null) return;
+    _lastFilterSentTime = DateTime.now();
+    _lastSentBounds = bounds;
+    final filterCommand = 'filter a/${bounds.latitudeNorth.toStringAsFixed(4)}/${bounds.longitudeWest.toStringAsFixed(4)}/${bounds.latitudeSouth.toStringAsFixed(4)}/${bounds.longitudeEast.toStringAsFixed(4)}';
+    _inboundConnection!.updateFilter(filterCommand);
   }
 
   void _updateOutboundTrackingState() {
