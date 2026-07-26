@@ -41,6 +41,8 @@ class _AircraftSettingsDialogState
     extends ConsumerState<_AircraftSettingsDialog> {
   late final TextEditingController _initialHoursController;
   late final TextEditingController _initialFlightsController;
+  late final TextEditingController _ognDeviceIdController;
+  late bool _sendLivePosition;
 
   @override
   void initState() {
@@ -51,12 +53,17 @@ class _AircraftSettingsDialogState
     _initialFlightsController = TextEditingController(
       text: widget.aircraft.initialFlights.toString(),
     );
+    _ognDeviceIdController = TextEditingController(
+      text: widget.aircraft.ognDeviceId,
+    );
+    _sendLivePosition = widget.aircraft.sendLivePosition;
   }
 
   @override
   void dispose() {
     _initialHoursController.dispose();
     _initialFlightsController.dispose();
+    _ognDeviceIdController.dispose();
     super.dispose();
   }
 
@@ -208,6 +215,149 @@ class _AircraftSettingsDialogState
                 child: Text(l10n.save),
               ),
             ],
+          ),
+          const Divider(height: 32),
+          Text(
+            l10n.ognSettingsSection,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.sendLivePosition),
+            subtitle: Text(l10n.sendLivePositionDesc),
+            value: _sendLivePosition,
+            onChanged: (val) async {
+              setState(() {
+                _sendLivePosition = val;
+              });
+              final currentAircrafts =
+                  ref.read(aircraftStateProvider).value ?? [widget.aircraft];
+              final currentAircraft = currentAircrafts.firstWhere(
+                (a) => a.id == widget.aircraft.id,
+                orElse: () => widget.aircraft,
+              );
+              await ref
+                  .read(aircraftStateProvider.notifier)
+                  .updateAircraft(
+                    currentAircraft.copyWith(sendLivePosition: val),
+                  );
+            },
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.ognDeviceIdLabel,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _ognDeviceIdController,
+                  maxLength: 6,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    counterText: '',
+                    hintText: l10n.ognDeviceIdHint,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () async {
+                  final id = _ognDeviceIdController.text.trim();
+                  if (id.length != 6) {
+                    ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                      SnackBar(content: Text(l10n.invalidOgnId)),
+                    );
+                    return;
+                  }
+                  final currentAircrafts =
+                      ref.read(aircraftStateProvider).value ?? [widget.aircraft];
+                  final currentAircraft = currentAircrafts.firstWhere(
+                    (a) => a.id == widget.aircraft.id,
+                    orElse: () => widget.aircraft,
+                  );
+                  await ref
+                      .read(aircraftStateProvider.notifier)
+                      .updateAircraft(
+                        currentAircraft.copyWith(ognDeviceId: id.toUpperCase()),
+                      );
+                  if (widget.parentContext.mounted) {
+                    ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                      SnackBar(content: Text(l10n.save)),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(l10n.save),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.ognGuideTitle,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.ognGuideStep1,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.ognGuideStep2,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.ognGuideStep3,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
           Row(

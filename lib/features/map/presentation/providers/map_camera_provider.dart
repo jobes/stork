@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
+import 'package:flutter/material.dart' show Color, Paint, Canvas, ColorFilter, BlendMode, Offset;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,6 +14,7 @@ import '../../../../core/services/location_service.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
+import '../../../telemetry/presentation/providers/ogn_traffic_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import 'notams_provider.dart';
 import '../../utils/geojson_builder.dart';
@@ -237,6 +241,40 @@ class MapCamera extends _$MapCamera {
       if (next.hasValue) {
         updateNotamsOnMap();
       }
+    });
+
+    // Listen to OGN traffic updates to redraw traffic on map
+    ref.listen(ognTrafficProvider, (previous, next) {
+      if (_mapController == null ||
+          !_isAircraftSymbolInitialized ||
+          _mapController?.style == null) {
+        return;
+      }
+
+      final features = next.map((ac) => {
+        'type': 'Feature',
+        'id': ac.id,
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [ac.longitude, ac.latitude],
+        },
+        'properties': {
+          'id': ac.id,
+          'heading': ac.track,
+          'title': ac.callsign,
+          'altitude': ac.altitude,
+          'groundSpeed': ac.groundSpeed,
+          'verticalSpeed': ac.verticalSpeed,
+        }
+      }).toList();
+
+      _mapController!.style!.updateGeoJsonSource(
+        id: 'traffic-source',
+        data: jsonEncode({
+          'type': 'FeatureCollection',
+          'features': features,
+        }),
+      );
     });
 
     // Clean up timer on dispose
@@ -474,12 +512,26 @@ class MapCamera extends _$MapCamera {
   }) {
     if (event is MapEventMoveCamera) {
       handleUserInteraction(isExplicitInteraction: false);
+      _updateOgnFilter();
+    }
+    if (event is MapEventCameraIdle) {
+      _updateOgnFilter();
     }
     if (event is MapEventClick) {
       debugPrint('Map clicked at ${event.point}');
       if (onFeaturesTapped != null) {
         _handleMapClick(event, onFeaturesTapped);
       }
+    }
+  }
+
+  void _updateOgnFilter() {
+    if (_mapController == null) return;
+    try {
+      final bounds = _mapController!.getVisibleRegion();
+      ref.read(ognTrafficProvider.notifier).updateViewport(bounds);
+    } catch (e) {
+      debugPrint('Failed to update OGN filter bounds: $e');
     }
   }
 
@@ -520,6 +572,11 @@ class MapCamera extends _$MapCamera {
         layerIds: ['notams-fill-layer'],
       );
 
+      final trafficFeatures = _mapController!.featuresAtPoint(
+        event.screenPoint,
+        layerIds: ['traffic-layer'],
+      );
+
       final featureMaps = <Map<String, dynamic>>[];
       for (final f in airportFeatures) {
         featureMaps.add({
@@ -547,6 +604,13 @@ class MapCamera extends _$MapCamera {
           'id': f.id,
           'properties': f.properties,
           'layerType': 'notam',
+        });
+      }
+      for (final f in trafficFeatures) {
+        featureMaps.add({
+          'id': f.id,
+          'properties': f.properties,
+          'layerType': 'traffic',
         });
       }
 

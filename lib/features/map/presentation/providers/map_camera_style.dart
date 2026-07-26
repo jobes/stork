@@ -124,12 +124,63 @@ extension MapCameraStyle on MapCamera {
       );
       if (!refAccess.mounted) return;
 
+      final trafficBytes = await _loadAndTintImage(
+        'assets/images/aircraft.png',
+        const Color(0xFF2196F3),
+      );
+      if (!refAccess.mounted) return;
+      await style.addImage('traffic-aircraft-icon', trafficBytes);
+      if (!refAccess.mounted) return;
+
+      await style.addSource(
+        GeoJsonSource(
+          id: 'traffic-source',
+          data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        SymbolStyleLayer(
+          id: 'traffic-layer',
+          sourceId: 'traffic-source',
+          layout: {
+            'icon-image': 'traffic-aircraft-icon',
+            'icon-rotate': ['get', 'heading'],
+            'icon-rotation-alignment': 'map',
+            'icon-pitch-alignment': 'viewport',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+            'icon-size': 1 / 4,
+          },
+        ),
+      );
+      if (!refAccess.mounted) return;
+
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();
       updateNotamsOnMap();
+      _updateOgnFilter();
       debugPrint('Aircraft symbol initialized 😎');
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');
     }
   }
+}
+
+Future<Uint8List> _loadAndTintImage(String assetPath, Color color) async {
+  final data = await rootBundle.load(assetPath);
+  final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+  final frame = await codec.getNextFrame();
+  final image = frame.image;
+
+  final pictureRecorder = ui.PictureRecorder();
+  final canvas = Canvas(pictureRecorder);
+  final paint = Paint()
+    ..colorFilter = ColorFilter.mode(color, BlendMode.modulate);
+  canvas.drawImage(image, Offset.zero, paint);
+  
+  final tintedImage = await pictureRecorder.endRecording().toImage(image.width, image.height);
+  final byteData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
+  return byteData!.buffer.asUint8List();
 }

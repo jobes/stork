@@ -1600,4 +1600,84 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get varioLastUpdate => 'Posledná aktualizácia';
+
+  @override
+  String get ognSettingsSection => 'Nastavenia OGN';
+
+  @override
+  String get sendLivePosition => 'Odosielať polohu live';
+
+  @override
+  String get sendLivePositionDesc =>
+      'Odosielanie live sledovania polohy na OGN servery';
+
+  @override
+  String get ognDeviceIdLabel => 'Zadajte svoje OGN ID';
+
+  @override
+  String get ognDeviceIdHint => 'Napr. ICA74F';
+
+  @override
+  String get ognGuideTitle => 'Ako získať OGN ID:';
+
+  @override
+  String get ognGuideStep1 =>
+      '1. Navštívte bezplatnú databázu ddb.glidernet.org.';
+
+  @override
+  String get ognGuideStep2 =>
+      '2. Zaregistrujte svoje lietadlo (zvoľte typ zariadenia: OGN Tracker / Lyntia / Škola, alebo priraďte k vášmu FLARM/ICAO kódu).';
+
+  @override
+  String get ognGuideStep3 =>
+      '3. Systém vám vygeneruje unikátne 6-miestne ID prístroja (napr. ICA74F), ktoré zadáte do tejto aplikácie. Od tejto chvíle vás uvidia ostatní piloti aj záchranné zložky.';
+
+  @override
+  String get trafficTitle => 'Letecká doprava';
+
+  @override
+  String get aircraftCountLabel => 'Počet lietadiel';
+
+  @override
+  String get callsignRegistrationLabel => 'Identifikácia / Imatrikulácia';
+
+  @override
+  String get absoluteAltitudeLabel => 'Absolútna výška (AMSL)';
+
+  @override
+  String get relativeAltitudeLabel => 'Relatívna výška';
+
+  @override
+  String get groundSpeedLabel => 'Rýchlosť voči zemi';
+
+  @override
+  String get verticalSpeedLabel => 'Vario / Stúpanie / Klesanie';
+
+  @override
+  String get distanceFromUsLabel => 'Vzdialenosť od našej polohy';
+
+  @override
+  String get gliderType => 'Vetroň';
+
+  @override
+  String get ultralightType => 'Ultralight';
+
+  @override
+  String get gaType => 'GA';
+
+  @override
+  String get otherType => 'Iné';
+
+  @override
+  String get invalidOgnId => 'Neplatné OGN ID. Musí mať presne 6 znakov.';
+
+  @override
+  String get anonymousAircraft => 'Anonymné lietadlo';
+
+  @override
+  String get anonymousTrafficDesc =>
+      'Toto lietadlo má vypnuté verejné sledovanie. Telemetrické údaje sú viditeľné z bezpečnostných dôvodov, no identifikácia je anonymná.';
+
+  @override
+  String get lastSeenLabel => 'Posledná aktivita';
 }

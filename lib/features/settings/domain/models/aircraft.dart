@@ -10,6 +10,8 @@ abstract class Aircraft with _$Aircraft {
     required String name,
     @Default(0.0) double initialFlightHours,
     @Default(0) int initialFlights,
+    @Default(false) bool sendLivePosition,
+    @Default('') String ognDeviceId,
   }) = _Aircraft;
 
   factory Aircraft.fromJson(Map<String, dynamic> json) =>
