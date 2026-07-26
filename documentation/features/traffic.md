@@ -52,7 +52,7 @@ graph TD
 
 ## 2. OGN APRS Inbound Connection & Viewport Filtering
 
-#### 2.1. Inbound APRS Socket Client
+### 2.1. Inbound APRS Socket Client
 The class [OgnInboundConnection](../../lib/features/telemetry/data/ogn_aprs_service.dart#L280) manages an active TCP socket connection to the OGN APRS core servers:
 *   **Host & Port:** `aprs.glidernet.org:14580`
 *   **Authentication Handshake:** Upon connection, the socket sends:
@@ -252,7 +252,7 @@ Tapping an aircraft icon on the map queries features from `traffic-layer` and op
 
 ### 8.2. Collision Warning Banner (`CollisionWarningBanner`)
 When an active threat is detected, an alert banner is dynamically rendered over the map UI:
-*   Displays target callsign, separation at CPA ($d_{\text{CPA}}$), time to impact ($t_{\text{CPA}}$), and relative altitude ($\pm\text{m}$ or $\pm\text{ft}$).
+*   Displays target callsign, separation at CPA ($d_{\text{CPA}}$), time to closest approach ($t_{\text{CPA}}$), and relative altitude ($\pm\text{m}$ or $\pm\text{ft}$).
 *   Tapping the banner opens the `TrafficDetailsDialog` for the threat target.
 
 ---

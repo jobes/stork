@@ -248,7 +248,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
               ),
             ),
             const Positioned(
-              top: 0,
+              top: 50,
               left: 0,
               right: 0,
               child: CollisionWarningBanner(),

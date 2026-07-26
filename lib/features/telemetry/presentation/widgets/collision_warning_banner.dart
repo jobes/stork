@@ -30,7 +30,7 @@ class CollisionWarningBanner extends ConsumerWidget {
     final distMeters = threatTarget.minDistance ?? 0.0;
     final distKm = distMeters / 1000.0;
     final distStr = distKm < 1.0
-        ? '${(distMeters).round()}m'
+        ? '${(distMeters).round()}${l10n.altitudeUnitMeters}'
         : '${distKm.toStringAsFixed(1)}km';
 
     final tCpaSeconds = (threatTarget.tCpa ?? 0.0).round();
@@ -171,7 +171,7 @@ class CollisionWarningBanner extends ConsumerWidget {
                             ),
                             SizedBox(width: 3 * fontScale),
                             Text(
-                              '${tCpaSeconds}s',
+                              '$tCpaSeconds${l10n.durationSuffix}',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,

@@ -130,8 +130,8 @@ class CasEvaluator {
       x = x0 + gs * math.sin(trackRad) * t;
       y = y0 + gs * math.cos(trackRad) * t;
     } else {
-      x = x0 + (gs / omega) * (math.sin(trackRad + omega * t) - math.sin(trackRad));
-      y = y0 + (gs / omega) * (math.cos(trackRad) - math.cos(trackRad + omega * t));
+      x = x0 + (gs / omega) * (math.cos(trackRad) - math.cos(trackRad + omega * t));
+      y = y0 + (gs / omega) * (math.sin(trackRad + omega * t) - math.sin(trackRad));
     }
     final h = h0 + vs * t;
     return (x, y, h);
@@ -190,7 +190,7 @@ class CasEvaluator {
     // 3. Narrow-Phase Trajectory Prediction & Threat Volume Evaluation
     bool threatDetected = false;
     double minDistance = dCurr;
-    double tCpa = 0.0;
+    double? tCpa;
 
     final steps = lookaheadTimeSec.ceil().clamp(1, 120);
     final dt = lookaheadTimeSec / steps;
