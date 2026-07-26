@@ -130,6 +130,12 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
       json['trafficFilterMaxVerticalDistanceEnabled'] as bool? ?? true,
   trafficMaxVerticalDistance:
       (json['trafficMaxVerticalDistance'] as num?)?.toDouble() ?? 1500.0,
+  casEnabled: json['casEnabled'] as bool? ?? true,
+  casLookaheadTime: (json['casLookaheadTime'] as num?)?.toDouble() ?? 30.0,
+  casHorizontalThreshold:
+      (json['casHorizontalThreshold'] as num?)?.toDouble() ?? 300.0,
+  casVerticalThreshold:
+      (json['casVerticalThreshold'] as num?)?.toDouble() ?? 100.0,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -174,6 +180,10 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'trafficFilterMaxVerticalDistanceEnabled':
           instance.trafficFilterMaxVerticalDistanceEnabled,
       'trafficMaxVerticalDistance': instance.trafficMaxVerticalDistance,
+      'casEnabled': instance.casEnabled,
+      'casLookaheadTime': instance.casLookaheadTime,
+      'casHorizontalThreshold': instance.casHorizontalThreshold,
+      'casVerticalThreshold': instance.casVerticalThreshold,
     };
 
 const _$SpeedUnitEnumMap = {

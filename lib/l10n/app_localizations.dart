@@ -3355,6 +3355,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{km} km'**
   String trafficMaxHorizontalDistanceSummary(String km);
+
+  /// No description provided for @enableCas.
+  ///
+  /// In en, this message translates to:
+  /// **'Collision Avoidance System (CAS)'**
+  String get enableCas;
+
+  /// No description provided for @casEnabledDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Predict 3D trajectories and warn about potential collisions'**
+  String get casEnabledDesc;
+
+  /// No description provided for @casLookaheadTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Lookahead Time'**
+  String get casLookaheadTime;
+
+  /// No description provided for @casHorizontalThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal Warning Distance'**
+  String get casHorizontalThreshold;
+
+  /// No description provided for @casVerticalThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical Warning Distance'**
+  String get casVerticalThreshold;
+
+  /// No description provided for @clockPositionFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{clock} O\'CLOCK'**
+  String clockPositionFormat(String clock);
+
+  /// No description provided for @sameAltLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'SAME ALT'**
+  String get sameAltLabel;
+
+  /// No description provided for @aboveAltLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'+{alt} ABOVE'**
+  String aboveAltLabel(String alt);
+
+  /// No description provided for @belowAltLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'-{alt} BELOW'**
+  String belowAltLabel(String alt);
 }
 
 class _AppLocalizationsDelegate

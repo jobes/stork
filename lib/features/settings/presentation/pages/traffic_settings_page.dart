@@ -18,13 +18,13 @@ class TrafficSettingsPage extends ConsumerWidget {
         data: (settings) {
           final horizontalDistKm = settings.trafficMaxHorizontalDistance / 1000.0;
 
-          final altUnit = settings.altitudeUnit;
-          final verticalDistUnitVal = altUnit.convertFromMeters(settings.trafficMaxVerticalDistance);
+          final heightUnit = settings.heightUnit;
+          final verticalDistUnitVal = heightUnit.convertFromMeters(settings.trafficMaxVerticalDistance);
 
           final double verticalMinVal;
           final double verticalMaxVal;
           final int verticalDivisions;
-          switch (altUnit) {
+          switch (heightUnit) {
             case AltitudeUnit.feet:
             case AltitudeUnit.flightLevel:
               verticalMinVal = 500.0;
@@ -118,7 +118,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                             style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
                           Text(
-                            '${verticalDistUnitVal.toStringAsFixed(0)} ${altUnit.getMslLabel(l10n)}',
+                            '${verticalDistUnitVal.toStringAsFixed(0)} ${heightUnit.getLabel(l10n)}',
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.bold,
@@ -132,7 +132,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                         max: verticalMaxVal,
                         divisions: verticalDivisions,
                         onChanged: (val) {
-                          final meters = altUnit.convertToMeters(val);
+                          final meters = heightUnit.convertToMeters(val);
                           ref
                               .read(appSettingsProvider.notifier)
                               .updateTrafficMaxVerticalDistance(meters);
@@ -141,6 +141,123 @@ class TrafficSettingsPage extends ConsumerWidget {
                     ],
                   ),
                 ),
+              const Divider(height: 1),
+              SwitchListTile(
+                title: Text(
+                  l10n.enableCas,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                subtitle: Text(l10n.casEnabledDesc),
+                value: settings.casEnabled,
+                onChanged: (val) {
+                  ref.read(appSettingsProvider.notifier).updateCasEnabled(val);
+                },
+              ),
+              if (settings.casEnabled) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.casLookaheadTime,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            '${settings.casLookaheadTime.round()} s',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Slider(
+                        value: settings.casLookaheadTime.clamp(10.0, 120.0),
+                        min: 10.0,
+                        max: 120.0,
+                        divisions: 22, // 5 sec steps
+                        onChanged: (val) {
+                          ref.read(appSettingsProvider.notifier).updateCasLookaheadTime(val);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.casHorizontalThreshold,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            '${settings.casHorizontalThreshold.round()} m',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Slider(
+                        value: settings.casHorizontalThreshold.clamp(50.0, 1000.0),
+                        min: 50.0,
+                        max: 1000.0,
+                        divisions: 19, // 50m steps
+                        onChanged: (val) {
+                          ref.read(appSettingsProvider.notifier).updateCasHorizontalThreshold(val);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.casVerticalThreshold,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            '${heightUnit.convertFromMeters(settings.casVerticalThreshold).round()} ${heightUnit.getLabel(l10n)}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Slider(
+                        value: heightUnit.convertFromMeters(settings.casVerticalThreshold).clamp(
+                          heightUnit == AltitudeUnit.meters ? 20.0 : 50.0,
+                          heightUnit == AltitudeUnit.meters ? 300.0 : 1000.0,
+                        ),
+                        min: heightUnit == AltitudeUnit.meters ? 20.0 : 50.0,
+                        max: heightUnit == AltitudeUnit.meters ? 300.0 : 1000.0,
+                        divisions: 19,
+                        onChanged: (val) {
+                          final meters = heightUnit.convertToMeters(val);
+                          ref.read(appSettingsProvider.notifier).updateCasVerticalThreshold(meters);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           );
         },

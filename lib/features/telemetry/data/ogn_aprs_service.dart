@@ -20,6 +20,12 @@ class OgnTrafficAircraft {
   final int aircraftType;
   final DateTime lastSeen;
   final bool isAnonymous;
+  final double turnRate; // rad/s
+  final bool isCircling;
+  final bool isCollisionThreat;
+  final double? tCpa; // seconds
+  final double? minDistance; // meters
+  final int? clockPosition; // 1-12
 
   OgnTrafficAircraft({
     required this.id,
@@ -36,6 +42,12 @@ class OgnTrafficAircraft {
     required this.aircraftType,
     required this.lastSeen,
     this.isAnonymous = false,
+    this.turnRate = 0.0,
+    this.isCircling = false,
+    this.isCollisionThreat = false,
+    this.tCpa,
+    this.minDistance,
+    this.clockPosition,
   });
 
   OgnTrafficAircraft copyWith({
@@ -53,6 +65,12 @@ class OgnTrafficAircraft {
     int? aircraftType,
     DateTime? lastSeen,
     bool? isAnonymous,
+    double? turnRate,
+    bool? isCircling,
+    bool? isCollisionThreat,
+    double? tCpa,
+    double? minDistance,
+    int? clockPosition,
   }) {
     return OgnTrafficAircraft(
       id: id ?? this.id,
@@ -69,6 +87,12 @@ class OgnTrafficAircraft {
       aircraftType: aircraftType ?? this.aircraftType,
       lastSeen: lastSeen ?? this.lastSeen,
       isAnonymous: isAnonymous ?? this.isAnonymous,
+      turnRate: turnRate ?? this.turnRate,
+      isCircling: isCircling ?? this.isCircling,
+      isCollisionThreat: isCollisionThreat ?? this.isCollisionThreat,
+      tCpa: tCpa ?? this.tCpa,
+      minDistance: minDistance ?? this.minDistance,
+      clockPosition: clockPosition ?? this.clockPosition,
     );
   }
 }

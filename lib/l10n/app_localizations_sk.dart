@@ -1742,4 +1742,38 @@ class AppLocalizationsSk extends AppLocalizations {
   String trafficMaxHorizontalDistanceSummary(String km) {
     return '$km km';
   }
+
+  @override
+  String get enableCas => 'Anti-kolízny systém (CAS)';
+
+  @override
+  String get casEnabledDesc =>
+      'Predikuje 3D trajektórie a varuje pred hroziacimi kolíziami';
+
+  @override
+  String get casLookaheadTime => 'Čas predikcie (Lookahead)';
+
+  @override
+  String get casHorizontalThreshold => 'Horizontálna výstražná vzdialenosť';
+
+  @override
+  String get casVerticalThreshold => 'Vertikálna výstražná vzdialenosť';
+
+  @override
+  String clockPositionFormat(String clock) {
+    return '$clock HODÍN';
+  }
+
+  @override
+  String get sameAltLabel => 'ROVNAKÁ VÝŠKA';
+
+  @override
+  String aboveAltLabel(String alt) {
+    return '+$alt NAD';
+  }
+
+  @override
+  String belowAltLabel(String alt) {
+    return '-$alt POD';
+  }
 }

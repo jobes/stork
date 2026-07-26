@@ -23,6 +23,7 @@ import '../../../telemetry/presentation/widgets/fuel_status_telemetry_widget.dar
 import '../../../telemetry/presentation/widgets/rpm_horizontal_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/vhf_radio_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/vario_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/collision_warning_banner.dart';
 import '../components/controls/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
@@ -177,6 +178,12 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
               left: 0,
               right: 0,
               child: AbsorbPointer(child: const CompassBar()),
+            ),
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: CollisionWarningBanner(),
             ),
             if (mapViewState != MapViewState.init) ...[
               buildWidget('speed_widget', 150.0, const SpeedTelemetryWidget()),

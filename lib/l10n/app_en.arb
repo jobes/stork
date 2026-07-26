@@ -840,5 +840,29 @@
     "placeholders": {
       "km": { "type": "String" }
     }
+  },
+  "enableCas": "Collision Avoidance System (CAS)",
+  "casEnabledDesc": "Predict 3D trajectories and warn about potential collisions",
+  "casLookaheadTime": "Lookahead Time",
+  "casHorizontalThreshold": "Horizontal Warning Distance",
+  "casVerticalThreshold": "Vertical Warning Distance",
+  "clockPositionFormat": "{clock} O'CLOCK",
+  "@clockPositionFormat": {
+    "placeholders": {
+      "clock": { "type": "String" }
+    }
+  },
+  "sameAltLabel": "SAME ALT",
+  "aboveAltLabel": "+{alt} ABOVE",
+  "@aboveAltLabel": {
+    "placeholders": {
+      "alt": { "type": "String" }
+    }
+  },
+  "belowAltLabel": "-{alt} BELOW",
+  "@belowAltLabel": {
+    "placeholders": {
+      "alt": { "type": "String" }
+    }
   }
 }

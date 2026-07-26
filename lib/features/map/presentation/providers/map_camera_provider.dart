@@ -14,10 +14,12 @@ import '../../../../core/services/location_service.dart';
 import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/aircraft_type.dart';
+import '../../../settings/domain/models/altitude_unit.dart';
 import '../../../telemetry/data/ogn_aprs_service.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/presentation/providers/ogn_traffic_provider.dart';
+import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import 'notams_provider.dart';
 import '../../utils/geojson_builder.dart';
@@ -544,10 +546,18 @@ class MapCamera extends _$MapCamera {
 
     final now = DateTime.now();
 
+    final telemetry = ref.read(telemetryProvider);
+    final settings = ref.read(appSettingsProvider).value;
+    final resolvedAlt = ref.read(resolvedAltitudeProvider).mslValue;
+    final myAlt = resolvedAlt ?? telemetry.gpsAltitude ?? 0.0;
+    final altUnit = settings?.heightUnit ?? AltitudeUnit.meters;
+
     final features = traffic.map((ac) {
       final acType = AircraftType.fromOgnCode(ac.aircraftType);
       final isFlying = ac.groundSpeed > 1.0;
-      final iconId = isFlying ? acType.trafficMapIconId : acType.inactiveTrafficMapIconId;
+      final iconId = ac.isCollisionThreat
+          ? acType.threatTrafficMapIconId
+          : (isFlying ? acType.trafficMapIconId : acType.inactiveTrafficMapIconId);
 
       double possiblePositionRatio = 0.0;
       if (isFlying && ac.groundSpeed > 0) {
@@ -570,6 +580,25 @@ class MapCamera extends _$MapCamera {
         }
       }
 
+      final String altitudeTagStr;
+      if (ac.isCollisionThreat) {
+        final diffMeters = ac.altitude - myAlt;
+        final String tagNum;
+        if (altUnit == AltitudeUnit.feet || altUnit == AltitudeUnit.flightLevel) {
+          final diffFeet = (diffMeters / 0.3048).round();
+          final sign = diffFeet >= 0 ? '+' : '';
+          tagNum = '$sign${diffFeet}ft';
+        } else {
+          final diffM = diffMeters.round();
+          final sign = diffM >= 0 ? '+' : '';
+          tagNum = '$sign${diffM}m';
+        }
+        final String trend = ac.verticalSpeed > 0.5 ? ' ▲' : (ac.verticalSpeed < -0.5 ? ' ▼' : '');
+        altitudeTagStr = '$tagNum$trend';
+      } else {
+        altitudeTagStr = '';
+      }
+
       return {
         'type': 'Feature',
         'id': ac.id,
@@ -585,6 +614,8 @@ class MapCamera extends _$MapCamera {
           'groundSpeed': ac.groundSpeed,
           'verticalSpeed': ac.verticalSpeed,
           'icon-image': iconId,
+          'altitudeTag': altitudeTagStr,
+          'isThreat': ac.isCollisionThreat,
           'possiblePositionRatio': possiblePositionRatio,
         }
       };

@@ -563,4 +563,26 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       ),
     );
   }
+
+  Future<SettingsUpdateResult> updateCasEnabled(bool enabled) {
+    return _updateSettings((s) => s.copyWith(casEnabled: enabled));
+  }
+
+  Future<SettingsUpdateResult> updateCasLookaheadTime(double seconds) {
+    return _updateSettings(
+      (s) => s.copyWith(casLookaheadTime: seconds.clamp(10.0, 120.0).toDouble()),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateCasHorizontalThreshold(double meters) {
+    return _updateSettings(
+      (s) => s.copyWith(casHorizontalThreshold: meters.clamp(50.0, 2000.0).toDouble()),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateCasVerticalThreshold(double meters) {
+    return _updateSettings(
+      (s) => s.copyWith(casVerticalThreshold: meters.clamp(20.0, 1000.0).toDouble()),
+    );
+  }
 }
