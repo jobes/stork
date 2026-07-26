@@ -864,5 +864,6 @@
     "placeholders": {
       "alt": { "type": "String" }
     }
-  }
+  },
+  "collisionWarningLabel": "COLLISION"
 }

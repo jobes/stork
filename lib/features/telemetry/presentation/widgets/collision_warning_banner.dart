@@ -18,14 +18,13 @@ class CollisionWarningBanner extends ConsumerWidget {
     if (threatTarget == null) return const SizedBox.shrink();
 
     final settings = ref.watch(appSettingsProvider).value;
+    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
     final telemetry = ref.watch(telemetryProvider);
     final resolvedAlt = ref.watch(resolvedAltitudeProvider).mslValue;
     final myAlt = resolvedAlt ?? telemetry.gpsAltitude ?? 0.0;
-    final altUnit = settings?.altitudeUnit ?? AltitudeUnit.feet;
+    final heightUnit = settings?.heightUnit ?? AltitudeUnit.meters;
     final l10n = AppLocalizations.of(context)!;
-
-    final clockPos = threatTarget.clockPosition ?? 12;
-    final clockText = l10n.clockPositionFormat(clockPos.toString());
+    final unitLabel = heightUnit.getLabel(l10n);
 
     // Distance calculation
     final distMeters = threatTarget.minDistance ?? 0.0;
@@ -35,21 +34,16 @@ class CollisionWarningBanner extends ConsumerWidget {
         : '${distKm.toStringAsFixed(1)}km';
 
     final tCpaSeconds = (threatTarget.tCpa ?? 0.0).round();
-    final cpaText = '$distStr | ${tCpaSeconds}s';
 
     // Altitude difference calculation
     final vertDiffMeters = threatTarget.altitude - myAlt;
     final String altText;
     if (vertDiffMeters.abs() < 15.0) {
-      altText = l10n.sameAltLabel;
-    } else if (vertDiffMeters >= 15.0) {
-      final val = altUnit.convertFromMeters(vertDiffMeters).round();
-      final unitLabel = altUnit.getMslLabel(l10n);
-      altText = l10n.aboveAltLabel('$val $unitLabel');
+      altText = '0 $unitLabel';
     } else {
-      final val = altUnit.convertFromMeters(vertDiffMeters.abs()).round();
-      final unitLabel = altUnit.getMslLabel(l10n);
-      altText = l10n.belowAltLabel('$val $unitLabel');
+      final val = heightUnit.convertFromMeters(vertDiffMeters).round();
+      final prefix = val > 0 ? '+' : '';
+      altText = '$prefix$val $unitLabel';
     }
 
     return SafeArea(
@@ -82,7 +76,10 @@ class CollisionWarningBanner extends ConsumerWidget {
               );
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: 16.0 * fontScale,
+                vertical: 10.0 * fontScale,
+              ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white, width: 2),
@@ -96,18 +93,18 @@ class CollisionWarningBanner extends ConsumerWidget {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: EdgeInsets.all(6 * fontScale),
                     decoration: const BoxDecoration(
                       color: Colors.white24,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.warning_amber_rounded,
                       color: Colors.white,
-                      size: 26,
+                      size: 30 * fontScale,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12 * fontScale),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,53 +113,85 @@ class CollisionWarningBanner extends ConsumerWidget {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6 * fontScale,
+                                vertical: 2 * fontScale,
                               ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                clockText,
+                                l10n.collisionWarningLabel,
                                 style: TextStyle(
                                   color: Colors.red.shade900,
                                   fontWeight: FontWeight.w900,
-                                  fontSize: 12,
+                                  fontSize: 13 * fontScale,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              threatTarget.callsign,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                            SizedBox(width: 8 * fontScale),
+                            Expanded(
+                              child: Text(
+                                threatTarget.callsign,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17 * fontScale,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 6 * fontScale),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              cpaText,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
+                            // Horizontal Distance Icon & Value
+                            Icon(
+                              Icons.compare_arrows,
+                              color: Colors.white70,
+                              size: 18 * fontScale,
                             ),
+                            SizedBox(width: 3 * fontScale),
                             Text(
-                              altText,
-                              style: const TextStyle(
+                              distStr,
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                                fontSize: 16 * fontScale,
+                              ),
+                            ),
+                            SizedBox(width: 12 * fontScale),
+                            // Time Icon & Value
+                            Icon(
+                              Icons.timer_outlined,
+                              color: Colors.white70,
+                              size: 18 * fontScale,
+                            ),
+                            SizedBox(width: 3 * fontScale),
+                            Text(
+                              '${tCpaSeconds}s',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16 * fontScale,
+                              ),
+                            ),
+                            SizedBox(width: 12 * fontScale),
+                            // Relative Altitude Icon & Value
+                            Icon(
+                              Icons.height,
+                              color: Colors.white70,
+                              size: 18 * fontScale,
+                            ),
+                            SizedBox(width: 3 * fontScale),
+                            Text(
+                              altText,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16 * fontScale,
                               ),
                             ),
                           ],

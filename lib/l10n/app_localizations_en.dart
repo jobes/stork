@@ -1768,4 +1768,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String belowAltLabel(String alt) {
     return '-$alt BELOW';
   }
+
+  @override
+  String get collisionWarningLabel => 'COLLISION';
 }

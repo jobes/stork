@@ -179,12 +179,6 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
               right: 0,
               child: AbsorbPointer(child: const CompassBar()),
             ),
-            const Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: CollisionWarningBanner(),
-            ),
             if (mapViewState != MapViewState.init) ...[
               buildWidget('speed_widget', 150.0, const SpeedTelemetryWidget()),
               buildWidget(
@@ -252,6 +246,12 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 onMenuPressed: () => Scaffold.of(context).openDrawer(),
                 onGpsPressed: cameraController.handleGpsToggle,
               ),
+            ),
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: CollisionWarningBanner(),
             ),
           ],
         ),

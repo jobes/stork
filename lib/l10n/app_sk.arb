@@ -753,5 +753,6 @@
   "clockPositionFormat": "{clock} HODÍN",
   "sameAltLabel": "ROVNAKÁ VÝŠKA",
   "aboveAltLabel": "+{alt} NAD",
-  "belowAltLabel": "-{alt} POD"
+  "belowAltLabel": "-{alt} POD",
+  "collisionWarningLabel": "KOLÍZIA"
 }

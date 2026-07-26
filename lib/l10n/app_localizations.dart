@@ -3409,6 +3409,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'-{alt} BELOW'**
   String belowAltLabel(String alt);
+
+  /// No description provided for @collisionWarningLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'COLLISION'**
+  String get collisionWarningLabel;
 }
 
 class _AppLocalizationsDelegate

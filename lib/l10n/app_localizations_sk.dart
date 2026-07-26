@@ -1776,4 +1776,7 @@ class AppLocalizationsSk extends AppLocalizations {
   String belowAltLabel(String alt) {
     return '-$alt POD';
   }
+
+  @override
+  String get collisionWarningLabel => 'KOLÍZIA';
 }
