@@ -225,11 +225,13 @@ extension MapCameraStyle on MapCamera {
 }
 
 Future<Uint8List> _loadAndTintImage(String assetPath, Color color) async {
+  ui.Codec? codec;
   ui.Image? image;
+  ui.Picture? picture;
   ui.Image? tintedImage;
   try {
     final data = await rootBundle.load(assetPath);
-    final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+    codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
     final frame = await codec.getNextFrame();
     image = frame.image;
 
@@ -238,15 +240,18 @@ Future<Uint8List> _loadAndTintImage(String assetPath, Color color) async {
     final paint = Paint()
       ..colorFilter = ColorFilter.mode(color, BlendMode.modulate);
     canvas.drawImage(image, Offset.zero, paint);
-    
-    tintedImage = await pictureRecorder.endRecording().toImage(image.width, image.height);
+
+    picture = pictureRecorder.endRecording();
+    tintedImage = await picture.toImage(image.width, image.height);
     final byteData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
     if (byteData == null) {
       throw StateError('Failed to convert tinted image to PNG byte data for $assetPath');
     }
     return byteData.buffer.asUint8List();
   } finally {
+    codec?.dispose();
     image?.dispose();
+    picture?.dispose();
     tintedImage?.dispose();
   }
 }

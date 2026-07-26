@@ -213,12 +213,12 @@ Outbound beaconing starts automatically when:
 The MapLibre integration handles traffic visualization in [map_camera_style.dart](../../lib/features/map/presentation/providers/map_camera_style.dart#L174) and [map_camera_provider.dart](../../lib/features/map/presentation/providers/map_camera_provider.dart#L526).
 
 ### 7.1. Layer Architecture
-*   **`traffic-source`:** GeoJSON source holding target points with feature properties (`id`, `heading`, `iconId`, `possiblePositionRatio`).
+*   **`traffic-source`:** GeoJSON source holding target points with feature properties (`id`, `heading`, `icon-image`, `possiblePositionRatio`).
 *   **`traffic-layer`:** Symbol layer rendering custom aircraft icons rotated according to target track (`heading`).
-*   **`traffic-possible-layer`:** Circle layer rendering position uncertainty rings when lookahead projection is active.
+*   **`traffic-possible-layer`:** Symbol layer rendering position uncertainty rings when lookahead projection is active.
 
 ### 7.2. Icon Registration & Category Styling
-`MapCameraStyleNotifier` dynamically generates and registers tinted icon assets for all 14 `AircraftType` categories:
+`MapCameraStyleNotifier` dynamically generates and registers tinted icon assets for all 13 `AircraftType` categories:
 *   **Active Traffic (Flying, $GS > 1.0\text{ m/s}$):** Colored aircraft icon (`type.trafficMapIconId`).
 *   **Inactive / Stationary Traffic ($GS \le 1.0\text{ m/s}$):** Grey-tinted icon (`type.inactiveTrafficMapIconId`).
 
