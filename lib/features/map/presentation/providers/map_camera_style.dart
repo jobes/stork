@@ -3,10 +3,44 @@ part of 'map_camera_provider.dart';
 extension MapCameraStyle on MapCamera {
   Future<void> handleStyleLoaded(StyleController style) async {
     try {
+      // Load all aircraft type icons into style
+      for (final type in AircraftType.values) {
+        await style.addImageFromAssets(
+          id: type.mapIconId,
+          asset: type.assetPath,
+        );
+        if (!refAccess.mounted) return;
+
+        // Clean untinted icon for flying traffic
+        await style.addImageFromAssets(
+          id: type.trafficMapIconId,
+          asset: type.assetPath,
+        );
+        if (!refAccess.mounted) return;
+
+        // Grey tinted icon for inactive (ground / stationary) traffic
+        final inactiveBytes = await _loadAndTintImage(
+          type.assetPath,
+          const Color(0xFF9E9E9E),
+        );
+        if (!refAccess.mounted) return;
+        await style.addImage(type.inactiveTrafficMapIconId, inactiveBytes);
+        if (!refAccess.mounted) return;
+      }
+
+      // Legacy fallbacks
       await style.addImageFromAssets(
         id: 'aircraft-icon',
         asset: 'assets/images/aircraft.png',
       );
+      if (!refAccess.mounted) return;
+
+      final defaultTrafficBytes = await _loadAndTintImage(
+        'assets/images/aircraft.png',
+        const Color(0xFF2196F3),
+      );
+      if (!refAccess.mounted) return;
+      await style.addImage('traffic-aircraft-icon', defaultTrafficBytes);
       if (!refAccess.mounted) return;
 
       final telemetry = refAccess.read(telemetryProvider);
@@ -124,14 +158,6 @@ extension MapCameraStyle on MapCamera {
       );
       if (!refAccess.mounted) return;
 
-      final trafficBytes = await _loadAndTintImage(
-        'assets/images/aircraft.png',
-        const Color(0xFF2196F3),
-      );
-      if (!refAccess.mounted) return;
-      await style.addImage('traffic-aircraft-icon', trafficBytes);
-      if (!refAccess.mounted) return;
-
       await style.addSource(
         GeoJsonSource(
           id: 'traffic-source',
@@ -145,13 +171,13 @@ extension MapCameraStyle on MapCamera {
           id: 'traffic-layer',
           sourceId: 'traffic-source',
           layout: {
-            'icon-image': 'traffic-aircraft-icon',
+            'icon-image': ['get', 'icon-image'],
             'icon-rotate': ['get', 'heading'],
             'icon-rotation-alignment': 'map',
             'icon-pitch-alignment': 'viewport',
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
-            'icon-size': 1 / 4,
+            'icon-size': 0.12,
           },
         ),
       );
@@ -161,7 +187,7 @@ extension MapCameraStyle on MapCamera {
       _updateNavigationRouteOnMap();
       updateNotamsOnMap();
       _updateOgnFilter();
-      debugPrint('Aircraft symbol initialized 😎');
+      debugPrint('Aircraft symbols initialized 😎');
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');
     }

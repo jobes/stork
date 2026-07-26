@@ -3200,6 +3200,72 @@ abstract class AppLocalizations {
   /// **'Glider'**
   String get gliderType;
 
+  /// No description provided for @towPlaneType.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow Plane'**
+  String get towPlaneType;
+
+  /// No description provided for @helicopterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Helicopter'**
+  String get helicopterType;
+
+  /// No description provided for @skydiverType.
+  ///
+  /// In en, this message translates to:
+  /// **'Skydiver'**
+  String get skydiverType;
+
+  /// No description provided for @dropPlaneType.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop Plane'**
+  String get dropPlaneType;
+
+  /// No description provided for @hangGliderType.
+  ///
+  /// In en, this message translates to:
+  /// **'Hang Glider'**
+  String get hangGliderType;
+
+  /// No description provided for @paragliderType.
+  ///
+  /// In en, this message translates to:
+  /// **'Paraglider'**
+  String get paragliderType;
+
+  /// No description provided for @poweredAircraftType.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered Aircraft'**
+  String get poweredAircraftType;
+
+  /// No description provided for @jetType.
+  ///
+  /// In en, this message translates to:
+  /// **'Jet'**
+  String get jetType;
+
+  /// No description provided for @balloonType.
+  ///
+  /// In en, this message translates to:
+  /// **'Balloon'**
+  String get balloonType;
+
+  /// No description provided for @airshipType.
+  ///
+  /// In en, this message translates to:
+  /// **'Airship'**
+  String get airshipType;
+
+  /// No description provided for @uavType.
+  ///
+  /// In en, this message translates to:
+  /// **'UAV / Drone'**
+  String get uavType;
+
   /// No description provided for @ultralightType.
   ///
   /// In en, this message translates to:
@@ -3217,6 +3283,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get otherType;
+
+  /// No description provided for @aircraftTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft Type'**
+  String get aircraftTypeLabel;
 
   /// No description provided for @invalidOgnId.
   ///

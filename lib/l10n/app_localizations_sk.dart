@@ -1660,6 +1660,39 @@ class AppLocalizationsSk extends AppLocalizations {
   String get gliderType => 'Vetroň';
 
   @override
+  String get towPlaneType => 'Vlečné lietadlo';
+
+  @override
+  String get helicopterType => 'Vrtuľník';
+
+  @override
+  String get skydiverType => 'Parašutista';
+
+  @override
+  String get dropPlaneType => 'Výsadkové lietadlo';
+
+  @override
+  String get hangGliderType => 'Závesný klzák';
+
+  @override
+  String get paragliderType => 'Paraglajder';
+
+  @override
+  String get poweredAircraftType => 'Motorové lietadlo';
+
+  @override
+  String get jetType => 'Prúdové lietadlo';
+
+  @override
+  String get balloonType => 'Balón';
+
+  @override
+  String get airshipType => 'Vzducholoď';
+
+  @override
+  String get uavType => 'Dron';
+
+  @override
   String get ultralightType => 'Ultralight';
 
   @override
@@ -1667,6 +1700,9 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get otherType => 'Iné';
+
+  @override
+  String get aircraftTypeLabel => 'Typ lietadla';
 
   @override
   String get invalidOgnId => 'Neplatné OGN ID. Musí mať presne 6 znakov.';

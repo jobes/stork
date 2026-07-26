@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../l10n/app_localizations.dart';
+import '../../../../settings/domain/models/aircraft_type.dart';
 import '../../../../settings/domain/models/altitude_unit.dart';
 import '../../../../settings/domain/models/speed_unit.dart';
 import '../../../../settings/presentation/providers/settings_provider.dart';
@@ -47,7 +48,6 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
     final telemetry = ref.watch(telemetryProvider);
     final myLat = telemetry.latitude;
     final myLon = telemetry.longitude;
-    final myAlt = telemetry.gpsAltitude; // meters
 
     final settings = ref.watch(appSettingsProvider).value;
     final speedUnit = settings?.speedUnit ?? SpeedUnit.kmh;
@@ -118,18 +118,8 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                   final vsLabel = '${vsVal >= 0.0 ? "+" : ""}${vsVal.toStringAsFixed(1)} m/s';
 
                   // Aircraft Category & Icon details
-                  IconData iconData = Icons.airplanemode_active;
-                  String typeLabel = l10n.otherType;
-                  if (ac.aircraftType == 1 || ac.aircraftType == 6 || ac.aircraftType == 7) {
-                    iconData = Icons.sailing; // sailboat icon resembles glider wing structure
-                    typeLabel = l10n.gliderType;
-                  } else if (ac.aircraftType == 8 || ac.aircraftType == 9) {
-                    iconData = Icons.airplanemode_active;
-                    typeLabel = l10n.gaType;
-                  } else if (ac.aircraftType > 0) {
-                    iconData = Icons.flight;
-                    typeLabel = l10n.ultralightType;
-                  }
+                  final acType = AircraftType.fromOgnCode(ac.aircraftType);
+                  final typeLabel = acType.getLabel(l10n);
 
                   String nameLabel;
                   String modelLabel;
@@ -145,8 +135,14 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                     if (ac.cn != null && ac.cn!.isNotEmpty) {
                       nameLabel += ' [${ac.cn}]';
                     }
-                    modelLabel = ac.aircraftModel ?? typeLabel;
+                    if (ac.aircraftModel != null && ac.aircraftModel!.isNotEmpty) {
+                      modelLabel = '${ac.aircraftModel!} • $typeLabel';
+                    } else {
+                      modelLabel = typeLabel;
+                    }
                   }
+
+                  final isFlying = ac.groundSpeed > 1.0;
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -168,13 +164,16 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                                color: isFlying
+                                    ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                                    : theme.colorScheme.onSurface.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(
-                                iconData,
-                                color: theme.colorScheme.primary,
-                                size: 24,
+                              child: Image.asset(
+                                acType.assetPath,
+                                width: 24,
+                                height: 24,
+                                color: isFlying ? null : (isDark ? Colors.grey[500] : Colors.grey[600]),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -249,6 +248,18 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                               l10n.verticalSpeedLabel,
                               vsLabel,
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildTelemetryColumn(
+                              context,
+                              l10n.aircraftTypeLabel,
+                              typeLabel,
+                            ),
+                            const Expanded(child: SizedBox()),
                           ],
                         ),
                         if (ac.isAnonymous) ...[

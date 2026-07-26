@@ -1655,6 +1655,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gliderType => 'Glider';
 
   @override
+  String get towPlaneType => 'Tow Plane';
+
+  @override
+  String get helicopterType => 'Helicopter';
+
+  @override
+  String get skydiverType => 'Skydiver';
+
+  @override
+  String get dropPlaneType => 'Drop Plane';
+
+  @override
+  String get hangGliderType => 'Hang Glider';
+
+  @override
+  String get paragliderType => 'Paraglider';
+
+  @override
+  String get poweredAircraftType => 'Powered Aircraft';
+
+  @override
+  String get jetType => 'Jet';
+
+  @override
+  String get balloonType => 'Balloon';
+
+  @override
+  String get airshipType => 'Airship';
+
+  @override
+  String get uavType => 'UAV / Drone';
+
+  @override
   String get ultralightType => 'Ultralight';
 
   @override
@@ -1662,6 +1695,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otherType => 'Other';
+
+  @override
+  String get aircraftTypeLabel => 'Aircraft Type';
 
   @override
   String get invalidOgnId => 'Invalid OGN ID. Must be 6 characters.';

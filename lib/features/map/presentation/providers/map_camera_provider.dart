@@ -12,6 +12,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/location_provider.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../../settings/domain/models/aircraft_type.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/presentation/providers/ogn_traffic_provider.dart';
@@ -251,21 +252,28 @@ class MapCamera extends _$MapCamera {
         return;
       }
 
-      final features = next.map((ac) => {
-        'type': 'Feature',
-        'id': ac.id,
-        'geometry': {
-          'type': 'Point',
-          'coordinates': [ac.longitude, ac.latitude],
-        },
-        'properties': {
+      final features = next.map((ac) {
+        final acType = AircraftType.fromOgnCode(ac.aircraftType);
+        final isFlying = ac.groundSpeed > 1.0;
+        final iconId = isFlying ? acType.trafficMapIconId : acType.inactiveTrafficMapIconId;
+
+        return {
+          'type': 'Feature',
           'id': ac.id,
-          'heading': ac.track,
-          'title': ac.callsign,
-          'altitude': ac.altitude,
-          'groundSpeed': ac.groundSpeed,
-          'verticalSpeed': ac.verticalSpeed,
-        }
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [ac.longitude, ac.latitude],
+          },
+          'properties': {
+            'id': ac.id,
+            'heading': ac.track,
+            'title': ac.callsign,
+            'altitude': ac.altitude,
+            'groundSpeed': ac.groundSpeed,
+            'verticalSpeed': ac.verticalSpeed,
+            'icon-image': iconId,
+          }
+        };
       }).toList();
 
       _mapController!.style!.updateGeoJsonSource(
