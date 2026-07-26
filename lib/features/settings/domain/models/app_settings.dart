@@ -105,6 +105,10 @@ abstract class AppSettings with _$AppSettings {
     )
     RangeThresholds rpmThresholds,
     @Default(6000.0) double rpmMaxRange,
+    @Default(true) bool trafficFilterMaxHorizontalDistanceEnabled,
+    @Default(50000.0) double trafficMaxHorizontalDistance, // meters
+    @Default(true) bool trafficFilterMaxVerticalDistanceEnabled,
+    @Default(1500.0) double trafficMaxVerticalDistance, // meters
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>

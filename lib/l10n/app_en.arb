@@ -828,5 +828,10 @@
   "invalidOgnId": "Invalid OGN ID. Must be 6 characters.",
   "anonymousAircraft": "Anonymous aircraft",
   "anonymousTrafficDesc": "This aircraft has disabled public tracking. Telemetry is visible for safety reasons, but identification is anonymous.",
-  "lastSeenLabel": "Last Seen"
+  "lastSeenLabel": "Last Seen",
+  "trafficSettings": "Traffic Settings",
+  "enableHorizontalDistanceFilter": "Filter by horizontal distance",
+  "trafficMaxHorizontalDistance": "Max. horizontal distance",
+  "enableVerticalDistanceFilter": "Filter by vertical distance",
+  "trafficMaxVerticalDistance": "Max. vertical distance"
 }

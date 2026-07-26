@@ -41,7 +41,7 @@ final class OgnTrafficProvider
   }
 }
 
-String _$ognTrafficHash() => r'663a52d88bac28996275f8a5aac5e73e9c278bed';
+String _$ognTrafficHash() => r'b22f5c6034039fc0d18b67869337803082aee7a9';
 
 abstract class _$OgnTraffic extends $Notifier<List<OgnTrafficAircraft>> {
   List<OgnTrafficAircraft> build();

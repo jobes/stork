@@ -17,6 +17,7 @@ import '../../../settings/domain/models/aircraft_type.dart';
 import '../../../telemetry/data/ogn_aprs_service.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
+import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../telemetry/presentation/providers/ogn_traffic_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import 'notams_provider.dart';
@@ -213,6 +214,7 @@ class MapCamera extends _$MapCamera {
         id: 'course-line-source',
         data: GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
       );
+      updateTrafficOnMap();
     });
 
     // Listen to system location for initial positioning
@@ -518,8 +520,42 @@ class MapCamera extends _$MapCamera {
     final traffic = trafficList ?? ref.read(ognTrafficProvider);
     if (traffic == null) return;
     final now = DateTime.now();
+    final settings = ref.read(appSettingsProvider).value;
+    final telemetry = ref.read(telemetryProvider);
 
-    final features = traffic.map((ac) {
+    final filteredTraffic = traffic.where((ac) {
+      if (settings != null) {
+        if (settings.trafficFilterMaxHorizontalDistanceEnabled) {
+          if (telemetry.latitude != null &&
+              telemetry.longitude != null &&
+              telemetry.latitude != 0.0 &&
+              telemetry.longitude != 0.0) {
+            final distMeters = GeoUtils.distanceBetween(
+              telemetry.latitude!,
+              telemetry.longitude!,
+              ac.latitude,
+              ac.longitude,
+            );
+            if (distMeters > settings.trafficMaxHorizontalDistance) {
+              return false;
+            }
+          }
+        }
+        if (settings.trafficFilterMaxVerticalDistanceEnabled) {
+          final resolvedAlt = ref.read(resolvedAltitudeProvider).mslValue;
+          final myAlt = resolvedAlt ?? telemetry.gpsAltitude;
+          if (myAlt != null) {
+            final vertDiffMeters = (myAlt - ac.altitude).abs();
+            if (vertDiffMeters > settings.trafficMaxVerticalDistance) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    });
+
+    final features = filteredTraffic.map((ac) {
       final acType = AircraftType.fromOgnCode(ac.aircraftType);
       final isFlying = ac.groundSpeed > 1.0;
       final iconId = isFlying ? acType.trafficMapIconId : acType.inactiveTrafficMapIconId;

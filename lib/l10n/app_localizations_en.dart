@@ -1711,4 +1711,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lastSeenLabel => 'Last Seen';
+
+  @override
+  String get trafficSettings => 'Traffic Settings';
+
+  @override
+  String get enableHorizontalDistanceFilter => 'Filter by horizontal distance';
+
+  @override
+  String get trafficMaxHorizontalDistance => 'Max. horizontal distance';
+
+  @override
+  String get enableVerticalDistanceFilter => 'Filter by vertical distance';
+
+  @override
+  String get trafficMaxVerticalDistance => 'Max. vertical distance';
 }

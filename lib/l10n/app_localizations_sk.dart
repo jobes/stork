@@ -1716,4 +1716,21 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get lastSeenLabel => 'Posledná aktivita';
+
+  @override
+  String get trafficSettings => 'Nastavenia premávky';
+
+  @override
+  String get enableHorizontalDistanceFilter =>
+      'Filtrovať podľa horizontálnej vzdialenosti';
+
+  @override
+  String get trafficMaxHorizontalDistance => 'Max. horizontálna vzdialenosť';
+
+  @override
+  String get enableVerticalDistanceFilter =>
+      'Filtrovať podľa vertikálnej vzdialenosti';
+
+  @override
+  String get trafficMaxVerticalDistance => 'Max. vertikálna vzdialenosť';
 }

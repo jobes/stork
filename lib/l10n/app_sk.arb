@@ -737,5 +737,10 @@
   "invalidOgnId": "Neplatné OGN ID. Musí mať presne 6 znakov.",
   "anonymousAircraft": "Anonymné lietadlo",
   "anonymousTrafficDesc": "Toto lietadlo má vypnuté verejné sledovanie. Telemetrické údaje sú viditeľné z bezpečnostných dôvodov, no identifikácia je anonymná.",
-  "lastSeenLabel": "Posledná aktivita"
+  "lastSeenLabel": "Posledná aktivita",
+  "trafficSettings": "Nastavenia premávky",
+  "enableHorizontalDistanceFilter": "Filtrovať podľa horizontálnej vzdialenosti",
+  "trafficMaxHorizontalDistance": "Max. horizontálna vzdialenosť",
+  "enableVerticalDistanceFilter": "Filtrovať podľa vertikálnej vzdialenosti",
+  "trafficMaxVerticalDistance": "Max. vertikálna vzdialenosť"
 }

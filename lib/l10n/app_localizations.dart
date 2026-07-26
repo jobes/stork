@@ -3313,6 +3313,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last Seen'**
   String get lastSeenLabel;
+
+  /// No description provided for @trafficSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic Settings'**
+  String get trafficSettings;
+
+  /// No description provided for @enableHorizontalDistanceFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by horizontal distance'**
+  String get enableHorizontalDistanceFilter;
+
+  /// No description provided for @trafficMaxHorizontalDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. horizontal distance'**
+  String get trafficMaxHorizontalDistance;
+
+  /// No description provided for @enableVerticalDistanceFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by vertical distance'**
+  String get enableVerticalDistanceFilter;
+
+  /// No description provided for @trafficMaxVerticalDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. vertical distance'**
+  String get trafficMaxVerticalDistance;
 }
 
 class _AppLocalizationsDelegate
