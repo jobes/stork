@@ -19,9 +19,9 @@ class CollisionWarningBanner extends ConsumerWidget {
 
     final settings = ref.watch(appSettingsProvider).value;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
-    final telemetry = ref.watch(telemetryProvider);
-    final resolvedAlt = ref.watch(resolvedAltitudeProvider).mslValue;
-    final myAlt = resolvedAlt ?? telemetry.gpsAltitude ?? 0.0;
+    final gpsAlt = ref.watch(telemetryProvider.select((t) => t.gpsAltitude));
+    final mslVal = ref.watch(resolvedAltitudeProvider.select((a) => a.mslValue));
+    final myAlt = mslVal ?? gpsAlt ?? 0.0;
     final heightUnit = settings?.heightUnit ?? AltitudeUnit.meters;
     final l10n = AppLocalizations.of(context)!;
     final unitLabel = heightUnit.getLabel(l10n);
@@ -30,10 +30,11 @@ class CollisionWarningBanner extends ConsumerWidget {
     final distMeters = threatTarget.minDistance ?? 0.0;
     final distKm = distMeters / 1000.0;
     final distStr = distKm < 1.0
-        ? '${(distMeters).round()}m'
+        ? '${distMeters.round()}${l10n.altitudeUnitMeters}'
         : '${distKm.toStringAsFixed(1)}km';
 
-    final tCpaSeconds = (threatTarget.tCpa ?? 0.0).round();
+    final tCpaVal = threatTarget.tCpa;
+    final tCpaStr = tCpaVal != null ? '${tCpaVal.round()}s' : '--';
 
     // Altitude difference calculation
     final vertDiffMeters = threatTarget.altitude - myAlt;
@@ -171,7 +172,7 @@ class CollisionWarningBanner extends ConsumerWidget {
                             ),
                             SizedBox(width: 3 * fontScale),
                             Text(
-                              '${tCpaSeconds}s',
+                              tCpaStr,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,

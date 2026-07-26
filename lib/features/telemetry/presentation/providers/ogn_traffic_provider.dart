@@ -352,6 +352,7 @@ class FilteredOgnTraffic extends _$FilteredOgnTraffic {
     final settings = ref.watch(appSettingsProvider).value;
     final telemetry = ref.watch(telemetryProvider);
     final resolvedAlt = ref.watch(resolvedAltitudeProvider).mslValue;
+    final vario = ref.watch(varioProvider);
 
     if (settings == null) return traffic;
 
@@ -399,20 +400,24 @@ class FilteredOgnTraffic extends _$FilteredOgnTraffic {
     if (!settings.casEnabled) return filtered;
 
     final now = DateTime.now();
+    final filteredIds = filtered.map((ac) => ac.id).toSet();
+    final cachedIds = _cachedCasEvaluations.keys.toSet();
+    final membershipChanged = filteredIds.length != cachedIds.length ||
+        !filteredIds.containsAll(cachedIds);
+
     final shouldRecalculateCas = _lastCasEvaluationTime == null ||
         now.difference(_lastCasEvaluationTime!) >= const Duration(seconds: 1) ||
-        _cachedCasEvaluations.length != filtered.length;
+        membershipChanged;
 
     if (shouldRecalculateCas) {
       final myHeading = telemetry.heading ?? 0.0;
-      final ownshipHistory = ref.watch(ognTrafficProvider.notifier).ownshipTrackHistory;
+      final ownshipHistory = ref.read(ognTrafficProvider.notifier).ownshipTrackHistory;
       final myOmega = CasEvaluator.calculateTurnRate(ownshipHistory);
       final myIsCircling = CasEvaluator.detectCircling(ownshipHistory);
       final myLat = telemetry.latitude!;
       final myLon = telemetry.longitude!;
       final myAlt = resolvedAlt ?? telemetry.gpsAltitude ?? 0.0;
       final myGs = telemetry.groundSpeed ?? 0.0;
-      final vario = ref.watch(varioProvider);
       final myVs = vario.verticalSpeed ?? 0.0;
 
       final newEvaluations = <String, CasThreatEvaluation>{};

@@ -1752,11 +1752,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get casVerticalThreshold => 'Vertical Warning Distance';
 
   @override
-  String clockPositionFormat(String clock) {
-    return '$clock O\'CLOCK';
-  }
-
-  @override
   String get sameAltLabel => 'SAME ALT';
 
   @override

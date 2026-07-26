@@ -3386,12 +3386,6 @@ abstract class AppLocalizations {
   /// **'Vertical Warning Distance'**
   String get casVerticalThreshold;
 
-  /// No description provided for @clockPositionFormat.
-  ///
-  /// In en, this message translates to:
-  /// **'{clock} O\'CLOCK'**
-  String clockPositionFormat(String clock);
-
   /// No description provided for @sameAltLabel.
   ///
   /// In en, this message translates to:

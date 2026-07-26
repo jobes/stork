@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/location_provider.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/utils/geo_utils.dart';
@@ -582,16 +583,28 @@ class MapCamera extends _$MapCamera {
 
       final String altitudeTagStr;
       if (ac.isCollisionThreat) {
+        final l10n = lookupAppLocalizations(ui.PlatformDispatcher.instance.locale);
         final diffMeters = ac.altitude - myAlt;
+        final unitLabel = altUnit.getLabel(l10n);
         final String tagNum;
         if (altUnit == AltitudeUnit.feet || altUnit == AltitudeUnit.flightLevel) {
           final diffFeet = (diffMeters / 0.3048).round();
-          final sign = diffFeet >= 0 ? '+' : '';
-          tagNum = '$sign${diffFeet}ft';
+          if (diffFeet > 0) {
+            tagNum = l10n.aboveAltLabel('$diffFeet$unitLabel');
+          } else if (diffFeet < 0) {
+            tagNum = l10n.belowAltLabel('${diffFeet.abs()}$unitLabel');
+          } else {
+            tagNum = l10n.sameAltLabel;
+          }
         } else {
           final diffM = diffMeters.round();
-          final sign = diffM >= 0 ? '+' : '';
-          tagNum = '$sign${diffM}m';
+          if (diffM > 0) {
+            tagNum = l10n.aboveAltLabel('$diffM$unitLabel');
+          } else if (diffM < 0) {
+            tagNum = l10n.belowAltLabel('${diffM.abs()}$unitLabel');
+          } else {
+            tagNum = l10n.sameAltLabel;
+          }
         }
         final String trend = ac.verticalSpeed > 0.5 ? ' ▲' : (ac.verticalSpeed < -0.5 ? ' ▼' : '');
         altitudeTagStr = '$tagNum$trend';

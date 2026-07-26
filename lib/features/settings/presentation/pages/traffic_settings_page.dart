@@ -176,7 +176,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                         ],
                       ),
                       Slider(
-                        value: settings.casLookaheadTime.clamp(10.0, 120.0),
+                        value: settings.casLookaheadTime.clamp(10.0, 120.0).toDouble(),
                         min: 10.0,
                         max: 120.0,
                         divisions: 22, // 5 sec steps
@@ -209,7 +209,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                         ],
                       ),
                       Slider(
-                        value: settings.casHorizontalThreshold.clamp(50.0, 1000.0),
+                        value: settings.casHorizontalThreshold.clamp(50.0, 1000.0).toDouble(),
                         min: 50.0,
                         max: 1000.0,
                         divisions: 19, // 50m steps
@@ -245,7 +245,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                         value: heightUnit.convertFromMeters(settings.casVerticalThreshold).clamp(
                           heightUnit == AltitudeUnit.meters ? 20.0 : 50.0,
                           heightUnit == AltitudeUnit.meters ? 300.0 : 1000.0,
-                        ),
+                        ).toDouble(),
                         min: heightUnit == AltitudeUnit.meters ? 20.0 : 50.0,
                         max: heightUnit == AltitudeUnit.meters ? 300.0 : 1000.0,
                         divisions: 19,

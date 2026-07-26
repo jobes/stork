@@ -576,7 +576,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   Future<SettingsUpdateResult> updateCasHorizontalThreshold(double meters) {
     return _updateSettings(
-      (s) => s.copyWith(casHorizontalThreshold: meters.clamp(50.0, 2000.0).toDouble()),
+      (s) => s.copyWith(casHorizontalThreshold: meters.clamp(50.0, 1000.0).toDouble()),
     );
   }
 

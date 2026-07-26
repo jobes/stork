@@ -147,6 +147,45 @@ void main() {
       );
 
       expect(eval.turnRate, equals(-0.1));
+
+      // Direct validation of predictPosition arc projection components
+      // Track 90 deg (pi/2 rad = East) turning right (omega = 0.1 rad/s > 0, heading turns South)
+      final (xEast, ySouth, _) = CasEvaluator.predictPosition(
+        x0: 0.0,
+        y0: 0.0,
+        h0: 1000.0,
+        gs: 30.0,
+        trackRad: math.pi / 2,
+        omega: 0.1,
+        vs: 0.0,
+        t: 5.0,
+      );
+      expect(xEast, greaterThan(0.0)); // Eastward movement
+      expect(ySouth, lessThan(0.0)); // Southward movement due to right turn from East
+
+      // Convergence of small omega to straight-line prediction
+      final (xStraight, yStraight, _) = CasEvaluator.predictPosition(
+        x0: 0.0,
+        y0: 0.0,
+        h0: 1000.0,
+        gs: 30.0,
+        trackRad: math.pi / 4,
+        omega: 0.0,
+        vs: 0.0,
+        t: 10.0,
+      );
+      final (xSmallOmega, ySmallOmega, _) = CasEvaluator.predictPosition(
+        x0: 0.0,
+        y0: 0.0,
+        h0: 1000.0,
+        gs: 30.0,
+        trackRad: math.pi / 4,
+        omega: 0.0001,
+        vs: 0.0,
+        t: 10.0,
+      );
+      expect(xSmallOmega, closeTo(xStraight, 0.05));
+      expect(ySmallOmega, closeTo(yStraight, 0.05));
     });
 
     test('evaluateThreat thermal co-circling adjusts horizontal threshold', () {

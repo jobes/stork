@@ -59,7 +59,7 @@ class CasEvaluator {
     prev ??= history.first;
 
     final dt = latest.timestamp.difference(prev.timestamp).inMilliseconds / 1000.0;
-    if (dt < 0.5) return 0.0;
+    if (dt < 0.5 || dt > 10.0) return 0.0;
 
     final diff = normalizeAngle(latest.trackRad - prev.trackRad);
     return diff / dt;
@@ -77,6 +77,8 @@ class CasEvaluator {
     final totalSpan = latest.timestamp.difference(relevant.first.timestamp).inMilliseconds / 1000.0;
     if (totalSpan < 4.0) return false;
 
+    double sumRates = 0.0;
+    int rateCount = 0;
     bool? isPositive;
     for (int i = 1; i < relevant.length; i++) {
       final dt = relevant[i].timestamp.difference(relevant[i - 1].timestamp).inMilliseconds / 1000.0;
@@ -85,19 +87,20 @@ class CasEvaluator {
       final diff = normalizeAngle(relevant[i].trackRad - relevant[i - 1].trackRad);
       final rate = diff / dt;
 
-      if (rate.abs() < circlingOmegaThreshold) {
-        return false;
-      }
-
       final sign = rate > 0;
       if (isPositive == null) {
         isPositive = sign;
       } else if (isPositive != sign) {
         return false; // Turn direction reversed
       }
+
+      sumRates += rate.abs();
+      rateCount++;
     }
 
-    return isPositive != null;
+    if (rateCount == 0 || isPositive == null) return false;
+    final avgRate = sumRates / rateCount;
+    return avgRate >= circlingOmegaThreshold;
   }
 
   /// Computes flat-earth delta (dx, dy) in meters from point A to point B.
@@ -130,8 +133,8 @@ class CasEvaluator {
       x = x0 + gs * math.sin(trackRad) * t;
       y = y0 + gs * math.cos(trackRad) * t;
     } else {
-      x = x0 + (gs / omega) * (math.sin(trackRad + omega * t) - math.sin(trackRad));
-      y = y0 + (gs / omega) * (math.cos(trackRad) - math.cos(trackRad + omega * t));
+      x = x0 + (gs / omega) * (math.cos(trackRad) - math.cos(trackRad + omega * t));
+      y = y0 + (gs / omega) * (math.sin(trackRad + omega * t) - math.sin(trackRad));
     }
     final h = h0 + vs * t;
     return (x, y, h);
@@ -188,9 +191,9 @@ class CasEvaluator {
     }
 
     // 3. Narrow-Phase Trajectory Prediction & Threat Volume Evaluation
-    bool threatDetected = false;
+    bool threatDetected = dCurr <= effectiveHorizThreshold && altDiffCurr <= vertThresholdMeters;
     double minDistance = dCurr;
-    double tCpa = 0.0;
+    double? tCpa;
 
     final steps = lookaheadTimeSec.ceil().clamp(1, 120);
     final dt = lookaheadTimeSec / steps;

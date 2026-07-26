@@ -1760,11 +1760,6 @@ class AppLocalizationsSk extends AppLocalizations {
   String get casVerticalThreshold => 'Vertikálna výstražná vzdialenosť';
 
   @override
-  String clockPositionFormat(String clock) {
-    return '$clock HODÍN';
-  }
-
-  @override
   String get sameAltLabel => 'ROVNAKÁ VÝŠKA';
 
   @override
