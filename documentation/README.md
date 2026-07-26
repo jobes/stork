@@ -55,5 +55,8 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Documents the barometric and GPS-based vertical speed estimation pipeline with linear regression smoothing, EMA output filtering, and the fallback logic between pressure and GPS sources. Covers noise rejection strategy, display formatting, and all tunable parameters.*
 *   [OGN Traffic Monitoring and Live Beaconing](features/traffic.md)
     *   *Details the Open Glider Network (OGN) APRS protocol client, dynamic spatial viewport filtering, regex coordinate/comment parsing, DDB metadata lookup API, background Isolate position broadcasting, horizontal/vertical filtering providers, MapLibre dynamic icon rotation with trajectory lookahead, and interactive traffic details dialog.*
+*   [Collision Avoidance System (CAS)](features/collision-avoidance-system.md)
+    *   *Documents the 3D threat volume evaluation engine, dynamic kinematic position prediction with turn rate integration, thermal co-circling false-alarm suppression logic, map altitude trend tags, threat icon styling, and interactive collision warning banner.*
+
 
 

@@ -750,7 +750,6 @@
   "casLookaheadTime": "Čas predikcie (Lookahead)",
   "casHorizontalThreshold": "Horizontálna výstražná vzdialenosť",
   "casVerticalThreshold": "Vertikálna výstražná vzdialenosť",
-  "clockPositionFormat": "{clock} HODÍN",
   "sameAltLabel": "ROVNAKÁ VÝŠKA",
   "aboveAltLabel": "+{alt} NAD",
   "belowAltLabel": "-{alt} POD",

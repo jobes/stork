@@ -25,7 +25,6 @@ class OgnTrafficAircraft {
   final bool isCollisionThreat;
   final double? tCpa; // seconds
   final double? minDistance; // meters
-  final int? clockPosition; // 1-12
 
   OgnTrafficAircraft({
     required this.id,
@@ -47,7 +46,6 @@ class OgnTrafficAircraft {
     this.isCollisionThreat = false,
     this.tCpa,
     this.minDistance,
-    this.clockPosition,
   });
 
   OgnTrafficAircraft copyWith({
@@ -70,7 +68,6 @@ class OgnTrafficAircraft {
     bool? isCollisionThreat,
     double? tCpa,
     double? minDistance,
-    int? clockPosition,
   }) {
     return OgnTrafficAircraft(
       id: id ?? this.id,
@@ -92,7 +89,6 @@ class OgnTrafficAircraft {
       isCollisionThreat: isCollisionThreat ?? this.isCollisionThreat,
       tCpa: tCpa ?? this.tCpa,
       minDistance: minDistance ?? this.minDistance,
-      clockPosition: clockPosition ?? this.clockPosition,
     );
   }
 }

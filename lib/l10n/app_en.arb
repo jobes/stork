@@ -846,12 +846,6 @@
   "casLookaheadTime": "Lookahead Time",
   "casHorizontalThreshold": "Horizontal Warning Distance",
   "casVerticalThreshold": "Vertical Warning Distance",
-  "clockPositionFormat": "{clock} O'CLOCK",
-  "@clockPositionFormat": {
-    "placeholders": {
-      "clock": { "type": "String" }
-    }
-  },
   "sameAltLabel": "SAME ALT",
   "aboveAltLabel": "+{alt} ABOVE",
   "@aboveAltLabel": {

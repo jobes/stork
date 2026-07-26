@@ -82,7 +82,7 @@ final class OgnTrafficProvider
   }
 }
 
-String _$ognTrafficHash() => r'f65c6d40057a2f6a3c8c0d37b144ac57c26cb101';
+String _$ognTrafficHash() => r'd1aa071c87ccce18182cf85e5375e37620eb9080';
 
 abstract class _$OgnTraffic extends $Notifier<List<OgnTrafficAircraft>> {
   List<OgnTrafficAircraft> build();
@@ -103,17 +103,11 @@ abstract class _$OgnTraffic extends $Notifier<List<OgnTrafficAircraft>> {
   }
 }
 
-@ProviderFor(filteredOgnTraffic)
+@ProviderFor(FilteredOgnTraffic)
 final filteredOgnTrafficProvider = FilteredOgnTrafficProvider._();
 
 final class FilteredOgnTrafficProvider
-    extends
-        $FunctionalProvider<
-          List<OgnTrafficAircraft>,
-          List<OgnTrafficAircraft>,
-          List<OgnTrafficAircraft>
-        >
-    with $Provider<List<OgnTrafficAircraft>> {
+    extends $NotifierProvider<FilteredOgnTraffic, List<OgnTrafficAircraft>> {
   FilteredOgnTrafficProvider._()
     : super(
         from: null,
@@ -130,14 +124,7 @@ final class FilteredOgnTrafficProvider
 
   @$internal
   @override
-  $ProviderElement<List<OgnTrafficAircraft>> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  List<OgnTrafficAircraft> create(Ref ref) {
-    return filteredOgnTraffic(ref);
-  }
+  FilteredOgnTraffic create() => FilteredOgnTraffic();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(List<OgnTrafficAircraft> value) {
@@ -149,7 +136,27 @@ final class FilteredOgnTrafficProvider
 }
 
 String _$filteredOgnTrafficHash() =>
-    r'7bf37fdacdf480c94b61055188b580072f587b77';
+    r'91e3ce2d778122c19e9e71d4abe360abb83b22ed';
+
+abstract class _$FilteredOgnTraffic
+    extends $Notifier<List<OgnTrafficAircraft>> {
+  List<OgnTrafficAircraft> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref as $Ref<List<OgnTrafficAircraft>, List<OgnTrafficAircraft>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<List<OgnTrafficAircraft>, List<OgnTrafficAircraft>>,
+              List<OgnTrafficAircraft>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 @ProviderFor(activeCollisionAlert)
 final activeCollisionAlertProvider = ActiveCollisionAlertProvider._();

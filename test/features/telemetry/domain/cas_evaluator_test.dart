@@ -59,18 +59,6 @@ void main() {
       expect(isCircling, isFalse);
     });
 
-    test('calculateClockPosition computes relative clock direction 1..12 correctly', () {
-      // Ownship heading North (0 rad)
-      // Target directly Ahead -> 12 O'CLOCK
-      expect(CasEvaluator.calculateClockPosition(dx: 0, dy: 100, ownshipTrackRad: 0.0), equals(12));
-      // Target at 90 deg East -> 3 O'CLOCK
-      expect(CasEvaluator.calculateClockPosition(dx: 100, dy: 0, ownshipTrackRad: 0.0), equals(3));
-      // Target at 270 deg West (-90 deg) -> 9 O'CLOCK
-      expect(CasEvaluator.calculateClockPosition(dx: -100, dy: 0, ownshipTrackRad: 0.0), equals(9));
-      // Target at 300 deg (-60 deg) -> 10 O'CLOCK
-      expect(CasEvaluator.calculateClockPosition(dx: -86.6, dy: 50, ownshipTrackRad: 0.0), equals(10));
-    });
-
     test('evaluateThreat flags broad-phase filter for distant targets', () {
       final eval = CasEvaluator.evaluateThreat(
         latA: 48.0,
@@ -127,7 +115,6 @@ void main() {
       );
 
       expect(eval.isCollisionThreat, isTrue);
-      expect(eval.clockPosition, equals(12));
       expect(eval.tCpa, greaterThan(0.0));
       expect(eval.tCpa, lessThanOrEqualTo(30.0));
     });

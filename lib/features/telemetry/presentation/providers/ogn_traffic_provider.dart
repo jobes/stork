@@ -40,6 +40,9 @@ class OgnTraffic extends _$OgnTraffic {
   String? _activeOutboundId;
 
   final Map<String, OgnTrafficAircraft> _aircraftMap = {};
+  final List<TrackHistoryPoint> _ownshipTrackHistory = [];
+
+  List<TrackHistoryPoint> get ownshipTrackHistory => List.unmodifiable(_ownshipTrackHistory);
   
   @override
   List<OgnTrafficAircraft> build() {
@@ -54,6 +57,15 @@ class OgnTraffic extends _$OgnTraffic {
     
     ref.listen(aircraftStateProvider, (prev, next) {
       _updateOutboundTrackingState();
+    });
+
+    ref.listen(telemetryProvider, (prev, next) {
+      if (next.heading != null) {
+        final now = DateTime.now();
+        final trackRad = next.heading! * math.pi / 180.0;
+        _ownshipTrackHistory.add(TrackHistoryPoint(timestamp: now, trackRad: trackRad));
+        _ownshipTrackHistory.removeWhere((p) => now.difference(p.timestamp).inSeconds > 15);
+      }
     });
 
     ref.onDispose(() {
@@ -329,107 +341,124 @@ class OgnTraffic extends _$OgnTraffic {
   }
 }
 
-final List<TrackHistoryPoint> _ownshipTrackHistory = [];
-
 @riverpod
-List<OgnTrafficAircraft> filteredOgnTraffic(Ref ref) {
-  final traffic = ref.watch(ognTrafficProvider);
-  final settings = ref.watch(appSettingsProvider).value;
-  final telemetry = ref.watch(telemetryProvider);
-  final resolvedAlt = ref.watch(resolvedAltitudeProvider).mslValue;
+class FilteredOgnTraffic extends _$FilteredOgnTraffic {
+  DateTime? _lastCasEvaluationTime;
+  Map<String, CasThreatEvaluation> _cachedCasEvaluations = {};
 
-  if (settings == null) return traffic;
+  @override
+  List<OgnTrafficAircraft> build() {
+    final traffic = ref.watch(ognTrafficProvider);
+    final settings = ref.watch(appSettingsProvider).value;
+    final telemetry = ref.watch(telemetryProvider);
+    final resolvedAlt = ref.watch(resolvedAltitudeProvider).mslValue;
 
-  final filtered = traffic.where((ac) {
-    if (settings.trafficFilterMaxHorizontalDistanceEnabled) {
-      if (telemetry.latitude != null &&
-          telemetry.longitude != null &&
-          telemetry.latitude != 0.0 &&
-          telemetry.longitude != 0.0) {
-        final distMeters = GeoUtils.distanceBetween(
-          telemetry.latitude!,
-          telemetry.longitude!,
-          ac.latitude,
-          ac.longitude,
-        );
-        if (distMeters > settings.trafficMaxHorizontalDistance) {
-          return false;
-        }
-      }
-    }
-    if (settings.trafficFilterMaxVerticalDistanceEnabled) {
-      if (telemetry.latitude != null &&
-          telemetry.longitude != null &&
-          telemetry.latitude != 0.0 &&
-          telemetry.longitude != 0.0) {
-        final myAlt = resolvedAlt ?? telemetry.gpsAltitude;
-        if (myAlt != null) {
-          final vertDiffMeters = (myAlt - ac.altitude).abs();
-          if (vertDiffMeters > settings.trafficMaxVerticalDistance) {
+    if (settings == null) return traffic;
+
+    final filtered = traffic.where((ac) {
+      if (settings.trafficFilterMaxHorizontalDistanceEnabled) {
+        if (telemetry.latitude != null &&
+            telemetry.longitude != null &&
+            telemetry.latitude != 0.0 &&
+            telemetry.longitude != 0.0) {
+          final distMeters = GeoUtils.distanceBetween(
+            telemetry.latitude!,
+            telemetry.longitude!,
+            ac.latitude,
+            ac.longitude,
+          );
+          if (distMeters > settings.trafficMaxHorizontalDistance) {
             return false;
           }
         }
       }
+      if (settings.trafficFilterMaxVerticalDistanceEnabled) {
+        if (telemetry.latitude != null &&
+            telemetry.longitude != null &&
+            telemetry.latitude != 0.0 &&
+            telemetry.longitude != 0.0) {
+          final myAlt = resolvedAlt ?? telemetry.gpsAltitude;
+          if (myAlt != null) {
+            final vertDiffMeters = (myAlt - ac.altitude).abs();
+            if (vertDiffMeters > settings.trafficMaxVerticalDistance) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }).toList();
+
+    if (telemetry.latitude == null ||
+        telemetry.longitude == null ||
+        telemetry.latitude == 0.0 ||
+        telemetry.longitude == 0.0) {
+      return filtered;
     }
-    return true;
-  }).toList();
 
-  if (telemetry.latitude == null ||
-      telemetry.longitude == null ||
-      telemetry.latitude == 0.0 ||
-      telemetry.longitude == 0.0) {
-    return filtered;
+    if (!settings.casEnabled) return filtered;
+
+    final now = DateTime.now();
+    final shouldRecalculateCas = _lastCasEvaluationTime == null ||
+        now.difference(_lastCasEvaluationTime!) >= const Duration(seconds: 1) ||
+        _cachedCasEvaluations.length != filtered.length;
+
+    if (shouldRecalculateCas) {
+      final myHeading = telemetry.heading ?? 0.0;
+      final ownshipHistory = ref.watch(ognTrafficProvider.notifier).ownshipTrackHistory;
+      final myOmega = CasEvaluator.calculateTurnRate(ownshipHistory);
+      final myIsCircling = CasEvaluator.detectCircling(ownshipHistory);
+      final myLat = telemetry.latitude!;
+      final myLon = telemetry.longitude!;
+      final myAlt = resolvedAlt ?? telemetry.gpsAltitude ?? 0.0;
+      final myGs = telemetry.groundSpeed ?? 0.0;
+      final vario = ref.watch(varioProvider);
+      final myVs = vario.verticalSpeed ?? 0.0;
+
+      final newEvaluations = <String, CasThreatEvaluation>{};
+
+      for (final ac in filtered) {
+        final threatEval = CasEvaluator.evaluateThreat(
+          latA: myLat,
+          lonA: myLon,
+          altA: myAlt,
+          gsA: myGs,
+          trackA: myHeading,
+          omegaA: myOmega,
+          vsA: myVs,
+          isCirclingA: myIsCircling,
+          latB: ac.latitude,
+          lonB: ac.longitude,
+          altB: ac.altitude,
+          gsB: ac.groundSpeed,
+          trackB: ac.track,
+          omegaB: ac.turnRate,
+          vsB: ac.verticalSpeed,
+          isCirclingB: ac.isCircling,
+          maxBroadPhaseHorizDist: settings.trafficMaxHorizontalDistance,
+          maxBroadPhaseVertDist: settings.trafficMaxVerticalDistance,
+          lookaheadTimeSec: settings.casLookaheadTime,
+          horizThresholdMeters: settings.casHorizontalThreshold,
+          vertThresholdMeters: settings.casVerticalThreshold,
+        );
+        newEvaluations[ac.id] = threatEval;
+      }
+
+      _cachedCasEvaluations = newEvaluations;
+      _lastCasEvaluationTime = now;
+    }
+
+    return filtered.map((ac) {
+      final threatEval = _cachedCasEvaluations[ac.id];
+      if (threatEval == null) return ac;
+
+      return ac.copyWith(
+        isCollisionThreat: threatEval.isCollisionThreat,
+        tCpa: threatEval.tCpa,
+        minDistance: threatEval.minDistance,
+      );
+    }).toList();
   }
-
-  final now = DateTime.now();
-  final myHeading = telemetry.heading ?? 0.0;
-  final myTrackRad = myHeading * math.pi / 180.0;
-  _ownshipTrackHistory.add(TrackHistoryPoint(timestamp: now, trackRad: myTrackRad));
-  _ownshipTrackHistory.removeWhere((p) => now.difference(p.timestamp).inSeconds > 15);
-
-  final myOmega = CasEvaluator.calculateTurnRate(_ownshipTrackHistory);
-  final myIsCircling = CasEvaluator.detectCircling(_ownshipTrackHistory);
-  final myLat = telemetry.latitude!;
-  final myLon = telemetry.longitude!;
-  final myAlt = resolvedAlt ?? telemetry.gpsAltitude ?? 0.0;
-  final myGs = telemetry.groundSpeed ?? 0.0;
-  final vario = ref.watch(varioProvider);
-  final myVs = vario.verticalSpeed ?? 0.0;
-
-  return filtered.map((ac) {
-    if (!settings.casEnabled) return ac;
-
-    final threatEval = CasEvaluator.evaluateThreat(
-      latA: myLat,
-      lonA: myLon,
-      altA: myAlt,
-      gsA: myGs,
-      trackA: myHeading,
-      omegaA: myOmega,
-      vsA: myVs,
-      isCirclingA: myIsCircling,
-      latB: ac.latitude,
-      lonB: ac.longitude,
-      altB: ac.altitude,
-      gsB: ac.groundSpeed,
-      trackB: ac.track,
-      omegaB: ac.turnRate,
-      vsB: ac.verticalSpeed,
-      isCirclingB: ac.isCircling,
-      maxBroadPhaseHorizDist: settings.trafficMaxHorizontalDistance,
-      maxBroadPhaseVertDist: settings.trafficMaxVerticalDistance,
-      lookaheadTimeSec: settings.casLookaheadTime,
-      horizThresholdMeters: settings.casHorizontalThreshold,
-      vertThresholdMeters: settings.casVerticalThreshold,
-    );
-
-    return ac.copyWith(
-      isCollisionThreat: threatEval.isCollisionThreat,
-      tCpa: threatEval.tCpa,
-      minDistance: threatEval.minDistance,
-      clockPosition: threatEval.clockPosition,
-    );
-  }).toList();
 }
 
 @riverpod

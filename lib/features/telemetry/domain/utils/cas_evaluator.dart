@@ -16,7 +16,6 @@ class CasThreatEvaluation {
   final bool isCollisionThreat;
   final double? tCpa; // Time to Closest Point of Approach in seconds
   final double? minDistance; // Minimum distance at CPA in meters
-  final int clockPosition; // Relative clock direction 1..12
   final double turnRate; // Computed turn rate in rad/s
   final bool isCircling; // Sustained turn rate >= 12 deg/s over 5+ seconds
 
@@ -24,7 +23,6 @@ class CasThreatEvaluation {
     required this.isCollisionThreat,
     this.tCpa,
     this.minDistance,
-    required this.clockPosition,
     required this.turnRate,
     required this.isCircling,
   });
@@ -116,21 +114,6 @@ class CasEvaluator {
     return (dx, dy, dist);
   }
 
-  /// Calculates clock position (1..12) from ownship to target relative to ownship track.
-  static int calculateClockPosition({
-    required double dx,
-    required double dy,
-    required double ownshipTrackRad,
-  }) {
-    final bearingRad = math.atan2(dx, dy);
-    final relAngleRad = normalizeAngle(bearingRad - ownshipTrackRad);
-    final relAngleDeg = (relAngleRad * 180.0 / math.pi + 360.0) % 360.0;
-
-    int clockHour = ((relAngleDeg + 15.0) / 30.0).floor() % 12;
-    if (clockHour == 0) clockHour = 12;
-    return clockHour;
-  }
-
   /// 3D position prediction equation P(t) = (x(t), y(t), h(t))
   static (double x, double y, double h) predictPosition({
     required double x0,
@@ -187,19 +170,12 @@ class CasEvaluator {
 
     final trackRadA = trackA * math.pi / 180.0;
     final trackRadB = trackB * math.pi / 180.0;
-    final clockPos = calculateClockPosition(
-      dx: dx0,
-      dy: dy0,
-      ownshipTrackRad: trackRadA,
-    );
-
     final altDiffCurr = (altB - altA).abs();
 
     // 1. Broad-Phase Filter
     if (dCurr > maxBroadPhaseHorizDist || altDiffCurr > maxBroadPhaseVertDist) {
       return CasThreatEvaluation(
         isCollisionThreat: false,
-        clockPosition: clockPos,
         turnRate: omegaB,
         isCircling: isCirclingB,
       );
@@ -263,7 +239,6 @@ class CasEvaluator {
       isCollisionThreat: threatDetected,
       tCpa: tCpa,
       minDistance: minDistance,
-      clockPosition: clockPos,
       turnRate: omegaB,
       isCircling: isCirclingB,
     );
