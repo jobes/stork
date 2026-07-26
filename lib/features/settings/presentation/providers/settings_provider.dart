@@ -527,4 +527,40 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       ),
     );
   }
+
+  Future<SettingsUpdateResult> updateTrafficFilterMaxHorizontalDistanceEnabled(
+    bool enabled,
+  ) {
+    return _updateSettings(
+      (s) => s.copyWith(trafficFilterMaxHorizontalDistanceEnabled: enabled),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateTrafficMaxHorizontalDistance(
+    double distanceMeters,
+  ) {
+    return _updateSettings(
+      (s) => s.copyWith(
+        trafficMaxHorizontalDistance: distanceMeters.clamp(1000.0, 500000.0).toDouble(),
+      ),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateTrafficFilterMaxVerticalDistanceEnabled(
+    bool enabled,
+  ) {
+    return _updateSettings(
+      (s) => s.copyWith(trafficFilterMaxVerticalDistanceEnabled: enabled),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateTrafficMaxVerticalDistance(
+    double distanceMeters,
+  ) {
+    return _updateSettings(
+      (s) => s.copyWith(
+        trafficMaxVerticalDistance: distanceMeters.clamp(100.0, 20000.0).toDouble(),
+      ),
+    );
+  }
 }

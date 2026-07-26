@@ -122,6 +122,14 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
         )
       : RangeThresholds.fromJson(json['rpmThresholds'] as Map<String, dynamic>),
   rpmMaxRange: (json['rpmMaxRange'] as num?)?.toDouble() ?? 6000.0,
+  trafficFilterMaxHorizontalDistanceEnabled:
+      json['trafficFilterMaxHorizontalDistanceEnabled'] as bool? ?? true,
+  trafficMaxHorizontalDistance:
+      (json['trafficMaxHorizontalDistance'] as num?)?.toDouble() ?? 50000.0,
+  trafficFilterMaxVerticalDistanceEnabled:
+      json['trafficFilterMaxVerticalDistanceEnabled'] as bool? ?? true,
+  trafficMaxVerticalDistance:
+      (json['trafficMaxVerticalDistance'] as num?)?.toDouble() ?? 1500.0,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -160,6 +168,12 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'chtMaxRange': instance.chtMaxRange,
       'rpmThresholds': instance.rpmThresholds,
       'rpmMaxRange': instance.rpmMaxRange,
+      'trafficFilterMaxHorizontalDistanceEnabled':
+          instance.trafficFilterMaxHorizontalDistanceEnabled,
+      'trafficMaxHorizontalDistance': instance.trafficMaxHorizontalDistance,
+      'trafficFilterMaxVerticalDistanceEnabled':
+          instance.trafficFilterMaxVerticalDistanceEnabled,
+      'trafficMaxVerticalDistance': instance.trafficMaxVerticalDistance,
     };
 
 const _$SpeedUnitEnumMap = {

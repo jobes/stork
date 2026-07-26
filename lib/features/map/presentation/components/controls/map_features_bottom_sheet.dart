@@ -8,6 +8,7 @@ import '../../providers/airport_metadata_provider.dart';
 import '../dialogs/airport_details_dialog.dart';
 import '../dialogs/airspace_details_dialog.dart';
 import '../dialogs/notam_details_dialog.dart';
+import '../dialogs/traffic_details_dialog.dart';
 import '../../providers/notams_provider.dart';
 
 class MapFeaturesBottomSheet extends ConsumerWidget {
@@ -63,6 +64,27 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
       }
     }
     return list;
+  }
+
+  /// Helper method to find traffic features in the features list
+  List<Map<dynamic, dynamic>> _findTrafficFeatures() {
+    final list = <Map<dynamic, dynamic>>[];
+    for (final f in features) {
+      if (f is Map && f['layerType'] == 'traffic') {
+        list.add(f);
+      }
+    }
+    return list;
+  }
+
+  void _showTrafficDetails(
+    BuildContext context,
+    List<Map<dynamic, dynamic>> trafficFeatures,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => TrafficDetailsDialog(features: trafficFeatures),
+    );
   }
 
   void _showAirportDetails(
@@ -164,6 +186,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
     final airportFeature = _findAirportFeature();
     final airspaceFeatures = _findAirspaceFeatures();
     final notamFeatures = _findNotamFeatures();
+    final trafficFeatures = _findTrafficFeatures();
     final l10n = AppLocalizations.of(context)!;
 
     final navigationAsync = ref.watch(navigationProvider);
@@ -189,6 +212,22 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(context); // Close bottom sheet
                 _showAirspaceDetails(context, airspaceFeatures);
+              },
+            ),
+          if (trafficFeatures.isNotEmpty)
+            ListTile(
+              leading: Icon(Icons.airplanemode_active, color: Theme.of(context).colorScheme.primary),
+              title: Text(l10n.trafficTitle),
+              subtitle: Text(
+                trafficFeatures.length > 1
+                    ? '${l10n.aircraftCountLabel}: ${trafficFeatures.length}'
+                    : (trafficFeatures.first['properties']?['title']?.toString() ??
+                        trafficFeatures.first['id']?.toString() ??
+                        ''),
+              ),
+              onTap: () {
+                Navigator.pop(context); // Close bottom sheet
+                _showTrafficDetails(context, trafficFeatures);
               },
             ),
           if (notamFeatures.isNotEmpty)

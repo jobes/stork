@@ -1597,4 +1597,141 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get varioLastUpdate => 'Last Update';
+
+  @override
+  String get ognSettingsSection => 'OGN Configuration';
+
+  @override
+  String get sendLivePosition => 'Send Live Position';
+
+  @override
+  String get sendLivePositionDesc => 'Send live tracking data to OGN servers';
+
+  @override
+  String get ognDeviceIdLabel => 'OGN Device ID';
+
+  @override
+  String get ognDeviceIdHint => 'Enter 6-char OGN ID';
+
+  @override
+  String get ognGuideTitle => 'How to get an OGN ID:';
+
+  @override
+  String get ognGuideStep1 => '1. Visit the free database ddb.glidernet.org.';
+
+  @override
+  String get ognGuideStep2 =>
+      '2. Register your aircraft (choose device type: OGN Tracker / Lyntia / School, or link to your FLARM/ICAO code).';
+
+  @override
+  String get ognGuideStep3 =>
+      '3. The system will generate a unique 6-character device ID (e.g. ICA74F), which you enter in this app. From then on, other pilots and rescue services will see you.';
+
+  @override
+  String get trafficTitle => 'Traffic';
+
+  @override
+  String get aircraftCountLabel => 'Aircraft count';
+
+  @override
+  String get callsignRegistrationLabel => 'Callsign / Registration';
+
+  @override
+  String get absoluteAltitudeLabel => 'Absolute Altitude (AMSL)';
+
+  @override
+  String get relativeAltitudeLabel => 'Relative Altitude';
+
+  @override
+  String get groundSpeedLabel => 'Ground Speed';
+
+  @override
+  String get verticalSpeedLabel => 'Vertical Speed (Vario)';
+
+  @override
+  String get distanceFromUsLabel => 'Distance from our position';
+
+  @override
+  String get gliderType => 'Glider';
+
+  @override
+  String get towPlaneType => 'Tow Plane';
+
+  @override
+  String get helicopterType => 'Helicopter';
+
+  @override
+  String get skydiverType => 'Skydiver';
+
+  @override
+  String get dropPlaneType => 'Drop Plane';
+
+  @override
+  String get hangGliderType => 'Hang Glider';
+
+  @override
+  String get paragliderType => 'Paraglider';
+
+  @override
+  String get poweredAircraftType => 'Powered Aircraft';
+
+  @override
+  String get jetType => 'Jet';
+
+  @override
+  String get balloonType => 'Balloon';
+
+  @override
+  String get airshipType => 'Airship';
+
+  @override
+  String get uavType => 'UAV / Drone';
+
+  @override
+  String get ultralightType => 'Ultralight';
+
+  @override
+  String get gaType => 'GA';
+
+  @override
+  String get otherType => 'Other';
+
+  @override
+  String get aircraftTypeLabel => 'Aircraft Type';
+
+  @override
+  String get invalidOgnId => 'Invalid OGN ID. Must be 6 characters.';
+
+  @override
+  String get anonymousAircraft => 'Anonymous aircraft';
+
+  @override
+  String get anonymousTrafficDesc =>
+      'This aircraft has disabled public tracking. Telemetry is visible for safety reasons, but identification is anonymous.';
+
+  @override
+  String get lastSeenLabel => 'Last Seen';
+
+  @override
+  String get trafficSettings => 'Traffic Settings';
+
+  @override
+  String get enableHorizontalDistanceFilter => 'Filter by horizontal distance';
+
+  @override
+  String get trafficMaxHorizontalDistance => 'Max. horizontal distance';
+
+  @override
+  String get enableVerticalDistanceFilter => 'Filter by vertical distance';
+
+  @override
+  String get trafficMaxVerticalDistance => 'Max. vertical distance';
+
+  @override
+  String get trafficNoDataAvailable => 'No traffic data available.';
+
+  @override
+  String trafficMaxHorizontalDistanceSummary(String km) {
+    return '$km km';
+  }
 }

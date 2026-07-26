@@ -5,6 +5,7 @@ import '../../../../l10n/app_localizations.dart';
 import 'gateway_settings_page.dart';
 import 'map_settings_page.dart';
 import 'flight_settings_page.dart';
+import 'traffic_settings_page.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -44,6 +45,16 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const FlightSettingsPage()),
+            ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.airplanemode_active_outlined),
+            title: Text(l10n.trafficSettings),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TrafficSettingsPage()),
             ),
           ),
         ],

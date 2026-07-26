@@ -1600,4 +1600,146 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get varioLastUpdate => 'Posledná aktualizácia';
+
+  @override
+  String get ognSettingsSection => 'Nastavenia OGN';
+
+  @override
+  String get sendLivePosition => 'Odosielať polohu live';
+
+  @override
+  String get sendLivePositionDesc =>
+      'Odosielanie live sledovania polohy na OGN servery';
+
+  @override
+  String get ognDeviceIdLabel => 'Zadajte svoje OGN ID';
+
+  @override
+  String get ognDeviceIdHint => 'Napr. ICA74F';
+
+  @override
+  String get ognGuideTitle => 'Ako získať OGN ID:';
+
+  @override
+  String get ognGuideStep1 =>
+      '1. Navštívte bezplatnú databázu ddb.glidernet.org.';
+
+  @override
+  String get ognGuideStep2 =>
+      '2. Zaregistrujte svoje lietadlo (zvoľte typ zariadenia: OGN Tracker / Lyntia / Škola, alebo priraďte k vášmu FLARM/ICAO kódu).';
+
+  @override
+  String get ognGuideStep3 =>
+      '3. Systém vám vygeneruje unikátne 6-miestne ID prístroja (napr. ICA74F), ktoré zadáte do tejto aplikácie. Od tejto chvíle vás uvidia ostatní piloti aj záchranné zložky.';
+
+  @override
+  String get trafficTitle => 'Letecká doprava';
+
+  @override
+  String get aircraftCountLabel => 'Počet lietadiel';
+
+  @override
+  String get callsignRegistrationLabel => 'Identifikácia / Imatrikulácia';
+
+  @override
+  String get absoluteAltitudeLabel => 'Absolútna výška (AMSL)';
+
+  @override
+  String get relativeAltitudeLabel => 'Relatívna výška';
+
+  @override
+  String get groundSpeedLabel => 'Rýchlosť voči zemi';
+
+  @override
+  String get verticalSpeedLabel => 'Vario / Stúpanie / Klesanie';
+
+  @override
+  String get distanceFromUsLabel => 'Vzdialenosť od našej polohy';
+
+  @override
+  String get gliderType => 'Vetroň';
+
+  @override
+  String get towPlaneType => 'Vlečné lietadlo';
+
+  @override
+  String get helicopterType => 'Vrtuľník';
+
+  @override
+  String get skydiverType => 'Parašutista';
+
+  @override
+  String get dropPlaneType => 'Výsadkové lietadlo';
+
+  @override
+  String get hangGliderType => 'Závesný klzák';
+
+  @override
+  String get paragliderType => 'Paraglajder';
+
+  @override
+  String get poweredAircraftType => 'Motorové lietadlo';
+
+  @override
+  String get jetType => 'Prúdové lietadlo';
+
+  @override
+  String get balloonType => 'Balón';
+
+  @override
+  String get airshipType => 'Vzducholoď';
+
+  @override
+  String get uavType => 'Dron';
+
+  @override
+  String get ultralightType => 'Ultralight';
+
+  @override
+  String get gaType => 'GA';
+
+  @override
+  String get otherType => 'Iné';
+
+  @override
+  String get aircraftTypeLabel => 'Typ lietadla';
+
+  @override
+  String get invalidOgnId => 'Neplatné OGN ID. Musí mať presne 6 znakov.';
+
+  @override
+  String get anonymousAircraft => 'Anonymné lietadlo';
+
+  @override
+  String get anonymousTrafficDesc =>
+      'Toto lietadlo má vypnuté verejné sledovanie. Telemetrické údaje sú viditeľné z bezpečnostných dôvodov, no identifikácia je anonymná.';
+
+  @override
+  String get lastSeenLabel => 'Posledná aktivita';
+
+  @override
+  String get trafficSettings => 'Nastavenia premávky';
+
+  @override
+  String get enableHorizontalDistanceFilter =>
+      'Filtrovať podľa horizontálnej vzdialenosti';
+
+  @override
+  String get trafficMaxHorizontalDistance => 'Max. horizontálna vzdialenosť';
+
+  @override
+  String get enableVerticalDistanceFilter =>
+      'Filtrovať podľa vertikálnej vzdialenosti';
+
+  @override
+  String get trafficMaxVerticalDistance => 'Max. vertikálna vzdialenosť';
+
+  @override
+  String get trafficNoDataAvailable =>
+      'Žiadne dáta o letovej prevádzke nie sú k dispozícii.';
+
+  @override
+  String trafficMaxHorizontalDistanceSummary(String km) {
+    return '$km km';
+  }
 }

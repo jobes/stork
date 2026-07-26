@@ -3091,6 +3091,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last Update'**
   String get varioLastUpdate;
+
+  /// No description provided for @ognSettingsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'OGN Configuration'**
+  String get ognSettingsSection;
+
+  /// No description provided for @sendLivePosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Live Position'**
+  String get sendLivePosition;
+
+  /// No description provided for @sendLivePositionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Send live tracking data to OGN servers'**
+  String get sendLivePositionDesc;
+
+  /// No description provided for @ognDeviceIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'OGN Device ID'**
+  String get ognDeviceIdLabel;
+
+  /// No description provided for @ognDeviceIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 6-char OGN ID'**
+  String get ognDeviceIdHint;
+
+  /// No description provided for @ognGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to get an OGN ID:'**
+  String get ognGuideTitle;
+
+  /// No description provided for @ognGuideStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Visit the free database ddb.glidernet.org.'**
+  String get ognGuideStep1;
+
+  /// No description provided for @ognGuideStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Register your aircraft (choose device type: OGN Tracker / Lyntia / School, or link to your FLARM/ICAO code).'**
+  String get ognGuideStep2;
+
+  /// No description provided for @ognGuideStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'3. The system will generate a unique 6-character device ID (e.g. ICA74F), which you enter in this app. From then on, other pilots and rescue services will see you.'**
+  String get ognGuideStep3;
+
+  /// No description provided for @trafficTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic'**
+  String get trafficTitle;
+
+  /// No description provided for @aircraftCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft count'**
+  String get aircraftCountLabel;
+
+  /// No description provided for @callsignRegistrationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Callsign / Registration'**
+  String get callsignRegistrationLabel;
+
+  /// No description provided for @absoluteAltitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Absolute Altitude (AMSL)'**
+  String get absoluteAltitudeLabel;
+
+  /// No description provided for @relativeAltitudeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Relative Altitude'**
+  String get relativeAltitudeLabel;
+
+  /// No description provided for @groundSpeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ground Speed'**
+  String get groundSpeedLabel;
+
+  /// No description provided for @verticalSpeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical Speed (Vario)'**
+  String get verticalSpeedLabel;
+
+  /// No description provided for @distanceFromUsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance from our position'**
+  String get distanceFromUsLabel;
+
+  /// No description provided for @gliderType.
+  ///
+  /// In en, this message translates to:
+  /// **'Glider'**
+  String get gliderType;
+
+  /// No description provided for @towPlaneType.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow Plane'**
+  String get towPlaneType;
+
+  /// No description provided for @helicopterType.
+  ///
+  /// In en, this message translates to:
+  /// **'Helicopter'**
+  String get helicopterType;
+
+  /// No description provided for @skydiverType.
+  ///
+  /// In en, this message translates to:
+  /// **'Skydiver'**
+  String get skydiverType;
+
+  /// No description provided for @dropPlaneType.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop Plane'**
+  String get dropPlaneType;
+
+  /// No description provided for @hangGliderType.
+  ///
+  /// In en, this message translates to:
+  /// **'Hang Glider'**
+  String get hangGliderType;
+
+  /// No description provided for @paragliderType.
+  ///
+  /// In en, this message translates to:
+  /// **'Paraglider'**
+  String get paragliderType;
+
+  /// No description provided for @poweredAircraftType.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered Aircraft'**
+  String get poweredAircraftType;
+
+  /// No description provided for @jetType.
+  ///
+  /// In en, this message translates to:
+  /// **'Jet'**
+  String get jetType;
+
+  /// No description provided for @balloonType.
+  ///
+  /// In en, this message translates to:
+  /// **'Balloon'**
+  String get balloonType;
+
+  /// No description provided for @airshipType.
+  ///
+  /// In en, this message translates to:
+  /// **'Airship'**
+  String get airshipType;
+
+  /// No description provided for @uavType.
+  ///
+  /// In en, this message translates to:
+  /// **'UAV / Drone'**
+  String get uavType;
+
+  /// No description provided for @ultralightType.
+  ///
+  /// In en, this message translates to:
+  /// **'Ultralight'**
+  String get ultralightType;
+
+  /// No description provided for @gaType.
+  ///
+  /// In en, this message translates to:
+  /// **'GA'**
+  String get gaType;
+
+  /// No description provided for @otherType.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get otherType;
+
+  /// No description provided for @aircraftTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft Type'**
+  String get aircraftTypeLabel;
+
+  /// No description provided for @invalidOgnId.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid OGN ID. Must be 6 characters.'**
+  String get invalidOgnId;
+
+  /// No description provided for @anonymousAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymous aircraft'**
+  String get anonymousAircraft;
+
+  /// No description provided for @anonymousTrafficDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This aircraft has disabled public tracking. Telemetry is visible for safety reasons, but identification is anonymous.'**
+  String get anonymousTrafficDesc;
+
+  /// No description provided for @lastSeenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Seen'**
+  String get lastSeenLabel;
+
+  /// No description provided for @trafficSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic Settings'**
+  String get trafficSettings;
+
+  /// No description provided for @enableHorizontalDistanceFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by horizontal distance'**
+  String get enableHorizontalDistanceFilter;
+
+  /// No description provided for @trafficMaxHorizontalDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. horizontal distance'**
+  String get trafficMaxHorizontalDistance;
+
+  /// No description provided for @enableVerticalDistanceFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by vertical distance'**
+  String get enableVerticalDistanceFilter;
+
+  /// No description provided for @trafficMaxVerticalDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. vertical distance'**
+  String get trafficMaxVerticalDistance;
+
+  /// No description provided for @trafficNoDataAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No traffic data available.'**
+  String get trafficNoDataAvailable;
+
+  /// No description provided for @trafficMaxHorizontalDistanceSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String trafficMaxHorizontalDistanceSummary(String km);
 }
 
 class _AppLocalizationsDelegate

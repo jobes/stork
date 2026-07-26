@@ -109,8 +109,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    - assets/images/aircraft.png
-    - assets/images/app_icon.png
+    - assets/images/aircraft_types/
     - assets/openaip/styles.json
     - assets/openaip/sprite.pbf
     - assets/openaip/sprite.png

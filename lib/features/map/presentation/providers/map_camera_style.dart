@@ -3,10 +3,55 @@ part of 'map_camera_provider.dart';
 extension MapCameraStyle on MapCamera {
   Future<void> handleStyleLoaded(StyleController style) async {
     try {
+      // Load all aircraft type icons into style
+      for (final type in AircraftType.values) {
+        try {
+          await style.addImageFromAssets(
+            id: type.mapIconId,
+            asset: type.assetPath,
+          );
+          if (!refAccess.mounted) return;
+
+          // Clean untinted icon for flying traffic
+          await style.addImageFromAssets(
+            id: type.trafficMapIconId,
+            asset: type.assetPath,
+          );
+          if (!refAccess.mounted) return;
+
+          // Grey tinted icon for inactive (ground / stationary) traffic
+          final inactiveBytes = await _loadAndTintImage(
+            type.assetPath,
+            const Color(0xFF9E9E9E),
+          );
+          if (!refAccess.mounted) return;
+          await style.addImage(type.inactiveTrafficMapIconId, inactiveBytes);
+          if (!refAccess.mounted) return;
+        } catch (e) {
+          debugPrint('Failed to load aircraft icon for ${type.name}: $e');
+        }
+      }
+
+      // Traffic possible location indicator image
+      await style.addImageFromAssets(
+        id: 'possibleLoc',
+        asset: 'assets/images/possible-loc.png',
+      );
+      if (!refAccess.mounted) return;
+
+      // Legacy fallbacks
       await style.addImageFromAssets(
         id: 'aircraft-icon',
         asset: 'assets/images/aircraft.png',
       );
+      if (!refAccess.mounted) return;
+
+      final defaultTrafficBytes = await _loadAndTintImage(
+        'assets/images/aircraft.png',
+        const Color(0xFF2196F3),
+      );
+      if (!refAccess.mounted) return;
+      await style.addImage('traffic-aircraft-icon', defaultTrafficBytes);
       if (!refAccess.mounted) return;
 
       final telemetry = refAccess.read(telemetryProvider);
@@ -124,12 +169,89 @@ extension MapCameraStyle on MapCamera {
       );
       if (!refAccess.mounted) return;
 
+      await style.addSource(
+        GeoJsonSource(
+          id: 'traffic-source',
+          data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        SymbolStyleLayer(
+          id: 'traffic-possible-layer',
+          sourceId: 'traffic-source',
+          layout: {
+            'icon-image': 'possibleLoc',
+            'icon-size': ['get', 'possiblePositionRatio'],
+            'icon-rotate': ['get', 'heading'],
+            'icon-rotation-alignment': 'map',
+            'icon-pitch-alignment': 'map',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': false,
+            'icon-optional': false,
+            'icon-anchor': 'bottom',
+          },
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        SymbolStyleLayer(
+          id: 'traffic-layer',
+          sourceId: 'traffic-source',
+          layout: {
+            'icon-image': ['get', 'icon-image'],
+            'icon-rotate': ['get', 'heading'],
+            'icon-rotation-alignment': 'map',
+            'icon-pitch-alignment': 'viewport',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+            'icon-size': 0.12,
+          },
+        ),
+      );
+      if (!refAccess.mounted) return;
+
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();
       updateNotamsOnMap();
-      debugPrint('Aircraft symbol initialized 😎');
+      _updateOgnFilter();
+      debugPrint('Aircraft symbols initialized 😎');
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');
     }
+  }
+}
+
+Future<Uint8List> _loadAndTintImage(String assetPath, Color color) async {
+  ui.Codec? codec;
+  ui.Image? image;
+  ui.Picture? picture;
+  ui.Image? tintedImage;
+  try {
+    final data = await rootBundle.load(assetPath);
+    codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+    final frame = await codec.getNextFrame();
+    image = frame.image;
+
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    final paint = Paint()
+      ..colorFilter = ColorFilter.mode(color, BlendMode.modulate);
+    canvas.drawImage(image, Offset.zero, paint);
+
+    picture = pictureRecorder.endRecording();
+    tintedImage = await picture.toImage(image.width, image.height);
+    final byteData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData == null) {
+      throw StateError('Failed to convert tinted image to PNG byte data for $assetPath');
+    }
+    return byteData.buffer.asUint8List();
+  } finally {
+    codec?.dispose();
+    image?.dispose();
+    picture?.dispose();
+    tintedImage?.dispose();
   }
 }
