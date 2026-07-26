@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class OgnTrafficAircraft {
@@ -87,38 +86,51 @@ class OgnOutboundIsolate {
 
     void disconnect() {
       keepAliveTimer?.cancel();
-      socket?.destroy();
+      keepAliveTimer = null;
+      try {
+        socket?.destroy();
+      } catch (_) {}
       socket = null;
     }
 
     Future<void> connect() async {
       disconnect();
-      try {
-        socket = await Socket.connect('aprs.glidernet.org', 14580, timeout: const Duration(seconds: 5));
-        
-        socket!.listen(
-          (data) {
-            // Server response ignored or logged minimally
-          },
-          onError: (e) {
-            disconnect();
-          },
-          onDone: () {
-            disconnect();
-          },
-        );
+      int attempts = 0;
+      while (attempts < 3) {
+        try {
+          socket = await Socket.connect('aprs.glidernet.org', 14580, timeout: const Duration(seconds: 5));
+          
+          socket!.listen(
+            (data) {},
+            onError: (e) {
+              disconnect();
+            },
+            onDone: () {
+              disconnect();
+            },
+          );
 
-        socket!.write('user anonymous pass -1 vers storknav 1.0\r\n');
-        await socket!.flush();
+          socket!.write('user anonymous pass -1 vers storknav 1.0\r\n');
+          await socket!.flush();
 
-        keepAliveTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-          if (socket != null) {
-            socket!.write('# keepalive\r\n');
-            socket!.flush();
+          keepAliveTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+            if (socket != null) {
+              try {
+                socket!.write('# keepalive\r\n');
+                socket!.flush().catchError((_) {});
+              } catch (e) {
+                disconnect();
+              }
+            }
+          });
+          break;
+        } catch (e) {
+          attempts++;
+          disconnect();
+          if (attempts < 3) {
+            await Future.delayed(Duration(seconds: attempts * 2));
           }
-        });
-      } catch (e) {
-        // Quiet connect failure
+        }
       }
     }
 
@@ -141,43 +153,47 @@ class OgnOutboundIsolate {
           }
 
           if (socket != null && currentCallsign != null && currentOgnId != null) {
-            final lat = message['lat'] as double;
-            final lon = message['lon'] as double;
-            final alt = message['alt'] as double;
-            final heading = message['heading'] as double;
-            final speed = message['speed'] as double;
-            final vs = message['vs'] as double;
+            try {
+              final lat = message['lat'] as double;
+              final lon = message['lon'] as double;
+              final alt = message['alt'] as double;
+              final heading = message['heading'] as double;
+              final speed = message['speed'] as double;
+              final vs = message['vs'] as double;
 
-            final latDeg = lat.abs().floor();
-            final latMin = (lat.abs() - latDeg) * 60.0;
-            final latHemi = lat >= 0 ? 'N' : 'S';
-            final latStr = '${latDeg.toString().padLeft(2, '0')}${latMin.toStringAsFixed(2).padLeft(5, '0')}$latHemi';
+              final latDeg = lat.abs().floor();
+              final latMin = (lat.abs() - latDeg) * 60.0;
+              final latHemi = lat >= 0 ? 'N' : 'S';
+              final latStr = '${latDeg.toString().padLeft(2, '0')}${latMin.toStringAsFixed(2).padLeft(5, '0')}$latHemi';
 
-            final lonDeg = lon.abs().floor();
-            final lonMin = (lon.abs() - lonDeg) * 60.0;
-            final lonHemi = lon >= 0 ? 'E' : 'W';
-            final lonStr = '${lonDeg.toString().padLeft(3, '0')}${lonMin.toStringAsFixed(2).padLeft(5, '0')}$lonHemi';
+              final lonDeg = lon.abs().floor();
+              final lonMin = (lon.abs() - lonDeg) * 60.0;
+              final lonHemi = lon >= 0 ? 'E' : 'W';
+              final lonStr = '${lonDeg.toString().padLeft(3, '0')}${lonMin.toStringAsFixed(2).padLeft(5, '0')}$lonHemi';
 
-            final trackVal = (heading.round() % 360).toString().padLeft(3, '0');
-            final speedKnots = (speed * 1.94384).round().clamp(0, 999).toString().padLeft(3, '0');
-            final altFeet = (alt * 3.28084).round().clamp(0, 999999).toString().padLeft(6, '0');
-            
-            final now = DateTime.now().toUtc();
-            final timeStr = '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}h';
+              final trackVal = (heading.round() % 360).toString().padLeft(3, '0');
+              final speedKnots = (speed * 1.94384).round().clamp(0, 999).toString().padLeft(3, '0');
+              final altFeet = (alt * 3.28084).round().clamp(0, 999999).toString().padLeft(6, '0');
+              
+              final now = DateTime.now().toUtc();
+              final timeStr = '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}h';
 
-            final addressType = 3; // OGN Tracker address type
-            final xx = (currentAircraftType << 2) | addressType;
-            final xxHex = xx.toRadixString(16).padLeft(2, '0').toUpperCase();
+              final addressType = 3; // OGN Tracker address type
+              final xx = (currentAircraftType << 2) | addressType;
+              final xxHex = xx.toRadixString(16).padLeft(2, '0').toUpperCase();
 
-            final vsFpm = (vs * 196.8504).round();
-            final vsSign = vsFpm >= 0 ? '+' : '-';
-            final vsStr = '$vsSign${vsFpm.abs().toString().padLeft(3, '0')}fpm';
+              final vsFpm = (vs * 196.8504).round();
+              final vsSign = vsFpm >= 0 ? '+' : '-';
+              final vsStr = '$vsSign${vsFpm.abs().toString().padLeft(3, '0')}fpm';
 
-            final comment = 'id$xxHex$currentOgnId $vsStr';
-            final packet = '$currentCallsign>APRS,TCPIP*,qAC,GLIDERN12:/$timeStr$latStr/$lonStr^$trackVal/$speedKnots/A=$altFeet $comment\r\n';
+              final comment = 'id$xxHex$currentOgnId $vsStr';
+              final packet = '$currentCallsign>APRS,TCPIP*,qAC,GLIDERN12:/$timeStr$latStr/$lonStr^$trackVal/$speedKnots/A=$altFeet $comment\r\n';
 
-            socket!.write(packet);
-            await socket!.flush();
+              socket!.write(packet);
+              await socket!.flush();
+            } catch (e) {
+              disconnect();
+            }
           }
         }
       }
@@ -244,6 +260,7 @@ class OgnOutboundManager {
 class OgnInboundConnection {
   Socket? _socket;
   bool _isConnected = false;
+  bool _hasNotifiedDisconnected = false;
   final Function(String) onLineReceived;
   final VoidCallback onDisconnected;
   String _currentFilter = '';
@@ -253,8 +270,16 @@ class OgnInboundConnection {
     required this.onDisconnected,
   });
 
+  void _notifyDisconnected() {
+    if (!_hasNotifiedDisconnected) {
+      _hasNotifiedDisconnected = true;
+      onDisconnected();
+    }
+  }
+
   Future<void> connect() async {
     await disconnect();
+    _hasNotifiedDisconnected = false;
     try {
       _socket = await Socket.connect('aprs.glidernet.org', 14580, timeout: const Duration(seconds: 5));
       _isConnected = true;
@@ -286,7 +311,7 @@ class OgnInboundConnection {
     } catch (e) {
       debugPrint('OGN Inbound: Connection failed: $e');
       _isConnected = false;
-      onDisconnected();
+      _notifyDisconnected();
     }
   }
 
@@ -305,6 +330,7 @@ class OgnInboundConnection {
     await _socket?.close();
     _socket?.destroy();
     _socket = null;
+    _notifyDisconnected();
   }
 }
 
@@ -338,14 +364,17 @@ class OgnAprsService {
 
     try {
       final idsParam = toFetch.join(',');
-      final url = Uri.parse('https://ddb.glidernet.org/download/?j=1&device_id=$idsParam');
+      final url = Uri.https('ddb.glidernet.org', '/download/', {
+        'j': '1',
+        'device_id': idsParam,
+      });
       final headers = {
         'User-Agent': 'stork-aprs-app/1.0.0 (https://github.com/vjoba/stork)',
       };
       final response = await (_client != null
               ? _client.get(url, headers: headers)
               : http.get(url, headers: headers))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -363,29 +392,15 @@ class OgnAprsService {
         }
 
         for (final id in toFetch) {
-          final info = fetched[id] ?? {
-            'registration': '',
-            'aircraftModel': '',
-            'cn': '',
-          };
-          _ddbCache[id] = info;
-          results[id] = info;
+          if (fetched.containsKey(id)) {
+            final info = fetched[id]!;
+            _ddbCache[id] = info;
+            results[id] = info;
+          }
         }
       }
     } catch (e) {
       debugPrint('DDB batch lookup failed for $toFetch: $e');
-    }
-
-    for (final id in toFetch) {
-      if (!results.containsKey(id)) {
-        final emptyInfo = {
-          'registration': '',
-          'aircraftModel': '',
-          'cn': '',
-        };
-        _ddbCache[id] = emptyInfo;
-        results[id] = emptyInfo;
-      }
     }
 
     return results;
@@ -424,12 +439,28 @@ class OgnAprsService {
     }
 
     final latDeg = double.parse(match.group(2)!);
-    final latMin = double.parse(match.group(3)!);
+    var latMin = double.parse(match.group(3)!);
+
+    final lonDeg = double.parse(match.group(5)!);
+    var lonMin = double.parse(match.group(6)!);
+
+    final precisionMatch = RegExp(r'!W(\d)(\d)!').firstMatch(line);
+    if (precisionMatch != null) {
+      final x = double.parse(precisionMatch.group(1)!);
+      final y = double.parse(precisionMatch.group(2)!);
+      final latMinParts = match.group(3)!.split('.');
+      if (latMinParts.length > 1 && latMinParts[1].length <= 2) {
+        latMin += x / 1000.0;
+      }
+      final lonMinParts = match.group(6)!.split('.');
+      if (lonMinParts.length > 1 && lonMinParts[1].length <= 2) {
+        lonMin += y / 1000.0;
+      }
+    }
+
     var lat = latDeg + latMin / 60.0;
     if (match.group(4) == 'S') lat = -lat;
 
-    final lonDeg = double.parse(match.group(5)!);
-    final lonMin = double.parse(match.group(6)!);
     var lon = lonDeg + lonMin / 60.0;
     if (match.group(7) == 'W') lon = -lon;
 

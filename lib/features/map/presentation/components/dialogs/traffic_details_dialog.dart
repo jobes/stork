@@ -5,6 +5,7 @@ import '../../../../../l10n/app_localizations.dart';
 import '../../../../settings/domain/models/aircraft_type.dart';
 import '../../../../settings/domain/models/altitude_unit.dart';
 import '../../../../settings/domain/models/speed_unit.dart';
+import '../../../../settings/presentation/extensions/aircraft_type_extension.dart';
 import '../../../../settings/presentation/providers/settings_provider.dart';
 import '../../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../../telemetry/presentation/providers/ogn_traffic_provider.dart';
@@ -40,7 +41,11 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
           .map((f) => f['id']?.toString() ?? '')
           .where((id) => id.isNotEmpty)
           .toList();
-      ref.read(ognTrafficProvider.notifier).loadDdbDetailsMultiple(ids);
+      unawaited(
+        ref.read(ognTrafficProvider.notifier).loadDdbDetailsMultiple(ids).catchError((e) {
+          debugPrint('Failed to load DDB details in dialog: $e');
+        }),
+      );
     });
   }
 
@@ -77,7 +82,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
               padding: const EdgeInsets.symmetric(vertical: 24.0),
               child: Center(
                 child: Text(
-                  l10n.radioNotConnected, // fallback or similar placeholder
+                  l10n.trafficNoDataAvailable,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -130,7 +135,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
 
                   // Vario
                   final vsVal = ac.verticalSpeed;
-                  final vsLabel = '${vsVal >= 0.0 ? "+" : ""}${vsVal.toStringAsFixed(1)} m/s';
+                  final vsLabel = '${vsVal >= 0.0 ? "+" : ""}${vsVal.toStringAsFixed(1)} ${l10n.varioUnitMs}';
 
                   // Aircraft Category & Icon details
                   final acType = AircraftType.fromOgnCode(ac.aircraftType);

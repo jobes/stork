@@ -231,15 +231,25 @@ class _AircraftSettingsDialogState
             subtitle: Text(l10n.sendLivePositionDesc),
             value: _sendLivePosition,
             onChanged: (val) async {
-              setState(() {
-                _sendLivePosition = val;
-              });
               final currentAircrafts =
                   ref.read(aircraftStateProvider).value ?? [widget.aircraft];
               final currentAircraft = currentAircrafts.firstWhere(
                 (a) => a.id == widget.aircraft.id,
                 orElse: () => widget.aircraft,
               );
+              final validOgnId = RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(currentAircraft.ognDeviceId.trim());
+              if (val && !validOgnId) {
+                ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                  SnackBar(content: Text(l10n.invalidOgnId)),
+                );
+                setState(() {
+                  _sendLivePosition = false;
+                });
+                return;
+              }
+              setState(() {
+                _sendLivePosition = val;
+              });
               await ref
                   .read(aircraftStateProvider.notifier)
                   .updateAircraft(
@@ -278,8 +288,8 @@ class _AircraftSettingsDialogState
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () async {
-                  final id = _ognDeviceIdController.text.trim();
-                  if (id.length != 6) {
+                  final id = _ognDeviceIdController.text.trim().toUpperCase();
+                  if (!RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(id)) {
                     ScaffoldMessenger.of(widget.parentContext).showSnackBar(
                       SnackBar(content: Text(l10n.invalidOgnId)),
                     );
@@ -294,7 +304,7 @@ class _AircraftSettingsDialogState
                   await ref
                       .read(aircraftStateProvider.notifier)
                       .updateAircraft(
-                        currentAircraft.copyWith(ognDeviceId: id.toUpperCase()),
+                        currentAircraft.copyWith(ognDeviceId: id),
                       );
                   if (widget.parentContext.mounted) {
                     ScaffoldMessenger.of(widget.parentContext).showSnackBar(

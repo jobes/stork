@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'aircraft_type.dart';
 
 part 'aircraft.freezed.dart';
 part 'aircraft.g.dart';
@@ -12,6 +13,7 @@ abstract class Aircraft with _$Aircraft {
     @Default(0) int initialFlights,
     @Default(false) bool sendLivePosition,
     @Default('') String ognDeviceId,
+    @Default(AircraftType.glider) AircraftType type,
   }) = _Aircraft;
 
   factory Aircraft.fromJson(Map<String, dynamic> json) =>

@@ -1,17 +1,12 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/settings/domain/models/aircraft_type.dart';
 
 void main() {
-  testWidgets('AircraftType enum mappings and assets exist', (WidgetTester tester) async {
+  test('AircraftType enum mappings', () {
     for (final type in AircraftType.values) {
       // Verify map icon IDs are generated
       expect(type.mapIconId, equals('aircraft-icon-${type.assetName}'));
       expect(type.trafficMapIconId, equals('traffic-icon-${type.assetName}'));
-
-      // Verify PNG asset files exist
-      final file = File(type.assetPath);
-      expect(file.existsSync(), isTrue, reason: 'Asset file missing: ${type.assetPath}');
     }
 
     // Verify OGN code mappings

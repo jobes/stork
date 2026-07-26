@@ -26,10 +26,10 @@ void main() {
       expect(aircraft!.id, equals('1EFCCC'));
       expect(aircraft.callsign, equals('FLR1EFCCC'));
       
-      // 44 + 32.07 / 60 = 44.5345
-      expect(aircraft.latitude, closeTo(44.5345, 0.0001));
-      // -(73 + 06.44 / 60) = -73.10733
-      expect(aircraft.longitude, closeTo(-73.10733, 0.0001));
+      // 44 + (32.07 + 0.007) / 60 = 44.53461666...
+      expect(aircraft.latitude, closeTo(44.534616, 0.0001));
+      // -(73 + (6.44 + 0.002) / 60) = -73.1073666...
+      expect(aircraft.longitude, closeTo(-73.107366, 0.0001));
       
       // A=000646 feet = 646 * 0.3048 = 196.9008 meters
       expect(aircraft.altitude, closeTo(196.9, 0.1));
@@ -39,6 +39,18 @@ void main() {
       
       // id06...: byte is 0x06. (0x06 >> 2) & 0x0F = 1 (Glider)
       expect(aircraft.aircraftType, equals(1));
+    });
+
+    test('parseAprsLine parses OGN !Wxy! high precision extension', () {
+      const packet = 'FLR1EFCCC>OGFLR,qAS,K2B9:/172500h4432.07N/07306.44W^000/000/A=000646 !W58! id061EFCCC +039fpm';
+      
+      final aircraft = service.parseAprsLine(packet);
+      
+      expect(aircraft, isNotNull);
+      // 44 + (32.07 + 0.005) / 60 = 44.5345833...
+      expect(aircraft!.latitude, closeTo(44.534583, 0.00001));
+      // -(73 + (6.44 + 0.008) / 60) = -73.1074666...
+      expect(aircraft.longitude, closeTo(-73.107466, 0.00001));
     });
 
     test('parseAprsLine respects stealth privacy flag', () {
@@ -87,7 +99,7 @@ void main() {
       const mockResponse = '{"devices":[{"device_type":"F","device_id":"1EFCCC","aircraft_model":"AS 33Me","registration":"OY-XEL","cn":"EL","tracked":"Y","identified":"Y"}]}';
       
       when(() => mockClient.get(
-        Uri.parse('https://ddb.glidernet.org/download/?j=1&device_id=1EFCCC'),
+        Uri.https('ddb.glidernet.org', '/download/', {'j': '1', 'device_id': '1EFCCC'}),
         headers: any(named: 'headers'),
       )).thenAnswer((_) async => http.Response(mockResponse, 200));
 
@@ -106,7 +118,7 @@ void main() {
       const mockResponse = '{"devices":[{"device_type":"F","device_id":"1EFCCC","aircraft_model":"AS 33Me","registration":"OY-XEL","cn":"EL","tracked":"Y","identified":"Y"}]}';
       
       when(() => mockClient.get(
-        Uri.parse('https://ddb.glidernet.org/download/?j=1&device_id=1EFCCC'),
+        Uri.https('ddb.glidernet.org', '/download/', {'j': '1', 'device_id': '1EFCCC'}),
         headers: any(named: 'headers'),
       )).thenAnswer((_) async => http.Response(mockResponse, 200));
 
@@ -117,6 +129,7 @@ void main() {
       expect(result['aircraftModel'], equals('AS 33Me'));
       expect(result['cn'], equals('EL'));
     });
+
     test('lookupDdbMultiple queries multiple IDs in a single request and returns a map', () async {
       final mockClient = MockHttpClient();
       final testService = OgnAprsService(client: mockClient);
@@ -127,7 +140,7 @@ void main() {
           ']}';
 
       when(() => mockClient.get(
-        Uri.parse('https://ddb.glidernet.org/download/?j=1&device_id=1EFCCC,2ABCDE'),
+        Uri.https('ddb.glidernet.org', '/download/', {'j': '1', 'device_id': '1EFCCC,2ABCDE'}),
         headers: any(named: 'headers'),
       )).thenAnswer((_) async => http.Response(mockResponse, 200));
 
@@ -141,6 +154,32 @@ void main() {
       
       expect(results['2ABCDE']!['registration'], equals('D-EEAC'));
       expect(results['2ABCDE']!['aircraftModel'], equals('LS-6'));
+    });
+
+    test('lookupDdbMultiple handles non-200 HTTP response gracefully without caching', () async {
+      final mockClient = MockHttpClient();
+      final testService = OgnAprsService(client: mockClient);
+
+      when(() => mockClient.get(
+        Uri.https('ddb.glidernet.org', '/download/', {'j': '1', 'device_id': '1EFCCC'}),
+        headers: any(named: 'headers'),
+      )).thenAnswer((_) async => http.Response('Server Error', 500));
+
+      final results = await testService.lookupDdbMultiple(['1EFCCC']);
+      expect(results, isEmpty);
+    });
+
+    test('lookupDdbMultiple handles HTTP client exception gracefully', () async {
+      final mockClient = MockHttpClient();
+      final testService = OgnAprsService(client: mockClient);
+
+      when(() => mockClient.get(
+        Uri.https('ddb.glidernet.org', '/download/', {'j': '1', 'device_id': '1EFCCC'}),
+        headers: any(named: 'headers'),
+      )).thenThrow(http.ClientException('Connection reset'));
+
+      final results = await testService.lookupDdbMultiple(['1EFCCC']);
+      expect(results, isEmpty);
     });
   });
 }

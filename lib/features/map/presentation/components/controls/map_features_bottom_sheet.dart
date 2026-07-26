@@ -216,7 +216,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
             ),
           if (trafficFeatures.isNotEmpty)
             ListTile(
-              leading: const Icon(Icons.airplanemode_active, color: Colors.blue),
+              leading: Icon(Icons.airplanemode_active, color: Theme.of(context).colorScheme.primary),
               title: Text(l10n.trafficTitle),
               subtitle: Text(
                 trafficFeatures.length > 1

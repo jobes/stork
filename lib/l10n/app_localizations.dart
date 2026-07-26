@@ -3343,6 +3343,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Max. vertical distance'**
   String get trafficMaxVerticalDistance;
+
+  /// No description provided for @trafficNoDataAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No traffic data available.'**
+  String get trafficNoDataAvailable;
+
+  /// No description provided for @trafficMaxHorizontalDistanceSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String trafficMaxHorizontalDistanceSummary(String km);
 }
 
 class _AppLocalizationsDelegate

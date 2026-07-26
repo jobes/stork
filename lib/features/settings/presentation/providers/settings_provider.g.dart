@@ -34,7 +34,7 @@ final class AppSettingsNotifierProvider
 }
 
 String _$appSettingsNotifierHash() =>
-    r'8e01153b2ebaf82ccb66985b31aca135e2067c54';
+    r'0e80372b7fcc6ea668a0bc27a64b7930a0045baa';
 
 abstract class _$AppSettingsNotifier extends $AsyncNotifier<AppSettings> {
   FutureOr<AppSettings> build();

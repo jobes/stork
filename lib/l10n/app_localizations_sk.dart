@@ -1733,4 +1733,13 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get trafficMaxVerticalDistance => 'Max. vertikálna vzdialenosť';
+
+  @override
+  String get trafficNoDataAvailable =>
+      'Žiadne dáta o letovej prevádzke nie sú k dispozícii.';
+
+  @override
+  String trafficMaxHorizontalDistanceSummary(String km) {
+    return '$km km';
+  }
 }

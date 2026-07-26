@@ -5,27 +5,31 @@ extension MapCameraStyle on MapCamera {
     try {
       // Load all aircraft type icons into style
       for (final type in AircraftType.values) {
-        await style.addImageFromAssets(
-          id: type.mapIconId,
-          asset: type.assetPath,
-        );
-        if (!refAccess.mounted) return;
+        try {
+          await style.addImageFromAssets(
+            id: type.mapIconId,
+            asset: type.assetPath,
+          );
+          if (!refAccess.mounted) return;
 
-        // Clean untinted icon for flying traffic
-        await style.addImageFromAssets(
-          id: type.trafficMapIconId,
-          asset: type.assetPath,
-        );
-        if (!refAccess.mounted) return;
+          // Clean untinted icon for flying traffic
+          await style.addImageFromAssets(
+            id: type.trafficMapIconId,
+            asset: type.assetPath,
+          );
+          if (!refAccess.mounted) return;
 
-        // Grey tinted icon for inactive (ground / stationary) traffic
-        final inactiveBytes = await _loadAndTintImage(
-          type.assetPath,
-          const Color(0xFF9E9E9E),
-        );
-        if (!refAccess.mounted) return;
-        await style.addImage(type.inactiveTrafficMapIconId, inactiveBytes);
-        if (!refAccess.mounted) return;
+          // Grey tinted icon for inactive (ground / stationary) traffic
+          final inactiveBytes = await _loadAndTintImage(
+            type.assetPath,
+            const Color(0xFF9E9E9E),
+          );
+          if (!refAccess.mounted) return;
+          await style.addImage(type.inactiveTrafficMapIconId, inactiveBytes);
+          if (!refAccess.mounted) return;
+        } catch (e) {
+          debugPrint('Failed to load aircraft icon for ${type.name}: $e');
+        }
       }
 
       // Traffic possible location indicator image
@@ -221,18 +225,28 @@ extension MapCameraStyle on MapCamera {
 }
 
 Future<Uint8List> _loadAndTintImage(String assetPath, Color color) async {
-  final data = await rootBundle.load(assetPath);
-  final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-  final frame = await codec.getNextFrame();
-  final image = frame.image;
+  ui.Image? image;
+  ui.Image? tintedImage;
+  try {
+    final data = await rootBundle.load(assetPath);
+    final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+    final frame = await codec.getNextFrame();
+    image = frame.image;
 
-  final pictureRecorder = ui.PictureRecorder();
-  final canvas = Canvas(pictureRecorder);
-  final paint = Paint()
-    ..colorFilter = ColorFilter.mode(color, BlendMode.modulate);
-  canvas.drawImage(image, Offset.zero, paint);
-  
-  final tintedImage = await pictureRecorder.endRecording().toImage(image.width, image.height);
-  final byteData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
-  return byteData!.buffer.asUint8List();
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    final paint = Paint()
+      ..colorFilter = ColorFilter.mode(color, BlendMode.modulate);
+    canvas.drawImage(image, Offset.zero, paint);
+    
+    tintedImage = await pictureRecorder.endRecording().toImage(image.width, image.height);
+    final byteData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData == null) {
+      throw StateError('Failed to convert tinted image to PNG byte data for $assetPath');
+    }
+    return byteData.buffer.asUint8List();
+  } finally {
+    image?.dispose();
+    tintedImage?.dispose();
+  }
 }

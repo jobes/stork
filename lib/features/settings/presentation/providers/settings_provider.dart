@@ -541,7 +541,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   ) {
     return _updateSettings(
       (s) => s.copyWith(
-        trafficMaxHorizontalDistance: distanceMeters.clamp(1000.0, 500000.0),
+        trafficMaxHorizontalDistance: distanceMeters.clamp(1000.0, 500000.0).toDouble(),
       ),
     );
   }
@@ -559,7 +559,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   ) {
     return _updateSettings(
       (s) => s.copyWith(
-        trafficMaxVerticalDistance: distanceMeters.clamp(100.0, 20000.0),
+        trafficMaxVerticalDistance: distanceMeters.clamp(100.0, 20000.0).toDouble(),
       ),
     );
   }

@@ -742,5 +742,7 @@
   "enableHorizontalDistanceFilter": "Filtrovať podľa horizontálnej vzdialenosti",
   "trafficMaxHorizontalDistance": "Max. horizontálna vzdialenosť",
   "enableVerticalDistanceFilter": "Filtrovať podľa vertikálnej vzdialenosti",
-  "trafficMaxVerticalDistance": "Max. vertikálna vzdialenosť"
+  "trafficMaxVerticalDistance": "Max. vertikálna vzdialenosť",
+  "trafficNoDataAvailable": "Žiadne dáta o letovej prevádzke nie sú k dispozícii.",
+  "trafficMaxHorizontalDistanceSummary": "{km} km"
 }

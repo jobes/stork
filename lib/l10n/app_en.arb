@@ -833,5 +833,12 @@
   "enableHorizontalDistanceFilter": "Filter by horizontal distance",
   "trafficMaxHorizontalDistance": "Max. horizontal distance",
   "enableVerticalDistanceFilter": "Filter by vertical distance",
-  "trafficMaxVerticalDistance": "Max. vertical distance"
+  "trafficMaxVerticalDistance": "Max. vertical distance",
+  "trafficNoDataAvailable": "No traffic data available.",
+  "trafficMaxHorizontalDistanceSummary": "{km} km",
+  "@trafficMaxHorizontalDistanceSummary": {
+    "placeholders": {
+      "km": { "type": "String" }
+    }
+  }
 }

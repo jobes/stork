@@ -18,20 +18,32 @@ const double kOgnFilterSignificantShiftMeters = 1500.0;
 const Duration kOgnFilterMaxUnsentDuration = Duration(seconds: 15);
 const Duration kOgnFilterDebounceDuration = Duration(seconds: 1);
 
+@riverpod
+OgnAprsService ognAprsService(Ref ref) {
+  return OgnAprsService();
+}
+
 @Riverpod(keepAlive: true)
 class OgnTraffic extends _$OgnTraffic {
-  final OgnAprsService _aprsService = OgnAprsService();
+  late OgnAprsService _aprsService;
   OgnInboundConnection? _inboundConnection;
   OgnOutboundManager? _outboundManager;
   Timer? _decayTimer;
+  Timer? _publishTimer;
   Timer? _outboundTimer;
   Timer? _reconnectTimer;
   
   bool _isConnecting = false;
+  int _reconnectAttempts = 0;
+  String? _activeOutboundId;
+
+  final Map<String, OgnTrafficAircraft> _aircraftMap = {};
   
   @override
   List<OgnTrafficAircraft> build() {
+    _aprsService = ref.read(ognAprsServiceProvider);
     _decayTimer = Timer.periodic(const Duration(seconds: 5), (_) => _cleanupStaleTraffic());
+    _publishTimer = Timer.periodic(const Duration(seconds: 2), (_) => _publishState());
     
     // Listen to changes in settings & active aircraft OGN config
     ref.listen(appSettingsProvider, (prev, next) {
@@ -44,6 +56,7 @@ class OgnTraffic extends _$OgnTraffic {
 
     ref.onDispose(() {
       _decayTimer?.cancel();
+      _publishTimer?.cancel();
       _outboundTimer?.cancel();
       _reconnectTimer?.cancel();
       _filterDebounceTimer?.cancel();
@@ -54,6 +67,10 @@ class OgnTraffic extends _$OgnTraffic {
     _connectInbound();
 
     return const [];
+  }
+
+  void _publishState() {
+    state = _aircraftMap.values.toList();
   }
 
   void _connectInbound() {
@@ -79,30 +96,37 @@ class OgnTraffic extends _$OgnTraffic {
       },
       onDisconnected: () {
         _isConnecting = false;
-        _reconnectTimer = Timer(const Duration(seconds: 5), () => _connectInbound());
+        _scheduleReconnect();
       },
     );
 
     _inboundConnection!.connect().then((_) {
       _isConnecting = false;
+      _reconnectAttempts = 0;
+    }).catchError((_) {
+      _isConnecting = false;
+      _scheduleReconnect();
     });
   }
 
+  void _scheduleReconnect() {
+    _reconnectTimer?.cancel();
+    _reconnectAttempts++;
+    final delaySeconds = (_reconnectAttempts * 2).clamp(2, 30);
+    _reconnectTimer = Timer(Duration(seconds: delaySeconds), () => _connectInbound());
+  }
+
   void _updateAircraft(OgnTrafficAircraft aircraft) {
-    final list = List<OgnTrafficAircraft>.from(state);
-    final idx = list.indexWhere((ac) => ac.id == aircraft.id);
-    
-    if (idx >= 0) {
-      final existing = list[idx];
-      list[idx] = aircraft.copyWith(
+    final existing = _aircraftMap[aircraft.id];
+    if (existing != null) {
+      _aircraftMap[aircraft.id] = aircraft.copyWith(
         registration: existing.registration,
         aircraftModel: existing.aircraftModel,
         cn: existing.cn,
       );
     } else {
-      list.add(aircraft);
+      _aircraftMap[aircraft.id] = aircraft;
     }
-    state = list;
   }
 
   Future<void> loadDdbDetails(String id) async {
@@ -112,9 +136,8 @@ class OgnTraffic extends _$OgnTraffic {
   Future<void> loadDdbDetailsMultiple(List<String> ids) async {
     final List<String> toFetch = [];
     for (final id in ids) {
-      final idx = state.indexWhere((ac) => ac.id == id);
-      if (idx == -1) continue;
-      final aircraft = state[idx];
+      final aircraft = _aircraftMap[id];
+      if (aircraft == null) continue;
       if (aircraft.isAnonymous) continue;
       if (aircraft.registration != null && aircraft.registration!.isNotEmpty) continue;
       toFetch.add(id);
@@ -124,15 +147,17 @@ class OgnTraffic extends _$OgnTraffic {
 
     final ddbInfos = await _aprsService.lookupDdbMultiple(toFetch);
     if (ddbInfos.isNotEmpty) {
-      final currentList = List<OgnTrafficAircraft>.from(state);
       var stateChanged = false;
 
       for (final entry in ddbInfos.entries) {
         final id = entry.key;
         final info = entry.value;
-        final currentIdx = currentList.indexWhere((ac) => ac.id.toUpperCase() == id);
-        if (currentIdx >= 0) {
-          currentList[currentIdx] = currentList[currentIdx].copyWith(
+        final key = _aircraftMap.keys.firstWhere(
+          (k) => k.toUpperCase() == id,
+          orElse: () => '',
+        );
+        if (key.isNotEmpty && _aircraftMap.containsKey(key)) {
+          _aircraftMap[key] = _aircraftMap[key]!.copyWith(
             registration: info['registration'],
             aircraftModel: info['aircraftModel'],
             cn: info['cn'],
@@ -142,19 +167,25 @@ class OgnTraffic extends _$OgnTraffic {
       }
 
       if (stateChanged) {
-        state = currentList;
+        _publishState();
       }
     }
   }
 
   void _cleanupStaleTraffic() {
-    if (state.isEmpty) return;
+    if (_aircraftMap.isEmpty) return;
     final now = DateTime.now();
-    final updatedList = state.where((ac) {
-      return now.difference(ac.lastSeen) < const Duration(seconds: 180);
-    }).toList();
-    if (updatedList.length != state.length) {
-      state = updatedList;
+    final staleKeys = <String>[];
+    for (final entry in _aircraftMap.entries) {
+      if (now.difference(entry.value.lastSeen) >= const Duration(seconds: 180)) {
+        staleKeys.add(entry.key);
+      }
+    }
+    if (staleKeys.isNotEmpty) {
+      for (final key in staleKeys) {
+        _aircraftMap.remove(key);
+      }
+      _publishState();
     }
   }
 
@@ -221,7 +252,7 @@ class OgnTraffic extends _$OgnTraffic {
 
     if (activeAircraft != null &&
         activeAircraft.sendLivePosition &&
-        activeAircraft.ognDeviceId.length == 6) {
+        RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(activeAircraft.ognDeviceId.trim())) {
       _startOutboundTracking(activeAircraft);
     } else {
       _stopOutboundTracking();
@@ -229,44 +260,49 @@ class OgnTraffic extends _$OgnTraffic {
   }
 
   void _startOutboundTracking(Aircraft aircraft) {
-    if (_outboundManager == null) {
-      _outboundManager = OgnOutboundManager();
-      final ognId = aircraft.ognDeviceId.toUpperCase();
-      final callsign = ognId.startsWith(RegExp(r'^(ICA|FLR|OGN)')) ? ognId : 'OGN$ognId';
-      final type = 1; // Default to Glider
-
-      _outboundManager!.start(
-        callsign: callsign,
-        ognId: ognId,
-        aircraftType: type,
-      ).then((_) {
-        _outboundTimer?.cancel();
-        _outboundTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-          final telemetry = ref.read(telemetryProvider);
-          if (telemetry.latitude != null &&
-              telemetry.longitude != null &&
-              telemetry.latitude != 0.0 &&
-              telemetry.longitude != 0.0) {
-            
-            if (telemetry.isFlying) {
-              final vario = ref.read(varioProvider);
-              final vsVal = vario.verticalSpeed ?? 0.0;
-              _outboundManager!.sendPosition(
-                lat: telemetry.latitude!,
-                lon: telemetry.longitude!,
-                altitude: telemetry.gpsAltitude ?? 0.0,
-                heading: telemetry.heading ?? 0.0,
-                speed: telemetry.groundSpeed ?? 0.0,
-                vs: vsVal,
-              );
-            }
-          }
-        });
-      });
+    final ognId = aircraft.ognDeviceId.trim().toUpperCase();
+    if (_outboundManager != null && _activeOutboundId == ognId) {
+      return;
     }
+
+    _stopOutboundTracking();
+    _activeOutboundId = ognId;
+    _outboundManager = OgnOutboundManager();
+    final callsign = ognId.startsWith(RegExp(r'^(ICA|FLR|OGN)')) ? ognId : 'OGN$ognId';
+    final type = aircraft.type.ognCode;
+
+    _outboundManager!.start(
+      callsign: callsign,
+      ognId: ognId,
+      aircraftType: type,
+    ).then((_) {
+      _outboundTimer?.cancel();
+      _outboundTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+        final telemetry = ref.read(telemetryProvider);
+        if (telemetry.latitude != null &&
+            telemetry.longitude != null &&
+            telemetry.latitude != 0.0 &&
+            telemetry.longitude != 0.0) {
+          
+          if (telemetry.isFlying) {
+            final vario = ref.read(varioProvider);
+            final vsVal = vario.verticalSpeed ?? 0.0;
+            _outboundManager?.sendPosition(
+              lat: telemetry.latitude!,
+              lon: telemetry.longitude!,
+              altitude: telemetry.gpsAltitude ?? 0.0,
+              heading: telemetry.heading ?? 0.0,
+              speed: telemetry.groundSpeed ?? 0.0,
+              vs: vsVal,
+            );
+          }
+        }
+      });
+    });
   }
 
   void _stopOutboundTracking() {
+    _activeOutboundId = null;
     _outboundTimer?.cancel();
     _outboundTimer = null;
     _outboundManager?.stop();

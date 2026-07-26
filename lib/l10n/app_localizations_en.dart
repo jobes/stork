@@ -1726,4 +1726,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trafficMaxVerticalDistance => 'Max. vertical distance';
+
+  @override
+  String get trafficNoDataAvailable => 'No traffic data available.';
+
+  @override
+  String trafficMaxHorizontalDistanceSummary(String km) {
+    return '$km km';
+  }
 }

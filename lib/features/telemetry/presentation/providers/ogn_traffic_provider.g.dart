@@ -9,6 +9,47 @@ part of 'ogn_traffic_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(ognAprsService)
+final ognAprsServiceProvider = OgnAprsServiceProvider._();
+
+final class OgnAprsServiceProvider
+    extends $FunctionalProvider<OgnAprsService, OgnAprsService, OgnAprsService>
+    with $Provider<OgnAprsService> {
+  OgnAprsServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'ognAprsServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$ognAprsServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<OgnAprsService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  OgnAprsService create(Ref ref) {
+    return ognAprsService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(OgnAprsService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<OgnAprsService>(value),
+    );
+  }
+}
+
+String _$ognAprsServiceHash() => r'68fadd04beb97d7de3673b2cf1a2ba2f2dd5f9a7';
+
 @ProviderFor(OgnTraffic)
 final ognTrafficProvider = OgnTrafficProvider._();
 
@@ -41,7 +82,7 @@ final class OgnTrafficProvider
   }
 }
 
-String _$ognTrafficHash() => r'44eec9dc073a2c1a9ef614d331165810d063fdec';
+String _$ognTrafficHash() => r'aadd1e668d9a9b82813382fd0b783b5e9c971629';
 
 abstract class _$OgnTraffic extends $Notifier<List<OgnTrafficAircraft>> {
   List<OgnTrafficAircraft> build();

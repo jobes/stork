@@ -17,14 +17,26 @@ class TrafficSettingsPage extends ConsumerWidget {
       body: settingsAsync.when(
         data: (settings) {
           final horizontalDistKm = settings.trafficMaxHorizontalDistance / 1000.0;
-          final horizontalDistNm = settings.trafficMaxHorizontalDistance / 1852.0;
 
           final altUnit = settings.altitudeUnit;
           final verticalDistUnitVal = altUnit.convertFromMeters(settings.trafficMaxVerticalDistance);
 
-          final verticalMinVal = altUnit == AltitudeUnit.feet ? 500.0 : 150.0;
-          final verticalMaxVal = altUnit == AltitudeUnit.feet ? 20000.0 : 6000.0;
-          final verticalDivisions = 39;
+          final double verticalMinVal;
+          final double verticalMaxVal;
+          final int verticalDivisions;
+          switch (altUnit) {
+            case AltitudeUnit.feet:
+            case AltitudeUnit.flightLevel:
+              verticalMinVal = 500.0;
+              verticalMaxVal = 20000.0;
+              verticalDivisions = 39;
+              break;
+            case AltitudeUnit.meters:
+              verticalMinVal = 150.0;
+              verticalMaxVal = 6000.0;
+              verticalDivisions = 39;
+              break;
+          }
 
           return ListView(
             children: [
@@ -54,7 +66,9 @@ class TrafficSettingsPage extends ConsumerWidget {
                             style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
                           Text(
-                            '${horizontalDistKm.toStringAsFixed(0)} km (${horizontalDistNm.toStringAsFixed(0)} NM)',
+                            l10n.trafficMaxHorizontalDistanceSummary(
+                              horizontalDistKm.toStringAsFixed(0),
+                            ),
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.bold,
@@ -63,7 +77,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                         ],
                       ),
                       Slider(
-                        value: horizontalDistKm.clamp(5.0, 200.0),
+                        value: horizontalDistKm.clamp(5.0, 200.0).toDouble(),
                         min: 5.0,
                         max: 200.0,
                         divisions: 39, // steps of 5 km
@@ -113,7 +127,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                         ],
                       ),
                       Slider(
-                        value: verticalDistUnitVal.clamp(verticalMinVal, verticalMaxVal),
+                        value: verticalDistUnitVal.clamp(verticalMinVal, verticalMaxVal).toDouble(),
                         min: verticalMinVal,
                         max: verticalMaxVal,
                         divisions: verticalDivisions,

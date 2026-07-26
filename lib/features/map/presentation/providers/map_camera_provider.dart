@@ -268,6 +268,7 @@ class MapCamera extends _$MapCamera {
     // Clean up timer on dispose
     ref.onDispose(() {
       trafficTimer.cancel();
+      _moveThrottleTimer?.cancel();
       _followResumeTimer?.cancel();
       _cancelInterpolation();
     });
@@ -492,6 +493,8 @@ class MapCamera extends _$MapCamera {
     }
   }
 
+  Timer? _moveThrottleTimer;
+
   bool get isAircraftSymbolInitialized => _isAircraftSymbolInitialized;
   MapController? get mapController => _mapController;
 
@@ -501,9 +504,14 @@ class MapCamera extends _$MapCamera {
   }) {
     if (event is MapEventMoveCamera) {
       handleUserInteraction(isExplicitInteraction: false);
-      _updateOgnFilter();
+      if (_moveThrottleTimer == null || !_moveThrottleTimer!.isActive) {
+        _moveThrottleTimer = Timer(const Duration(milliseconds: 500), () {
+          _updateOgnFilter();
+        });
+      }
     }
     if (event is MapEventCameraIdle) {
+      _moveThrottleTimer?.cancel();
       _updateOgnFilter();
       updateTrafficOnMap();
     }
