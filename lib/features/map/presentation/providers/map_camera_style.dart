@@ -27,6 +27,15 @@ extension MapCameraStyle on MapCamera {
           if (!refAccess.mounted) return;
           await style.addImage(type.inactiveTrafficMapIconId, inactiveBytes);
           if (!refAccess.mounted) return;
+
+          // Red tinted icon for threat traffic
+          final threatBytes = await _loadAndTintImage(
+            type.assetPath,
+            const Color(0xFFFF0000),
+          );
+          if (!refAccess.mounted) return;
+          await style.addImage(type.threatTrafficMapIconId, threatBytes);
+          if (!refAccess.mounted) return;
         } catch (e) {
           debugPrint('Failed to load aircraft icon for ${type.name}: $e');
         }
@@ -196,6 +205,8 @@ extension MapCameraStyle on MapCamera {
       );
       if (!refAccess.mounted) return;
 
+      final mapFontSize = (settings?.mapFontSize ?? 1.0) * 1.5;
+
       await style.addLayer(
         SymbolStyleLayer(
           id: 'traffic-layer',
@@ -208,6 +219,27 @@ extension MapCameraStyle on MapCamera {
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
             'icon-size': 0.12,
+            'text-font': ['Roboto Regular,Noto Sans Regular'],
+            'text-field': ['get', 'altitudeTag'],
+            'text-size': 11.0 * mapFontSize,
+            'text-offset': [1.4, 0],
+            'text-anchor': 'left',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
+          },
+          paint: {
+            'text-color': [
+              'case',
+              [
+                '==',
+                ['get', 'isThreat'],
+                true,
+              ],
+              '#FF3333',
+              '#FFFFFF',
+            ],
+            'text-halo-color': '#000000',
+            'text-halo-width': 1.5,
           },
         ),
       );
@@ -243,9 +275,13 @@ Future<Uint8List> _loadAndTintImage(String assetPath, Color color) async {
 
     picture = pictureRecorder.endRecording();
     tintedImage = await picture.toImage(image.width, image.height);
-    final byteData = await tintedImage.toByteData(format: ui.ImageByteFormat.png);
+    final byteData = await tintedImage.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
     if (byteData == null) {
-      throw StateError('Failed to convert tinted image to PNG byte data for $assetPath');
+      throw StateError(
+        'Failed to convert tinted image to PNG byte data for $assetPath',
+      );
     }
     return byteData.buffer.asUint8List();
   } finally {

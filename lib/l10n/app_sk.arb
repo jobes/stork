@@ -744,5 +744,14 @@
   "enableVerticalDistanceFilter": "Filtrovať podľa vertikálnej vzdialenosti",
   "trafficMaxVerticalDistance": "Max. vertikálna vzdialenosť",
   "trafficNoDataAvailable": "Žiadne dáta o letovej prevádzke nie sú k dispozícii.",
-  "trafficMaxHorizontalDistanceSummary": "{km} km"
+  "trafficMaxHorizontalDistanceSummary": "{km} km",
+  "enableCas": "Anti-kolízny systém (CAS)",
+  "casEnabledDesc": "Predikuje 3D trajektórie a varuje pred hroziacimi kolíziami",
+  "casLookaheadTime": "Čas predikcie (Lookahead)",
+  "casHorizontalThreshold": "Horizontálna výstražná vzdialenosť",
+  "casVerticalThreshold": "Vertikálna výstražná vzdialenosť",
+  "sameAltLabel": "ROVNAKÁ VÝŠKA",
+  "aboveAltLabel": "+{alt} NAD",
+  "belowAltLabel": "-{alt} POD",
+  "collisionWarningLabel": "KOLÍZIA"
 }

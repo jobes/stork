@@ -23,11 +23,13 @@ import '../../../telemetry/presentation/widgets/fuel_status_telemetry_widget.dar
 import '../../../telemetry/presentation/widgets/rpm_horizontal_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/vhf_radio_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/vario_telemetry_widget.dart';
+import '../../../telemetry/presentation/widgets/collision_warning_banner.dart';
 import '../components/controls/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import '../components/controls/map_features_bottom_sheet.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});
@@ -95,6 +97,12 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
     final l10n = AppLocalizations.of(context)!;
     final cameraController = ref.watch(mapCameraProvider.notifier);
     final navigationAsync = ref.watch(navigationProvider);
+    final fontScale = ref.watch(
+      appSettingsProvider.select(
+        (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
+      ),
+    );
+    final compassBarHeight = 40.0 * fontScale;
 
     final double screenWidth = MediaQuery.sizeOf(context).width;
     double currentX = 16.0;
@@ -245,6 +253,12 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 onMenuPressed: () => Scaffold.of(context).openDrawer(),
                 onGpsPressed: cameraController.handleGpsToggle,
               ),
+            ),
+            Positioned(
+              top: compassBarHeight,
+              left: 0,
+              right: 0,
+              child: const CollisionWarningBanner(),
             ),
           ],
         ),

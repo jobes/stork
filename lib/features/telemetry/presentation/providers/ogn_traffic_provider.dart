@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:maplibre/maplibre.dart';
@@ -6,6 +7,7 @@ import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/domain/models/aircraft.dart';
+import '../../domain/utils/cas_evaluator.dart';
 import 'telemetry_provider.dart';
 import 'vario_provider.dart';
 import '../../data/ogn_aprs_service.dart';
@@ -38,6 +40,9 @@ class OgnTraffic extends _$OgnTraffic {
   String? _activeOutboundId;
 
   final Map<String, OgnTrafficAircraft> _aircraftMap = {};
+  final List<TrackHistoryPoint> _ownshipTrackHistory = [];
+
+  List<TrackHistoryPoint> get ownshipTrackHistory => List.unmodifiable(_ownshipTrackHistory);
   
   @override
   List<OgnTrafficAircraft> build() {
@@ -52,6 +57,15 @@ class OgnTraffic extends _$OgnTraffic {
     
     ref.listen(aircraftStateProvider, (prev, next) {
       _updateOutboundTrackingState();
+    });
+
+    ref.listen(telemetryProvider, (prev, next) {
+      if (next.heading != null) {
+        final now = DateTime.now();
+        final trackRad = next.heading! * math.pi / 180.0;
+        _ownshipTrackHistory.add(TrackHistoryPoint(timestamp: now, trackRad: trackRad));
+        _ownshipTrackHistory.removeWhere((p) => now.difference(p.timestamp).inSeconds > 15);
+      }
     });
 
     ref.onDispose(() {
@@ -116,16 +130,50 @@ class OgnTraffic extends _$OgnTraffic {
     _reconnectTimer = Timer(Duration(seconds: delaySeconds), () => _connectInbound());
   }
 
+  final Map<String, List<TrackHistoryPoint>> _trackHistories = {};
+
   void _updateAircraft(OgnTrafficAircraft aircraft) {
+    final now = DateTime.now();
+    final trackRad = aircraft.track * math.pi / 180.0;
+    final history = _trackHistories.putIfAbsent(aircraft.id, () => []);
+    history.add(TrackHistoryPoint(timestamp: now, trackRad: trackRad));
+    history.removeWhere((p) => now.difference(p.timestamp).inSeconds > 15);
+
+    final turnRate = CasEvaluator.calculateTurnRate(history);
+    final isCircling = CasEvaluator.detectCircling(history);
+
     final existing = _aircraftMap[aircraft.id];
     if (existing != null) {
       _aircraftMap[aircraft.id] = aircraft.copyWith(
         registration: existing.registration,
         aircraftModel: existing.aircraftModel,
         cn: existing.cn,
+        turnRate: turnRate,
+        isCircling: isCircling,
       );
     } else {
-      _aircraftMap[aircraft.id] = aircraft;
+      _aircraftMap[aircraft.id] = aircraft.copyWith(
+        turnRate: turnRate,
+        isCircling: isCircling,
+      );
+    }
+  }
+
+  void _cleanupStaleTraffic() {
+    if (_aircraftMap.isEmpty) return;
+    final now = DateTime.now();
+    final staleKeys = <String>[];
+    for (final entry in _aircraftMap.entries) {
+      if (now.difference(entry.value.lastSeen) >= const Duration(seconds: 180)) {
+        staleKeys.add(entry.key);
+      }
+    }
+    if (staleKeys.isNotEmpty) {
+      for (final key in staleKeys) {
+        _aircraftMap.remove(key);
+        _trackHistories.remove(key);
+      }
+      _publishState();
     }
   }
 
@@ -169,23 +217,6 @@ class OgnTraffic extends _$OgnTraffic {
       if (stateChanged) {
         _publishState();
       }
-    }
-  }
-
-  void _cleanupStaleTraffic() {
-    if (_aircraftMap.isEmpty) return;
-    final now = DateTime.now();
-    final staleKeys = <String>[];
-    for (final entry in _aircraftMap.entries) {
-      if (now.difference(entry.value.lastSeen) >= const Duration(seconds: 180)) {
-        staleKeys.add(entry.key);
-      }
-    }
-    if (staleKeys.isNotEmpty) {
-      for (final key in staleKeys) {
-        _aircraftMap.remove(key);
-      }
-      _publishState();
     }
   }
 
@@ -311,40 +342,144 @@ class OgnTraffic extends _$OgnTraffic {
 }
 
 @riverpod
-List<OgnTrafficAircraft> filteredOgnTraffic(Ref ref) {
-  final traffic = ref.watch(ognTrafficProvider);
-  final settings = ref.watch(appSettingsProvider).value;
-  final telemetry = ref.watch(telemetryProvider);
-  final resolvedAlt = ref.watch(resolvedAltitudeProvider).mslValue;
+class FilteredOgnTraffic extends _$FilteredOgnTraffic {
+  DateTime? _lastCasEvaluationTime;
+  Map<String, CasThreatEvaluation> _cachedCasEvaluations = {};
 
-  if (settings == null) return traffic;
+  @override
+  List<OgnTrafficAircraft> build() {
+    final traffic = ref.watch(ognTrafficProvider);
+    final settings = ref.watch(appSettingsProvider).value;
+    final telemetry = ref.watch(telemetryProvider);
+    final resolvedAlt = ref.watch(resolvedAltitudeProvider).mslValue;
+    final vario = ref.watch(varioProvider);
 
-  return traffic.where((ac) {
-    if (settings.trafficFilterMaxHorizontalDistanceEnabled) {
-      if (telemetry.latitude != null &&
-          telemetry.longitude != null &&
-          telemetry.latitude != 0.0 &&
-          telemetry.longitude != 0.0) {
-        final distMeters = GeoUtils.distanceBetween(
-          telemetry.latitude!,
-          telemetry.longitude!,
-          ac.latitude,
-          ac.longitude,
+    if (settings == null) return traffic;
+
+    final filtered = traffic.where((ac) {
+      if (settings.trafficFilterMaxHorizontalDistanceEnabled) {
+        if (telemetry.latitude != null &&
+            telemetry.longitude != null &&
+            telemetry.latitude != 0.0 &&
+            telemetry.longitude != 0.0) {
+          final distMeters = GeoUtils.distanceBetween(
+            telemetry.latitude!,
+            telemetry.longitude!,
+            ac.latitude,
+            ac.longitude,
+          );
+          if (distMeters > settings.trafficMaxHorizontalDistance) {
+            return false;
+          }
+        }
+      }
+      if (settings.trafficFilterMaxVerticalDistanceEnabled) {
+        if (telemetry.latitude != null &&
+            telemetry.longitude != null &&
+            telemetry.latitude != 0.0 &&
+            telemetry.longitude != 0.0) {
+          final myAlt = resolvedAlt ?? telemetry.gpsAltitude;
+          if (myAlt != null) {
+            final vertDiffMeters = (myAlt - ac.altitude).abs();
+            if (vertDiffMeters > settings.trafficMaxVerticalDistance) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }).toList();
+
+    if (telemetry.latitude == null ||
+        telemetry.longitude == null ||
+        telemetry.latitude == 0.0 ||
+        telemetry.longitude == 0.0) {
+      return filtered;
+    }
+
+    if (!settings.casEnabled) return filtered;
+
+    final now = DateTime.now();
+    final filteredIds = filtered.map((ac) => ac.id).toSet();
+    final cachedIds = _cachedCasEvaluations.keys.toSet();
+    final membershipChanged = filteredIds.length != cachedIds.length ||
+        !filteredIds.containsAll(cachedIds);
+
+    final shouldRecalculateCas = _lastCasEvaluationTime == null ||
+        now.difference(_lastCasEvaluationTime!) >= const Duration(seconds: 1) ||
+        membershipChanged;
+
+    if (shouldRecalculateCas) {
+      final myHeading = telemetry.heading ?? 0.0;
+      final ownshipHistory = ref.read(ognTrafficProvider.notifier).ownshipTrackHistory;
+      final myOmega = CasEvaluator.calculateTurnRate(ownshipHistory);
+      final myIsCircling = CasEvaluator.detectCircling(ownshipHistory);
+      final myLat = telemetry.latitude!;
+      final myLon = telemetry.longitude!;
+      final myAlt = resolvedAlt ?? telemetry.gpsAltitude ?? 0.0;
+      final myGs = telemetry.groundSpeed ?? 0.0;
+      final myVs = vario.verticalSpeed ?? 0.0;
+
+      final newEvaluations = <String, CasThreatEvaluation>{};
+
+      for (final ac in filtered) {
+        final threatEval = CasEvaluator.evaluateThreat(
+          latA: myLat,
+          lonA: myLon,
+          altA: myAlt,
+          gsA: myGs,
+          trackA: myHeading,
+          omegaA: myOmega,
+          vsA: myVs,
+          isCirclingA: myIsCircling,
+          latB: ac.latitude,
+          lonB: ac.longitude,
+          altB: ac.altitude,
+          gsB: ac.groundSpeed,
+          trackB: ac.track,
+          omegaB: ac.turnRate,
+          vsB: ac.verticalSpeed,
+          isCirclingB: ac.isCircling,
+          maxBroadPhaseHorizDist: settings.trafficMaxHorizontalDistance,
+          maxBroadPhaseVertDist: settings.trafficMaxVerticalDistance,
+          lookaheadTimeSec: settings.casLookaheadTime,
+          horizThresholdMeters: settings.casHorizontalThreshold,
+          vertThresholdMeters: settings.casVerticalThreshold,
         );
-        if (distMeters > settings.trafficMaxHorizontalDistance) {
-          return false;
-        }
+        newEvaluations[ac.id] = threatEval;
       }
+
+      _cachedCasEvaluations = newEvaluations;
+      _lastCasEvaluationTime = now;
     }
-    if (settings.trafficFilterMaxVerticalDistanceEnabled) {
-      final myAlt = resolvedAlt ?? telemetry.gpsAltitude;
-      if (myAlt != null) {
-        final vertDiffMeters = (myAlt - ac.altitude).abs();
-        if (vertDiffMeters > settings.trafficMaxVerticalDistance) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }).toList();
+
+    return filtered.map((ac) {
+      final threatEval = _cachedCasEvaluations[ac.id];
+      if (threatEval == null) return ac;
+
+      return ac.copyWith(
+        isCollisionThreat: threatEval.isCollisionThreat,
+        tCpa: threatEval.tCpa,
+        minDistance: threatEval.minDistance,
+      );
+    }).toList();
+  }
+}
+
+@riverpod
+OgnTrafficAircraft? activeCollisionAlert(Ref ref) {
+  final filtered = ref.watch(filteredOgnTrafficProvider);
+  final threats = filtered.where((ac) => ac.isCollisionThreat).toList();
+  if (threats.isEmpty) return null;
+
+  threats.sort((a, b) {
+    final tA = a.tCpa ?? 999.0;
+    final tB = b.tCpa ?? 999.0;
+    if (tA != tB) return tA.compareTo(tB);
+    final dA = a.minDistance ?? 99999.0;
+    final dB = b.minDistance ?? 99999.0;
+    return dA.compareTo(dB);
+  });
+
+  return threats.first;
 }

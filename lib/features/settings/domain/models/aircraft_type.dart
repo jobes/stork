@@ -23,6 +23,7 @@ enum AircraftType {
   String get mapIconId => 'aircraft-icon-$assetName';
   String get trafficMapIconId => 'traffic-icon-$assetName';
   String get inactiveTrafficMapIconId => 'traffic-icon-inactive-$assetName';
+  String get threatTrafficMapIconId => 'traffic-icon-threat-$assetName';
 
   static AircraftType fromOgnCode(int code) {
     switch (code) {

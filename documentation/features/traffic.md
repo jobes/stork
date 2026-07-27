@@ -53,7 +53,7 @@ graph TD
 ## 2. OGN APRS Inbound Connection & Viewport Filtering
 
 ### 2.1. Inbound APRS Socket Client
-The class [OgnInboundConnection](../../lib/features/telemetry/data/ogn_aprs_service.dart#L260) manages an active TCP socket connection to the OGN APRS core servers:
+The class [OgnInboundConnection](../../lib/features/telemetry/data/ogn_aprs_service.dart#L280) manages an active TCP socket connection to the OGN APRS core servers:
 *   **Host & Port:** `aprs.glidernet.org:14580`
 *   **Authentication Handshake:** Upon connection, the socket sends:
     ```text
@@ -74,7 +74,7 @@ To minimize cellular data usage and server overhead, Stork dynamically updates s
 
 ## 3. APRS Line Parsing & Data Extraction
 
-Raw APRS lines are parsed by `parseAprsLine` in [OgnAprsService](../../lib/features/telemetry/data/ogn_aprs_service.dart#L409).
+Raw APRS lines are parsed by `parseAprsLine` in [OgnAprsService](../../lib/features/telemetry/data/ogn_aprs_service.dart#L429).
 
 ### 3.1. Standard APRS Position Syntax
 APRS lines for aircraft telemetry follow the standard APRS position format:
@@ -125,7 +125,7 @@ Because raw APRS packets carry limited aircraft identification, Stork asynchrono
 *   **Endpoint:** `https://ddb.glidernet.org/download/?j=1&device_id=ID1,ID2,...`
 *   **HTTP Method:** GET request with batch comma-separated device IDs.
 *   **User-Agent:** `stork-aprs-app/1.0.0 (https://github.com/vjoba/stork)`
-*   **Caching:** Resolved entries are stored in an in-memory `_ddbCache` dictionary in [OgnAprsService](../../lib/features/telemetry/data/ogn_aprs_service.dart#L339) to eliminate redundant network fetches.
+*   **Caching:** Resolved entries are stored in an in-memory `_ddbCache` dictionary in [OgnAprsService](../../lib/features/telemetry/data/ogn_aprs_service.dart#L368) to eliminate redundant network fetches.
 
 ### 4.2. Resolved Fields
 *   `registration`: Tail number (e.g. `OM-1234`).
@@ -166,8 +166,8 @@ sequenceDiagram
 
 ### 5.1. Background Isolate Architecture
 To eliminate UI frame drops caused by socket network operations, live position broadcasting runs entirely within a dedicated background Dart `Isolate`:
-*   [OgnOutboundIsolate](../../lib/features/telemetry/data/ogn_aprs_service.dart#L76): Manages the background TCP socket, performs format conversion, sends periodic `# keepalive\r\n` pings every $30\text{ s}$, and transmits position packets.
-*   [OgnOutboundManager](../../lib/features/telemetry/data/ogn_aprs_service.dart#L204): Controls spawning, message passing across `SendPort`/`ReceivePort` pairs, and teardown.
+*   [OgnOutboundIsolate](../../lib/features/telemetry/data/ogn_aprs_service.dart#L96): Manages the background TCP socket, performs format conversion, sends periodic `# keepalive\r\n` pings every $30\text{ s}$, and transmits position packets.
+*   [OgnOutboundManager](../../lib/features/telemetry/data/ogn_aprs_service.dart#L224): Controls spawning, message passing across `SendPort`/`ReceivePort` pairs, and teardown.
 
 ### 5.2. Outbound APRS Encoding
 Every $3\text{ s}$, if `telemetry.isFlying` is `true`, the isolate formats and sends a standard APRS frame:
@@ -192,51 +192,32 @@ Outbound beaconing starts automatically when:
 
 ### 6.1. Providers Overview
 1.  `ognAprsServiceProvider`: Provides the singleton `OgnAprsService` instance.
-2.  `ognTrafficProvider` ([OgnTraffic](../../lib/features/telemetry/presentation/providers/ogn_traffic_provider.dart#L26)): Keeps an active in-memory map (`_aircraftMap`) of all received aircraft. Manages socket connections, decay timers, DDB lookups, and outbound beaconing state.
-3.  `filteredOgnTrafficProvider` ([filteredOgnTraffic](../../lib/features/telemetry/presentation/providers/ogn_traffic_provider.dart#L313)): Applies spatial distance filters to present a refined traffic list for map rendering.
+2.  `ognTrafficProvider` ([OgnTraffic](../../lib/features/telemetry/presentation/providers/ogn_traffic_provider.dart#L29)): Keeps an active in-memory map (`_aircraftMap`) of all received aircraft. Manages socket connections, decay timers, DDB lookups, and outbound beaconing state. Maintains `_ownshipTrackHistory` for ownship turn rate calculation.
+3.  `filteredOgnTrafficProvider` ([filteredOgnTraffic](../../lib/features/telemetry/presentation/providers/ogn_traffic_provider.dart#L348)): Applies spatial distance filters and runs 3D collision threat evaluations via `CasEvaluator.evaluateThreat` for all targets.
+4.  `activeCollisionAlertProvider` ([activeCollisionAlert](../../lib/features/telemetry/presentation/providers/ogn_traffic_provider.dart#L461)): Filters all active traffic threats, sorts targets by shortest $t_{\text{CPA}}$ and closest minimum separation distance, returning the highest-priority collision threat.
 
-### 6.2. Spatial Filtering Logic
-`filteredOgnTraffic` filters the raw list using preferences defined in `AppSettings`:
-*   **Horizontal Distance Filter:**
-    *   Enabled via `trafficFilterMaxHorizontalDistanceEnabled` (default `true`).
-    *   Calculates distance between the user's current GPS position and the traffic target using `GeoUtils.distanceBetween`.
-    *   Rejects targets exceeding `trafficMaxHorizontalDistance` (default $50000\text{ m} / 50\text{ km}$).
-*   **Vertical Distance Filter:**
-    *   Enabled via `trafficFilterMaxVerticalDistanceEnabled` (default `true`).
-    *   Calculates vertical difference between current aircraft altitude (`resolvedAltitudeProvider` or GPS altitude) and target altitude.
-    *   Rejects targets exceeding `trafficMaxVerticalDistance` (default $1500\text{ m}$).
+### 6.2. Spatial Filtering & CAS Threat Evaluation Logic
+`filteredOgnTraffic` filters and evaluates the raw list using preferences defined in `AppSettings`:
+*   **Horizontal Distance Filter:** Rejects targets exceeding `trafficMaxHorizontalDistance` (default $50000\text{ m} / 50\text{ km}$).
+*   **Vertical Distance Filter:** Rejects targets exceeding `trafficMaxVerticalDistance` (default $1500\text{ m}$).
+*   **3D Threat Evaluation:** Calculates turn rates ($\omega$), detects sustained thermal circling, predicts 3D kinematic trajectories, and evaluates closest point of approach ($t_{\text{CPA}}$ and $d_{\text{CPA}}$). For comprehensive mathematical details, see [Collision Avoidance System Documentation](collision-avoidance-system.md).
 
 ---
 
 ## 7. Map Rendering & Trajectory Projection
 
-The MapLibre integration handles traffic visualization in [map_camera_style.dart](../../lib/features/map/presentation/providers/map_camera_style.dart#L174) and [map_camera_provider.dart](../../lib/features/map/presentation/providers/map_camera_provider.dart#L526).
+The MapLibre integration handles traffic visualization in [map_camera_style.dart](../../lib/features/map/presentation/providers/map_camera_style.dart#L183) and [map_camera_provider.dart](../../lib/features/map/presentation/providers/map_camera_provider.dart#L528).
 
 ### 7.1. Layer Architecture
-*   **`traffic-source`:** GeoJSON source holding target points with feature properties (`id`, `heading`, `icon-image`, `possiblePositionRatio`).
-*   **`traffic-layer`:** Symbol layer rendering custom aircraft icons rotated according to target track (`heading`).
+*   **`traffic-source`:** GeoJSON source holding target points with feature properties (`id`, `heading`, `icon-image`, `altitudeTag`, `isThreat`, `possiblePositionRatio`).
+*   **`traffic-layer`:** Symbol layer rendering custom aircraft icons rotated according to target track (`heading`) and displaying dynamic relative altitude tags (`altitudeTag`) for active threats.
 *   **`traffic-possible-layer`:** Symbol layer rendering position uncertainty rings when lookahead projection is active.
 
-### 7.2. Icon Registration & Category Styling
+### 7.2. Icon Registration, Category Styling & Threat Highlighting
 `MapCameraStyleNotifier` dynamically generates and registers tinted icon assets for all 13 `AircraftType` categories:
 *   **Active Traffic (Flying, $GS > 1.0\text{ m/s}$):** Colored aircraft icon (`type.trafficMapIconId`).
 *   **Inactive / Stationary Traffic ($GS \le 1.0\text{ m/s}$):** Grey-tinted icon (`type.inactiveTrafficMapIconId`).
-
-| Aircraft Category | OGN Code | Asset Name | Icon ID |
-| :--- | :--- | :--- | :--- |
-| Glider | `1` | `glider` | `traffic-icon-glider` |
-| Tow Plane | `2` | `tow_plane` | `traffic-icon-tow_plane` |
-| Helicopter | `3` | `helicopter` | `traffic-icon-helicopter` |
-| Skydiver | `4` | `skydiver` | `traffic-icon-skydiver` |
-| Drop Plane | `5` | `drop_plane` | `traffic-icon-drop_plane` |
-| Hang Glider | `6` | `hang_glider` | `traffic-icon-hang_glider` |
-| Paraglider | `7` | `paraglider` | `traffic-icon-paraglider` |
-| Powered Aircraft | `8` | `powered_aircraft` | `traffic-icon-powered_aircraft` |
-| Jet | `9` | `jet` | `traffic-icon-jet` |
-| Balloon | `11` | `balloon` | `traffic-icon-balloon` |
-| Airship | `12` | `airship` | `traffic-icon-airship` |
-| UAV / Drone | `13` | `uav` | `traffic-icon-uav` |
-| Other | `0` | `other` | `traffic-icon-other` |
+*   **Collision Threat Targets (`isCollisionThreat == true`):** Highlighted threat icon (`type.threatTrafficMapIconId`) and bold red altitude tag text (`#FF3333` with black halo outline).
 
 ### 7.3. Trajectory Lookahead Vector
 To compensate for network latency and depict true relative movement, Stork projects each aircraft's estimated future position:
@@ -269,26 +250,29 @@ Tapping an aircraft icon on the map queries features from `traffic-layer` and op
 +---------------------------------------------------+
 ```
 
-Displayed telemetry properties:
-*   **Aircraft Identifiers:** Registration, competition number `[CN]`, model, and callsign.
-*   **Distance:** Calculated horizontal distance from pilot's aircraft (meters or kilometers).
-*   **Altitude:** MSL altitude formatted in user's selected altitude unit (`feet` or `meters`).
-*   **Last Seen:** Inactivity timer displaying elapsed seconds or minutes.
-*   **Ground Speed & Vario:** Converted according to `SpeedUnit` (`kmh`, `kts`, `mph`) and `varioUnitMs`.
-*   **Anonymous Notice:** Displays privacy disclaimer when `isAnonymous` bit is set.
+### 8.2. Collision Warning Banner (`CollisionWarningBanner`)
+When an active threat is detected, an alert banner is dynamically rendered over the map UI:
+*   Displays target callsign, separation at CPA ($d_{\text{CPA}}$), time to closest approach ($t_{\text{CPA}}$), and relative altitude ($\pm\text{m}$ or $\pm\text{ft}$).
+*   Tapping the banner opens the `TrafficDetailsDialog` for the threat target.
 
 ---
 
 ## 9. Settings & Configuration
 
-The traffic monitoring system is configured via [AppSettings](../../lib/features/settings/domain/models/app_settings.dart) and [Aircraft](../../lib/features/settings/domain/models/aircraft.dart):
+The traffic monitoring and collision avoidance systems are configured via [AppSettings](../../lib/features/settings/domain/models/app_settings.dart) and [Aircraft](../../lib/features/settings/domain/models/aircraft.dart):
 
 ```dart
-// AppSettings traffic configuration fields
+// AppSettings traffic filtering fields
 bool trafficFilterMaxHorizontalDistanceEnabled; // Default: true
 double trafficMaxHorizontalDistance;             // Default: 50000.0 (meters)
 bool trafficFilterMaxVerticalDistanceEnabled;   // Default: true
 double trafficMaxVerticalDistance;               // Default: 1500.0 (meters)
+
+// AppSettings Collision Avoidance System (CAS) fields
+bool casEnabled;                                 // Default: true
+double casLookaheadTime;                         // Default: 12.0 (seconds)
+double casHorizontalThreshold;                   // Default: 1000.0 (meters)
+double casVerticalThreshold;                     // Default: 300.0 (meters)
 
 // Aircraft profile live tracking fields
 bool sendLivePosition;                           // Toggle live outbound position broadcast

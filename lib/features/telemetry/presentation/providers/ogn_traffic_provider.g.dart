@@ -82,7 +82,7 @@ final class OgnTrafficProvider
   }
 }
 
-String _$ognTrafficHash() => r'aadd1e668d9a9b82813382fd0b783b5e9c971629';
+String _$ognTrafficHash() => r'd1aa071c87ccce18182cf85e5375e37620eb9080';
 
 abstract class _$OgnTraffic extends $Notifier<List<OgnTrafficAircraft>> {
   List<OgnTrafficAircraft> build();
@@ -103,17 +103,11 @@ abstract class _$OgnTraffic extends $Notifier<List<OgnTrafficAircraft>> {
   }
 }
 
-@ProviderFor(filteredOgnTraffic)
+@ProviderFor(FilteredOgnTraffic)
 final filteredOgnTrafficProvider = FilteredOgnTrafficProvider._();
 
 final class FilteredOgnTrafficProvider
-    extends
-        $FunctionalProvider<
-          List<OgnTrafficAircraft>,
-          List<OgnTrafficAircraft>,
-          List<OgnTrafficAircraft>
-        >
-    with $Provider<List<OgnTrafficAircraft>> {
+    extends $NotifierProvider<FilteredOgnTraffic, List<OgnTrafficAircraft>> {
   FilteredOgnTrafficProvider._()
     : super(
         from: null,
@@ -130,14 +124,7 @@ final class FilteredOgnTrafficProvider
 
   @$internal
   @override
-  $ProviderElement<List<OgnTrafficAircraft>> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  List<OgnTrafficAircraft> create(Ref ref) {
-    return filteredOgnTraffic(ref);
-  }
+  FilteredOgnTraffic create() => FilteredOgnTraffic();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(List<OgnTrafficAircraft> value) {
@@ -149,4 +136,72 @@ final class FilteredOgnTrafficProvider
 }
 
 String _$filteredOgnTrafficHash() =>
-    r'fd3cd50dddafd6df175a93da40e36522b5d486ce';
+    r'91e3ce2d778122c19e9e71d4abe360abb83b22ed';
+
+abstract class _$FilteredOgnTraffic
+    extends $Notifier<List<OgnTrafficAircraft>> {
+  List<OgnTrafficAircraft> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref as $Ref<List<OgnTrafficAircraft>, List<OgnTrafficAircraft>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<List<OgnTrafficAircraft>, List<OgnTrafficAircraft>>,
+              List<OgnTrafficAircraft>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(activeCollisionAlert)
+final activeCollisionAlertProvider = ActiveCollisionAlertProvider._();
+
+final class ActiveCollisionAlertProvider
+    extends
+        $FunctionalProvider<
+          OgnTrafficAircraft?,
+          OgnTrafficAircraft?,
+          OgnTrafficAircraft?
+        >
+    with $Provider<OgnTrafficAircraft?> {
+  ActiveCollisionAlertProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'activeCollisionAlertProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$activeCollisionAlertHash();
+
+  @$internal
+  @override
+  $ProviderElement<OgnTrafficAircraft?> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  OgnTrafficAircraft? create(Ref ref) {
+    return activeCollisionAlert(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(OgnTrafficAircraft? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<OgnTrafficAircraft?>(value),
+    );
+  }
+}
+
+String _$activeCollisionAlertHash() =>
+    r'3bd9f6073dcec3808466704b50af27733f6c5104';

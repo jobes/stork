@@ -1734,4 +1734,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String trafficMaxHorizontalDistanceSummary(String km) {
     return '$km km';
   }
+
+  @override
+  String get enableCas => 'Collision Avoidance System (CAS)';
+
+  @override
+  String get casEnabledDesc =>
+      'Predict 3D trajectories and warn about potential collisions';
+
+  @override
+  String get casLookaheadTime => 'Lookahead Time';
+
+  @override
+  String get casHorizontalThreshold => 'Horizontal Warning Distance';
+
+  @override
+  String get casVerticalThreshold => 'Vertical Warning Distance';
+
+  @override
+  String get sameAltLabel => 'SAME ALT';
+
+  @override
+  String aboveAltLabel(String alt) {
+    return '+$alt ABOVE';
+  }
+
+  @override
+  String belowAltLabel(String alt) {
+    return '-$alt BELOW';
+  }
+
+  @override
+  String get collisionWarningLabel => 'COLLISION';
 }

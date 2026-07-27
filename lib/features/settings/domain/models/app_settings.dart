@@ -109,6 +109,10 @@ abstract class AppSettings with _$AppSettings {
     @Default(50000.0) double trafficMaxHorizontalDistance, // meters
     @Default(true) bool trafficFilterMaxVerticalDistanceEnabled,
     @Default(1500.0) double trafficMaxVerticalDistance, // meters
+    @Default(true) bool casEnabled,
+    @Default(30.0) double casLookaheadTime, // seconds
+    @Default(300.0) double casHorizontalThreshold, // meters
+    @Default(100.0) double casVerticalThreshold, // meters
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>
