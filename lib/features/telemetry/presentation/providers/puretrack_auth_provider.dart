@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/puretrack_auth_service.dart';
 import '../../data/puretrack_stream_service.dart';
-import 'ogn_traffic_provider.dart';
+import 'traffic_provider.dart';
 
 part 'puretrack_auth_provider.g.dart';
 
@@ -71,7 +71,7 @@ class PureTrackNotifier extends _$PureTrackNotifier {
   void _connectStream(String token) {
     _streamSubscription?.cancel();
     _streamSubscription = _streamService.stream.listen((packet) {
-      ref.read(ognTrafficProvider.notifier).processPureTrackPacket(packet);
+      ref.read(trafficProvider.notifier).processPureTrackPacket(packet);
     });
     _streamService.connect(token);
   }
@@ -92,7 +92,7 @@ class PureTrackNotifier extends _$PureTrackNotifier {
     _streamSubscription = null;
     _streamService.disconnect();
     await _authService.logout();
-    ref.read(ognTrafficProvider.notifier).publishState();
+    ref.read(trafficProvider.notifier).publishState();
   }
 
   Future<void> invalidateToken() async {

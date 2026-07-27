@@ -8,7 +8,7 @@ import '../../../../settings/domain/models/speed_unit.dart';
 import '../../../../settings/presentation/extensions/aircraft_type_extension.dart';
 import '../../../../settings/presentation/providers/settings_provider.dart';
 import '../../../../telemetry/presentation/providers/telemetry_provider.dart';
-import '../../../../telemetry/presentation/providers/ogn_traffic_provider.dart';
+import '../../../../telemetry/presentation/providers/traffic_provider.dart';
 import '../../../../../core/utils/geo_utils.dart';
 import 'base_details_dialog.dart';
 
@@ -41,7 +41,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
           .toList();
       unawaited(
         ref
-            .read(ognTrafficProvider.notifier)
+            .read(trafficProvider.notifier)
             .loadDdbDetailsMultiple(ids)
             .catchError((e) {
               debugPrint('Failed to load DDB details in dialog: $e');
@@ -66,7 +66,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
         .map((f) => f['id']?.toString() ?? '')
         .where((id) => id.isNotEmpty)
         .toSet();
-    final trafficList = ref.watch(ognTrafficProvider);
+    final trafficList = ref.watch(trafficProvider);
     final matchedAircraft = trafficList
         .where((ac) => ids.contains(ac.id))
         .toList();

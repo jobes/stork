@@ -5,7 +5,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../settings/domain/models/altitude_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../map/presentation/components/dialogs/traffic_details_dialog.dart';
-import '../providers/ogn_traffic_provider.dart';
+import '../providers/traffic_provider.dart';
 import '../providers/telemetry_provider.dart';
 import '../providers/agl_provider.dart';
 

@@ -17,10 +17,9 @@ import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/aircraft_type.dart';
 import '../../../settings/domain/models/altitude_unit.dart';
-import '../../../telemetry/data/ogn_aprs_service.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
-import '../../../telemetry/presentation/providers/ogn_traffic_provider.dart';
+import '../../../telemetry/presentation/providers/traffic_provider.dart';
 import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import 'notams_provider.dart';
@@ -254,15 +253,15 @@ class MapCamera extends _$MapCamera {
       }
     });
 
-    // Listen to OGN traffic updates to redraw traffic on map
-    ref.listen(filteredOgnTrafficProvider, (previous, next) {
+    // Listen to traffic updates to redraw traffic on map
+    ref.listen(filteredTrafficProvider, (previous, next) {
       updateTrafficOnMap(next);
     });
 
     // Periodic timer to recalculate possible location cone as time elapses
     final trafficTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (_mapController != null && _isAircraftSymbolInitialized) {
-        final currentTraffic = ref.read(filteredOgnTrafficProvider);
+        final currentTraffic = ref.read(filteredTrafficProvider);
         if (currentTraffic.isNotEmpty) {
           updateTrafficOnMap(currentTraffic);
         }
@@ -510,13 +509,13 @@ class MapCamera extends _$MapCamera {
       handleUserInteraction(isExplicitInteraction: false);
       if (_moveThrottleTimer == null || !_moveThrottleTimer!.isActive) {
         _moveThrottleTimer = Timer(const Duration(milliseconds: 500), () {
-          _updateOgnFilter();
+          _updateTrafficFilter();
         });
       }
     }
     if (event is MapEventCameraIdle) {
       _moveThrottleTimer?.cancel();
-      _updateOgnFilter();
+      _updateTrafficFilter();
       updateTrafficOnMap();
     }
     if (event is MapEventClick) {
@@ -527,14 +526,14 @@ class MapCamera extends _$MapCamera {
     }
   }
 
-  void updateTrafficOnMap([List<OgnTrafficAircraft>? trafficList]) {
+  void updateTrafficOnMap([List<TrafficAircraft>? trafficList]) {
     if (_mapController == null ||
         !_isAircraftSymbolInitialized ||
         _mapController?.style == null) {
       return;
     }
 
-    final traffic = trafficList ?? ref.read(filteredOgnTrafficProvider);
+    final traffic = trafficList ?? ref.read(filteredTrafficProvider);
     if (traffic == null || traffic.isEmpty) {
       _mapController!.style!.updateGeoJsonSource(
         id: 'traffic-source',
@@ -650,13 +649,13 @@ class MapCamera extends _$MapCamera {
     );
   }
 
-  void _updateOgnFilter() {
+  void _updateTrafficFilter() {
     if (_mapController == null) return;
     try {
       final bounds = _mapController!.getVisibleRegion();
-      ref.read(ognTrafficProvider.notifier).updateViewport(bounds);
+      ref.read(trafficProvider.notifier).updateViewport(bounds);
     } catch (e) {
-      debugPrint('Failed to update OGN filter bounds: $e');
+      debugPrint('Failed to update traffic filter bounds: $e');
     }
   }
 

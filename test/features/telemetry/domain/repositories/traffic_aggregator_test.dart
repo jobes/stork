@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stork/features/telemetry/data/ogn_aprs_service.dart';
 import 'package:stork/features/telemetry/data/puretrack_stream_service.dart';
+import 'package:stork/features/telemetry/domain/models/traffic_aircraft.dart';
 import 'package:stork/features/telemetry/domain/repositories/traffic_aggregator.dart';
 
 void main() {
@@ -14,7 +14,7 @@ void main() {
     test('deduplicates identical aircraft across OGN and PureTrack', () {
       final baseTime = DateTime.now().subtract(const Duration(seconds: 10));
 
-      final ognPacket = OgnTrafficAircraft(
+      final ognPacket = TrafficAircraft(
         id: 'FLR1EFCCC',
         callsign: 'FLR1EFCCC',
         latitude: 48.1486,
@@ -84,7 +84,7 @@ void main() {
         );
 
         // Packet from delayed feed (T_sent = T-15s) arrives later
-        final delayedOgnPacket = OgnTrafficAircraft(
+        final delayedOgnPacket = TrafficAircraft(
           id: '1EFCCC',
           callsign: 'FLR1EFCCC',
           latitude: 48.1400, // Older position
@@ -183,7 +183,7 @@ void main() {
       final oldTime = DateTime.now().subtract(const Duration(minutes: 16));
       final recentTime = DateTime.now().subtract(const Duration(minutes: 2));
 
-      final stalePacket = OgnTrafficAircraft(
+      final stalePacket = TrafficAircraft(
         id: '1EFCCC',
         callsign: 'STALE',
         latitude: 48.0,
@@ -196,7 +196,7 @@ void main() {
         lastSeen: oldTime,
       );
 
-      final activePacket = OgnTrafficAircraft(
+      final activePacket = TrafficAircraft(
         id: '2AB345',
         callsign: 'ACTIVE',
         latitude: 48.0,

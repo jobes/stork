@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:stork/core/utils/geo_utils.dart';
-import 'package:stork/features/telemetry/data/ogn_aprs_service.dart';
+import 'package:stork/features/telemetry/domain/models/traffic_aircraft.dart';
 
 void main() {
   group('Traffic Possible Location Tests', () {
@@ -41,10 +41,10 @@ void main() {
     );
 
     test(
-      'OgnTrafficAircraft data structures retain lastSeen and track correctly',
+      'TrafficAircraft data structures retain lastSeen and track correctly',
       () {
         final now = DateTime.now();
-        final ac = OgnTrafficAircraft(
+        final ac = TrafficAircraft(
           id: 'OGN123456',
           callsign: 'OM-1234',
           latitude: 48.1486,

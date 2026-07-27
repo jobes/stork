@@ -1,20 +1,20 @@
 import 'package:flutter/foundation.dart';
-import '../../data/ogn_aprs_service.dart';
+import '../models/traffic_aircraft.dart';
 import '../../data/puretrack_stream_service.dart';
 import '../../../settings/domain/models/aircraft_type.dart';
 import '../utils/canonical_id.dart';
 
 class TrafficAggregator {
-  final Map<String, OgnTrafficAircraft> _targets = {};
+  final Map<String, TrafficAircraft> _targets = {};
 
   /// Returns unmodifiable list of current aggregated aircraft targets
-  List<OgnTrafficAircraft> get targets => List.unmodifiable(_targets.values);
+  List<TrafficAircraft> get targets => List.unmodifiable(_targets.values);
 
   /// Map of canonical IDs to target states
-  Map<String, OgnTrafficAircraft> get targetMap => Map.unmodifiable(_targets);
+  Map<String, TrafficAircraft> get targetMap => Map.unmodifiable(_targets);
 
   /// Processes an incoming OGN aircraft packet with T_sent position arbitration
-  void processOgnUpdate(OgnTrafficAircraft rawAircraft) {
+  void processOgnUpdate(TrafficAircraft rawAircraft) {
     final canonicalId = CanonicalId.normalize(rawAircraft.id);
     if (canonicalId.isEmpty) return;
 
@@ -100,7 +100,7 @@ class TrafficAggregator {
     ).ognCode;
 
     if (existing == null) {
-      _targets[canonicalId] = OgnTrafficAircraft(
+      _targets[canonicalId] = TrafficAircraft(
         id: canonicalId,
         callsign: packet.callsign,
         registration: packet.registration,

@@ -7,6 +7,8 @@ import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/domain/models/aircraft.dart';
+import '../../domain/models/traffic_aircraft.dart';
+export '../../domain/models/traffic_aircraft.dart';
 import '../../domain/utils/cas_evaluator.dart';
 import 'telemetry_provider.dart';
 import 'vario_provider.dart';
@@ -18,11 +20,11 @@ import '../../data/puretrack_stream_service.dart';
 import 'puretrack_auth_provider.dart';
 import 'agl_provider.dart';
 
-part 'ogn_traffic_provider.g.dart';
+part 'traffic_provider.g.dart';
 
-const double kOgnFilterSignificantShiftMeters = 1500.0;
-const Duration kOgnFilterMaxUnsentDuration = Duration(seconds: 15);
-const Duration kOgnFilterDebounceDuration = Duration(seconds: 1);
+const double kTrafficFilterSignificantShiftMeters = 1500.0;
+const Duration kTrafficFilterMaxUnsentDuration = Duration(seconds: 15);
+const Duration kTrafficFilterDebounceDuration = Duration(seconds: 1);
 
 @riverpod
 OgnAprsService ognAprsService(Ref ref) {
@@ -30,7 +32,7 @@ OgnAprsService ognAprsService(Ref ref) {
 }
 
 @Riverpod(keepAlive: true)
-class OgnTraffic extends _$OgnTraffic {
+class Traffic extends _$Traffic {
   late OgnAprsService _aprsService;
   OgnInboundConnection? _inboundConnection;
   OgnOutboundManager? _outboundManager;
@@ -50,7 +52,7 @@ class OgnTraffic extends _$OgnTraffic {
       List.unmodifiable(_ownshipTrackHistory);
 
   @override
-  List<OgnTrafficAircraft> build() {
+  List<TrafficAircraft> build() {
     _aprsService = ref.read(ognAprsServiceProvider);
 
     // Eagerly read pureTrackProvider so connection state is managed on app start
@@ -105,7 +107,7 @@ class OgnTraffic extends _$OgnTraffic {
   void publishState() {
     state = _aggregator.targets;
     debugPrint(
-      '[OgnTraffic] [PUBLISH STATE] Published ${state.length} targets to Riverpod UI listeners',
+      '[Traffic] [PUBLISH STATE] Published ${state.length} targets to Riverpod UI listeners',
     );
   }
 
@@ -113,7 +115,7 @@ class OgnTraffic extends _$OgnTraffic {
     if (_isConnecting) return;
     _isConnecting = true;
     _reconnectTimer?.cancel();
-    debugPrint('[OgnTraffic] Connecting to OGN APRS server...');
+    debugPrint('[Traffic] Connecting to OGN APRS server...');
 
     int lineCount = 0;
     _inboundConnection = OgnInboundConnection(
@@ -161,7 +163,7 @@ class OgnTraffic extends _$OgnTraffic {
 
   final Map<String, List<TrackHistoryPoint>> _trackHistories = {};
 
-  void _updateAircraft(OgnTrafficAircraft aircraft) {
+  void _updateAircraft(TrafficAircraft aircraft) {
     _aggregator.processOgnUpdate(aircraft);
 
     final canonicalId = CanonicalId.normalize(aircraft.id);
@@ -237,8 +239,9 @@ class OgnTraffic extends _$OgnTraffic {
       final aircraft = targetMap[canonicalId];
       if (aircraft == null) continue;
       if (aircraft.isAnonymous) continue;
-      if (aircraft.registration != null && aircraft.registration!.isNotEmpty)
+      if (aircraft.registration != null && aircraft.registration!.isNotEmpty) {
         continue;
+      }
       toFetch.add(id);
     }
 
@@ -297,13 +300,13 @@ class OgnTraffic extends _$OgnTraffic {
         newCenterLon,
       );
       // Trigger instant update if camera center shifted significantly (e.g. sharp 180° turn or fast pan)
-      if (dist > kOgnFilterSignificantShiftMeters) {
+      if (dist > kTrafficFilterSignificantShiftMeters) {
         significantShift = true;
       }
     }
 
     // Force immediate filter update if time elapsed >= 15s OR if camera turned/shifted significantly
-    if (timeSinceLastSent >= kOgnFilterMaxUnsentDuration || significantShift) {
+    if (timeSinceLastSent >= kTrafficFilterMaxUnsentDuration || significantShift) {
       _filterDebounceTimer?.cancel();
       _sendFilter(bounds);
       return;
@@ -311,7 +314,7 @@ class OgnTraffic extends _$OgnTraffic {
 
     // Trailing debounce for minor manual panning/zooming
     _filterDebounceTimer?.cancel();
-    _filterDebounceTimer = Timer(kOgnFilterDebounceDuration, () {
+    _filterDebounceTimer = Timer(kTrafficFilterDebounceDuration, () {
       _sendFilter(bounds);
     });
   }
@@ -424,13 +427,13 @@ class OgnTraffic extends _$OgnTraffic {
 }
 
 @riverpod
-class FilteredOgnTraffic extends _$FilteredOgnTraffic {
+class FilteredTraffic extends _$FilteredTraffic {
   DateTime? _lastCasEvaluationTime;
   Map<String, CasThreatEvaluation> _cachedCasEvaluations = {};
 
   @override
-  List<OgnTrafficAircraft> build() {
-    final traffic = ref.watch(ognTrafficProvider);
+  List<TrafficAircraft> build() {
+    final traffic = ref.watch(trafficProvider);
     final settings = ref.watch(appSettingsProvider).value;
     final telemetry = ref.watch(telemetryProvider);
     final resolvedAlt = ref.watch(resolvedAltitudeProvider).mslValue;
@@ -496,7 +499,7 @@ class FilteredOgnTraffic extends _$FilteredOgnTraffic {
     if (shouldRecalculateCas) {
       final myHeading = telemetry.heading ?? 0.0;
       final ownshipHistory = ref
-          .read(ognTrafficProvider.notifier)
+          .read(trafficProvider.notifier)
           .ownshipTrackHistory;
       final myOmega = CasEvaluator.calculateTurnRate(ownshipHistory);
       final myIsCircling = CasEvaluator.detectCircling(ownshipHistory);
@@ -553,8 +556,8 @@ class FilteredOgnTraffic extends _$FilteredOgnTraffic {
 }
 
 @riverpod
-OgnTrafficAircraft? activeCollisionAlert(Ref ref) {
-  final filtered = ref.watch(filteredOgnTrafficProvider);
+TrafficAircraft? activeCollisionAlert(Ref ref) {
+  final filtered = ref.watch(filteredTrafficProvider);
   final threats = filtered.where((ac) => ac.isCollisionThreat).toList();
   if (threats.isEmpty) return null;
 

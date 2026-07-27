@@ -2,19 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
-import 'package:stork/features/telemetry/data/ogn_aprs_service.dart';
-import 'package:stork/features/telemetry/presentation/providers/ogn_traffic_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/traffic_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 
 void main() {
-  group('filteredOgnTrafficProvider Tests', () {
+  group('filteredTrafficProvider Tests', () {
     final now = DateTime.now();
     const myPosLat = 48.1486;
     const myPosLon = 17.1077;
     const myAltMeters = 500.0;
 
     // Aircraft 1: Close (1 km away, alt 600m => 100m vertical diff)
-    final nearAircraft = OgnTrafficAircraft(
+    final nearAircraft = TrafficAircraft(
       id: 'NEAR01',
       callsign: 'NEAR1',
       latitude: 48.1576,
@@ -28,7 +27,7 @@ void main() {
     );
 
     // Aircraft 2: Far horizontally (100 km away)
-    final farHorizontalAircraft = OgnTrafficAircraft(
+    final farHorizontalAircraft = TrafficAircraft(
       id: 'FARHORIZ',
       callsign: 'FAR1',
       latitude: 49.0486,
@@ -42,7 +41,7 @@ void main() {
     );
 
     // Aircraft 3: Far vertically (altitude 3000m => 2500m diff)
-    final farVerticalAircraft = OgnTrafficAircraft(
+    final farVerticalAircraft = TrafficAircraft(
       id: 'FARVERT0',
       callsign: 'FAR2',
       latitude: 48.1486,
@@ -58,8 +57,8 @@ void main() {
     test('returns all traffic if filters disabled', () {
       final container = ProviderContainer(
         overrides: [
-          ognTrafficProvider.overrideWith(
-            () => _MockOgnTraffic([
+          trafficProvider.overrideWith(
+            () => _MockTraffic([
               nearAircraft,
               farHorizontalAircraft,
               farVerticalAircraft,
@@ -77,7 +76,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final filtered = container.read(filteredOgnTrafficProvider);
+      final filtered = container.read(filteredTrafficProvider);
       expect(filtered.length, equals(3));
     });
 
@@ -86,8 +85,8 @@ void main() {
       () {
         final container = ProviderContainer(
           overrides: [
-            ognTrafficProvider.overrideWith(
-              () => _MockOgnTraffic([
+            trafficProvider.overrideWith(
+              () => _MockTraffic([
                 nearAircraft,
                 farHorizontalAircraft,
                 farVerticalAircraft,
@@ -116,7 +115,7 @@ void main() {
               gpsAltitude: myAltMeters,
             );
 
-        final filtered = container.read(filteredOgnTrafficProvider);
+        final filtered = container.read(filteredTrafficProvider);
         expect(filtered.length, equals(1));
         expect(filtered.first.id, equals('NEAR01'));
       },
@@ -124,12 +123,12 @@ void main() {
   });
 }
 
-class _MockOgnTraffic extends OgnTraffic {
-  final List<OgnTrafficAircraft> initialTraffic;
-  _MockOgnTraffic(this.initialTraffic);
+class _MockTraffic extends Traffic {
+  final List<TrafficAircraft> initialTraffic;
+  _MockTraffic(this.initialTraffic);
 
   @override
-  List<OgnTrafficAircraft> build() {
+  List<TrafficAircraft> build() {
     return initialTraffic;
   }
 }
