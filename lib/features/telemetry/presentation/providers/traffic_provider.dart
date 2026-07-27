@@ -7,6 +7,7 @@ import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/domain/models/aircraft.dart';
+import '../../../settings/domain/models/aircraft_type.dart';
 import '../../domain/models/traffic_aircraft.dart';
 export '../../domain/models/traffic_aircraft.dart';
 import '../../domain/utils/cas_evaluator.dart';
@@ -191,7 +192,27 @@ class Traffic extends _$Traffic {
   }
 
   void processPureTrackPacket(PureTrackPacket packet) {
-    _aggregator.processPureTrackPacket(packet);
+    final mappedType = AircraftType.fromPureTrackType(
+      packet.aircraftType,
+    ).ognCode;
+    final aircraft = TrafficAircraft(
+      id: packet.canonicalId,
+      callsign: packet.callsign,
+      registration: packet.registration,
+      aircraftModel: packet.model,
+      cn: packet.cn,
+      latitude: packet.latitude,
+      longitude: packet.longitude,
+      altitude: packet.altitude,
+      track: packet.track,
+      groundSpeed: packet.groundSpeed,
+      verticalSpeed: packet.verticalSpeed,
+      aircraftType: mappedType,
+      lastSeen: packet.tSent,
+      sources: const {'puretrack'},
+      activeSource: 'puretrack',
+    );
+    _aggregator.processPureTrackUpdate(aircraft);
 
     final canonicalId = packet.canonicalId;
     final history = _trackHistories.putIfAbsent(canonicalId, () => []);

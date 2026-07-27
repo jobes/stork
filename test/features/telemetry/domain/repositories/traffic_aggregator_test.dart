@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stork/features/telemetry/data/puretrack_stream_service.dart';
+import 'package:stork/features/settings/domain/models/aircraft_type.dart';
 import 'package:stork/features/telemetry/domain/models/traffic_aircraft.dart';
 import 'package:stork/features/telemetry/domain/repositories/traffic_aggregator.dart';
 
@@ -27,11 +27,10 @@ void main() {
         lastSeen: baseTime,
       );
 
-      final pureTrackPacket = PureTrackPacket(
-        rawId: 'ICAO:1efccc',
-        canonicalId: '1efccc',
+      final pureTrackAircraft = TrafficAircraft(
+        id: '1efccc',
         callsign: 'OK-1234',
-        model: 'Discus 2c',
+        aircraftModel: 'Discus 2c',
         latitude: 48.1490,
         longitude: 17.1080,
         altitude: 510.0,
@@ -39,7 +38,7 @@ void main() {
         track: 92.0,
         verticalSpeed: 1.2,
         aircraftType: 1,
-        tSent: baseTime.add(const Duration(seconds: 2)),
+        lastSeen: baseTime.add(const Duration(seconds: 2)),
       );
 
       aggregator.processOgnUpdate(ognPacket);
@@ -48,7 +47,7 @@ void main() {
       expect(aggregator.targets.first.activeSource, equals('ogn'));
       expect(aggregator.targets.first.sources, contains('ogn'));
 
-      aggregator.processPureTrackPacket(pureTrackPacket);
+      aggregator.processPureTrackUpdate(pureTrackAircraft);
       expect(aggregator.targets.length, equals(1));
       expect(aggregator.targets.first.id, equals('1efccc'));
       expect(aggregator.targets.first.latitude, equals(48.1490));
@@ -69,9 +68,8 @@ void main() {
         final timeSentOld = now.subtract(const Duration(seconds: 15));
 
         // Packet from fast feed (T_sent = T-5s) arrives first
-        final pureTrackPacket = PureTrackPacket(
-          rawId: '1efccc',
-          canonicalId: '1efccc',
+        final pureTrackAircraft = TrafficAircraft(
+          id: '1efccc',
           callsign: 'OK-1234',
           latitude: 48.1500,
           longitude: 17.1100,
@@ -80,7 +78,7 @@ void main() {
           track: 180.0,
           verticalSpeed: 2.0,
           aircraftType: 1,
-          tSent: timeSentNew,
+          lastSeen: timeSentNew,
         );
 
         // Packet from delayed feed (T_sent = T-15s) arrives later
@@ -97,7 +95,7 @@ void main() {
           lastSeen: timeSentOld,
         );
 
-        aggregator.processPureTrackPacket(pureTrackPacket);
+        aggregator.processPureTrackUpdate(pureTrackAircraft);
         expect(aggregator.targets.first.latitude, equals(48.1500));
         expect(aggregator.targets.first.lastSeen, equals(timeSentNew));
 
@@ -123,9 +121,8 @@ void main() {
           const Duration(seconds: 300),
         ); // +5 mins drift
 
-        final driftedPacket = PureTrackPacket(
-          rawId: '1efccc',
-          canonicalId: '1efccc',
+        final driftedAircraft = TrafficAircraft(
+          id: '1efccc',
           callsign: 'DRIFTED',
           latitude: 48.1500,
           longitude: 17.1100,
@@ -134,10 +131,10 @@ void main() {
           track: 180.0,
           verticalSpeed: 2.0,
           aircraftType: 1,
-          tSent: farFutureTime,
+          lastSeen: farFutureTime,
         );
 
-        aggregator.processPureTrackPacket(driftedPacket);
+        aggregator.processPureTrackUpdate(driftedAircraft);
 
         // Verify T_sent was clamped near now, not locked 5 mins in the future
         expect(
@@ -160,9 +157,12 @@ void main() {
 
       for (final cat in categories) {
         final agg = TrafficAggregator();
-        final packet = PureTrackPacket(
-          rawId: 'ac_${cat['type']}',
-          canonicalId: 'ac_${cat['type']}',
+        final mappedCode = AircraftType.fromPureTrackType(
+          cat['type'] as int,
+        ).ognCode;
+
+        final aircraft = TrafficAircraft(
+          id: 'ac_${cat['type']}',
           callsign: 'CAT_${cat['type']}',
           latitude: 48.0,
           longitude: 17.0,
@@ -170,11 +170,11 @@ void main() {
           groundSpeed: 10.0,
           track: 0.0,
           verticalSpeed: 0.0,
-          aircraftType: cat['type'] as int,
-          tSent: DateTime.now(),
+          aircraftType: mappedCode,
+          lastSeen: DateTime.now(),
         );
 
-        agg.processPureTrackPacket(packet);
+        agg.processPureTrackUpdate(aircraft);
         expect(agg.targets.first.aircraftType, equals(cat['expectedOgnCode']));
       }
     });

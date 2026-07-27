@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import '../models/traffic_aircraft.dart';
-import '../../data/puretrack_stream_service.dart';
-import '../../../settings/domain/models/aircraft_type.dart';
 import '../utils/canonical_id.dart';
 
 class TrafficAggregator {
@@ -15,6 +13,19 @@ class TrafficAggregator {
 
   /// Processes an incoming OGN aircraft packet with T_sent position arbitration
   void processOgnUpdate(TrafficAircraft rawAircraft) {
+    processAircraftUpdate(rawAircraft, source: 'ogn');
+  }
+
+  /// Processes an incoming PureTrack aircraft packet with T_sent position arbitration
+  void processPureTrackUpdate(TrafficAircraft rawAircraft) {
+    processAircraftUpdate(rawAircraft, source: 'puretrack');
+  }
+
+  /// Processes an incoming aircraft update from any telemetry source with T_sent position arbitration
+  void processAircraftUpdate(
+    TrafficAircraft rawAircraft, {
+    required String source,
+  }) {
     final canonicalId = CanonicalId.normalize(rawAircraft.id);
     if (canonicalId.isEmpty) return;
 
@@ -33,14 +44,14 @@ class TrafficAggregator {
       _targets[canonicalId] = rawAircraft.copyWith(
         id: canonicalId,
         lastSeen: tSent,
-        sources: {'ogn'},
-        activeSource: 'ogn',
+        sources: {source},
+        activeSource: source,
       );
       debugPrint(
-        '[TrafficAggregator] [OGN ADD] ID: $canonicalId (${rawAircraft.callsign}) | Total targets in DB: ${_targets.length}',
+        '[TrafficAggregator] [$source ADD] ID: $canonicalId (${rawAircraft.callsign}) | Total targets in DB: ${_targets.length}',
       );
     } else {
-      final updatedSources = {...existing.sources, 'ogn'};
+      final updatedSources = {...existing.sources, source};
 
       // T_sent arbitration rule: only update position & dynamic fields if tSent is strictly newer
       if (tSent.isAfter(existing.lastSeen)) {
@@ -63,10 +74,10 @@ class TrafficAggregator {
           lastSeen: tSent,
           isAnonymous: rawAircraft.isAnonymous,
           sources: updatedSources,
-          activeSource: 'ogn',
+          activeSource: source,
         );
         debugPrint(
-          '[TrafficAggregator] [OGN UPDATE] ID: $canonicalId (${rawAircraft.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}',
+          '[TrafficAggregator] [$source UPDATE] ID: $canonicalId (${rawAircraft.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}',
         );
       } else {
         // Discard unchanged or stale position update, but preserve metadata
@@ -74,84 +85,6 @@ class TrafficAggregator {
           registration: existing.registration ?? rawAircraft.registration,
           aircraftModel: existing.aircraftModel ?? rawAircraft.aircraftModel,
           cn: existing.cn ?? rawAircraft.cn,
-          sources: updatedSources,
-        );
-      }
-    }
-  }
-
-  /// Processes an incoming PureTrack telemetry packet with T_sent position arbitration
-  void processPureTrackPacket(PureTrackPacket packet) {
-    final canonicalId = packet.canonicalId;
-    if (canonicalId.isEmpty) return;
-
-    final now = DateTime.now();
-    var tSent = packet.tSent;
-
-    // Transmitter Clock Drift Check:
-    // If onboard device reports a timestamp > T_local + 60s, clamp to T_local
-    if (tSent.isAfter(now.add(const Duration(seconds: 60)))) {
-      tSent = now;
-    }
-
-    final existing = _targets[canonicalId];
-    final mappedType = AircraftType.fromPureTrackType(
-      packet.aircraftType,
-    ).ognCode;
-
-    if (existing == null) {
-      _targets[canonicalId] = TrafficAircraft(
-        id: canonicalId,
-        callsign: packet.callsign,
-        registration: packet.registration,
-        aircraftModel: packet.model,
-        cn: packet.cn,
-        latitude: packet.latitude,
-        longitude: packet.longitude,
-        altitude: packet.altitude,
-        track: packet.track,
-        groundSpeed: packet.groundSpeed,
-        verticalSpeed: packet.verticalSpeed,
-        aircraftType: mappedType,
-        lastSeen: tSent,
-        sources: {'puretrack'},
-        activeSource: 'puretrack',
-      );
-      debugPrint(
-        '[TrafficAggregator] [PureTrack ADD] ID: $canonicalId (${packet.callsign}) | Total targets in DB: ${_targets.length}',
-      );
-    } else {
-      final updatedSources = {...existing.sources, 'puretrack'};
-
-      // T_sent arbitration rule: only update position & dynamic fields if tSent is strictly newer
-      if (tSent.isAfter(existing.lastSeen)) {
-        _targets[canonicalId] = existing.copyWith(
-          callsign: packet.callsign.isNotEmpty
-              ? packet.callsign
-              : existing.callsign,
-          registration: packet.registration ?? existing.registration,
-          aircraftModel: packet.model ?? existing.aircraftModel,
-          cn: packet.cn ?? existing.cn,
-          latitude: packet.latitude,
-          longitude: packet.longitude,
-          altitude: packet.altitude,
-          track: packet.track,
-          groundSpeed: packet.groundSpeed,
-          verticalSpeed: packet.verticalSpeed,
-          aircraftType: mappedType != 0 ? mappedType : existing.aircraftType,
-          lastSeen: tSent,
-          sources: updatedSources,
-          activeSource: 'puretrack',
-        );
-        debugPrint(
-          '[TrafficAggregator] [PureTrack UPDATE] ID: $canonicalId (${packet.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}',
-        );
-      } else {
-        // Discard unchanged or stale position update, but preserve metadata
-        _targets[canonicalId] = existing.copyWith(
-          registration: existing.registration ?? packet.registration,
-          aircraftModel: existing.aircraftModel ?? packet.model,
-          cn: existing.cn ?? packet.cn,
           sources: updatedSources,
         );
       }
