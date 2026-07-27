@@ -82,7 +82,7 @@ final class OgnTrafficProvider
   }
 }
 
-String _$ognTrafficHash() => r'd1aa071c87ccce18182cf85e5375e37620eb9080';
+String _$ognTrafficHash() => r'ca44631771a87f76f2be8af8688ee09a43efda56';
 
 abstract class _$OgnTraffic extends $Notifier<List<OgnTrafficAircraft>> {
   List<OgnTrafficAircraft> build();
@@ -136,7 +136,7 @@ final class FilteredOgnTrafficProvider
 }
 
 String _$filteredOgnTrafficHash() =>
-    r'91e3ce2d778122c19e9e71d4abe360abb83b22ed';
+    r'3981f49c05ede9fcb4d050873938ea0b6c98c7c3';
 
 abstract class _$FilteredOgnTraffic
     extends $Notifier<List<OgnTrafficAircraft>> {

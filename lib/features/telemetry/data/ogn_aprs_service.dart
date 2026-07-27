@@ -25,6 +25,8 @@ class OgnTrafficAircraft {
   final bool isCollisionThreat;
   final double? tCpa; // seconds
   final double? minDistance; // meters
+  final Set<String> sources; // e.g. {'ogn'}, {'puretrack'}, {'ogn', 'puretrack'}
+  final String activeSource; // Source of the latest accepted position update
 
   OgnTrafficAircraft({
     required this.id,
@@ -46,7 +48,9 @@ class OgnTrafficAircraft {
     this.isCollisionThreat = false,
     this.tCpa,
     this.minDistance,
-  });
+    Set<String>? sources,
+    this.activeSource = 'ogn',
+  }) : sources = sources ?? const {'ogn'};
 
   OgnTrafficAircraft copyWith({
     String? id,
@@ -68,6 +72,8 @@ class OgnTrafficAircraft {
     bool? isCollisionThreat,
     double? tCpa,
     double? minDistance,
+    Set<String>? sources,
+    String? activeSource,
   }) {
     return OgnTrafficAircraft(
       id: id ?? this.id,
@@ -89,6 +95,8 @@ class OgnTrafficAircraft {
       isCollisionThreat: isCollisionThreat ?? this.isCollisionThreat,
       tCpa: tCpa ?? this.tCpa,
       minDistance: minDistance ?? this.minDistance,
+      sources: sources ?? this.sources,
+      activeSource: activeSource ?? this.activeSource,
     );
   }
 }

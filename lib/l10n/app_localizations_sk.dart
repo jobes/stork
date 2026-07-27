@@ -1774,4 +1774,46 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get collisionWarningLabel => 'KOLÍZIA';
+
+  @override
+  String get pureTrackTitle => 'PureTrack Účet';
+
+  @override
+  String get pureTrackDescription =>
+      'Sekundárny zdroj letových telemetrických dát';
+
+  @override
+  String get pureTrackUsername => 'Meno / Email';
+
+  @override
+  String get pureTrackPassword => 'Heslo';
+
+  @override
+  String get pureTrackLogin => 'Prihlásiť sa';
+
+  @override
+  String get pureTrackLogout => 'Odhlásiť sa';
+
+  @override
+  String get pureTrackStatusConnected => 'Pripojené';
+
+  @override
+  String get pureTrackStatusDisconnected => 'Odpojené';
+
+  @override
+  String get pureTrackStatusAuthenticating => 'Prihlasujem...';
+
+  @override
+  String get pureTrackStatusTokenInvalid =>
+      'Relácia vypršala (Vyžaduje sa prihlásenie)';
+
+  @override
+  String get pureTrackStatusError => 'Chyba prihlásenia';
+
+  @override
+  String get pureTrackSessionExpiredBanner =>
+      'PureTrack relácia vypršala. Kliknite pre opätovné prihlásenie.';
+
+  @override
+  String get trafficSourceLabel => 'Zdroj dát';
 }

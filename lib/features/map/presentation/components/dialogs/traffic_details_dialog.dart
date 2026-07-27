@@ -273,13 +273,18 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildTelemetryColumn(
                               context,
                               l10n.aircraftTypeLabel,
                               typeLabel,
                             ),
-                            const Expanded(child: SizedBox()),
+                            _buildSourceColumn(
+                              context,
+                              ac,
+                              l10n.trafficSourceLabel,
+                            ),
                           ],
                         ),
                         if (ac.isAnonymous) ...[
@@ -322,6 +327,119 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
             value,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSourceColumn(BuildContext context, dynamic ac, String label) {
+    final theme = Theme.of(context);
+    final Set<String> sources = ac.sources;
+    final String activeSource = ac.activeSource;
+    final hasOgn = sources.contains('ogn');
+    final hasPureTrack = sources.contains('puretrack');
+
+    final List<Widget> badges = [];
+
+    if (hasOgn) {
+      final isActive = activeSource == 'ogn';
+      badges.add(
+        _buildSourceChip(
+          context,
+          name: 'OGN',
+          color: Colors.blue,
+          isActive: isActive,
+        ),
+      );
+    }
+
+    if (hasPureTrack) {
+      final isActive = activeSource == 'puretrack';
+      badges.add(
+        _buildSourceChip(
+          context,
+          name: 'PureTrack',
+          color: Colors.purple,
+          isActive: isActive,
+        ),
+      );
+    }
+
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: badges,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSourceChip(
+    BuildContext context, {
+    required String name,
+    required MaterialColor color,
+    required bool isActive,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bgColor = isActive
+        ? (isDark ? color.withValues(alpha: 0.35) : color.withValues(alpha: 0.15))
+        : theme.colorScheme.onSurface.withValues(alpha: 0.06);
+
+    final textColor = isActive
+        ? (isDark ? color.shade200 : color.shade900)
+        : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
+
+    final borderColor = isActive
+        ? (isDark ? color.shade400 : color.shade600)
+        : theme.colorScheme.outlineVariant.withValues(alpha: 0.2);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: borderColor,
+          width: isActive ? 1.5 : 1.0,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isActive) ...[
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: textColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            name,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 11,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
             ),
           ),
         ],

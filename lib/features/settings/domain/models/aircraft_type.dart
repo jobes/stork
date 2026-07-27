@@ -55,4 +55,10 @@ enum AircraftType {
         return AircraftType.other;
     }
   }
+
+  static AircraftType fromPureTrackType(int code) {
+    return fromOgnCode(code);
+  }
 }
+
+

@@ -12,6 +12,10 @@ import 'telemetry_provider.dart';
 import 'vario_provider.dart';
 import '../../data/ogn_aprs_service.dart';
 
+import '../../domain/repositories/traffic_aggregator.dart';
+import '../../domain/utils/canonical_id.dart';
+import '../../data/puretrack_stream_service.dart';
+import 'puretrack_auth_provider.dart';
 import 'agl_provider.dart';
 
 part 'ogn_traffic_provider.g.dart';
@@ -34,27 +38,38 @@ class OgnTraffic extends _$OgnTraffic {
   Timer? _publishTimer;
   Timer? _outboundTimer;
   Timer? _reconnectTimer;
-  
+
   bool _isConnecting = false;
   int _reconnectAttempts = 0;
   String? _activeOutboundId;
 
-  final Map<String, OgnTrafficAircraft> _aircraftMap = {};
+  final TrafficAggregator _aggregator = TrafficAggregator();
   final List<TrackHistoryPoint> _ownshipTrackHistory = [];
 
-  List<TrackHistoryPoint> get ownshipTrackHistory => List.unmodifiable(_ownshipTrackHistory);
-  
+  List<TrackHistoryPoint> get ownshipTrackHistory =>
+      List.unmodifiable(_ownshipTrackHistory);
+
   @override
   List<OgnTrafficAircraft> build() {
     _aprsService = ref.read(ognAprsServiceProvider);
-    _decayTimer = Timer.periodic(const Duration(seconds: 5), (_) => _cleanupStaleTraffic());
-    _publishTimer = Timer.periodic(const Duration(seconds: 2), (_) => _publishState());
-    
+
+    // Eagerly read pureTrackProvider so connection state is managed on app start
+    ref.read(pureTrackProvider);
+
+    _decayTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) => _cleanupStaleTraffic(),
+    );
+    _publishTimer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => publishState(),
+    );
+
     // Listen to changes in settings & active aircraft OGN config
     ref.listen(appSettingsProvider, (prev, next) {
       _updateOutboundTrackingState();
     });
-    
+
     ref.listen(aircraftStateProvider, (prev, next) {
       _updateOutboundTrackingState();
     });
@@ -63,8 +78,12 @@ class OgnTraffic extends _$OgnTraffic {
       if (next.heading != null) {
         final now = DateTime.now();
         final trackRad = next.heading! * math.pi / 180.0;
-        _ownshipTrackHistory.add(TrackHistoryPoint(timestamp: now, trackRad: trackRad));
-        _ownshipTrackHistory.removeWhere((p) => now.difference(p.timestamp).inSeconds > 15);
+        _ownshipTrackHistory.add(
+          TrackHistoryPoint(timestamp: now, trackRad: trackRad),
+        );
+        _ownshipTrackHistory.removeWhere(
+          (p) => now.difference(p.timestamp).inSeconds > 15,
+        );
       }
     });
 
@@ -83,20 +102,24 @@ class OgnTraffic extends _$OgnTraffic {
     return const [];
   }
 
-  void _publishState() {
-    state = _aircraftMap.values.toList();
+  void publishState() {
+    state = _aggregator.targets;
+    debugPrint(
+      '[OgnTraffic] [PUBLISH STATE] Published ${state.length} targets to Riverpod UI listeners',
+    );
   }
 
   void _connectInbound() {
     if (_isConnecting) return;
     _isConnecting = true;
     _reconnectTimer?.cancel();
+    debugPrint('[OgnTraffic] Connecting to OGN APRS server...');
 
     int lineCount = 0;
     _inboundConnection = OgnInboundConnection(
       onLineReceived: (line) {
-        if (lineCount < 10) {
-          debugPrint('OGN Inbound line: $line');
+        if (lineCount < 5) {
+          debugPrint('[OGN APRS Raw Line sample] $line');
           lineCount++;
         }
         try {
@@ -105,7 +128,7 @@ class OgnTraffic extends _$OgnTraffic {
             _updateAircraft(aircraft);
           }
         } catch (e) {
-          // Quiet parse error
+          debugPrint('[OGN APRS Parse Error] $e for line: $line');
         }
       },
       onDisconnected: () {
@@ -114,66 +137,86 @@ class OgnTraffic extends _$OgnTraffic {
       },
     );
 
-    _inboundConnection!.connect().then((_) {
-      _isConnecting = false;
-      _reconnectAttempts = 0;
-    }).catchError((_) {
-      _isConnecting = false;
-      _scheduleReconnect();
-    });
+    _inboundConnection!
+        .connect()
+        .then((_) {
+          _isConnecting = false;
+          _reconnectAttempts = 0;
+        })
+        .catchError((_) {
+          _isConnecting = false;
+          _scheduleReconnect();
+        });
   }
 
   void _scheduleReconnect() {
     _reconnectTimer?.cancel();
     _reconnectAttempts++;
     final delaySeconds = (_reconnectAttempts * 2).clamp(2, 30);
-    _reconnectTimer = Timer(Duration(seconds: delaySeconds), () => _connectInbound());
+    _reconnectTimer = Timer(
+      Duration(seconds: delaySeconds),
+      () => _connectInbound(),
+    );
   }
 
   final Map<String, List<TrackHistoryPoint>> _trackHistories = {};
 
   void _updateAircraft(OgnTrafficAircraft aircraft) {
-    final now = DateTime.now();
-    final trackRad = aircraft.track * math.pi / 180.0;
-    final history = _trackHistories.putIfAbsent(aircraft.id, () => []);
-    history.add(TrackHistoryPoint(timestamp: now, trackRad: trackRad));
-    history.removeWhere((p) => now.difference(p.timestamp).inSeconds > 15);
+    _aggregator.processOgnUpdate(aircraft);
+
+    final canonicalId = CanonicalId.normalize(aircraft.id);
+    final history = _trackHistories.putIfAbsent(canonicalId, () => []);
+    history.add(
+      TrackHistoryPoint(
+        timestamp: aircraft.lastSeen,
+        trackRad: aircraft.track * math.pi / 180.0,
+      ),
+    );
+    history.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final latestTime = history.last.timestamp;
+    history.removeWhere((p) => latestTime.difference(p.timestamp).inSeconds > 15);
 
     final turnRate = CasEvaluator.calculateTurnRate(history);
     final isCircling = CasEvaluator.detectCircling(history);
 
-    final existing = _aircraftMap[aircraft.id];
-    if (existing != null) {
-      _aircraftMap[aircraft.id] = aircraft.copyWith(
-        registration: existing.registration,
-        aircraftModel: existing.aircraftModel,
-        cn: existing.cn,
-        turnRate: turnRate,
-        isCircling: isCircling,
-      );
-    } else {
-      _aircraftMap[aircraft.id] = aircraft.copyWith(
-        turnRate: turnRate,
-        isCircling: isCircling,
-      );
-    }
+    _aggregator.updateComputedFields(
+      canonicalId,
+      turnRate: turnRate,
+      isCircling: isCircling,
+    );
+  }
+
+  void processPureTrackPacket(PureTrackPacket packet) {
+    _aggregator.processPureTrackPacket(packet);
+
+    final canonicalId = packet.canonicalId;
+    final history = _trackHistories.putIfAbsent(canonicalId, () => []);
+    history.add(
+      TrackHistoryPoint(
+        timestamp: packet.tSent,
+        trackRad: packet.track * math.pi / 180.0,
+      ),
+    );
+    history.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final latestTime = history.last.timestamp;
+    history.removeWhere((p) => latestTime.difference(p.timestamp).inSeconds > 15);
+
+    final turnRate = CasEvaluator.calculateTurnRate(history);
+    final isCircling = CasEvaluator.detectCircling(history);
+
+    _aggregator.updateComputedFields(
+      canonicalId,
+      turnRate: turnRate,
+      isCircling: isCircling,
+    );
   }
 
   void _cleanupStaleTraffic() {
-    if (_aircraftMap.isEmpty) return;
-    final now = DateTime.now();
-    final staleKeys = <String>[];
-    for (final entry in _aircraftMap.entries) {
-      if (now.difference(entry.value.lastSeen) >= const Duration(seconds: 180)) {
-        staleKeys.add(entry.key);
-      }
-    }
-    if (staleKeys.isNotEmpty) {
-      for (final key in staleKeys) {
-        _aircraftMap.remove(key);
-        _trackHistories.remove(key);
-      }
-      _publishState();
+    final purged = _aggregator.purgeStaleTargets(
+      maxAge: const Duration(minutes: 3),
+    );
+    if (purged > 0) {
+      publishState();
     }
   }
 
@@ -183,11 +226,15 @@ class OgnTraffic extends _$OgnTraffic {
 
   Future<void> loadDdbDetailsMultiple(List<String> ids) async {
     final List<String> toFetch = [];
+    final targetMap = _aggregator.targetMap;
+
     for (final id in ids) {
-      final aircraft = _aircraftMap[id];
+      final canonicalId = CanonicalId.normalize(id);
+      final aircraft = targetMap[canonicalId];
       if (aircraft == null) continue;
       if (aircraft.isAnonymous) continue;
-      if (aircraft.registration != null && aircraft.registration!.isNotEmpty) continue;
+      if (aircraft.registration != null && aircraft.registration!.isNotEmpty)
+        continue;
       toFetch.add(id);
     }
 
@@ -200,22 +247,22 @@ class OgnTraffic extends _$OgnTraffic {
       for (final entry in ddbInfos.entries) {
         final id = entry.key;
         final info = entry.value;
-        final key = _aircraftMap.keys.firstWhere(
-          (k) => k.toUpperCase() == id,
-          orElse: () => '',
-        );
-        if (key.isNotEmpty && _aircraftMap.containsKey(key)) {
-          _aircraftMap[key] = _aircraftMap[key]!.copyWith(
-            registration: info['registration'],
-            aircraftModel: info['aircraftModel'],
-            cn: info['cn'],
+        final canonicalId = CanonicalId.normalize(id);
+        final existing = _aggregator.targetMap[canonicalId];
+        if (existing != null) {
+          _aggregator.processOgnUpdate(
+            existing.copyWith(
+              registration: info['registration'],
+              aircraftModel: info['aircraftModel'],
+              cn: info['cn'],
+            ),
           );
           stateChanged = true;
         }
       }
 
       if (stateChanged) {
-        _publishState();
+        publishState();
       }
     }
   }
@@ -232,12 +279,19 @@ class OgnTraffic extends _$OgnTraffic {
 
     bool significantShift = false;
     if (_lastSentBounds != null) {
-      final oldCenterLat = (_lastSentBounds!.latitudeNorth + _lastSentBounds!.latitudeSouth) / 2;
-      final oldCenterLon = (_lastSentBounds!.longitudeEast + _lastSentBounds!.longitudeWest) / 2;
+      final oldCenterLat =
+          (_lastSentBounds!.latitudeNorth + _lastSentBounds!.latitudeSouth) / 2;
+      final oldCenterLon =
+          (_lastSentBounds!.longitudeEast + _lastSentBounds!.longitudeWest) / 2;
       final newCenterLat = (bounds.latitudeNorth + bounds.latitudeSouth) / 2;
       final newCenterLon = (bounds.longitudeEast + bounds.longitudeWest) / 2;
 
-      final dist = GeoUtils.distanceBetween(oldCenterLat, oldCenterLon, newCenterLat, newCenterLon);
+      final dist = GeoUtils.distanceBetween(
+        oldCenterLat,
+        oldCenterLon,
+        newCenterLat,
+        newCenterLon,
+      );
       // Trigger instant update if camera center shifted significantly (e.g. sharp 180° turn or fast pan)
       if (dist > kOgnFilterSignificantShiftMeters) {
         significantShift = true;
@@ -259,17 +313,40 @@ class OgnTraffic extends _$OgnTraffic {
   }
 
   void _sendFilter(LngLatBounds bounds) {
-    if (_inboundConnection == null) return;
     _lastFilterSentTime = DateTime.now();
     _lastSentBounds = bounds;
-    final filterCommand = 'filter a/${bounds.latitudeNorth.toStringAsFixed(4)}/${bounds.longitudeWest.toStringAsFixed(4)}/${bounds.latitudeSouth.toStringAsFixed(4)}/${bounds.longitudeEast.toStringAsFixed(4)}';
-    _inboundConnection!.updateFilter(filterCommand);
+    if (_inboundConnection != null) {
+      final filterCommand =
+          'filter a/${bounds.latitudeNorth.toStringAsFixed(4)}/${bounds.longitudeWest.toStringAsFixed(4)}/${bounds.latitudeSouth.toStringAsFixed(4)}/${bounds.longitudeEast.toStringAsFixed(4)}';
+      _inboundConnection!.updateFilter(filterCommand);
+    }
+
+    ref
+        .read(pureTrackStreamServiceProvider)
+        .updateViewport(
+          lat1: bounds.latitudeNorth,
+          long1: bounds.longitudeWest,
+          lat2: bounds.latitudeSouth,
+          long2: bounds.longitudeEast,
+        );
+
+    // Purge targets outside current viewport (plus 0.5° margin ~ 55km) to keep DB target count minimal and clean
+    const margin = 0.5;
+    final purgedCount = _aggregator.purgeTargetsOutside(
+      latNorth: bounds.latitudeNorth + margin,
+      lonWest: bounds.longitudeWest - margin,
+      latSouth: bounds.latitudeSouth - margin,
+      lonEast: bounds.longitudeEast + margin,
+    );
+    if (purgedCount > 0) {
+      publishState();
+    }
   }
 
   void _updateOutboundTrackingState() {
     final settings = ref.read(appSettingsProvider).value;
     final aircrafts = ref.read(aircraftStateProvider).value ?? [];
-    
+
     if (settings == null) {
       _stopOutboundTracking();
       return;
@@ -283,7 +360,9 @@ class OgnTraffic extends _$OgnTraffic {
 
     if (activeAircraft != null &&
         activeAircraft.sendLivePosition &&
-        RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(activeAircraft.ognDeviceId.trim())) {
+        RegExp(
+          r'^[0-9A-Fa-f]{6}$',
+        ).hasMatch(activeAircraft.ognDeviceId.trim())) {
       _startOutboundTracking(activeAircraft);
     } else {
       _stopOutboundTracking();
@@ -299,37 +378,36 @@ class OgnTraffic extends _$OgnTraffic {
     _stopOutboundTracking();
     _activeOutboundId = ognId;
     _outboundManager = OgnOutboundManager();
-    final callsign = ognId.startsWith(RegExp(r'^(ICA|FLR|OGN)')) ? ognId : 'OGN$ognId';
+    final callsign = ognId.startsWith(RegExp(r'^(ICA|FLR|OGN)'))
+        ? ognId
+        : 'OGN$ognId';
     final type = aircraft.type.ognCode;
 
-    _outboundManager!.start(
-      callsign: callsign,
-      ognId: ognId,
-      aircraftType: type,
-    ).then((_) {
-      _outboundTimer?.cancel();
-      _outboundTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-        final telemetry = ref.read(telemetryProvider);
-        if (telemetry.latitude != null &&
-            telemetry.longitude != null &&
-            telemetry.latitude != 0.0 &&
-            telemetry.longitude != 0.0) {
-          
-          if (telemetry.isFlying) {
-            final vario = ref.read(varioProvider);
-            final vsVal = vario.verticalSpeed ?? 0.0;
-            _outboundManager?.sendPosition(
-              lat: telemetry.latitude!,
-              lon: telemetry.longitude!,
-              altitude: telemetry.gpsAltitude ?? 0.0,
-              heading: telemetry.heading ?? 0.0,
-              speed: telemetry.groundSpeed ?? 0.0,
-              vs: vsVal,
-            );
-          }
-        }
-      });
-    });
+    _outboundManager!
+        .start(callsign: callsign, ognId: ognId, aircraftType: type)
+        .then((_) {
+          _outboundTimer?.cancel();
+          _outboundTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+            final telemetry = ref.read(telemetryProvider);
+            if (telemetry.latitude != null &&
+                telemetry.longitude != null &&
+                telemetry.latitude != 0.0 &&
+                telemetry.longitude != 0.0) {
+              if (telemetry.isFlying) {
+                final vario = ref.read(varioProvider);
+                final vsVal = vario.verticalSpeed ?? 0.0;
+                _outboundManager?.sendPosition(
+                  lat: telemetry.latitude!,
+                  lon: telemetry.longitude!,
+                  altitude: telemetry.gpsAltitude ?? 0.0,
+                  heading: telemetry.heading ?? 0.0,
+                  speed: telemetry.groundSpeed ?? 0.0,
+                  vs: vsVal,
+                );
+              }
+            }
+          });
+        });
   }
 
   void _stopOutboundTracking() {
@@ -402,16 +480,20 @@ class FilteredOgnTraffic extends _$FilteredOgnTraffic {
     final now = DateTime.now();
     final filteredIds = filtered.map((ac) => ac.id).toSet();
     final cachedIds = _cachedCasEvaluations.keys.toSet();
-    final membershipChanged = filteredIds.length != cachedIds.length ||
+    final membershipChanged =
+        filteredIds.length != cachedIds.length ||
         !filteredIds.containsAll(cachedIds);
 
-    final shouldRecalculateCas = _lastCasEvaluationTime == null ||
+    final shouldRecalculateCas =
+        _lastCasEvaluationTime == null ||
         now.difference(_lastCasEvaluationTime!) >= const Duration(seconds: 1) ||
         membershipChanged;
 
     if (shouldRecalculateCas) {
       final myHeading = telemetry.heading ?? 0.0;
-      final ownshipHistory = ref.read(ognTrafficProvider.notifier).ownshipTrackHistory;
+      final ownshipHistory = ref
+          .read(ognTrafficProvider.notifier)
+          .ownshipTrackHistory;
       final myOmega = CasEvaluator.calculateTurnRate(ownshipHistory);
       final myIsCircling = CasEvaluator.detectCircling(ownshipHistory);
       final myLat = telemetry.latitude!;

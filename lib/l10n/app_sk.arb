@@ -753,5 +753,18 @@
   "sameAltLabel": "ROVNAKÁ VÝŠKA",
   "aboveAltLabel": "+{alt} NAD",
   "belowAltLabel": "-{alt} POD",
-  "collisionWarningLabel": "KOLÍZIA"
+  "collisionWarningLabel": "KOLÍZIA",
+  "pureTrackTitle": "PureTrack Účet",
+  "pureTrackDescription": "Sekundárny zdroj letových telemetrických dát",
+  "pureTrackUsername": "Meno / Email",
+  "pureTrackPassword": "Heslo",
+  "pureTrackLogin": "Prihlásiť sa",
+  "pureTrackLogout": "Odhlásiť sa",
+  "pureTrackStatusConnected": "Pripojené",
+  "pureTrackStatusDisconnected": "Odpojené",
+  "pureTrackStatusAuthenticating": "Prihlasujem...",
+  "pureTrackStatusTokenInvalid": "Relácia vypršala (Vyžaduje sa prihlásenie)",
+  "pureTrackStatusError": "Chyba prihlásenia",
+  "pureTrackSessionExpiredBanner": "PureTrack relácia vypršala. Kliknite pre opätovné prihlásenie.",
+  "trafficSourceLabel": "Zdroj dát"
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/altitude_unit.dart';
 import '../providers/settings_provider.dart';
+import '../widgets/puretrack_settings_card.dart';
 
 class TrafficSettingsPage extends ConsumerWidget {
   const TrafficSettingsPage({super.key});
@@ -258,8 +259,11 @@ class TrafficSettingsPage extends ConsumerWidget {
                   ),
                 ),
               ],
+              const Divider(height: 1),
+              const PureTrackSettingsCard(),
             ],
           );
+
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text(e.toString())),
