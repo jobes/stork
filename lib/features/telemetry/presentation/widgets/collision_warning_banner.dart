@@ -31,10 +31,10 @@ class CollisionWarningBanner extends ConsumerWidget {
     final distKm = distMeters / 1000.0;
     final distStr = distKm < 1.0
         ? '${distMeters.round()}${l10n.altitudeUnitMeters}'
-        : '${distKm.toStringAsFixed(1)}km';
+        : '${distKm.toStringAsFixed(1)}${l10n.speedUnitKmH}';
 
     final tCpaVal = threatTarget.tCpa;
-    final tCpaStr = tCpaVal != null ? '${tCpaVal.round()}s' : '--';
+    final tCpaStr = tCpaVal != null ? '${tCpaVal.round()}${l10n.durationSuffix.trim()}' : '--';
 
     // Altitude difference calculation
     final vertDiffMeters = threatTarget.altitude - myAlt;
