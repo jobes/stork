@@ -5,7 +5,8 @@ import 'package:stork/features/telemetry/data/puretrack_stream_service.dart';
 void main() {
   group('PureTrackPacket.parseDataRow', () {
     test('parses official PureTrack Traffic API CSV data row string', () {
-      const row = 'T1713592586,L-37.78174,G174.88159,A4685,C338,S144.05,V-13.31,O56,DC828EA,EZK-MZE,mANZ118M,KY-ZK-MZE';
+      const row =
+          'T1713592586,L-37.78174,G174.88159,A4685,C338,S144.05,V-13.31,O56,DC828EA,EZK-MZE,mANZ118M,KY-ZK-MZE';
 
       final packet = PureTrackPacket.parseDataRow(row);
 
@@ -63,10 +64,7 @@ void main() {
     });
 
     test('returns null for invalid JSON or missing lat/lon', () {
-      final json = {
-        'id': '1EFCCC',
-        'callsign': 'OK-1234',
-      };
+      final json = {'id': '1EFCCC', 'callsign': 'OK-1234'};
 
       final packet = PureTrackPacket.fromJson(json);
       expect(packet, isNull);
@@ -74,41 +72,51 @@ void main() {
   });
 
   group('PureTrackStreamService tests', () {
-    test('processRawPayload emits parsed packet to stream from data array', () async {
-      final service = PureTrackStreamService();
+    test(
+      'processRawPayload emits parsed packet to stream from data array',
+      () async {
+        final service = PureTrackStreamService();
 
-      final jsonStr = jsonEncode({
-        'success': true,
-        'http_code': 200,
-        'data': [
-          'T1713592586,L-37.78174,G174.88159,A4685,C338,S144.05,V-13.31,O1,DC828EA,EZK-MZE,mANZ118M,KY-ZK-MZE',
-        ],
-      });
+        final jsonStr = jsonEncode({
+          'success': true,
+          'http_code': 200,
+          'data': [
+            'T1713592586,L-37.78174,G174.88159,A4685,C338,S144.05,V-13.31,O1,DC828EA,EZK-MZE,mANZ118M,KY-ZK-MZE',
+          ],
+        });
 
-      expectLater(
-        service.stream,
-        emits(predicate<PureTrackPacket>((p) =>
-            p.canonicalId == 'c828ea' &&
-            p.aircraftType == 1 &&
-            p.latitude == -37.78174)),
-      );
+        expectLater(
+          service.stream,
+          emits(
+            predicate<PureTrackPacket>(
+              (p) =>
+                  p.canonicalId == 'c828ea' &&
+                  p.aircraftType == 1 &&
+                  p.latitude == -37.78174,
+            ),
+          ),
+        );
 
-      service.processRawPayload(jsonStr);
-    });
+        service.processRawPayload(jsonStr);
+      },
+    );
 
-    test('processRawPayload triggers unauthorized handler on status 401', () async {
-      bool unauthorizedCalled = false;
-      final service = PureTrackStreamService(
-        onUnauthorized: () {
-          unauthorizedCalled = true;
-        },
-      );
+    test(
+      'processRawPayload triggers unauthorized handler on status 401',
+      () async {
+        bool unauthorizedCalled = false;
+        final service = PureTrackStreamService(
+          onUnauthorized: () {
+            unauthorizedCalled = true;
+          },
+        );
 
-      final jsonStr = jsonEncode({'status': 401, 'http_code': 401});
+        final jsonStr = jsonEncode({'status': 401, 'http_code': 401});
 
-      service.processRawPayload(jsonStr);
+        service.processRawPayload(jsonStr);
 
-      expect(unauthorizedCalled, isTrue);
-    });
+        expect(unauthorizedCalled, isTrue);
+      },
+    );
   });
 }

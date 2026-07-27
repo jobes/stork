@@ -8,7 +8,8 @@ class PureTrackSettingsCard extends ConsumerStatefulWidget {
   const PureTrackSettingsCard({super.key});
 
   @override
-  ConsumerState<PureTrackSettingsCard> createState() => _PureTrackSettingsCardState();
+  ConsumerState<PureTrackSettingsCard> createState() =>
+      _PureTrackSettingsCardState();
 }
 
 class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
@@ -74,7 +75,8 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
   Widget build(BuildContext context) {
     final authState = ref.watch(pureTrackProvider);
     final authService = ref.read(pureTrackAuthServiceProvider);
-    if (_usernameController.text.isEmpty && authService.currentUsername != null) {
+    if (_usernameController.text.isEmpty &&
+        authService.currentUsername != null) {
       _usernameController.text = authService.currentUsername!;
     }
     final l10n = AppLocalizations.of(context)!;
@@ -143,7 +145,9 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
@@ -183,7 +187,9 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  color: theme.colorScheme.primaryContainer.withValues(
+                    alpha: 0.3,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(

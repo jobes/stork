@@ -174,7 +174,9 @@ class OgnTraffic extends _$OgnTraffic {
     );
     history.sort((a, b) => a.timestamp.compareTo(b.timestamp));
     final latestTime = history.last.timestamp;
-    history.removeWhere((p) => latestTime.difference(p.timestamp).inSeconds > 15);
+    history.removeWhere(
+      (p) => latestTime.difference(p.timestamp).inSeconds > 15,
+    );
 
     final turnRate = CasEvaluator.calculateTurnRate(history);
     final isCircling = CasEvaluator.detectCircling(history);
@@ -199,7 +201,9 @@ class OgnTraffic extends _$OgnTraffic {
     );
     history.sort((a, b) => a.timestamp.compareTo(b.timestamp));
     final latestTime = history.last.timestamp;
-    history.removeWhere((p) => latestTime.difference(p.timestamp).inSeconds > 15);
+    history.removeWhere(
+      (p) => latestTime.difference(p.timestamp).inSeconds > 15,
+    );
 
     final turnRate = CasEvaluator.calculateTurnRate(history);
     final isCircling = CasEvaluator.detectCircling(history);

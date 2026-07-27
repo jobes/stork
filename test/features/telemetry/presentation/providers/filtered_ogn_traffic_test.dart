@@ -58,13 +58,21 @@ void main() {
     test('returns all traffic if filters disabled', () {
       final container = ProviderContainer(
         overrides: [
-          ognTrafficProvider.overrideWith(() => _MockOgnTraffic([nearAircraft, farHorizontalAircraft, farVerticalAircraft])),
-          appSettingsProvider.overrideWith(() => _MockAppSettingsNotifier(
-            const AppSettings(
-              trafficFilterMaxHorizontalDistanceEnabled: false,
-              trafficFilterMaxVerticalDistanceEnabled: false,
+          ognTrafficProvider.overrideWith(
+            () => _MockOgnTraffic([
+              nearAircraft,
+              farHorizontalAircraft,
+              farVerticalAircraft,
+            ]),
+          ),
+          appSettingsProvider.overrideWith(
+            () => _MockAppSettingsNotifier(
+              const AppSettings(
+                trafficFilterMaxHorizontalDistanceEnabled: false,
+                trafficFilterMaxVerticalDistanceEnabled: false,
+              ),
             ),
-          )),
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -73,33 +81,46 @@ void main() {
       expect(filtered.length, equals(3));
     });
 
-    test('filters out aircraft exceeding max horizontal or vertical distance', () {
-      final container = ProviderContainer(
-        overrides: [
-          ognTrafficProvider.overrideWith(() => _MockOgnTraffic([nearAircraft, farHorizontalAircraft, farVerticalAircraft])),
-          appSettingsProvider.overrideWith(() => _MockAppSettingsNotifier(
-            const AppSettings(
-              trafficFilterMaxHorizontalDistanceEnabled: true,
-              trafficMaxHorizontalDistance: 50000.0, // 50 km
-              trafficFilterMaxVerticalDistanceEnabled: true,
-              trafficMaxVerticalDistance: 1500.0, // 1.5 km
+    test(
+      'filters out aircraft exceeding max horizontal or vertical distance',
+      () {
+        final container = ProviderContainer(
+          overrides: [
+            ognTrafficProvider.overrideWith(
+              () => _MockOgnTraffic([
+                nearAircraft,
+                farHorizontalAircraft,
+                farVerticalAircraft,
+              ]),
             ),
-          )),
-        ],
-      );
-      addTearDown(container.dispose);
+            appSettingsProvider.overrideWith(
+              () => _MockAppSettingsNotifier(
+                const AppSettings(
+                  trafficFilterMaxHorizontalDistanceEnabled: true,
+                  trafficMaxHorizontalDistance: 50000.0, // 50 km
+                  trafficFilterMaxVerticalDistanceEnabled: true,
+                  trafficMaxVerticalDistance: 1500.0, // 1.5 km
+                ),
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      // Set user location and altitude
-      container.read(telemetryProvider.notifier).updateGPS(
-        latitude: myPosLat,
-        longitude: myPosLon,
-        gpsAltitude: myAltMeters,
-      );
+        // Set user location and altitude
+        container
+            .read(telemetryProvider.notifier)
+            .updateGPS(
+              latitude: myPosLat,
+              longitude: myPosLon,
+              gpsAltitude: myAltMeters,
+            );
 
-      final filtered = container.read(filteredOgnTrafficProvider);
-      expect(filtered.length, equals(1));
-      expect(filtered.first.id, equals('NEAR01'));
-    });
+        final filtered = container.read(filteredOgnTrafficProvider);
+        expect(filtered.length, equals(1));
+        expect(filtered.first.id, equals('NEAR01'));
+      },
+    );
   });
 }
 

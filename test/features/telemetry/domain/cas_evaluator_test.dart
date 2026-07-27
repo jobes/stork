@@ -6,53 +6,69 @@ void main() {
   group('CasEvaluator Tests', () {
     test('normalizeAngle normalizes angles to [-pi, pi]', () {
       expect(CasEvaluator.normalizeAngle(0.0), closeTo(0.0, 1e-6));
-      expect(CasEvaluator.normalizeAngle(math.pi * 3).abs(), closeTo(math.pi, 1e-6));
-      expect(CasEvaluator.normalizeAngle(-math.pi * 3).abs(), closeTo(math.pi, 1e-6));
+      expect(
+        CasEvaluator.normalizeAngle(math.pi * 3).abs(),
+        closeTo(math.pi, 1e-6),
+      );
+      expect(
+        CasEvaluator.normalizeAngle(-math.pi * 3).abs(),
+        closeTo(math.pi, 1e-6),
+      );
       expect(CasEvaluator.normalizeAngle(2 * math.pi), closeTo(0.0, 1e-6));
     });
 
-    test('calculateTurnRate calculates omega correctly including 0/360 wrap-around', () {
-      final now = DateTime.now();
-      // Turning right from 350 deg (6.108 rad) to 10 deg (0.1745 rad) over 2 seconds -> +20 deg / 2s = 10 deg/s
-      final p1 = TrackHistoryPoint(
-        timestamp: now.subtract(const Duration(seconds: 2)),
-        trackRad: 350.0 * math.pi / 180.0,
-      );
-      final p2 = TrackHistoryPoint(
-        timestamp: now,
-        trackRad: 10.0 * math.pi / 180.0,
-      );
+    test(
+      'calculateTurnRate calculates omega correctly including 0/360 wrap-around',
+      () {
+        final now = DateTime.now();
+        // Turning right from 350 deg (6.108 rad) to 10 deg (0.1745 rad) over 2 seconds -> +20 deg / 2s = 10 deg/s
+        final p1 = TrackHistoryPoint(
+          timestamp: now.subtract(const Duration(seconds: 2)),
+          trackRad: 350.0 * math.pi / 180.0,
+        );
+        final p2 = TrackHistoryPoint(
+          timestamp: now,
+          trackRad: 10.0 * math.pi / 180.0,
+        );
 
-      final omega = CasEvaluator.calculateTurnRate([p1, p2]);
-      final omegaDegPerSec = omega * 180.0 / math.pi;
-      expect(omegaDegPerSec, closeTo(10.0, 0.1));
-    });
+        final omega = CasEvaluator.calculateTurnRate([p1, p2]);
+        final omegaDegPerSec = omega * 180.0 / math.pi;
+        expect(omegaDegPerSec, closeTo(10.0, 0.1));
+      },
+    );
 
-    test('detectCircling detects sustained turn rate >= 12 deg/s over 5+ seconds', () {
-      final now = DateTime.now();
-      final points = <TrackHistoryPoint>[];
-      // Generate 6 seconds of 15 deg/s turning right
-      for (int i = 6; i >= 0; i--) {
-        final t = now.subtract(Duration(seconds: i));
-        final trackDeg = (i * 15.0) % 360.0;
-        points.add(TrackHistoryPoint(
-          timestamp: t,
-          trackRad: trackDeg * math.pi / 180.0,
-        ));
-      }
+    test(
+      'detectCircling detects sustained turn rate >= 12 deg/s over 5+ seconds',
+      () {
+        final now = DateTime.now();
+        final points = <TrackHistoryPoint>[];
+        // Generate 6 seconds of 15 deg/s turning right
+        for (int i = 6; i >= 0; i--) {
+          final t = now.subtract(Duration(seconds: i));
+          final trackDeg = (i * 15.0) % 360.0;
+          points.add(
+            TrackHistoryPoint(
+              timestamp: t,
+              trackRad: trackDeg * math.pi / 180.0,
+            ),
+          );
+        }
 
-      final isCircling = CasEvaluator.detectCircling(points);
-      expect(isCircling, isTrue);
-    });
+        final isCircling = CasEvaluator.detectCircling(points);
+        expect(isCircling, isTrue);
+      },
+    );
 
     test('detectCircling returns false for straight-line motion', () {
       final now = DateTime.now();
       final points = <TrackHistoryPoint>[];
       for (int i = 6; i >= 0; i--) {
-        points.add(TrackHistoryPoint(
-          timestamp: now.subtract(Duration(seconds: i)),
-          trackRad: 90.0 * math.pi / 180.0, // Straight East
-        ));
+        points.add(
+          TrackHistoryPoint(
+            timestamp: now.subtract(Duration(seconds: i)),
+            trackRad: 90.0 * math.pi / 180.0, // Straight East
+          ),
+        );
       }
 
       final isCircling = CasEvaluator.detectCircling(points);
@@ -87,37 +103,40 @@ void main() {
       expect(eval.isCollisionThreat, isFalse);
     });
 
-    test('evaluateThreat detects head-on collision threat (straight paths)', () {
-      // Ownship flying North at 30 m/s from (48.0, 17.0)
-      // Target flying South at 30 m/s from (48.009, 17.0) (~1 km away)
-      final eval = CasEvaluator.evaluateThreat(
-        latA: 48.0,
-        lonA: 17.0,
-        altA: 1000.0,
-        gsA: 30.0,
-        trackA: 0.0,
-        omegaA: 0.0,
-        vsA: 0.0,
-        isCirclingA: false,
-        latB: 48.009,
-        lonB: 17.0,
-        altB: 1000.0,
-        gsB: 30.0,
-        trackB: 180.0,
-        omegaB: 0.0,
-        vsB: 0.0,
-        isCirclingB: false,
-        maxBroadPhaseHorizDist: 10000.0,
-        maxBroadPhaseVertDist: 1500.0,
-        lookaheadTimeSec: 30.0,
-        horizThresholdMeters: 300.0,
-        vertThresholdMeters: 100.0,
-      );
+    test(
+      'evaluateThreat detects head-on collision threat (straight paths)',
+      () {
+        // Ownship flying North at 30 m/s from (48.0, 17.0)
+        // Target flying South at 30 m/s from (48.009, 17.0) (~1 km away)
+        final eval = CasEvaluator.evaluateThreat(
+          latA: 48.0,
+          lonA: 17.0,
+          altA: 1000.0,
+          gsA: 30.0,
+          trackA: 0.0,
+          omegaA: 0.0,
+          vsA: 0.0,
+          isCirclingA: false,
+          latB: 48.009,
+          lonB: 17.0,
+          altB: 1000.0,
+          gsB: 30.0,
+          trackB: 180.0,
+          omegaB: 0.0,
+          vsB: 0.0,
+          isCirclingB: false,
+          maxBroadPhaseHorizDist: 10000.0,
+          maxBroadPhaseVertDist: 1500.0,
+          lookaheadTimeSec: 30.0,
+          horizThresholdMeters: 300.0,
+          vertThresholdMeters: 100.0,
+        );
 
-      expect(eval.isCollisionThreat, isTrue);
-      expect(eval.tCpa, greaterThan(0.0));
-      expect(eval.tCpa, lessThanOrEqualTo(30.0));
-    });
+        expect(eval.isCollisionThreat, isTrue);
+        expect(eval.tCpa, greaterThan(0.0));
+        expect(eval.tCpa, lessThanOrEqualTo(30.0));
+      },
+    );
 
     test('evaluateThreat handles curved trajectory (arc projection)', () {
       // Ownship turning right (omega = 0.1 rad/s)
@@ -161,7 +180,10 @@ void main() {
         t: 5.0,
       );
       expect(xEast, greaterThan(0.0)); // Eastward movement
-      expect(ySouth, lessThan(0.0)); // Southward movement due to right turn from East
+      expect(
+        ySouth,
+        lessThan(0.0),
+      ); // Southward movement due to right turn from East
 
       // Convergence of small omega to straight-line prediction
       final (xStraight, yStraight, _) = CasEvaluator.predictPosition(

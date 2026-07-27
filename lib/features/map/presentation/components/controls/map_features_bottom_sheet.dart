@@ -216,14 +216,18 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
             ),
           if (trafficFeatures.isNotEmpty)
             ListTile(
-              leading: Icon(Icons.airplanemode_active, color: Theme.of(context).colorScheme.primary),
+              leading: Icon(
+                Icons.airplanemode_active,
+                color: Theme.of(context).colorScheme.primary,
+              ),
               title: Text(l10n.trafficTitle),
               subtitle: Text(
                 trafficFeatures.length > 1
                     ? '${l10n.aircraftCountLabel}: ${trafficFeatures.length}'
-                    : (trafficFeatures.first['properties']?['title']?.toString() ??
-                        trafficFeatures.first['id']?.toString() ??
-                        ''),
+                    : (trafficFeatures.first['properties']?['title']
+                              ?.toString() ??
+                          trafficFeatures.first['id']?.toString() ??
+                          ''),
               ),
               onTap: () {
                 Navigator.pop(context); // Close bottom sheet

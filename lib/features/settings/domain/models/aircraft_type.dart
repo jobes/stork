@@ -60,5 +60,3 @@ enum AircraftType {
     return fromOgnCode(code);
   }
 }
-
-

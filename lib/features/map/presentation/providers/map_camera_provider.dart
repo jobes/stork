@@ -4,7 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
-import 'package:flutter/material.dart' show Color, Paint, Canvas, ColorFilter, BlendMode, Offset;
+import 'package:flutter/material.dart'
+    show Color, Paint, Canvas, ColorFilter, BlendMode, Offset;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -537,10 +538,7 @@ class MapCamera extends _$MapCamera {
     if (traffic == null || traffic.isEmpty) {
       _mapController!.style!.updateGeoJsonSource(
         id: 'traffic-source',
-        data: jsonEncode({
-          'type': 'FeatureCollection',
-          'features': [],
-        }),
+        data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
       );
       return;
     }
@@ -558,17 +556,24 @@ class MapCamera extends _$MapCamera {
       final isFlying = ac.groundSpeed > 1.0;
       final iconId = ac.isCollisionThreat
           ? acType.threatTrafficMapIconId
-          : (isFlying ? acType.trafficMapIconId : acType.inactiveTrafficMapIconId);
+          : (isFlying
+                ? acType.trafficMapIconId
+                : acType.inactiveTrafficMapIconId);
 
       double possiblePositionRatio = 0.0;
       if (isFlying && ac.groundSpeed > 0) {
-        final elapsedSeconds = now.difference(ac.lastSeen).inMilliseconds / 1000.0;
+        final elapsedSeconds =
+            now.difference(ac.lastSeen).inMilliseconds / 1000.0;
         final delay = elapsedSeconds + kTrafficLookaheadPeriodSeconds;
 
         if (delay > 0) {
           final distanceMeters = ac.groundSpeed * delay;
           final startCoord = Geographic(lat: ac.latitude, lon: ac.longitude);
-          final destCoord = GeoUtils.calculateDestination(startCoord, ac.track, distanceMeters);
+          final destCoord = GeoUtils.calculateDestination(
+            startCoord,
+            ac.track,
+            distanceMeters,
+          );
 
           try {
             final p1 = _mapController!.toScreenLocation(startCoord);
@@ -583,11 +588,14 @@ class MapCamera extends _$MapCamera {
 
       final String altitudeTagStr;
       if (ac.isCollisionThreat) {
-        final l10n = lookupAppLocalizations(ui.PlatformDispatcher.instance.locale);
+        final l10n = lookupAppLocalizations(
+          ui.PlatformDispatcher.instance.locale,
+        );
         final diffMeters = ac.altitude - myAlt;
         final unitLabel = altUnit.getLabel(l10n);
         final String tagNum;
-        if (altUnit == AltitudeUnit.feet || altUnit == AltitudeUnit.flightLevel) {
+        if (altUnit == AltitudeUnit.feet ||
+            altUnit == AltitudeUnit.flightLevel) {
           final diffFeet = (diffMeters / 0.3048).round();
           if (diffFeet > 0) {
             tagNum = l10n.aboveAltLabel('$diffFeet$unitLabel');
@@ -606,7 +614,9 @@ class MapCamera extends _$MapCamera {
             tagNum = l10n.sameAltLabel;
           }
         }
-        final String trend = ac.verticalSpeed > 0.5 ? ' ▲' : (ac.verticalSpeed < -0.5 ? ' ▼' : '');
+        final String trend = ac.verticalSpeed > 0.5
+            ? ' ▲'
+            : (ac.verticalSpeed < -0.5 ? ' ▼' : '');
         altitudeTagStr = '$tagNum$trend';
       } else {
         altitudeTagStr = '';
@@ -630,16 +640,13 @@ class MapCamera extends _$MapCamera {
           'altitudeTag': altitudeTagStr,
           'isThreat': ac.isCollisionThreat,
           'possiblePositionRatio': possiblePositionRatio,
-        }
+        },
       };
     }).toList();
 
     _mapController!.style!.updateGeoJsonSource(
       id: 'traffic-source',
-      data: jsonEncode({
-        'type': 'FeatureCollection',
-        'features': features,
-      }),
+      data: jsonEncode({'type': 'FeatureCollection', 'features': features}),
     );
   }
 

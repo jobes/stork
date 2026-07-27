@@ -37,7 +37,10 @@ class PureTrackAuthBanner extends ConsumerWidget {
               }
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 12.0,
+              ),
               child: Row(
                 children: [
                   const Icon(
@@ -56,10 +59,7 @@ class PureTrackAuthBanner extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: Colors.white,
-                  ),
+                  const Icon(Icons.chevron_right, color: Colors.white),
                 ],
               ),
             ),

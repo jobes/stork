@@ -84,7 +84,8 @@ class PureTrackPacket {
 
     final registration = values['E'];
     final model = values['M'];
-    final callsignStr = values['m'] ?? values['B'] ?? registration ?? values['N'] ?? canonical;
+    final callsignStr =
+        values['m'] ?? values['B'] ?? registration ?? values['N'] ?? canonical;
     final cn = values['n'];
 
     return PureTrackPacket(
@@ -110,7 +111,12 @@ class PureTrackPacket {
       return parseDataRow(json['row'] as String);
     }
 
-    final idRaw = json['id'] ?? json['hex'] ?? json['target_id'] ?? json['D'] ?? json['K'];
+    final idRaw =
+        json['id'] ??
+        json['hex'] ??
+        json['target_id'] ??
+        json['D'] ??
+        json['K'];
     if (idRaw == null || idRaw.toString().isEmpty) return null;
     final rawIdStr = idRaw.toString();
     final canonical = CanonicalId.normalize(rawIdStr);
@@ -120,14 +126,25 @@ class PureTrackPacket {
     final lon = (json['lon'] ?? json['longitude'] ?? json['G'])?.toDouble();
     if (lat == null || lon == null) return null;
 
-    final alt = (json['alt'] ?? json['altitude'] ?? json['A'] ?? 0.0).toDouble();
-    final speed = (json['speed'] ?? json['ground_speed'] ?? json['gs'] ?? json['S'] ?? 0.0).toDouble();
-    final track = (json['track'] ?? json['heading'] ?? json['C'] ?? 0.0).toDouble();
-    final vs = (json['vs'] ?? json['vertical_speed'] ?? json['V'] ?? 0.0).toDouble();
-    final type = (json['type'] ?? json['aircraft_type'] ?? json['O'] ?? 1) as int;
+    final alt = (json['alt'] ?? json['altitude'] ?? json['A'] ?? 0.0)
+        .toDouble();
+    final speed =
+        (json['speed'] ??
+                json['ground_speed'] ??
+                json['gs'] ??
+                json['S'] ??
+                0.0)
+            .toDouble();
+    final track = (json['track'] ?? json['heading'] ?? json['C'] ?? 0.0)
+        .toDouble();
+    final vs = (json['vs'] ?? json['vertical_speed'] ?? json['V'] ?? 0.0)
+        .toDouble();
+    final type =
+        (json['type'] ?? json['aircraft_type'] ?? json['O'] ?? 1) as int;
 
     DateTime tSent;
-    final tsRaw = json['timestamp'] ?? json['t_sent'] ?? json['time'] ?? json['T'];
+    final tsRaw =
+        json['timestamp'] ?? json['t_sent'] ?? json['time'] ?? json['T'];
     if (tsRaw is int) {
       tSent = tsRaw < 10000000000
           ? DateTime.fromMillisecondsSinceEpoch(tsRaw * 1000, isUtc: true)
@@ -138,8 +155,15 @@ class PureTrackPacket {
       tSent = DateTime.now().toUtc();
     }
 
-    final callsign = (json['callsign'] ?? json['name'] ?? json['m'] ?? json['B'] ?? canonical).toString();
-    final registration = json['registration']?.toString() ?? json['E']?.toString();
+    final callsign =
+        (json['callsign'] ??
+                json['name'] ??
+                json['m'] ??
+                json['B'] ??
+                canonical)
+            .toString();
+    final registration =
+        json['registration']?.toString() ?? json['E']?.toString();
     final model = json['model']?.toString() ?? json['M']?.toString();
     final cn = json['cn']?.toString();
 
@@ -182,17 +206,20 @@ class PureTrackStreamService {
   double _long2 = -180.0;
 
   Stream<PureTrackPacket> get stream => _packetController.stream;
-  bool get isConnected => _activeToken != null && _pollTimer != null && _pollTimer!.isActive;
+  bool get isConnected =>
+      _activeToken != null && _pollTimer != null && _pollTimer!.isActive;
 
   PureTrackStreamService({
     String baseUrl = 'https://puretrack.io',
     String? apiKey,
     http.Client? client,
     VoidCallback? onUnauthorized,
-  })  : _baseUrl = baseUrl,
-        _apiKey = apiKey ?? (dotenv.isInitialized ? (dotenv.env['PURETRACK_KEY'] ?? '') : ''),
-        _client = client ?? http.Client(),
-        _onUnauthorized = onUnauthorized;
+  }) : _baseUrl = baseUrl,
+       _apiKey =
+           apiKey ??
+           (dotenv.isInitialized ? (dotenv.env['PURETRACK_KEY'] ?? '') : ''),
+       _client = client ?? http.Client(),
+       _onUnauthorized = onUnauthorized;
 
   void setUnauthorizedHandler(VoidCallback handler) {
     _onUnauthorized = handler;
@@ -240,13 +267,15 @@ class PureTrackStreamService {
         },
       );
 
-      final response = await _client.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $_activeToken',
-          'Accept': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 8));
+      final response = await _client
+          .get(
+            uri,
+            headers: {
+              'Authorization': 'Bearer $_activeToken',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 8));
 
       if (response.statusCode == 401) {
         _handleUnauthorized();
@@ -256,7 +285,8 @@ class PureTrackStreamService {
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         if (json is Map<String, dynamic>) {
-          if (json['http_code'] == 401 || json['success'] == false && json['http_code'] == 401) {
+          if (json['http_code'] == 401 ||
+              json['success'] == false && json['http_code'] == 401) {
             _handleUnauthorized();
             return;
           }

@@ -6,7 +6,11 @@ void main() {
   test('AircraftType asset files exist on filesystem', () {
     for (final type in AircraftType.values) {
       final file = File(type.assetPath);
-      expect(file.existsSync(), isTrue, reason: 'Asset file missing: ${type.assetPath}');
+      expect(
+        file.existsSync(),
+        isTrue,
+        reason: 'Asset file missing: ${type.assetPath}',
+      );
     }
   });
 }

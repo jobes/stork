@@ -30,7 +30,7 @@ class PureTrackAuthResult {
 class PureTrackAuthService {
   static const String _kPureTrackTokenKey = 'puretrack_access_token';
   static const String _kPureTrackUsernameKey = 'puretrack_username';
-  
+
   final FlutterSecureStorage _storage;
   final http.Client _client;
   final String _baseUrl;
@@ -54,11 +54,12 @@ class PureTrackAuthService {
     http.Client? client,
     String baseUrl = 'https://puretrack.io',
     String? apiKey,
-  })  : _storage = storage ?? const FlutterSecureStorage(),
-        _client = client ?? http.Client(),
-        _baseUrl = baseUrl,
-        _apiKey = apiKey ?? (dotenv.isInitialized ? (dotenv.env['PURETRACK_KEY'] ?? '') : '');
-
+  }) : _storage = storage ?? const FlutterSecureStorage(),
+       _client = client ?? http.Client(),
+       _baseUrl = baseUrl,
+       _apiKey =
+           apiKey ??
+           (dotenv.isInitialized ? (dotenv.env['PURETRACK_KEY'] ?? '') : '');
 
   /// Initializes auth service by loading stored token from secure storage
   Future<String?> init() async {
@@ -87,18 +88,20 @@ class PureTrackAuthService {
   }) async {
     _setState(PureTrackAuthState.authenticating);
     try {
-      final response = await _client.post(
-        Uri.parse('$_baseUrl/api/login'),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'key': _apiKey,
-          'email': username.trim(),
-          'password': password,
-        }),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _client
+          .post(
+            Uri.parse('$_baseUrl/api/login'),
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'key': _apiKey,
+              'email': username.trim(),
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -108,7 +111,10 @@ class PureTrackAuthService {
         if (token != null && token.toString().isNotEmpty) {
           final tokenStr = token.toString();
           await _storage.write(key: _kPureTrackTokenKey, value: tokenStr);
-          await _storage.write(key: _kPureTrackUsernameKey, value: username.trim());
+          await _storage.write(
+            key: _kPureTrackUsernameKey,
+            value: username.trim(),
+          );
           _cachedToken = tokenStr;
           _cachedUsername = username.trim();
           _setState(PureTrackAuthState.authenticated);

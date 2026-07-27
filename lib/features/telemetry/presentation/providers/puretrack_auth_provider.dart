@@ -43,7 +43,8 @@ class PureTrackNotifier extends _$PureTrackNotifier {
 
     _authSubscription = _authService.authStateStream.listen((state) {
       this.state = state;
-      if (state == PureTrackAuthState.authenticated && _authService.currentToken != null) {
+      if (state == PureTrackAuthState.authenticated &&
+          _authService.currentToken != null) {
         _connectStream(_authService.currentToken!);
       } else {
         _streamService.disconnect();
@@ -76,7 +77,10 @@ class PureTrackNotifier extends _$PureTrackNotifier {
   }
 
   Future<PureTrackAuthResult> login(String username, String password) async {
-    final result = await _authService.login(username: username, password: password);
+    final result = await _authService.login(
+      username: username,
+      password: password,
+    );
     if (result.isSuccess && result.token != null) {
       _connectStream(result.token!);
     }

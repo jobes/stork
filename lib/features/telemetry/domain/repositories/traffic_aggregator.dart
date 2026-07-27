@@ -36,14 +36,18 @@ class TrafficAggregator {
         sources: {'ogn'},
         activeSource: 'ogn',
       );
-      debugPrint('[TrafficAggregator] [OGN ADD] ID: $canonicalId (${rawAircraft.callsign}) | Total targets in DB: ${_targets.length}');
+      debugPrint(
+        '[TrafficAggregator] [OGN ADD] ID: $canonicalId (${rawAircraft.callsign}) | Total targets in DB: ${_targets.length}',
+      );
     } else {
       final updatedSources = {...existing.sources, 'ogn'};
 
       // T_sent arbitration rule: only update position & dynamic fields if tSent is strictly newer
       if (tSent.isAfter(existing.lastSeen)) {
         _targets[canonicalId] = existing.copyWith(
-          callsign: rawAircraft.callsign.isNotEmpty ? rawAircraft.callsign : existing.callsign,
+          callsign: rawAircraft.callsign.isNotEmpty
+              ? rawAircraft.callsign
+              : existing.callsign,
           registration: rawAircraft.registration ?? existing.registration,
           aircraftModel: rawAircraft.aircraftModel ?? existing.aircraftModel,
           cn: rawAircraft.cn ?? existing.cn,
@@ -53,13 +57,17 @@ class TrafficAggregator {
           track: rawAircraft.track,
           groundSpeed: rawAircraft.groundSpeed,
           verticalSpeed: rawAircraft.verticalSpeed,
-          aircraftType: rawAircraft.aircraftType != 0 ? rawAircraft.aircraftType : existing.aircraftType,
+          aircraftType: rawAircraft.aircraftType != 0
+              ? rawAircraft.aircraftType
+              : existing.aircraftType,
           lastSeen: tSent,
           isAnonymous: rawAircraft.isAnonymous,
           sources: updatedSources,
           activeSource: 'ogn',
         );
-        debugPrint('[TrafficAggregator] [OGN UPDATE] ID: $canonicalId (${rawAircraft.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}');
+        debugPrint(
+          '[TrafficAggregator] [OGN UPDATE] ID: $canonicalId (${rawAircraft.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}',
+        );
       } else {
         // Discard unchanged or stale position update, but preserve metadata
         _targets[canonicalId] = existing.copyWith(
@@ -87,7 +95,9 @@ class TrafficAggregator {
     }
 
     final existing = _targets[canonicalId];
-    final mappedType = AircraftType.fromPureTrackType(packet.aircraftType).ognCode;
+    final mappedType = AircraftType.fromPureTrackType(
+      packet.aircraftType,
+    ).ognCode;
 
     if (existing == null) {
       _targets[canonicalId] = OgnTrafficAircraft(
@@ -107,14 +117,18 @@ class TrafficAggregator {
         sources: {'puretrack'},
         activeSource: 'puretrack',
       );
-      debugPrint('[TrafficAggregator] [PureTrack ADD] ID: $canonicalId (${packet.callsign}) | Total targets in DB: ${_targets.length}');
+      debugPrint(
+        '[TrafficAggregator] [PureTrack ADD] ID: $canonicalId (${packet.callsign}) | Total targets in DB: ${_targets.length}',
+      );
     } else {
       final updatedSources = {...existing.sources, 'puretrack'};
 
       // T_sent arbitration rule: only update position & dynamic fields if tSent is strictly newer
       if (tSent.isAfter(existing.lastSeen)) {
         _targets[canonicalId] = existing.copyWith(
-          callsign: packet.callsign.isNotEmpty ? packet.callsign : existing.callsign,
+          callsign: packet.callsign.isNotEmpty
+              ? packet.callsign
+              : existing.callsign,
           registration: packet.registration ?? existing.registration,
           aircraftModel: packet.model ?? existing.aircraftModel,
           cn: packet.cn ?? existing.cn,
@@ -129,7 +143,9 @@ class TrafficAggregator {
           sources: updatedSources,
           activeSource: 'puretrack',
         );
-        debugPrint('[TrafficAggregator] [PureTrack UPDATE] ID: $canonicalId (${packet.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}');
+        debugPrint(
+          '[TrafficAggregator] [PureTrack UPDATE] ID: $canonicalId (${packet.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}',
+        );
       } else {
         // Discard unchanged or stale position update, but preserve metadata
         _targets[canonicalId] = existing.copyWith(
@@ -143,7 +159,11 @@ class TrafficAggregator {
   }
 
   /// Updates computed fields (turnRate, isCircling) on an existing target without changing activeSource or position arbitration
-  void updateComputedFields(String canonicalId, {double? turnRate, bool? isCircling}) {
+  void updateComputedFields(
+    String canonicalId, {
+    double? turnRate,
+    bool? isCircling,
+  }) {
     final existing = _targets[canonicalId];
     if (existing != null) {
       _targets[canonicalId] = existing.copyWith(
@@ -170,7 +190,9 @@ class TrafficAggregator {
     }
 
     if (staleKeys.isNotEmpty) {
-      debugPrint('[TrafficAggregator] [PURGE STALE] Purged ${staleKeys.length} stale targets | Remaining in DB: ${_targets.length}');
+      debugPrint(
+        '[TrafficAggregator] [PURGE STALE] Purged ${staleKeys.length} stale targets | Remaining in DB: ${_targets.length}',
+      );
     }
 
     return staleKeys.length;
@@ -201,7 +223,9 @@ class TrafficAggregator {
     }
 
     if (staleKeys.isNotEmpty) {
-      debugPrint('[TrafficAggregator] [PURGE OUT OF BOUNDS] Removed ${staleKeys.length} targets outside viewport | Remaining in DB: ${_targets.length}');
+      debugPrint(
+        '[TrafficAggregator] [PURGE OUT OF BOUNDS] Removed ${staleKeys.length} targets outside viewport | Remaining in DB: ${_targets.length}',
+      );
     }
 
     return staleKeys.length;

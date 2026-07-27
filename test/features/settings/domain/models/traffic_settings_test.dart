@@ -45,7 +45,8 @@ void main() {
         trafficMaxVerticalDistance: 2000.0,
       );
 
-      final jsonMap = json.decode(json.encode(settings.toJson())) as Map<String, dynamic>;
+      final jsonMap =
+          json.decode(json.encode(settings.toJson())) as Map<String, dynamic>;
       final deserialized = AppSettings.fromJson(jsonMap);
 
       expect(deserialized.trafficFilterMaxHorizontalDistanceEnabled, isFalse);
@@ -60,10 +61,10 @@ void main() {
 
     setUp(() {
       mockRepository = MockSettingsRepository();
-      when(() => mockRepository.getSettings())
-          .thenAnswer((_) async => const AppSettings());
-      when(() => mockRepository.saveSettings(any()))
-          .thenAnswer((_) async {});
+      when(
+        () => mockRepository.getSettings(),
+      ).thenAnswer((_) async => const AppSettings());
+      when(() => mockRepository.saveSettings(any())).thenAnswer((_) async {});
     });
 
     ProviderContainer createContainer() {
@@ -79,99 +80,125 @@ void main() {
       return container;
     }
 
-    test('updateTrafficFilterMaxHorizontalDistanceEnabled updates state and persists', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test(
+      'updateTrafficFilterMaxHorizontalDistanceEnabled updates state and persists',
+      () async {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      final result = await notifier.updateTrafficFilterMaxHorizontalDistanceEnabled(false);
-      expect(result, isA<SettingsUpdateSuccess>());
+        final result = await notifier
+            .updateTrafficFilterMaxHorizontalDistanceEnabled(false);
+        expect(result, isA<SettingsUpdateSuccess>());
 
-      final state = container.read(appSettingsProvider).value;
-      expect(state?.trafficFilterMaxHorizontalDistanceEnabled, isFalse);
-      verify(() => mockRepository.saveSettings(any(
-        that: isA<AppSettings>().having(
-          (s) => s.trafficFilterMaxHorizontalDistanceEnabled,
-          'trafficFilterMaxHorizontalDistanceEnabled',
-          isFalse,
-        ),
-      ))).called(1);
-    });
+        final state = container.read(appSettingsProvider).value;
+        expect(state?.trafficFilterMaxHorizontalDistanceEnabled, isFalse);
+        verify(
+          () => mockRepository.saveSettings(
+            any(
+              that: isA<AppSettings>().having(
+                (s) => s.trafficFilterMaxHorizontalDistanceEnabled,
+                'trafficFilterMaxHorizontalDistanceEnabled',
+                isFalse,
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
 
-    test('updateTrafficMaxHorizontalDistance clamps to lower boundary (1000.0)', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test(
+      'updateTrafficMaxHorizontalDistance clamps to lower boundary (1000.0)',
+      () async {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      final result = await notifier.updateTrafficMaxHorizontalDistance(500.0);
-      expect(result, isA<SettingsUpdateSuccess>());
+        final result = await notifier.updateTrafficMaxHorizontalDistance(500.0);
+        expect(result, isA<SettingsUpdateSuccess>());
 
-      final state = container.read(appSettingsProvider).value;
-      expect(state?.trafficMaxHorizontalDistance, equals(1000.0));
-      expect(state?.trafficMaxHorizontalDistance, isA<double>());
-    });
+        final state = container.read(appSettingsProvider).value;
+        expect(state?.trafficMaxHorizontalDistance, equals(1000.0));
+        expect(state?.trafficMaxHorizontalDistance, isA<double>());
+      },
+    );
 
-    test('updateTrafficMaxHorizontalDistance clamps to upper boundary (500000.0)', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test(
+      'updateTrafficMaxHorizontalDistance clamps to upper boundary (500000.0)',
+      () async {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      final result = await notifier.updateTrafficMaxHorizontalDistance(600000.0);
-      expect(result, isA<SettingsUpdateSuccess>());
+        final result = await notifier.updateTrafficMaxHorizontalDistance(
+          600000.0,
+        );
+        expect(result, isA<SettingsUpdateSuccess>());
 
-      final state = container.read(appSettingsProvider).value;
-      expect(state?.trafficMaxHorizontalDistance, equals(500000.0));
-      expect(state?.trafficMaxHorizontalDistance, isA<double>());
-    });
+        final state = container.read(appSettingsProvider).value;
+        expect(state?.trafficMaxHorizontalDistance, equals(500000.0));
+        expect(state?.trafficMaxHorizontalDistance, isA<double>());
+      },
+    );
 
-    test('updateTrafficFilterMaxVerticalDistanceEnabled updates state and persists', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test(
+      'updateTrafficFilterMaxVerticalDistanceEnabled updates state and persists',
+      () async {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      final result = await notifier.updateTrafficFilterMaxVerticalDistanceEnabled(false);
-      expect(result, isA<SettingsUpdateSuccess>());
+        final result = await notifier
+            .updateTrafficFilterMaxVerticalDistanceEnabled(false);
+        expect(result, isA<SettingsUpdateSuccess>());
 
-      final state = container.read(appSettingsProvider).value;
-      expect(state?.trafficFilterMaxVerticalDistanceEnabled, isFalse);
-    });
+        final state = container.read(appSettingsProvider).value;
+        expect(state?.trafficFilterMaxVerticalDistanceEnabled, isFalse);
+      },
+    );
 
-    test('updateTrafficMaxVerticalDistance clamps to lower boundary (100.0)', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test(
+      'updateTrafficMaxVerticalDistance clamps to lower boundary (100.0)',
+      () async {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      final result = await notifier.updateTrafficMaxVerticalDistance(50.0);
-      expect(result, isA<SettingsUpdateSuccess>());
+        final result = await notifier.updateTrafficMaxVerticalDistance(50.0);
+        expect(result, isA<SettingsUpdateSuccess>());
 
-      final state = container.read(appSettingsProvider).value;
-      expect(state?.trafficMaxVerticalDistance, equals(100.0));
-      expect(state?.trafficMaxVerticalDistance, isA<double>());
-    });
+        final state = container.read(appSettingsProvider).value;
+        expect(state?.trafficMaxVerticalDistance, equals(100.0));
+        expect(state?.trafficMaxVerticalDistance, isA<double>());
+      },
+    );
 
-    test('updateTrafficMaxVerticalDistance clamps to upper boundary (20000.0)', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test(
+      'updateTrafficMaxVerticalDistance clamps to upper boundary (20000.0)',
+      () async {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
 
-      final result = await notifier.updateTrafficMaxVerticalDistance(30000.0);
-      expect(result, isA<SettingsUpdateSuccess>());
+        final result = await notifier.updateTrafficMaxVerticalDistance(30000.0);
+        expect(result, isA<SettingsUpdateSuccess>());
 
-      final state = container.read(appSettingsProvider).value;
-      expect(state?.trafficMaxVerticalDistance, equals(20000.0));
-      expect(state?.trafficMaxVerticalDistance, isA<double>());
-    });
+        final state = container.read(appSettingsProvider).value;
+        expect(state?.trafficMaxVerticalDistance, equals(20000.0));
+        expect(state?.trafficMaxVerticalDistance, isA<double>());
+      },
+    );
   });
 }

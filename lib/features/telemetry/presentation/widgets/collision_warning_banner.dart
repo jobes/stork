@@ -20,7 +20,9 @@ class CollisionWarningBanner extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider).value;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
     final gpsAlt = ref.watch(telemetryProvider.select((t) => t.gpsAltitude));
-    final mslVal = ref.watch(resolvedAltitudeProvider.select((a) => a.mslValue));
+    final mslVal = ref.watch(
+      resolvedAltitudeProvider.select((a) => a.mslValue),
+    );
     final myAlt = mslVal ?? gpsAlt ?? 0.0;
     final heightUnit = settings?.heightUnit ?? AltitudeUnit.meters;
     final l10n = AppLocalizations.of(context)!;
@@ -34,7 +36,9 @@ class CollisionWarningBanner extends ConsumerWidget {
         : '${distKm.toStringAsFixed(1)}${l10n.speedUnitKmH}';
 
     final tCpaVal = threatTarget.tCpa;
-    final tCpaStr = tCpaVal != null ? '${tCpaVal.round()}${l10n.durationSuffix.trim()}' : '--';
+    final tCpaStr = tCpaVal != null
+        ? '${tCpaVal.round()}${l10n.durationSuffix.trim()}'
+        : '--';
 
     // Altitude difference calculation
     final vertDiffMeters = threatTarget.altitude - myAlt;
@@ -71,7 +75,7 @@ class CollisionWarningBanner extends ConsumerWidget {
                         'groundSpeed': threatTarget.groundSpeed,
                         'verticalSpeed': threatTarget.verticalSpeed,
                       },
-                    }
+                    },
                   ],
                 ),
               );
@@ -85,10 +89,7 @@ class CollisionWarningBanner extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white, width: 2),
                 gradient: LinearGradient(
-                  colors: [
-                    Colors.red.shade900,
-                    Colors.red.shade700,
-                  ],
+                  colors: [Colors.red.shade900, Colors.red.shade700],
                 ),
               ),
               child: Row(
