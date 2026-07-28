@@ -41,7 +41,7 @@ final class TelemetryNotifierProvider
   }
 }
 
-String _$telemetryNotifierHash() => r'1abb007094aa468fbcbc26da53e19d9dfc4527bd';
+String _$telemetryNotifierHash() => r'2c4dfcb26a6435638c5c991345a0f92b08cf2b12';
 
 abstract class _$TelemetryNotifier extends $Notifier<TelemetryState> {
   TelemetryState build();
@@ -99,7 +99,7 @@ final class GpsListenerProvider extends $FunctionalProvider<void, void, void>
   }
 }
 
-String _$gpsListenerHash() => r'1c733ebf884f9e2d5686d95bec8a30ed82ec1558';
+String _$gpsListenerHash() => r'f772f0d59c4c3c53b920f0d979e70fca66e58a03';
 
 @ProviderFor(DisableTelemetryAnimations)
 final disableTelemetryAnimationsProvider =

@@ -68,6 +68,7 @@ final class PositionStreamProvider
               double horizontalAccuracy,
               double lat,
               double lon,
+              DateTime? timestamp,
               double verticalAccuracy,
             })
           >,
@@ -78,6 +79,7 @@ final class PositionStreamProvider
             double horizontalAccuracy,
             double lat,
             double lon,
+            DateTime? timestamp,
             double verticalAccuracy,
           }),
           Stream<
@@ -88,6 +90,7 @@ final class PositionStreamProvider
               double horizontalAccuracy,
               double lat,
               double lon,
+              DateTime? timestamp,
               double verticalAccuracy,
             })
           >
@@ -101,6 +104,7 @@ final class PositionStreamProvider
             double horizontalAccuracy,
             double lat,
             double lon,
+            DateTime? timestamp,
             double verticalAccuracy,
           })
         >,
@@ -112,6 +116,7 @@ final class PositionStreamProvider
             double horizontalAccuracy,
             double lat,
             double lon,
+            DateTime? timestamp,
             double verticalAccuracy,
           })
         > {
@@ -141,6 +146,7 @@ final class PositionStreamProvider
       double horizontalAccuracy,
       double lat,
       double lon,
+      DateTime? timestamp,
       double verticalAccuracy,
     })
   >
@@ -155,6 +161,7 @@ final class PositionStreamProvider
       double horizontalAccuracy,
       double lat,
       double lon,
+      DateTime? timestamp,
       double verticalAccuracy,
     })
   >
@@ -163,7 +170,7 @@ final class PositionStreamProvider
   }
 }
 
-String _$positionStreamHash() => r'4f5ebabe278d53a6f5a38e698bc5541b9e8f7b2e';
+String _$positionStreamHash() => r'2611525349d8ee2601c7a5f4bebca30d0fa1aeb2';
 
 @ProviderFor(compassStream)
 final compassStreamProvider = CompassStreamProvider._();

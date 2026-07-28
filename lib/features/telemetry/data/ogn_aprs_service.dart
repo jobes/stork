@@ -100,6 +100,7 @@ class OgnOutboundIsolate {
               final heading = message['heading'] as double;
               final speed = message['speed'] as double;
               final vs = message['vs'] as double;
+              final timestamp = message['timestamp'] as DateTime?;
 
               final latDeg = lat.abs().floor();
               final latMin = (lat.abs() - latDeg) * 60.0;
@@ -128,7 +129,7 @@ class OgnOutboundIsolate {
                   .toString()
                   .padLeft(6, '0');
 
-              final now = DateTime.now().toUtc();
+              final now = (timestamp ?? DateTime.now()).toUtc();
               final timeStr =
                   '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}h';
 
@@ -190,6 +191,7 @@ class OgnOutboundManager {
     required double heading,
     required double speed,
     required double vs,
+    DateTime? timestamp,
   }) {
     if (_sendPort != null) {
       _sendPort!.send({
@@ -200,6 +202,7 @@ class OgnOutboundManager {
         'heading': heading,
         'speed': speed,
         'vs': vs,
+        'timestamp': timestamp,
       });
     }
   }

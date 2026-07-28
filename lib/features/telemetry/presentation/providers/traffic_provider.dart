@@ -431,6 +431,7 @@ class Traffic extends _$Traffic {
                   heading: telemetry.heading ?? 0.0,
                   speed: telemetry.groundSpeed ?? 0.0,
                   vs: vsVal,
+                  timestamp: telemetry.gpsTimestamp,
                 );
               }
             }

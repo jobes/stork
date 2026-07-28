@@ -567,6 +567,10 @@ class CannelloniService extends _$CannelloniService {
   }
 
   void _updateTelemetryGPS(Fix2 fix2) {
+    final DateTime timestamp = fix2.gnssTimestamp > 0
+        ? DateTime.fromMicrosecondsSinceEpoch(fix2.gnssTimestamp, isUtc: true)
+        : DateTime.now().toUtc();
+
     ref
         .read(telemetryProvider.notifier)
         .updateGPS(
@@ -578,6 +582,7 @@ class CannelloniService extends _$CannelloniService {
           gpsHorizontalAccuracy: fix2.horizontalAccuracy,
           gpsVerticalAccuracy: fix2.verticalAccuracy,
           gpsAltitude: fix2.altitude,
+          gpsTimestamp: timestamp,
           isDroneCan: true,
         );
   }
