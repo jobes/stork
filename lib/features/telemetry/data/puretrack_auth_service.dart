@@ -49,12 +49,15 @@ class PureTrackAuthService {
   String? get currentUsername => _cachedUsername;
   String get apiKey => _apiKey;
 
+  final bool _ownsClient;
+
   PureTrackAuthService({
     FlutterSecureStorage? storage,
     http.Client? client,
     String baseUrl = 'https://puretrack.io',
     String? apiKey,
   }) : _storage = storage ?? const FlutterSecureStorage(),
+       _ownsClient = client == null,
        _client = client ?? http.Client(),
        _baseUrl = baseUrl,
        _apiKey =
@@ -105,24 +108,26 @@ class PureTrackAuthService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        final token = data['access_token'] ?? data['token'];
-        final isPro = data['pro'] == true;
+        if (data is Map<String, dynamic>) {
+          final token = data['access_token'] ?? data['token'];
+          final isPro = data['pro'] == true;
 
-        if (token != null && token.toString().isNotEmpty) {
-          final tokenStr = token.toString();
-          await _storage.write(key: _kPureTrackTokenKey, value: tokenStr);
-          await _storage.write(
-            key: _kPureTrackUsernameKey,
-            value: username.trim(),
-          );
-          _cachedToken = tokenStr;
-          _cachedUsername = username.trim();
-          _setState(PureTrackAuthState.authenticated);
-          return PureTrackAuthResult(
-            isSuccess: true,
-            token: tokenStr,
-            isPro: isPro,
-          );
+          if (token != null && token.toString().isNotEmpty) {
+            final tokenStr = token.toString();
+            await _storage.write(key: _kPureTrackTokenKey, value: tokenStr);
+            await _storage.write(
+              key: _kPureTrackUsernameKey,
+              value: username.trim(),
+            );
+            _cachedToken = tokenStr;
+            _cachedUsername = username.trim();
+            _setState(PureTrackAuthState.authenticated);
+            return PureTrackAuthResult(
+              isSuccess: true,
+              token: tokenStr,
+              isPro: isPro,
+            );
+          }
         }
       }
 
@@ -172,6 +177,9 @@ class PureTrackAuthService {
   }
 
   void dispose() {
+    if (_ownsClient) {
+      _client.close();
+    }
     _authStateController.close();
   }
 }

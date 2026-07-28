@@ -213,10 +213,11 @@ void main() {
       aggregator.processOgnUpdate(activePacket);
       expect(aggregator.targets.length, equals(2));
 
-      final purgedCount = aggregator.purgeStaleTargets(
+      final purgedIds = aggregator.purgeStaleTargets(
         maxAge: const Duration(minutes: 15),
       );
-      expect(purgedCount, equals(1));
+      expect(purgedIds.length, equals(1));
+      expect(purgedIds.first, equals('1efccc'));
       expect(aggregator.targets.length, equals(1));
       expect(aggregator.targets.first.id, equals('2ab345'));
     });

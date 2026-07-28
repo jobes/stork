@@ -122,25 +122,36 @@ class PureTrackPacket {
     final canonical = CanonicalId.normalize(rawIdStr);
     if (canonical.isEmpty) return null;
 
-    final lat = (json['lat'] ?? json['latitude'] ?? json['L'])?.toDouble();
-    final lon = (json['lon'] ?? json['longitude'] ?? json['G'])?.toDouble();
+    double? parseNum(dynamic val) {
+      if (val is num) return val.toDouble();
+      if (val is String) return double.tryParse(val);
+      return null;
+    }
+
+    final lat = parseNum(json['lat'] ?? json['latitude'] ?? json['L']);
+    final lon = parseNum(json['lon'] ?? json['longitude'] ?? json['G']);
     if (lat == null || lon == null) return null;
 
-    final alt = (json['alt'] ?? json['altitude'] ?? json['A'] ?? 0.0)
-        .toDouble();
+    final alt = parseNum(json['alt'] ?? json['altitude'] ?? json['A']) ?? 0.0;
     final speed =
-        (json['speed'] ??
-                json['ground_speed'] ??
-                json['gs'] ??
-                json['S'] ??
-                0.0)
-            .toDouble();
-    final track = (json['track'] ?? json['heading'] ?? json['C'] ?? 0.0)
-        .toDouble();
-    final vs = (json['vs'] ?? json['vertical_speed'] ?? json['V'] ?? 0.0)
-        .toDouble();
-    final type =
-        (json['type'] ?? json['aircraft_type'] ?? json['O'] ?? 1) as int;
+        parseNum(
+          json['speed'] ?? json['ground_speed'] ?? json['gs'] ?? json['S'],
+        ) ??
+        0.0;
+    final track =
+        parseNum(json['track'] ?? json['heading'] ?? json['C']) ?? 0.0;
+    final vs =
+        parseNum(json['vs'] ?? json['vertical_speed'] ?? json['V']) ?? 0.0;
+
+    int parseType(dynamic val) {
+      if (val is num) return val.toInt();
+      if (val is String) return int.tryParse(val) ?? 1;
+      return 1;
+    }
+
+    final type = parseType(
+      json['type'] ?? json['aircraft_type'] ?? json['O'],
+    );
 
     DateTime tSent;
     final tsRaw =
@@ -209,6 +220,8 @@ class PureTrackStreamService {
   bool get isConnected =>
       _activeToken != null && _pollTimer != null && _pollTimer!.isActive;
 
+  final bool _ownsClient;
+
   PureTrackStreamService({
     String baseUrl = 'https://puretrack.io',
     String? apiKey,
@@ -218,6 +231,7 @@ class PureTrackStreamService {
        _apiKey =
            apiKey ??
            (dotenv.isInitialized ? (dotenv.env['PURETRACK_KEY'] ?? '') : ''),
+       _ownsClient = client == null,
        _client = client ?? http.Client(),
        _onUnauthorized = onUnauthorized;
 
@@ -366,6 +380,9 @@ class PureTrackStreamService {
   void dispose() {
     _isDisposed = true;
     disconnect();
+    if (_ownsClient) {
+      _client.close();
+    }
     _packetController.close();
   }
 }

@@ -239,10 +239,13 @@ class Traffic extends _$Traffic {
   }
 
   void _cleanupStaleTraffic() {
-    final purged = _aggregator.purgeStaleTargets(
-      maxAge: const Duration(minutes: 3),
+    final purgedIds = _aggregator.purgeStaleTargets(
+      maxAge: const Duration(minutes: 15),
     );
-    if (purged > 0) {
+    for (final id in purgedIds) {
+      _trackHistories.remove(id);
+    }
+    if (purgedIds.isNotEmpty) {
       publishState();
     }
   }
@@ -360,13 +363,16 @@ class Traffic extends _$Traffic {
 
     // Purge targets outside current viewport (plus 0.5° margin ~ 55km) to keep DB target count minimal and clean
     const margin = 0.5;
-    final purgedCount = _aggregator.purgeTargetsOutside(
+    final purgedIds = _aggregator.purgeTargetsOutside(
       latNorth: bounds.latitudeNorth + margin,
       lonWest: bounds.longitudeWest - margin,
       latSouth: bounds.latitudeSouth - margin,
       lonEast: bounds.longitudeEast + margin,
     );
-    if (purgedCount > 0) {
+    for (final id in purgedIds) {
+      _trackHistories.remove(id);
+    }
+    if (purgedIds.isNotEmpty) {
       publishState();
     }
   }

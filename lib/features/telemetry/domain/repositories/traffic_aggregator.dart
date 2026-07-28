@@ -106,9 +106,11 @@ class TrafficAggregator {
     }
   }
 
-  /// Purges targets whose T_sent fix timestamp is older than maxAge (default 3 minutes)
-  int purgeStaleTargets({Duration maxAge = const Duration(minutes: 3)}) {
-    if (_targets.isEmpty) return 0;
+  /// Purges targets whose T_sent fix timestamp is older than maxAge (default 15 minutes)
+  List<String> purgeStaleTargets({
+    Duration maxAge = const Duration(minutes: 15),
+  }) {
+    if (_targets.isEmpty) return const [];
     final now = DateTime.now();
     final staleKeys = <String>[];
 
@@ -128,17 +130,17 @@ class TrafficAggregator {
       );
     }
 
-    return staleKeys.length;
+    return staleKeys;
   }
 
   /// Purges targets that fall outside the specified bounding box
-  int purgeTargetsOutside({
+  List<String> purgeTargetsOutside({
     required double latNorth,
     required double lonWest,
     required double latSouth,
     required double lonEast,
   }) {
-    if (_targets.isEmpty) return 0;
+    if (_targets.isEmpty) return const [];
     final staleKeys = <String>[];
 
     for (final entry in _targets.entries) {
@@ -161,7 +163,7 @@ class TrafficAggregator {
       );
     }
 
-    return staleKeys.length;
+    return staleKeys;
   }
 
   /// Clears all stored targets

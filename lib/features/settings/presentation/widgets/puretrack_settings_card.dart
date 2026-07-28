@@ -65,6 +65,7 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
 
   Future<void> _handleLogout() async {
     await ref.read(pureTrackProvider.notifier).logout();
+    if (!mounted) return;
     _passwordController.clear();
     setState(() {
       _errorMessage = null;
@@ -194,7 +195,10 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_outline, color: Colors.green),
+                    Icon(
+                      Icons.check_circle_outline,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -230,34 +234,35 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
     PureTrackAuthState state,
     AppLocalizations l10n,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     final Color bgColor;
     final Color textColor;
     final String label;
 
     switch (state) {
       case PureTrackAuthState.authenticated:
-        bgColor = Colors.green.shade100;
-        textColor = Colors.green.shade900;
+        bgColor = colorScheme.primaryContainer;
+        textColor = colorScheme.onPrimaryContainer;
         label = l10n.pureTrackStatusConnected;
         break;
       case PureTrackAuthState.authenticating:
-        bgColor = Colors.blue.shade100;
-        textColor = Colors.blue.shade900;
+        bgColor = colorScheme.secondaryContainer;
+        textColor = colorScheme.onSecondaryContainer;
         label = l10n.pureTrackStatusAuthenticating;
         break;
       case PureTrackAuthState.tokenInvalid:
-        bgColor = Colors.orange.shade100;
-        textColor = Colors.orange.shade900;
+        bgColor = colorScheme.tertiaryContainer;
+        textColor = colorScheme.onTertiaryContainer;
         label = l10n.pureTrackStatusTokenInvalid;
         break;
       case PureTrackAuthState.error:
-        bgColor = Colors.red.shade100;
-        textColor = Colors.red.shade900;
+        bgColor = colorScheme.errorContainer;
+        textColor = colorScheme.onErrorContainer;
         label = l10n.pureTrackStatusError;
         break;
       case PureTrackAuthState.unauthenticated:
-        bgColor = Colors.grey.shade200;
-        textColor = Colors.grey.shade800;
+        bgColor = colorScheme.surfaceContainerHighest;
+        textColor = colorScheme.onSurfaceVariant;
         label = l10n.pureTrackStatusDisconnected;
         break;
     }

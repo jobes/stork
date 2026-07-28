@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:mocktail/mocktail.dart';
 import 'package:stork/features/telemetry/data/puretrack_stream_service.dart';
+
+class MockHttpClient extends Mock implements http.Client {}
 
 void main() {
   group('PureTrackPacket.parseDataRow', () {
@@ -69,6 +73,48 @@ void main() {
       final packet = PureTrackPacket.fromJson(json);
       expect(packet, isNull);
     });
+
+    test('handles numeric strings and tolerant type/numeric parsing', () {
+      final json = {
+        'id': '1EFCCC',
+        'lat': '48.1486',
+        'lon': '17.1077',
+        'alt': '520.5',
+        'speed': '32',
+        'track': '195.0',
+        'vs': '-1.5',
+        'type': '56',
+      };
+
+      final packet = PureTrackPacket.fromJson(json);
+
+      expect(packet, isNotNull);
+      expect(packet!.latitude, equals(48.1486));
+      expect(packet.longitude, equals(17.1077));
+      expect(packet.altitude, equals(520.5));
+      expect(packet.groundSpeed, equals(32.0));
+      expect(packet.track, equals(195.0));
+      expect(packet.verticalSpeed, equals(-1.5));
+      expect(packet.aircraftType, equals(56));
+    });
+
+    test('falls back to defaults for invalid numeric values and default type 1', () {
+      final json = {
+        'id': '1EFCCC',
+        'lat': 48.1486,
+        'lon': 17.1077,
+        'alt': 'invalid',
+        'speed': null,
+        'type': 'invalid',
+      };
+
+      final packet = PureTrackPacket.fromJson(json);
+
+      expect(packet, isNotNull);
+      expect(packet!.altitude, equals(0.0));
+      expect(packet.groundSpeed, equals(0.0));
+      expect(packet.aircraftType, equals(1));
+    });
   });
 
   group('PureTrackStreamService tests', () {
@@ -118,5 +164,14 @@ void main() {
         expect(unauthorizedCalled, isTrue);
       },
     );
+
+    test('dispose does not throw and leaves caller-provided client open', () {
+      final mockClient = MockHttpClient();
+      final service = PureTrackStreamService(client: mockClient);
+
+      service.dispose();
+
+      verifyNever(() => mockClient.close());
+    });
   });
 }

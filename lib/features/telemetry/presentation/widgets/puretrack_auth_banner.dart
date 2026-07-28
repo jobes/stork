@@ -24,7 +24,7 @@ class PureTrackAuthBanner extends ConsumerWidget {
         child: Material(
           elevation: 6,
           borderRadius: BorderRadius.circular(12),
-          color: Colors.orange.shade900,
+          color: theme.colorScheme.errorContainer,
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
@@ -43,9 +43,9 @@ class PureTrackAuthBanner extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.white,
+                    color: theme.colorScheme.onErrorContainer,
                     size: 24,
                   ),
                   const SizedBox(width: 12),
@@ -53,13 +53,16 @@ class PureTrackAuthBanner extends ConsumerWidget {
                     child: Text(
                       l10n.pureTrackSessionExpiredBanner,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
+                        color: theme.colorScheme.onErrorContainer,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(Icons.chevron_right, color: Colors.white),
+                  Icon(
+                    Icons.chevron_right,
+                    color: theme.colorScheme.onErrorContainer,
+                  ),
                 ],
               ),
             ),

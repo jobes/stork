@@ -130,8 +130,17 @@ void main() {
       'invalidateToken clears storage and sets state to tokenInvalid',
       () async {
         when(
+          () => mockStorage.read(key: 'puretrack_access_token'),
+        ).thenAnswer((_) async => 'existing_token');
+        when(
+          () => mockStorage.read(key: 'puretrack_username'),
+        ).thenAnswer((_) async => null);
+        when(
           () => mockStorage.delete(key: 'puretrack_access_token'),
         ).thenAnswer((_) async => {});
+
+        await authService.init();
+        expect(authService.currentToken, equals('existing_token'));
 
         await authService.invalidateToken();
 
@@ -150,8 +159,18 @@ void main() {
       'logout clears secure storage and sets state to unauthenticated',
       () async {
         when(
+          () => mockStorage.read(key: 'puretrack_access_token'),
+        ).thenAnswer((_) async => 'existing_token');
+        when(
+          () => mockStorage.read(key: 'puretrack_username'),
+        ).thenAnswer((_) async => 'pilot@example.com');
+        when(
           () => mockStorage.delete(key: any(named: 'key')),
         ).thenAnswer((_) async => {});
+
+        await authService.init();
+        expect(authService.currentToken, equals('existing_token'));
+        expect(authService.currentUsername, equals('pilot@example.com'));
 
         await authService.logout();
 
@@ -167,5 +186,10 @@ void main() {
         verify(() => mockStorage.delete(key: 'puretrack_username')).called(1);
       },
     );
+
+    test('dispose does not close caller-provided client', () {
+      authService.dispose();
+      verifyNever(() => mockClient.close());
+    });
   });
 }
