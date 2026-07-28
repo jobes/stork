@@ -6,7 +6,7 @@ This document describes the high-performance telemetry, DroneCAN integration, an
 
 ## 1. High-Level Architecture
 
-Stork uses an advanced, robust, and real-time telemetry pipeline to ingest flight and hardware data. Since modern avionics systems communicate using **CAN / DroneCAN** buses, but mobile/web devices lack physical CAN ports, the application bridges this gap using **CAN-over-IP** encapsulation.
+Stork uses an advanced, robust, and real-time telemetry pipeline to ingest flight, engine, and traffic data. Onboard hardware and avionics communicate using **CAN / DroneCAN** buses, bridged over Wi-Fi/Ethernet via **CAN-over-IP (Cannelloni)**. In parallel, external air-traffic situational telemetry is continuously ingested from multi-source traffic networks (**OGN APRS** and **PureTrack SSE stream**), aggregated, and deduplicated in real time.
 
 The telemetry pipeline consists of the following layers:
 
@@ -19,6 +19,10 @@ graph TD
     D -->|Parsed Message Payloads| E[Dart FFI Callback]
     E -->|Structured Dart Data| F[TelemetryNotifier / Riverpod]
     F -->|Decayable Fields / Safety| G[App UI & Follow-Mode Map]
+
+    H[OGN APRS & PureTrack Telemetry] -->|TCP APRS & SSE Stream| I[TrafficAggregator / CanonicalId]
+    I -->|Deduplicated Targets| J[trafficProvider / Riverpod]
+    J -->|Render & Collision Alerts| G
 ```
 
 ---

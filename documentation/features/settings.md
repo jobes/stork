@@ -75,3 +75,14 @@ Manages visual and layout preferences:
 Manages network connectivity:
 - **Auto-Discovery Toggle**: Enables or disables mDNS network scanning.
 - **Device Selection**: A dropdown list populated with discovered `CannelloniDevice` instances, allowing the user to select the active telemetry source.
+
+### 4.4. Traffic Settings ([TrafficSettingsPage](../../lib/features/settings/presentation/pages/traffic_settings_page.dart))
+Manages traffic filtering, collision avoidance parameters, and multi-source telemetry configuration:
+- **Spatial Distance Filters**: Toggles and numerical sliders for `trafficMaxHorizontalDistance` (up to $50\text{ km}$) and `trafficMaxVerticalDistance` (up to $1500\text{ m}$).
+- **Collision Avoidance System (CAS)**: Enable toggle and thresholds for lookahead time ($t_{\text{CPA}}$), horizontal separation distance ($d_{\text{CPA}}$), and vertical altitude boundaries.
+- **PureTrack Service Integration ([PureTrackSettingsCard](../../lib/features/settings/presentation/widgets/puretrack_settings_card.dart))**:
+  - **Account Credentials**: Email and password input fields for authenticating with the PureTrack API.
+  - **Session Management**: Interactive buttons to log in, log out, or invalidate active tokens.
+  - **Status Indicators**: Real-time authentication status badge (authenticated, unauthenticated, error state).
+  - **Stream Integration Toggle**: Switch to enable/disable PureTrack live telemetry streaming.
+

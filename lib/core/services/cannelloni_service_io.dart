@@ -567,9 +567,9 @@ class CannelloniService extends _$CannelloniService {
   }
 
   void _updateTelemetryGPS(Fix2 fix2) {
-    final DateTime timestamp = fix2.gnssTimestamp > 0
+    final DateTime? timestamp = fix2.gnssTimestamp > 0
         ? DateTime.fromMicrosecondsSinceEpoch(fix2.gnssTimestamp, isUtc: true)
-        : DateTime.now().toUtc();
+        : null;
 
     ref
         .read(telemetryProvider.notifier)
