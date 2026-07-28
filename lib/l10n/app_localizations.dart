@@ -3487,6 +3487,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Data Source'**
   String get trafficSourceLabel;
+
+  /// No description provided for @trafficSourceOgn.
+  ///
+  /// In en, this message translates to:
+  /// **'OGN'**
+  String get trafficSourceOgn;
+
+  /// No description provided for @trafficSourcePureTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'PureTrack'**
+  String get trafficSourcePureTrack;
 }
 
 class _AppLocalizationsDelegate

@@ -1816,4 +1816,10 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get trafficSourceLabel => 'Zdroj dát';
+
+  @override
+  String get trafficSourceOgn => 'OGN';
+
+  @override
+  String get trafficSourcePureTrack => 'PureTrack';
 }

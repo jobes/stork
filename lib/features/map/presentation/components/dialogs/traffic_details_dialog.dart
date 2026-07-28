@@ -369,6 +369,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
 
   Widget _buildSourceColumn(BuildContext context, dynamic ac, String label) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final Set<String> sources = ac.sources;
     final String activeSource = ac.activeSource;
     final hasOgn = sources.contains('ogn');
@@ -381,7 +382,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
       badges.add(
         _buildSourceChip(
           context,
-          name: 'OGN',
+          name: l10n.trafficSourceOgn,
           color: Colors.blue,
           isActive: isActive,
         ),
@@ -393,7 +394,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
       badges.add(
         _buildSourceChip(
           context,
-          name: 'PureTrack',
+          name: l10n.trafficSourcePureTrack,
           color: Colors.purple,
           isActive: isActive,
         ),

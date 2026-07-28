@@ -872,6 +872,8 @@
   "pureTrackStatusTokenInvalid": "Session Expired (Re-authentication required)",
   "pureTrackStatusError": "Authentication Error",
   "pureTrackSessionExpiredBanner": "PureTrack session expired. Tap to re-authenticate.",
-  "trafficSourceLabel": "Data Source"
+  "trafficSourceLabel": "Data Source",
+  "trafficSourceOgn": "OGN",
+  "trafficSourcePureTrack": "PureTrack"
 }
 

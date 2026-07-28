@@ -1808,4 +1808,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trafficSourceLabel => 'Data Source';
+
+  @override
+  String get trafficSourceOgn => 'OGN';
+
+  @override
+  String get trafficSourcePureTrack => 'PureTrack';
 }
