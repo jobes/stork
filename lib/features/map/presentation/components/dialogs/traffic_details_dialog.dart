@@ -383,7 +383,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
         _buildSourceChip(
           context,
           name: l10n.trafficSourceOgn,
-          color: Colors.blue,
+          color: theme.colorScheme.primary,
           isActive: isActive,
         ),
       );
@@ -395,7 +395,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
         _buildSourceChip(
           context,
           name: l10n.trafficSourcePureTrack,
-          color: Colors.purple,
+          color: theme.colorScheme.secondary,
           isActive: isActive,
         ),
       );
@@ -422,7 +422,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
   Widget _buildSourceChip(
     BuildContext context, {
     required String name,
-    required MaterialColor color,
+    required Color color,
     required bool isActive,
   }) {
     final theme = Theme.of(context);
@@ -430,16 +430,16 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
 
     final bgColor = isActive
         ? (isDark
-              ? color.withValues(alpha: 0.35)
-              : color.withValues(alpha: 0.15))
+              ? color.withValues(alpha: 0.25)
+              : color.withValues(alpha: 0.12))
         : theme.colorScheme.onSurface.withValues(alpha: 0.06);
 
     final textColor = isActive
-        ? (isDark ? color.shade200 : color.shade900)
+        ? color
         : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
 
     final borderColor = isActive
-        ? (isDark ? color.shade400 : color.shade600)
+        ? color.withValues(alpha: isDark ? 0.6 : 0.4)
         : theme.colorScheme.outlineVariant.withValues(alpha: 0.2);
 
     return Container(
