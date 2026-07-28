@@ -1766,4 +1766,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get collisionWarningLabel => 'COLLISION';
+
+  @override
+  String get pureTrackTitle => 'PureTrack Account';
+
+  @override
+  String get pureTrackDescription =>
+      'Secondary live aircraft tracking data feed';
+
+  @override
+  String get pureTrackUsername => 'Username / Email';
+
+  @override
+  String get pureTrackPassword => 'Password';
+
+  @override
+  String get pureTrackLogin => 'Log In';
+
+  @override
+  String get pureTrackLogout => 'Log Out';
+
+  @override
+  String get pureTrackStatusConnected => 'Connected';
+
+  @override
+  String get pureTrackStatusDisconnected => 'Disconnected';
+
+  @override
+  String get pureTrackStatusAuthenticating => 'Authenticating...';
+
+  @override
+  String get pureTrackStatusTokenInvalid =>
+      'Session Expired (Re-authentication required)';
+
+  @override
+  String get pureTrackStatusError => 'Authentication Error';
+
+  @override
+  String get pureTrackSessionExpiredBanner =>
+      'PureTrack session expired. Tap to re-authenticate.';
+
+  @override
+  String get trafficSourceLabel => 'Data Source';
+
+  @override
+  String get trafficSourceOgn => 'OGN';
+
+  @override
+  String get trafficSourcePureTrack => 'PureTrack';
 }

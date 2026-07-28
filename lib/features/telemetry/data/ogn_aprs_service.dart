@@ -4,94 +4,8 @@ import 'dart:io';
 import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../domain/models/traffic_aircraft.dart';
 
-class OgnTrafficAircraft {
-  final String id;
-  final String callsign;
-  final String? registration;
-  final String? aircraftModel;
-  final String? cn;
-  final double latitude;
-  final double longitude;
-  final double altitude; // AMSL in meters
-  final double track; // degrees
-  final double groundSpeed; // m/s
-  final double verticalSpeed; // m/s (vario)
-  final int aircraftType;
-  final DateTime lastSeen;
-  final bool isAnonymous;
-  final double turnRate; // rad/s
-  final bool isCircling;
-  final bool isCollisionThreat;
-  final double? tCpa; // seconds
-  final double? minDistance; // meters
-
-  OgnTrafficAircraft({
-    required this.id,
-    required this.callsign,
-    this.registration,
-    this.aircraftModel,
-    this.cn,
-    required this.latitude,
-    required this.longitude,
-    required this.altitude,
-    required this.track,
-    required this.groundSpeed,
-    required this.verticalSpeed,
-    required this.aircraftType,
-    required this.lastSeen,
-    this.isAnonymous = false,
-    this.turnRate = 0.0,
-    this.isCircling = false,
-    this.isCollisionThreat = false,
-    this.tCpa,
-    this.minDistance,
-  });
-
-  OgnTrafficAircraft copyWith({
-    String? id,
-    String? callsign,
-    String? registration,
-    String? aircraftModel,
-    String? cn,
-    double? latitude,
-    double? longitude,
-    double? altitude,
-    double? track,
-    double? groundSpeed,
-    double? verticalSpeed,
-    int? aircraftType,
-    DateTime? lastSeen,
-    bool? isAnonymous,
-    double? turnRate,
-    bool? isCircling,
-    bool? isCollisionThreat,
-    double? tCpa,
-    double? minDistance,
-  }) {
-    return OgnTrafficAircraft(
-      id: id ?? this.id,
-      callsign: callsign ?? this.callsign,
-      registration: registration ?? this.registration,
-      aircraftModel: aircraftModel ?? this.aircraftModel,
-      cn: cn ?? this.cn,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      altitude: altitude ?? this.altitude,
-      track: track ?? this.track,
-      groundSpeed: groundSpeed ?? this.groundSpeed,
-      verticalSpeed: verticalSpeed ?? this.verticalSpeed,
-      aircraftType: aircraftType ?? this.aircraftType,
-      lastSeen: lastSeen ?? this.lastSeen,
-      isAnonymous: isAnonymous ?? this.isAnonymous,
-      turnRate: turnRate ?? this.turnRate,
-      isCircling: isCircling ?? this.isCircling,
-      isCollisionThreat: isCollisionThreat ?? this.isCollisionThreat,
-      tCpa: tCpa ?? this.tCpa,
-      minDistance: minDistance ?? this.minDistance,
-    );
-  }
-}
 
 class OgnOutboundIsolate {
   static void entryPoint(SendPort mainSendPort) async {
@@ -118,8 +32,12 @@ class OgnOutboundIsolate {
       int attempts = 0;
       while (attempts < 3) {
         try {
-          socket = await Socket.connect('aprs.glidernet.org', 14580, timeout: const Duration(seconds: 5));
-          
+          socket = await Socket.connect(
+            'aprs.glidernet.org',
+            14580,
+            timeout: const Duration(seconds: 5),
+          );
+
           socket!.listen(
             (data) {},
             onError: (e) {
@@ -172,7 +90,9 @@ class OgnOutboundIsolate {
             await connect();
           }
 
-          if (socket != null && currentCallsign != null && currentOgnId != null) {
+          if (socket != null &&
+              currentCallsign != null &&
+              currentOgnId != null) {
             try {
               final lat = message['lat'] as double;
               final lon = message['lon'] as double;
@@ -180,23 +100,38 @@ class OgnOutboundIsolate {
               final heading = message['heading'] as double;
               final speed = message['speed'] as double;
               final vs = message['vs'] as double;
+              final timestamp = message['timestamp'] as DateTime?;
 
               final latDeg = lat.abs().floor();
               final latMin = (lat.abs() - latDeg) * 60.0;
               final latHemi = lat >= 0 ? 'N' : 'S';
-              final latStr = '${latDeg.toString().padLeft(2, '0')}${latMin.toStringAsFixed(2).padLeft(5, '0')}$latHemi';
+              final latStr =
+                  '${latDeg.toString().padLeft(2, '0')}${latMin.toStringAsFixed(2).padLeft(5, '0')}$latHemi';
 
               final lonDeg = lon.abs().floor();
               final lonMin = (lon.abs() - lonDeg) * 60.0;
               final lonHemi = lon >= 0 ? 'E' : 'W';
-              final lonStr = '${lonDeg.toString().padLeft(3, '0')}${lonMin.toStringAsFixed(2).padLeft(5, '0')}$lonHemi';
+              final lonStr =
+                  '${lonDeg.toString().padLeft(3, '0')}${lonMin.toStringAsFixed(2).padLeft(5, '0')}$lonHemi';
 
-              final trackVal = (heading.round() % 360).toString().padLeft(3, '0');
-              final speedKnots = (speed * 1.94384).round().clamp(0, 999).toString().padLeft(3, '0');
-              final altFeet = (alt * 3.28084).round().clamp(0, 999999).toString().padLeft(6, '0');
-              
-              final now = DateTime.now().toUtc();
-              final timeStr = '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}h';
+              final trackVal = (heading.round() % 360).toString().padLeft(
+                3,
+                '0',
+              );
+              final speedKnots = (speed * 1.94384)
+                  .round()
+                  .clamp(0, 999)
+                  .toString()
+                  .padLeft(3, '0');
+              final altFeet = (alt * 3.28084)
+                  .round()
+                  .clamp(0, 999999)
+                  .toString()
+                  .padLeft(6, '0');
+
+              final now = (timestamp ?? DateTime.now()).toUtc();
+              final timeStr =
+                  '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}h';
 
               final addressType = 3; // OGN Tracker address type
               final xx = (currentAircraftType << 2) | addressType;
@@ -204,10 +139,12 @@ class OgnOutboundIsolate {
 
               final vsFpm = (vs * 196.8504).round();
               final vsSign = vsFpm >= 0 ? '+' : '-';
-              final vsStr = '$vsSign${vsFpm.abs().toString().padLeft(3, '0')}fpm';
+              final vsStr =
+                  '$vsSign${vsFpm.abs().toString().padLeft(3, '0')}fpm';
 
               final comment = 'id$xxHex$currentOgnId $vsStr';
-              final packet = '$currentCallsign>APRS,TCPIP*,qAC,GLIDERN12:/$timeStr$latStr/$lonStr^$trackVal/$speedKnots/A=$altFeet $comment\r\n';
+              final packet =
+                  '$currentCallsign>APRS,TCPIP*,qAC,GLIDERN12:/$timeStr$latStr/$lonStr^$trackVal/$speedKnots/A=$altFeet $comment\r\n';
 
               socket!.write(packet);
               await socket!.flush();
@@ -233,8 +170,11 @@ class OgnOutboundManager {
   }) async {
     await stop();
     _receivePort = ReceivePort();
-    _isolate = await Isolate.spawn(OgnOutboundIsolate.entryPoint, _receivePort!.sendPort);
-    
+    _isolate = await Isolate.spawn(
+      OgnOutboundIsolate.entryPoint,
+      _receivePort!.sendPort,
+    );
+
     _sendPort = await _receivePort!.first as SendPort;
     _sendPort!.send({
       'command': 'config',
@@ -251,6 +191,7 @@ class OgnOutboundManager {
     required double heading,
     required double speed,
     required double vs,
+    DateTime? timestamp,
   }) {
     if (_sendPort != null) {
       _sendPort!.send({
@@ -261,6 +202,7 @@ class OgnOutboundManager {
         'heading': heading,
         'speed': speed,
         'vs': vs,
+        'timestamp': timestamp,
       });
     }
   }
@@ -301,29 +243,39 @@ class OgnInboundConnection {
     await disconnect();
     _hasNotifiedDisconnected = false;
     try {
-      _socket = await Socket.connect('aprs.glidernet.org', 14580, timeout: const Duration(seconds: 5));
+      _socket = await Socket.connect(
+        'aprs.glidernet.org',
+        14580,
+        timeout: const Duration(seconds: 5),
+      );
       _isConnected = true;
       debugPrint('OGN Inbound: Connected to aprs.glidernet.org:14580 🚀');
 
-      _socket!.cast<List<int>>().transform(utf8.decoder).transform(const LineSplitter()).listen(
-        (line) {
-          onLineReceived(line);
-        },
-        onError: (e) {
-          debugPrint('OGN Inbound: Socket error: $e');
-          disconnect();
-        },
-        onDone: () {
-          debugPrint('OGN Inbound: Socket closed by host');
-          disconnect();
-        },
-      );
+      _socket!
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(
+            (line) {
+              onLineReceived(line);
+            },
+            onError: (e) {
+              debugPrint('OGN Inbound: Socket error: $e');
+              disconnect();
+            },
+            onDone: () {
+              debugPrint('OGN Inbound: Socket closed by host');
+              disconnect();
+            },
+          );
 
       _socket!.write('user anonymous pass -1 vers storknav 1.0\r\n');
       await _socket!.flush();
 
       if (_currentFilter.isNotEmpty) {
-        final cmd = _currentFilter.startsWith('#') ? _currentFilter : '#$_currentFilter';
+        final cmd = _currentFilter.startsWith('#')
+            ? _currentFilter
+            : '#$_currentFilter';
         debugPrint('OGN Inbound: Sending initial filter -> $cmd');
         _socket!.write('$cmd\r\n');
         await _socket!.flush();
@@ -338,7 +290,9 @@ class OgnInboundConnection {
   Future<void> updateFilter(String filterCommand) async {
     _currentFilter = filterCommand;
     if (_isConnected && _socket != null) {
-      final cmd = filterCommand.startsWith('#') ? filterCommand : '#$filterCommand';
+      final cmd = filterCommand.startsWith('#')
+          ? filterCommand
+          : '#$filterCommand';
       debugPrint('OGN Inbound: Sending filter command -> $cmd');
       _socket!.write('$cmd\r\n');
       await _socket!.flush();
@@ -365,7 +319,9 @@ class OgnAprsService {
     return results[deviceId.toUpperCase()];
   }
 
-  Future<Map<String, Map<String, String>>> lookupDdbMultiple(List<String> deviceIds) async {
+  Future<Map<String, Map<String, String>>> lookupDdbMultiple(
+    List<String> deviceIds,
+  ) async {
     final cleanIds = deviceIds.map((id) => id.toUpperCase()).toSet().toList();
     final Map<String, Map<String, String>> results = {};
     final List<String> toFetch = [];
@@ -391,10 +347,11 @@ class OgnAprsService {
       final headers = {
         'User-Agent': 'stork-aprs-app/1.0.0 (https://github.com/vjoba/stork)',
       };
-      final response = await (_client != null
-              ? _client.get(url, headers: headers)
-              : http.get(url, headers: headers))
-          .timeout(const Duration(seconds: 15));
+      final response =
+          await (_client != null
+                  ? _client.get(url, headers: headers)
+                  : http.get(url, headers: headers))
+              .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -426,7 +383,7 @@ class OgnAprsService {
     return results;
   }
 
-  OgnTrafficAircraft? parseAprsLine(String line) {
+  TrafficAircraft? parseAprsLine(String line) {
     if (line.startsWith('#')) return null;
 
     final headerEnd = line.indexOf('>');
@@ -435,7 +392,7 @@ class OgnAprsService {
 
     // Coordinate regex for Lat/Lon, Symbol, Course/Speed, Altitude
     final match = RegExp(
-      r":[/@](\d{6})h(\d{2})(\d{2}\.\d+)([NS])[\/\\](\d{3})(\d{2}\.\d+)([EW])(.)(?:([\d\s.]{3})\/([\d\s.]{3}))?\/A=(-?\d+)"
+      r":[/@](\d{6})h(\d{2})(\d{2}\.\d+)([NS])[\/\\](\d{3})(\d{2}\.\d+)([EW])(.)(?:([\d\s.]{3})\/([\d\s.]{3}))?\/A=(-?\d+)",
     ).firstMatch(line);
     if (match == null) return null;
 
@@ -505,20 +462,22 @@ class OgnAprsService {
       final xxStr = idStr.substring(0, 2);
       final yyyyyy = idStr.substring(2);
       final byte = int.parse(xxStr, radix: 16);
-      
+
       final stealth = (byte & 0x80) != 0;
       final noTracking = (byte & 0x40) != 0;
       isAnonymous = stealth || noTracking;
-      
+
       aircraftType = (byte >> 2) & 0x0F;
       id = yyyyyy;
     }
 
     final vsMatch = RegExp(r'([+-]\d+)fpm').firstMatch(line);
-    final vsFpm = vsMatch != null ? (double.tryParse(vsMatch.group(1)!) ?? 0.0) : 0.0;
+    final vsFpm = vsMatch != null
+        ? (double.tryParse(vsMatch.group(1)!) ?? 0.0)
+        : 0.0;
     final verticalSpeed = vsFpm * 0.00508; // m/s
 
-    return OgnTrafficAircraft(
+    return TrafficAircraft(
       id: id,
       callsign: rawCallsign,
       latitude: lat,

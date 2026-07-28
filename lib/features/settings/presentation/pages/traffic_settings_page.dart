@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/altitude_unit.dart';
 import '../providers/settings_provider.dart';
+import '../widgets/puretrack_settings_card.dart';
 
 class TrafficSettingsPage extends ConsumerWidget {
   const TrafficSettingsPage({super.key});
@@ -16,10 +17,13 @@ class TrafficSettingsPage extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.trafficSettings)),
       body: settingsAsync.when(
         data: (settings) {
-          final horizontalDistKm = settings.trafficMaxHorizontalDistance / 1000.0;
+          final horizontalDistKm =
+              settings.trafficMaxHorizontalDistance / 1000.0;
 
           final heightUnit = settings.heightUnit;
-          final verticalDistUnitVal = heightUnit.convertFromMeters(settings.trafficMaxVerticalDistance);
+          final verticalDistUnitVal = heightUnit.convertFromMeters(
+            settings.trafficMaxVerticalDistance,
+          );
 
           final double verticalMinVal;
           final double verticalMaxVal;
@@ -54,7 +58,10 @@ class TrafficSettingsPage extends ConsumerWidget {
               ),
               if (settings.trafficFilterMaxHorizontalDistanceEnabled)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -106,7 +113,10 @@ class TrafficSettingsPage extends ConsumerWidget {
               ),
               if (settings.trafficFilterMaxVerticalDistanceEnabled)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -127,7 +137,9 @@ class TrafficSettingsPage extends ConsumerWidget {
                         ],
                       ),
                       Slider(
-                        value: verticalDistUnitVal.clamp(verticalMinVal, verticalMaxVal).toDouble(),
+                        value: verticalDistUnitVal
+                            .clamp(verticalMinVal, verticalMaxVal)
+                            .toDouble(),
                         min: verticalMinVal,
                         max: verticalMaxVal,
                         divisions: verticalDivisions,
@@ -155,7 +167,10 @@ class TrafficSettingsPage extends ConsumerWidget {
               ),
               if (settings.casEnabled) ...[
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -176,19 +191,26 @@ class TrafficSettingsPage extends ConsumerWidget {
                         ],
                       ),
                       Slider(
-                        value: settings.casLookaheadTime.clamp(10.0, 120.0).toDouble(),
+                        value: settings.casLookaheadTime
+                            .clamp(10.0, 120.0)
+                            .toDouble(),
                         min: 10.0,
                         max: 120.0,
                         divisions: 22, // 5 sec steps
                         onChanged: (val) {
-                          ref.read(appSettingsProvider.notifier).updateCasLookaheadTime(val);
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateCasLookaheadTime(val);
                         },
                       ),
                     ],
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -209,19 +231,26 @@ class TrafficSettingsPage extends ConsumerWidget {
                         ],
                       ),
                       Slider(
-                        value: settings.casHorizontalThreshold.clamp(50.0, 1000.0).toDouble(),
+                        value: settings.casHorizontalThreshold
+                            .clamp(50.0, 1000.0)
+                            .toDouble(),
                         min: 50.0,
                         max: 1000.0,
                         divisions: 19, // 50m steps
                         onChanged: (val) {
-                          ref.read(appSettingsProvider.notifier).updateCasHorizontalThreshold(val);
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateCasHorizontalThreshold(val);
                         },
                       ),
                     ],
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -242,22 +271,31 @@ class TrafficSettingsPage extends ConsumerWidget {
                         ],
                       ),
                       Slider(
-                        value: heightUnit.convertFromMeters(settings.casVerticalThreshold).clamp(
-                          heightUnit == AltitudeUnit.meters ? 20.0 : 50.0,
-                          heightUnit == AltitudeUnit.meters ? 300.0 : 1000.0,
-                        ).toDouble(),
+                        value: heightUnit
+                            .convertFromMeters(settings.casVerticalThreshold)
+                            .clamp(
+                              heightUnit == AltitudeUnit.meters ? 20.0 : 50.0,
+                              heightUnit == AltitudeUnit.meters
+                                  ? 300.0
+                                  : 1000.0,
+                            )
+                            .toDouble(),
                         min: heightUnit == AltitudeUnit.meters ? 20.0 : 50.0,
                         max: heightUnit == AltitudeUnit.meters ? 300.0 : 1000.0,
                         divisions: 19,
                         onChanged: (val) {
                           final meters = heightUnit.convertToMeters(val);
-                          ref.read(appSettingsProvider.notifier).updateCasVerticalThreshold(meters);
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateCasVerticalThreshold(meters);
                         },
                       ),
                     ],
                   ),
                 ),
               ],
+              const Divider(height: 1),
+              const PureTrackSettingsCard(),
             ],
           );
         },

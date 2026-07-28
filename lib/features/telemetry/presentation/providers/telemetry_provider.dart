@@ -328,6 +328,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     Object? gpsHorizontalAccuracy = _sentinel,
     Object? gpsVerticalAccuracy = _sentinel,
     Object? gpsAltitude = _sentinel,
+    Object? gpsTimestamp = _sentinel,
     bool isDroneCan = false,
   }) {
     if (isDroneCan) {
@@ -385,6 +386,9 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       gpsAltitude: gpsAltitude == _sentinel
           ? null
           : TelemetryValue(gpsAltitude as double?),
+      gpsTimestamp: gpsTimestamp == _sentinel
+          ? null
+          : TelemetryValue(gpsTimestamp as DateTime?),
     );
 
     // Auto-transition to overview if GPS is filled and we are in init/waiting state
@@ -435,9 +439,11 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       isOilPressureSupported:
           state.isOilPressureSupported || oilPressure != null,
       isEngineRpmSupported: true,
-      isChtSupported: state.isChtSupported ||
+      isChtSupported:
+          state.isChtSupported ||
           cylinderHeadTemperatures.any((t) => t != null && !t.isNaN),
-      isEgtSupported: state.isEgtSupported ||
+      isEgtSupported:
+          state.isEgtSupported ||
           exhaustGasTemperatures.any((t) => t != null && !t.isNaN),
       cylinderHeadTemperatures: TelemetryValue(cylinderHeadTemperatures),
       exhaustGasTemperatures: TelemetryValue(exhaustGasTemperatures),
@@ -591,6 +597,7 @@ void gpsListener(Ref ref) {
               gpsHorizontalAccuracy: location.horizontalAccuracy,
               gpsVerticalAccuracy: location.verticalAccuracy,
               gpsAltitude: location.altitude,
+              gpsTimestamp: location.timestamp,
             );
 
         if (telemetry.isFlying) {

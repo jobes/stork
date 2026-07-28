@@ -145,6 +145,7 @@ class TelemetryState {
   final int? engineRPM;
   final double? airPressure; // in Pa
   final double? gpsAltitude; // MSL
+  final DateTime? gpsTimestamp;
   final int? gpsSatelliteCount;
   final double? gpsHorizontalAccuracy; // in meters
   final double? gpsVerticalAccuracy; // in meters
@@ -193,6 +194,7 @@ class TelemetryState {
     this.engineRPM,
     this.airPressure,
     this.gpsAltitude,
+    this.gpsTimestamp,
     this.gpsSatelliteCount,
     this.gpsHorizontalAccuracy,
     this.gpsVerticalAccuracy,
@@ -417,6 +419,7 @@ class TelemetryState {
     TelemetryValue<int?>? engineRPM,
     TelemetryValue<double?>? airPressure,
     TelemetryValue<double?>? gpsAltitude,
+    TelemetryValue<DateTime?>? gpsTimestamp,
     TelemetryValue<int?>? gpsSatelliteCount,
     TelemetryValue<double?>? gpsHorizontalAccuracy,
     TelemetryValue<double?>? gpsVerticalAccuracy,
@@ -461,6 +464,9 @@ class TelemetryState {
       engineRPM: engineRPM != null ? engineRPM.value : this.engineRPM,
       airPressure: airPressure != null ? airPressure.value : this.airPressure,
       gpsAltitude: gpsAltitude != null ? gpsAltitude.value : this.gpsAltitude,
+      gpsTimestamp: gpsTimestamp != null
+          ? gpsTimestamp.value
+          : this.gpsTimestamp,
       gpsSatelliteCount: gpsSatelliteCount != null
           ? gpsSatelliteCount.value
           : this.gpsSatelliteCount,

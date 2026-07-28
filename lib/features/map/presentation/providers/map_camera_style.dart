@@ -248,7 +248,7 @@ extension MapCameraStyle on MapCamera {
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();
       updateNotamsOnMap();
-      _updateOgnFilter();
+      _updateTrafficFilter();
       debugPrint('Aircraft symbols initialized 😎');
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');

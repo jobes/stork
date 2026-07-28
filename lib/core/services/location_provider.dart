@@ -30,6 +30,7 @@ Stream<
     double horizontalAccuracy,
     double verticalAccuracy,
     double altitude,
+    DateTime? timestamp,
   })
 >
 positionStream(Ref ref) {
@@ -110,6 +111,7 @@ positionStream(Ref ref) {
       horizontalAccuracy: pos.accuracy,
       verticalAccuracy: pos.altitudeAccuracy,
       altitude: pos.altitude,
+      timestamp: pos.timestamp,
     ),
   );
 }

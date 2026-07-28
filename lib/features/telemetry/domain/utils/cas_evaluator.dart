@@ -5,10 +5,7 @@ class TrackHistoryPoint {
   final DateTime timestamp;
   final double trackRad;
 
-  const TrackHistoryPoint({
-    required this.timestamp,
-    required this.trackRad,
-  });
+  const TrackHistoryPoint({required this.timestamp, required this.trackRad});
 }
 
 /// Result of a 3D threat volume evaluation for a single target.
@@ -44,13 +41,14 @@ class CasEvaluator {
   /// Calculates turn rate omega (rad/s) from recent track history points.
   static double calculateTurnRate(List<TrackHistoryPoint> history) {
     if (history.length < 2) return 0.0;
-    
+
     // Pick latest point and oldest point within 10 seconds window
     final latest = history.last;
     TrackHistoryPoint? prev;
     for (int i = history.length - 2; i >= 0; i--) {
       final point = history[i];
-      final dt = latest.timestamp.difference(point.timestamp).inMilliseconds / 1000.0;
+      final dt =
+          latest.timestamp.difference(point.timestamp).inMilliseconds / 1000.0;
       if (dt >= 1.0 && dt <= 10.0) {
         prev = point;
         break;
@@ -58,7 +56,8 @@ class CasEvaluator {
     }
     prev ??= history.first;
 
-    final dt = latest.timestamp.difference(prev.timestamp).inMilliseconds / 1000.0;
+    final dt =
+        latest.timestamp.difference(prev.timestamp).inMilliseconds / 1000.0;
     if (dt < 0.5 || dt > 10.0) return 0.0;
 
     final diff = normalizeAngle(latest.trackRad - prev.trackRad);
@@ -71,20 +70,30 @@ class CasEvaluator {
 
     final latest = history.last;
     final cutoff = latest.timestamp.subtract(const Duration(seconds: 5));
-    final relevant = history.where((p) => !p.timestamp.isBefore(cutoff)).toList();
+    final relevant = history
+        .where((p) => !p.timestamp.isBefore(cutoff))
+        .toList();
 
     if (relevant.length < 2) return false;
-    final totalSpan = latest.timestamp.difference(relevant.first.timestamp).inMilliseconds / 1000.0;
+    final totalSpan =
+        latest.timestamp.difference(relevant.first.timestamp).inMilliseconds /
+        1000.0;
     if (totalSpan < 4.0) return false;
 
     double sumRates = 0.0;
     int rateCount = 0;
     bool? isPositive;
     for (int i = 1; i < relevant.length; i++) {
-      final dt = relevant[i].timestamp.difference(relevant[i - 1].timestamp).inMilliseconds / 1000.0;
+      final dt =
+          relevant[i].timestamp
+              .difference(relevant[i - 1].timestamp)
+              .inMilliseconds /
+          1000.0;
       if (dt <= 0) continue;
 
-      final diff = normalizeAngle(relevant[i].trackRad - relevant[i - 1].trackRad);
+      final diff = normalizeAngle(
+        relevant[i].trackRad - relevant[i - 1].trackRad,
+      );
       final rate = diff / dt;
 
       final sign = rate > 0;
@@ -133,8 +142,12 @@ class CasEvaluator {
       x = x0 + gs * math.sin(trackRad) * t;
       y = y0 + gs * math.cos(trackRad) * t;
     } else {
-      x = x0 + (gs / omega) * (math.cos(trackRad) - math.cos(trackRad + omega * t));
-      y = y0 + (gs / omega) * (math.sin(trackRad + omega * t) - math.sin(trackRad));
+      x =
+          x0 +
+          (gs / omega) * (math.cos(trackRad) - math.cos(trackRad + omega * t));
+      y =
+          y0 +
+          (gs / omega) * (math.sin(trackRad + omega * t) - math.sin(trackRad));
     }
     final h = h0 + vs * t;
     return (x, y, h);
@@ -191,7 +204,8 @@ class CasEvaluator {
     }
 
     // 3. Narrow-Phase Trajectory Prediction & Threat Volume Evaluation
-    bool threatDetected = dCurr <= effectiveHorizThreshold && altDiffCurr <= vertThresholdMeters;
+    bool threatDetected =
+        dCurr <= effectiveHorizThreshold && altDiffCurr <= vertThresholdMeters;
     double minDistance = dCurr;
     double? tCpa;
 
@@ -233,7 +247,8 @@ class CasEvaluator {
         tCpa = t;
       }
 
-      if (distAtT <= effectiveHorizThreshold && altDiffAtT <= vertThresholdMeters) {
+      if (distAtT <= effectiveHorizThreshold &&
+          altDiffAtT <= vertThresholdMeters) {
         threatDetected = true;
       }
     }

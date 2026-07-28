@@ -237,11 +237,13 @@ class _AircraftSettingsDialogState
                 (a) => a.id == widget.aircraft.id,
                 orElse: () => widget.aircraft,
               );
-              final validOgnId = RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(currentAircraft.ognDeviceId.trim());
+              final validOgnId = RegExp(
+                r'^[0-9A-Fa-f]{6}$',
+              ).hasMatch(currentAircraft.ognDeviceId.trim());
               if (val && !validOgnId) {
-                ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                  SnackBar(content: Text(l10n.invalidOgnId)),
-                );
+                ScaffoldMessenger.of(
+                  widget.parentContext,
+                ).showSnackBar(SnackBar(content: Text(l10n.invalidOgnId)));
                 setState(() {
                   _sendLivePosition = false;
                 });
@@ -290,13 +292,14 @@ class _AircraftSettingsDialogState
                 onPressed: () async {
                   final id = _ognDeviceIdController.text.trim().toUpperCase();
                   if (!RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(id)) {
-                    ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                      SnackBar(content: Text(l10n.invalidOgnId)),
-                    );
+                    ScaffoldMessenger.of(
+                      widget.parentContext,
+                    ).showSnackBar(SnackBar(content: Text(l10n.invalidOgnId)));
                     return;
                   }
                   final currentAircrafts =
-                      ref.read(aircraftStateProvider).value ?? [widget.aircraft];
+                      ref.read(aircraftStateProvider).value ??
+                      [widget.aircraft];
                   final currentAircraft = currentAircrafts.firstWhere(
                     (a) => a.id == widget.aircraft.id,
                     orElse: () => widget.aircraft,
@@ -307,9 +310,9 @@ class _AircraftSettingsDialogState
                         currentAircraft.copyWith(ognDeviceId: id),
                       );
                   if (widget.parentContext.mounted) {
-                    ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                      SnackBar(content: Text(l10n.save)),
-                    );
+                    ScaffoldMessenger.of(
+                      widget.parentContext,
+                    ).showSnackBar(SnackBar(content: Text(l10n.save)));
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -329,7 +332,9 @@ class _AircraftSettingsDialogState
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              color: theme.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.5,
+              ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),

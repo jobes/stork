@@ -541,7 +541,9 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   ) {
     return _updateSettings(
       (s) => s.copyWith(
-        trafficMaxHorizontalDistance: distanceMeters.clamp(1000.0, 500000.0).toDouble(),
+        trafficMaxHorizontalDistance: distanceMeters
+            .clamp(1000.0, 500000.0)
+            .toDouble(),
       ),
     );
   }
@@ -559,7 +561,9 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   ) {
     return _updateSettings(
       (s) => s.copyWith(
-        trafficMaxVerticalDistance: distanceMeters.clamp(100.0, 20000.0).toDouble(),
+        trafficMaxVerticalDistance: distanceMeters
+            .clamp(100.0, 20000.0)
+            .toDouble(),
       ),
     );
   }
@@ -570,19 +574,24 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   Future<SettingsUpdateResult> updateCasLookaheadTime(double seconds) {
     return _updateSettings(
-      (s) => s.copyWith(casLookaheadTime: seconds.clamp(10.0, 120.0).toDouble()),
+      (s) =>
+          s.copyWith(casLookaheadTime: seconds.clamp(10.0, 120.0).toDouble()),
     );
   }
 
   Future<SettingsUpdateResult> updateCasHorizontalThreshold(double meters) {
     return _updateSettings(
-      (s) => s.copyWith(casHorizontalThreshold: meters.clamp(50.0, 1000.0).toDouble()),
+      (s) => s.copyWith(
+        casHorizontalThreshold: meters.clamp(50.0, 1000.0).toDouble(),
+      ),
     );
   }
 
   Future<SettingsUpdateResult> updateCasVerticalThreshold(double meters) {
     return _updateSettings(
-      (s) => s.copyWith(casVerticalThreshold: meters.clamp(20.0, 1000.0).toDouble()),
+      (s) => s.copyWith(
+        casVerticalThreshold: meters.clamp(20.0, 1000.0).toDouble(),
+      ),
     );
   }
 }

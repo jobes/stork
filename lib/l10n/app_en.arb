@@ -859,5 +859,21 @@
       "alt": { "type": "String" }
     }
   },
-  "collisionWarningLabel": "COLLISION"
+  "collisionWarningLabel": "COLLISION",
+  "pureTrackTitle": "PureTrack Account",
+  "pureTrackDescription": "Secondary live aircraft tracking data feed",
+  "pureTrackUsername": "Username / Email",
+  "pureTrackPassword": "Password",
+  "pureTrackLogin": "Log In",
+  "pureTrackLogout": "Log Out",
+  "pureTrackStatusConnected": "Connected",
+  "pureTrackStatusDisconnected": "Disconnected",
+  "pureTrackStatusAuthenticating": "Authenticating...",
+  "pureTrackStatusTokenInvalid": "Session Expired (Re-authentication required)",
+  "pureTrackStatusError": "Authentication Error",
+  "pureTrackSessionExpiredBanner": "PureTrack session expired. Tap to re-authenticate.",
+  "trafficSourceLabel": "Data Source",
+  "trafficSourceOgn": "OGN",
+  "trafficSourcePureTrack": "PureTrack"
 }
+

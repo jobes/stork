@@ -3409,6 +3409,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'COLLISION'**
   String get collisionWarningLabel;
+
+  /// No description provided for @pureTrackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PureTrack Account'**
+  String get pureTrackTitle;
+
+  /// No description provided for @pureTrackDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary live aircraft tracking data feed'**
+  String get pureTrackDescription;
+
+  /// No description provided for @pureTrackUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Username / Email'**
+  String get pureTrackUsername;
+
+  /// No description provided for @pureTrackPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get pureTrackPassword;
+
+  /// No description provided for @pureTrackLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Log In'**
+  String get pureTrackLogin;
+
+  /// No description provided for @pureTrackLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Out'**
+  String get pureTrackLogout;
+
+  /// No description provided for @pureTrackStatusConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get pureTrackStatusConnected;
+
+  /// No description provided for @pureTrackStatusDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected'**
+  String get pureTrackStatusDisconnected;
+
+  /// No description provided for @pureTrackStatusAuthenticating.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticating...'**
+  String get pureTrackStatusAuthenticating;
+
+  /// No description provided for @pureTrackStatusTokenInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Expired (Re-authentication required)'**
+  String get pureTrackStatusTokenInvalid;
+
+  /// No description provided for @pureTrackStatusError.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication Error'**
+  String get pureTrackStatusError;
+
+  /// No description provided for @pureTrackSessionExpiredBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'PureTrack session expired. Tap to re-authenticate.'**
+  String get pureTrackSessionExpiredBanner;
+
+  /// No description provided for @trafficSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Source'**
+  String get trafficSourceLabel;
+
+  /// No description provided for @trafficSourceOgn.
+  ///
+  /// In en, this message translates to:
+  /// **'OGN'**
+  String get trafficSourceOgn;
+
+  /// No description provided for @trafficSourcePureTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'PureTrack'**
+  String get trafficSourcePureTrack;
 }
 
 class _AppLocalizationsDelegate
