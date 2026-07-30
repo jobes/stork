@@ -768,5 +768,12 @@
   "pureTrackSessionExpiredBanner": "PureTrack relácia vypršala. Kliknite pre opätovné prihlásenie.",
   "trafficSourceLabel": "Zdroj dát",
   "trafficSourceOgn": "OGN",
-  "trafficSourcePureTrack": "PureTrack"
+  "trafficSourcePureTrack": "PureTrack",
+  "trafficSourceGdl90": "GDL90",
+  "gdl90SettingsTitle": "GDL90 / SafeSky Prijímač",
+  "gdl90EnableTitle": "Povoliť GDL90 prijímač",
+  "gdl90EnableDesc": "Prijímať lokálnu letovú prevádzku cez UDP (SafeSky, Stratux, SkyEcho 2, atď.)",
+  "gdl90BindIpTitle": "IP Adresa prijímača",
+  "gdl90PortTitle": "UDP Port",
+  "gdl90TargetExpiryTitle": "Čas vypršania platnosti cieľa"
 }

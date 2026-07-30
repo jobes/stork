@@ -594,4 +594,24 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       ),
     );
   }
+
+  Future<SettingsUpdateResult> updateGdl90Enabled(bool enabled) {
+    return _updateSettings((s) => s.copyWith(gdl90Enabled: enabled));
+  }
+
+  Future<SettingsUpdateResult> updateGdl90BindIp(String ip) {
+    return _updateSettings((s) => s.copyWith(gdl90BindIp: ip.trim()));
+  }
+
+  Future<SettingsUpdateResult> updateGdl90UdpPort(int port) {
+    return _updateSettings(
+      (s) => s.copyWith(gdl90UdpPort: port.clamp(1, 65535)),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateGdl90TargetExpirySeconds(int seconds) {
+    return _updateSettings(
+      (s) => s.copyWith(gdl90TargetExpirySeconds: seconds.clamp(10, 300)),
+    );
+  }
 }

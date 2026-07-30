@@ -98,23 +98,26 @@ void main() {
       expect(packet.aircraftType, equals(56));
     });
 
-    test('falls back to defaults for invalid numeric values and default type 1', () {
-      final json = {
-        'id': '1EFCCC',
-        'lat': 48.1486,
-        'lon': 17.1077,
-        'alt': 'invalid',
-        'speed': null,
-        'type': 'invalid',
-      };
+    test(
+      'falls back to defaults for invalid numeric values and default type 1',
+      () {
+        final json = {
+          'id': '1EFCCC',
+          'lat': 48.1486,
+          'lon': 17.1077,
+          'alt': 'invalid',
+          'speed': null,
+          'type': 'invalid',
+        };
 
-      final packet = PureTrackPacket.fromJson(json);
+        final packet = PureTrackPacket.fromJson(json);
 
-      expect(packet, isNotNull);
-      expect(packet!.altitude, equals(0.0));
-      expect(packet.groundSpeed, equals(0.0));
-      expect(packet.aircraftType, equals(1));
-    });
+        expect(packet, isNotNull);
+        expect(packet!.altitude, equals(0.0));
+        expect(packet.groundSpeed, equals(0.0));
+        expect(packet.aircraftType, equals(1));
+      },
+    );
   });
 
   group('PureTrackStreamService tests', () {

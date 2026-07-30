@@ -149,9 +149,7 @@ class PureTrackPacket {
       return 1;
     }
 
-    final type = parseType(
-      json['type'] ?? json['aircraft_type'] ?? json['O'],
-    );
+    final type = parseType(json['type'] ?? json['aircraft_type'] ?? json['O']);
 
     DateTime tSent;
     final tsRaw =

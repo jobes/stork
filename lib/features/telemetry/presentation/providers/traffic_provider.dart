@@ -20,6 +20,8 @@ import '../../domain/utils/canonical_id.dart';
 import '../../data/puretrack_stream_service.dart';
 import 'puretrack_auth_provider.dart';
 import 'agl_provider.dart';
+import '../../domain/models/gdl90_target.dart';
+import 'gdl90_provider.dart';
 
 part 'traffic_provider.g.dart';
 
@@ -52,12 +54,17 @@ class Traffic extends _$Traffic {
   List<TrackHistoryPoint> get ownshipTrackHistory =>
       List.unmodifiable(_ownshipTrackHistory);
 
+  StreamSubscription<List<Gdl90Target>>? _gdl90Sub;
+
   @override
   List<TrafficAircraft> build() {
     _aprsService = ref.read(ognAprsServiceProvider);
 
     // Eagerly read pureTrackProvider so connection state is managed on app start
     ref.read(pureTrackProvider);
+
+    // Eagerly initialize GDL90 service & listen to stream
+    _listenToGdl90();
 
     _decayTimer = Timer.periodic(
       const Duration(seconds: 5),
@@ -91,6 +98,7 @@ class Traffic extends _$Traffic {
     });
 
     ref.onDispose(() {
+      _gdl90Sub?.cancel();
       _decayTimer?.cancel();
       _publishTimer?.cancel();
       _outboundTimer?.cancel();
@@ -107,22 +115,22 @@ class Traffic extends _$Traffic {
 
   void publishState() {
     state = _aggregator.targets;
-    debugPrint(
-      '[Traffic] [PUBLISH STATE] Published ${state.length} targets to Riverpod UI listeners',
-    );
+    // debugPrint(
+    //   '[Traffic] [PUBLISH STATE] Published ${state.length} targets to Riverpod UI listeners',
+    // );
   }
 
   void _connectInbound() {
     if (_isConnecting) return;
     _isConnecting = true;
     _reconnectTimer?.cancel();
-    debugPrint('[Traffic] Connecting to OGN APRS server...');
+    // debugPrint('[Traffic] Connecting to OGN APRS server...');
 
     int lineCount = 0;
     _inboundConnection = OgnInboundConnection(
       onLineReceived: (line) {
         if (lineCount < 5) {
-          debugPrint('[OGN APRS Raw Line sample] $line');
+          // debugPrint('[OGN APRS Raw Line sample] $line');
           lineCount++;
         }
         try {
@@ -201,6 +209,7 @@ class Traffic extends _$Traffic {
       registration: packet.registration,
       aircraftModel: packet.model,
       cn: packet.cn,
+      icaoHex: _isIcaoLike(packet.canonicalId) ? packet.canonicalId : null,
       latitude: packet.latitude,
       longitude: packet.longitude,
       altitude: packet.altitude,
@@ -236,6 +245,100 @@ class Traffic extends _$Traffic {
       turnRate: turnRate,
       isCircling: isCircling,
     );
+  }
+
+  void _listenToGdl90() {
+    final gdl90Service = ref.read(gdl90ServiceProvider);
+    _gdl90Sub?.cancel();
+    _gdl90Sub = gdl90Service.targetStream.listen((targets) {
+      for (final t in targets) {
+        processGdl90Target(t);
+      }
+    });
+    // Process any targets already received before the stream subscription
+    // was set up (broadcast streams don't replay past events).
+    for (final t in gdl90Service.targets) {
+      processGdl90Target(t);
+    }
+  }
+
+  void processGdl90Target(Gdl90Target target) {
+    debugPrint(
+      '[TrafficProvider] Received GDL90 target: id=${target.id}, callsign=${target.callsign ?? 'N/A'}, lat=${target.latitude.toStringAsFixed(4)}, lon=${target.longitude.toStringAsFixed(4)}, alt=${target.altitudeFeet}ft',
+    );
+    final mappedType = _mapGdl90EmitterCategory(target.emitterCategory);
+
+    final aircraft = TrafficAircraft(
+      id: target.id,
+      callsign: target.callsign ?? target.id,
+      icaoHex: target.id, // GDL90 ID is the ICAO 24-bit hex address
+      latitude: target.latitude,
+      longitude: target.longitude,
+      altitude: target.altitudeFeet * 0.3048, // feet -> meters AMSL
+      track: target.trackDegrees,
+      groundSpeed: target.speedKnots * 0.514444, // kts -> m/s
+      verticalSpeed: target.verticalSpeedFpm * 0.00508, // ft/min -> m/s
+      aircraftType: mappedType,
+      lastSeen: target.lastUpdated,
+      sources: const {'gdl90'},
+      activeSource: 'gdl90',
+    );
+    _aggregator.processGdl90Update(aircraft);
+
+    final canonicalId = CanonicalId.normalize(target.id);
+    final history = _trackHistories.putIfAbsent(canonicalId, () => []);
+    history.add(
+      TrackHistoryPoint(
+        timestamp: target.lastUpdated,
+        trackRad: target.trackDegrees * math.pi / 180.0,
+      ),
+    );
+    history.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final latestTime = history.last.timestamp;
+    history.removeWhere(
+      (p) => latestTime.difference(p.timestamp).inSeconds > 15,
+    );
+
+    final turnRate = CasEvaluator.calculateTurnRate(history);
+    final isCircling = CasEvaluator.detectCircling(history);
+
+    _aggregator.updateComputedFields(
+      canonicalId,
+      turnRate: turnRate,
+      isCircling: isCircling,
+    );
+  }
+
+  /// Returns true if [id] looks like a 6-char hex ICAO address (could also be
+  /// a FLARM ID — used as a best-effort hint for cross-source deduplication).
+  static bool _isIcaoLike(String id) {
+    return RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(id);
+  }
+
+  int _mapGdl90EmitterCategory(int cat) {
+    switch (cat) {
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 6:
+        return AircraftType.poweredAircraft.ognCode;
+      case 7:
+        return AircraftType.helicopter.ognCode;
+      case 8:
+        return AircraftType.glider.ognCode;
+      case 9:
+        return AircraftType.balloon.ognCode;
+      case 10:
+        return AircraftType.skydiver.ognCode;
+      case 11:
+        return AircraftType.paraglider.ognCode;
+      case 13:
+        return AircraftType.uav.ognCode;
+      default:
+        return AircraftType.other.ognCode;
+    }
   }
 
   void _cleanupStaleTraffic() {
@@ -330,7 +433,8 @@ class Traffic extends _$Traffic {
     }
 
     // Force immediate filter update if time elapsed >= 15s OR if camera turned/shifted significantly
-    if (timeSinceLastSent >= kTrafficFilterMaxUnsentDuration || significantShift) {
+    if (timeSinceLastSent >= kTrafficFilterMaxUnsentDuration ||
+        significantShift) {
       _filterDebounceTimer?.cancel();
       _sendFilter(bounds);
       return;

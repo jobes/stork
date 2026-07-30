@@ -21,6 +21,11 @@ class TrafficAggregator {
     processAircraftUpdate(rawAircraft, source: 'puretrack');
   }
 
+  /// Processes an incoming GDL90 aircraft packet with T_sent position arbitration
+  void processGdl90Update(TrafficAircraft rawAircraft) {
+    processAircraftUpdate(rawAircraft, source: 'gdl90');
+  }
+
   /// Processes an incoming aircraft update from any telemetry source with T_sent position arbitration
   void processAircraftUpdate(
     TrafficAircraft rawAircraft, {
@@ -38,7 +43,28 @@ class TrafficAggregator {
       tSent = now;
     }
 
-    final existing = _targets[canonicalId];
+    var existing = _targets[canonicalId];
+
+    // Cross-source deduplication by ICAO 24-bit hex address:
+    // When a new source reports an aircraft with a known ICAO (e.g. GDL90
+    // sends id=166752), search for an existing target from another source
+    // that shares the same ICAO but a different canonical ID (e.g. OGN
+    // uses FLARM id FLRDDA5E6 for the same physical aircraft).
+    if (existing == null && rawAircraft.icaoHex != null) {
+      final icaoNormalized = rawAircraft.icaoHex!.toLowerCase();
+      for (final entry in _targets.entries) {
+        if (entry.value.icaoHex?.toLowerCase() == icaoNormalized) {
+          // Found a match by ICAO — merge this new source into the existing
+          // target using the existing canonical ID as the key
+          existing = entry.value;
+          debugPrint(
+            '[TrafficAggregator] [$source ICAO-MERGE] GDL90 id=$canonicalId '
+            'matched existing OGN id=${entry.key} via ICAO $icaoNormalized',
+          );
+          break;
+        }
+      }
+    }
 
     if (existing == null) {
       _targets[canonicalId] = rawAircraft.copyWith(
@@ -47,9 +73,9 @@ class TrafficAggregator {
         sources: {source},
         activeSource: source,
       );
-      debugPrint(
-        '[TrafficAggregator] [$source ADD] ID: $canonicalId (${rawAircraft.callsign}) | Total targets in DB: ${_targets.length}',
-      );
+      // debugPrint(
+      //   '[TrafficAggregator] [$source ADD] ID: $canonicalId (${rawAircraft.callsign}) | Total targets in DB: ${_targets.length}',
+      // );
     } else {
       final updatedSources = {...existing.sources, source};
 
@@ -73,18 +99,20 @@ class TrafficAggregator {
               : existing.aircraftType,
           lastSeen: tSent,
           isAnonymous: rawAircraft.isAnonymous,
+          icaoHex: existing.icaoHex ?? rawAircraft.icaoHex,
           sources: updatedSources,
           activeSource: source,
         );
-        debugPrint(
-          '[TrafficAggregator] [$source UPDATE] ID: $canonicalId (${rawAircraft.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}',
-        );
+        // debugPrint(
+        //   '[TrafficAggregator] [$source UPDATE] ID: $canonicalId (${rawAircraft.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}',
+        // );
       } else {
         // Discard unchanged or stale position update, but preserve metadata
         _targets[canonicalId] = existing.copyWith(
           registration: existing.registration ?? rawAircraft.registration,
           aircraftModel: existing.aircraftModel ?? rawAircraft.aircraftModel,
           cn: existing.cn ?? rawAircraft.cn,
+          icaoHex: existing.icaoHex ?? rawAircraft.icaoHex,
           sources: updatedSources,
         );
       }

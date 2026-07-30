@@ -1814,4 +1814,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trafficSourcePureTrack => 'PureTrack';
+
+  @override
+  String get trafficSourceGdl90 => 'GDL90';
+
+  @override
+  String get gdl90SettingsTitle => 'GDL90 / SafeSky Receiver';
+
+  @override
+  String get gdl90EnableTitle => 'Enable GDL90 Receiver';
+
+  @override
+  String get gdl90EnableDesc =>
+      'Receive local GDL90 traffic over UDP (SafeSky, Stratux, SkyEcho 2, etc.)';
+
+  @override
+  String get gdl90BindIpTitle => 'Bind IP Address';
+
+  @override
+  String get gdl90PortTitle => 'UDP Port';
+
+  @override
+  String get gdl90TargetExpiryTitle => 'Target Expiry Timeout';
 }

@@ -374,6 +374,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
     final String activeSource = ac.activeSource;
     final hasOgn = sources.contains('ogn');
     final hasPureTrack = sources.contains('puretrack');
+    final hasGdl90 = sources.contains('gdl90');
 
     final List<Widget> badges = [];
 
@@ -396,6 +397,18 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
           context,
           name: l10n.trafficSourcePureTrack,
           color: theme.colorScheme.secondary,
+          isActive: isActive,
+        ),
+      );
+    }
+
+    if (hasGdl90) {
+      final isActive = activeSource == 'gdl90';
+      badges.add(
+        _buildSourceChip(
+          context,
+          name: l10n.trafficSourceGdl90,
+          color: theme.colorScheme.tertiary,
           isActive: isActive,
         ),
       );

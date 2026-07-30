@@ -1,0 +1,157 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../providers/settings_provider.dart';
+
+class Gdl90SettingsCard extends ConsumerStatefulWidget {
+  const Gdl90SettingsCard({super.key});
+
+  @override
+  ConsumerState<Gdl90SettingsCard> createState() => _Gdl90SettingsCardState();
+}
+
+class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
+  late TextEditingController _ipController;
+  late TextEditingController _portController;
+
+  @override
+  void initState() {
+    super.initState();
+    _ipController = TextEditingController();
+    _portController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _ipController.dispose();
+    _portController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final settingsAsync = ref.watch(appSettingsProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    return settingsAsync.when(
+      data: (settings) {
+        if (_ipController.text.isEmpty && !FocusNode().hasFocus) {
+          _ipController.text = settings.gdl90BindIp;
+        }
+        if (_portController.text.isEmpty && !FocusNode().hasFocus) {
+          _portController.text = settings.gdl90UdpPort.toString();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SwitchListTile(
+              title: Text(
+                l10n.gdl90EnableTitle,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: Text(l10n.gdl90EnableDesc),
+              value: settings.gdl90Enabled,
+              onChanged: (val) {
+                ref.read(appSettingsProvider.notifier).updateGdl90Enabled(val);
+              },
+            ),
+            if (settings.gdl90Enabled) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: _ipController,
+                        decoration: InputDecoration(
+                          labelText: l10n.gdl90BindIpTitle,
+                          isDense: true,
+                          border: const OutlineInputBorder(),
+                        ),
+                        onSubmitted: (val) {
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .updateGdl90BindIp(val);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: TextField(
+                        controller: _portController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: l10n.gdl90PortTitle,
+                          isDense: true,
+                          border: const OutlineInputBorder(),
+                        ),
+                        onSubmitted: (val) {
+                          final parsedPort = int.tryParse(val);
+                          if (parsedPort != null) {
+                            ref
+                                .read(appSettingsProvider.notifier)
+                                .updateGdl90UdpPort(parsedPort);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.gdl90TargetExpiryTitle,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          '${settings.gdl90TargetExpirySeconds} s',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      value: settings.gdl90TargetExpirySeconds.toDouble().clamp(
+                        10.0,
+                        300.0,
+                      ),
+                      min: 10.0,
+                      max: 300.0,
+                      divisions: 29, // 10s steps
+                      onChanged: (val) {
+                        ref
+                            .read(appSettingsProvider.notifier)
+                            .updateGdl90TargetExpirySeconds(val.round());
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}

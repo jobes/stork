@@ -113,6 +113,10 @@ abstract class AppSettings with _$AppSettings {
     @Default(30.0) double casLookaheadTime, // seconds
     @Default(300.0) double casHorizontalThreshold, // meters
     @Default(100.0) double casVerticalThreshold, // meters
+    @Default(true) bool gdl90Enabled,
+    @Default('0.0.0.0') String gdl90BindIp,
+    @Default(4000) int gdl90UdpPort,
+    @Default(60) int gdl90TargetExpirySeconds,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>

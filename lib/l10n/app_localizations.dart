@@ -3499,6 +3499,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PureTrack'**
   String get trafficSourcePureTrack;
+
+  /// No description provided for @trafficSourceGdl90.
+  ///
+  /// In en, this message translates to:
+  /// **'GDL90'**
+  String get trafficSourceGdl90;
+
+  /// No description provided for @gdl90SettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GDL90 / SafeSky Receiver'**
+  String get gdl90SettingsTitle;
+
+  /// No description provided for @gdl90EnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable GDL90 Receiver'**
+  String get gdl90EnableTitle;
+
+  /// No description provided for @gdl90EnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive local GDL90 traffic over UDP (SafeSky, Stratux, SkyEcho 2, etc.)'**
+  String get gdl90EnableDesc;
+
+  /// No description provided for @gdl90BindIpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bind IP Address'**
+  String get gdl90BindIpTitle;
+
+  /// No description provided for @gdl90PortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'UDP Port'**
+  String get gdl90PortTitle;
+
+  /// No description provided for @gdl90TargetExpiryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Expiry Timeout'**
+  String get gdl90TargetExpiryTitle;
 }
 
 class _AppLocalizationsDelegate

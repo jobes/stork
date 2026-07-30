@@ -1822,4 +1822,26 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get trafficSourcePureTrack => 'PureTrack';
+
+  @override
+  String get trafficSourceGdl90 => 'GDL90';
+
+  @override
+  String get gdl90SettingsTitle => 'GDL90 / SafeSky Prijímač';
+
+  @override
+  String get gdl90EnableTitle => 'Povoliť GDL90 prijímač';
+
+  @override
+  String get gdl90EnableDesc =>
+      'Prijímať lokálnu letovú prevádzku cez UDP (SafeSky, Stratux, SkyEcho 2, atď.)';
+
+  @override
+  String get gdl90BindIpTitle => 'IP Adresa prijímača';
+
+  @override
+  String get gdl90PortTitle => 'UDP Port';
+
+  @override
+  String get gdl90TargetExpiryTitle => 'Čas vypršania platnosti cieľa';
 }

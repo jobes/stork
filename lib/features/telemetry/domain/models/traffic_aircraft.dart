@@ -4,6 +4,8 @@ class TrafficAircraft {
   final String? registration;
   final String? aircraftModel;
   final String? cn;
+  final String?
+  icaoHex; // ICAO 24-bit hex address for cross-source dedup (GDL90, ADS-B)
   final double latitude;
   final double longitude;
   final double altitude; // AMSL in meters
@@ -18,7 +20,8 @@ class TrafficAircraft {
   final bool isCollisionThreat;
   final double? tCpa; // seconds
   final double? minDistance; // meters
-  final Set<String> sources; // e.g. {'ogn'}, {'puretrack'}, {'ogn', 'puretrack'}
+  final Set<String>
+  sources; // e.g. {'ogn'}, {'puretrack'}, {'ogn', 'puretrack'}
   final String activeSource; // Source of the latest accepted position update
 
   TrafficAircraft({
@@ -27,6 +30,7 @@ class TrafficAircraft {
     this.registration,
     this.aircraftModel,
     this.cn,
+    this.icaoHex,
     required this.latitude,
     required this.longitude,
     required this.altitude,
@@ -51,6 +55,7 @@ class TrafficAircraft {
     String? registration,
     String? aircraftModel,
     String? cn,
+    String? icaoHex,
     double? latitude,
     double? longitude,
     double? altitude,
@@ -74,6 +79,7 @@ class TrafficAircraft {
       registration: registration ?? this.registration,
       aircraftModel: aircraftModel ?? this.aircraftModel,
       cn: cn ?? this.cn,
+      icaoHex: icaoHex ?? this.icaoHex,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       altitude: altitude ?? this.altitude,
