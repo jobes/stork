@@ -11,6 +11,10 @@ class Gdl90Service {
   final Map<String, Gdl90Target> _targets = {};
   final StreamController<List<Gdl90Target>> _targetStreamController =
       StreamController<List<Gdl90Target>>.broadcast();
+  final StreamController<DateTime> _heartbeatStreamController =
+      StreamController<DateTime>.broadcast();
+
+  DateTime? _lastHeartbeatTime;
 
   RawDatagramSocket? _socket;
   Timer? _expiryTimer;
@@ -23,6 +27,19 @@ class Gdl90Service {
 
   /// Stream of active GDL90 targets
   Stream<List<Gdl90Target>> get targetStream => _targetStreamController.stream;
+
+  /// Stream emitted whenever a GDL90 heartbeat/message is received
+  Stream<DateTime> get heartbeatStream => _heartbeatStreamController.stream;
+
+  /// Timestamp of the last received GDL90 heartbeat/message
+  DateTime? get lastHeartbeatTime => _lastHeartbeatTime;
+
+  /// Whether a heartbeat was received within the last 10 seconds
+  bool get isHeartbeatActive {
+    if (_lastHeartbeatTime == null) return false;
+    return DateTime.now().difference(_lastHeartbeatTime!) <=
+        const Duration(seconds: 10);
+  }
 
   /// Unmodifiable list of active GDL90 targets
   List<Gdl90Target> get targets => List.unmodifiable(_targets.values);
@@ -162,6 +179,8 @@ class Gdl90Service {
         '[Gdl90Service] Decoded ${messages.length} GDL90 message(s) from datagram',
       );
 
+      _recordHeartbeat();
+
       bool stateChanged = false;
 
       for (final msg in messages) {
@@ -222,6 +241,13 @@ class Gdl90Service {
     }
   }
 
+  void _recordHeartbeat() {
+    _lastHeartbeatTime = DateTime.now();
+    if (!_heartbeatStreamController.isClosed) {
+      _heartbeatStreamController.add(_lastHeartbeatTime!);
+    }
+  }
+
   void _notifyTargets() {
     if (!_targetStreamController.isClosed) {
       _targetStreamController.add(targets);
@@ -241,6 +267,7 @@ class Gdl90Service {
     _expiryTimer?.cancel();
     await _closeSocket();
     await _targetStreamController.close();
+    await _heartbeatStreamController.close();
     _targets.clear();
   }
 }

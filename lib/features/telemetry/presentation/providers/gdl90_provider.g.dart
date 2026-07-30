@@ -48,4 +48,38 @@ final class Gdl90ServiceProvider
   }
 }
 
-String _$gdl90ServiceHash() => r'6ab222a2a6bc66f87423b22dbbbe16563b58535e';
+String _$gdl90ServiceHash() => r'9e8fb48f55b2394be9e450bb06188933565f41fd';
+
+@ProviderFor(gdl90HeartbeatActive)
+final gdl90HeartbeatActiveProvider = Gdl90HeartbeatActiveProvider._();
+
+final class Gdl90HeartbeatActiveProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
+    with $FutureModifier<bool>, $StreamProvider<bool> {
+  Gdl90HeartbeatActiveProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'gdl90HeartbeatActiveProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$gdl90HeartbeatActiveHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<bool> create(Ref ref) {
+    return gdl90HeartbeatActive(ref);
+  }
+}
+
+String _$gdl90HeartbeatActiveHash() =>
+    r'f927c33cfb25b90defb3f2ccf37e164fd8928883';

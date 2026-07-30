@@ -3541,6 +3541,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Target Expiry Timeout'**
   String get gdl90TargetExpiryTitle;
+
+  /// No description provided for @gdl90StatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver Status'**
+  String get gdl90StatusTitle;
+
+  /// No description provided for @gdl90StatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get gdl90StatusActive;
+
+  /// No description provided for @gdl90StatusInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive (No signal)'**
+  String get gdl90StatusInactive;
 }
 
 class _AppLocalizationsDelegate

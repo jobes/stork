@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -43,3 +44,35 @@ Gdl90Service gdl90Service(Ref ref) {
 
   return service;
 }
+
+@riverpod
+Stream<bool> gdl90HeartbeatActive(Ref ref) async* {
+  final service = ref.watch(gdl90ServiceProvider);
+
+  yield service.isHeartbeatActive;
+
+  final controller = StreamController<bool>();
+
+  void checkAndEmit() {
+    if (!controller.isClosed) {
+      controller.add(service.isHeartbeatActive);
+    }
+  }
+
+  final timer = Timer.periodic(
+    const Duration(seconds: 1),
+    (_) => checkAndEmit(),
+  );
+  final sub = service.heartbeatStream.listen((_) => checkAndEmit());
+
+  ref.onDispose(() {
+    timer.cancel();
+    sub.cancel();
+    controller.close();
+  });
+
+  await for (final status in controller.stream) {
+    yield status;
+  }
+}
+

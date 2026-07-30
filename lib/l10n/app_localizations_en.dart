@@ -1836,4 +1836,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gdl90TargetExpiryTitle => 'Target Expiry Timeout';
+
+  @override
+  String get gdl90StatusTitle => 'Receiver Status';
+
+  @override
+  String get gdl90StatusActive => 'Active';
+
+  @override
+  String get gdl90StatusInactive => 'Inactive (No signal)';
 }

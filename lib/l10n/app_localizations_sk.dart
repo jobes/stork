@@ -1844,4 +1844,13 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get gdl90TargetExpiryTitle => 'Čas vypršania platnosti cieľa';
+
+  @override
+  String get gdl90StatusTitle => 'Stav prijímača';
+
+  @override
+  String get gdl90StatusActive => 'Aktívny';
+
+  @override
+  String get gdl90StatusInactive => 'Neaktívny (Bez signálu)';
 }

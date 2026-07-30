@@ -775,5 +775,8 @@
   "gdl90EnableDesc": "Prijímať lokálnu letovú prevádzku cez UDP (SafeSky, Stratux, SkyEcho 2, atď.)",
   "gdl90BindIpTitle": "IP Adresa prijímača",
   "gdl90PortTitle": "UDP Port",
-  "gdl90TargetExpiryTitle": "Čas vypršania platnosti cieľa"
+  "gdl90TargetExpiryTitle": "Čas vypršania platnosti cieľa",
+  "gdl90StatusTitle": "Stav prijímača",
+  "gdl90StatusActive": "Aktívny",
+  "gdl90StatusInactive": "Neaktívny (Bez signálu)"
 }

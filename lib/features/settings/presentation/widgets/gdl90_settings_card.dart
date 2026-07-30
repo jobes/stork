@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../telemetry/presentation/providers/gdl90_provider.dart';
 import '../providers/settings_provider.dart';
 
 class Gdl90SettingsCard extends ConsumerStatefulWidget {
@@ -33,6 +34,8 @@ class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
     final settingsAsync = ref.watch(appSettingsProvider);
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final isGdl90Active =
+        ref.watch(gdl90HeartbeatActiveProvider).value ?? false;
 
     return settingsAsync.when(
       data: (settings) {
@@ -58,6 +61,41 @@ class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
               },
             ),
             if (settings.gdl90Enabled) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 4.0,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      '${l10n.gdl90StatusTitle}: ',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isGdl90Active ? Colors.green : Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isGdl90Active
+                          ? l10n.gdl90StatusActive
+                          : l10n.gdl90StatusInactive,
+                      style: TextStyle(
+                        color:
+                            isGdl90Active
+                                ? Colors.green
+                                : theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,

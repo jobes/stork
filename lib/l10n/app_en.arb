@@ -881,6 +881,9 @@
   "gdl90EnableDesc": "Receive local GDL90 traffic over UDP (SafeSky, Stratux, SkyEcho 2, etc.)",
   "gdl90BindIpTitle": "Bind IP Address",
   "gdl90PortTitle": "UDP Port",
-  "gdl90TargetExpiryTitle": "Target Expiry Timeout"
+  "gdl90TargetExpiryTitle": "Target Expiry Timeout",
+  "gdl90StatusTitle": "Receiver Status",
+  "gdl90StatusActive": "Active",
+  "gdl90StatusInactive": "Inactive (No signal)"
 }
 
