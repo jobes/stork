@@ -78,6 +78,28 @@ class Traffic extends _$Traffic {
     // Listen to changes in settings & active aircraft OGN config
     ref.listen(appSettingsProvider, (prev, next) {
       _updateOutboundTrackingState();
+      final prevOgn = prev?.value?.ognEnabled ?? true;
+      final nextOgn = next.value?.ognEnabled ?? true;
+      if (prevOgn != nextOgn) {
+        if (nextOgn) {
+          _connectInbound();
+        } else {
+          _disconnectInbound();
+          purgeSourceTraffic('ogn');
+        }
+      }
+
+      final prevPt = prev?.value?.pureTrackEnabled ?? true;
+      final nextPt = next.value?.pureTrackEnabled ?? true;
+      if (prevPt != nextPt && !nextPt) {
+        purgeSourceTraffic('puretrack');
+      }
+
+      final prevGdl = prev?.value?.gdl90Enabled ?? true;
+      final nextGdl = next.value?.gdl90Enabled ?? true;
+      if (prevGdl != nextGdl && !nextGdl) {
+        purgeSourceTraffic('gdl90');
+      }
     });
 
     ref.listen(aircraftStateProvider, (prev, next) {
@@ -108,7 +130,10 @@ class Traffic extends _$Traffic {
       _outboundManager?.stop();
     });
 
-    _connectInbound();
+    final initialSettings = ref.read(appSettingsProvider).value;
+    if (initialSettings?.ognEnabled ?? true) {
+      _connectInbound();
+    }
 
     return const [];
   }
@@ -121,6 +146,8 @@ class Traffic extends _$Traffic {
   }
 
   void _connectInbound() {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.ognEnabled) return;
     if (_isConnecting) return;
     _isConnecting = true;
     _reconnectTimer?.cancel();
@@ -160,7 +187,16 @@ class Traffic extends _$Traffic {
         });
   }
 
+  void _disconnectInbound() {
+    _reconnectTimer?.cancel();
+    _inboundConnection?.disconnect(isManual: true);
+    _inboundConnection = null;
+    _isConnecting = false;
+  }
+
   void _scheduleReconnect() {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.ognEnabled) return;
     _reconnectTimer?.cancel();
     _reconnectAttempts++;
     final delaySeconds = (_reconnectAttempts * 2).clamp(2, 30);
@@ -173,6 +209,9 @@ class Traffic extends _$Traffic {
   final Map<String, List<TrackHistoryPoint>> _trackHistories = {};
 
   void _updateAircraft(TrafficAircraft aircraft) {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.ognEnabled) return;
+
     _aggregator.processOgnUpdate(aircraft);
 
     final canonicalId = CanonicalId.normalize(aircraft.id);
@@ -200,6 +239,8 @@ class Traffic extends _$Traffic {
   }
 
   void processPureTrackPacket(PureTrackPacket packet) {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.pureTrackEnabled) return;
     final mappedType = AircraftType.fromPureTrackType(
       packet.aircraftType,
     ).ognCode;
@@ -353,6 +394,14 @@ class Traffic extends _$Traffic {
     }
   }
 
+  void purgeSourceTraffic(String source) {
+    final purgedIds = _aggregator.purgeSource(source);
+    for (final id in purgedIds) {
+      _trackHistories.remove(id);
+    }
+    publishState();
+  }
+
   Future<void> loadDdbDetails(String id) async {
     await loadDdbDetailsMultiple([id]);
   }
@@ -496,7 +545,8 @@ class Traffic extends _$Traffic {
       orElse: () => null,
     );
 
-    if (activeAircraft != null &&
+    if (settings.ognEnabled &&
+        activeAircraft != null &&
         activeAircraft.sendLivePosition &&
         RegExp(
           r'^[0-9A-Fa-f]{6}$',

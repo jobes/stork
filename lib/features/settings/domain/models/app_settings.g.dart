@@ -141,6 +141,8 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   gdl90UdpPort: (json['gdl90UdpPort'] as num?)?.toInt() ?? 4000,
   gdl90TargetExpirySeconds:
       (json['gdl90TargetExpirySeconds'] as num?)?.toInt() ?? 60,
+  ognEnabled: json['ognEnabled'] as bool? ?? true,
+  pureTrackEnabled: json['pureTrackEnabled'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -193,6 +195,8 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'gdl90BindIp': instance.gdl90BindIp,
       'gdl90UdpPort': instance.gdl90UdpPort,
       'gdl90TargetExpirySeconds': instance.gdl90TargetExpirySeconds,
+      'ognEnabled': instance.ognEnabled,
+      'pureTrackEnabled': instance.pureTrackEnabled,
     };
 
 const _$SpeedUnitEnumMap = {

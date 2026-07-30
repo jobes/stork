@@ -298,12 +298,13 @@ class OgnInboundConnection {
     }
   }
 
-  Future<void> disconnect() async {
+  Future<void> disconnect({bool isManual = false}) async {
     _isConnected = false;
-    await _socket?.close();
     _socket?.destroy();
     _socket = null;
-    _notifyDisconnected();
+    if (!isManual) {
+      _notifyDisconnected();
+    }
   }
 }
 

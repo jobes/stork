@@ -1845,4 +1845,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gdl90StatusInactive => 'Inactive (No signal)';
+
+  @override
+  String get ognEnableTitle => 'Enable OGN';
+
+  @override
+  String get ognEnableDesc =>
+      'Receive and transmit traffic via Open Glider Network';
+
+  @override
+  String get pureTrackEnableTitle => 'Enable PureTrack';
+
+  @override
+  String get pureTrackEnableDesc => 'Receive traffic via PureTrack';
 }

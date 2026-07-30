@@ -194,6 +194,40 @@ class TrafficAggregator {
     return staleKeys;
   }
 
+  /// Purges a source from all target aircraft. If an aircraft has no remaining sources, it is removed.
+  List<String> purgeSource(String source) {
+    if (_targets.isEmpty) return const [];
+    final removedKeys = <String>[];
+
+    for (final entry in List.of(_targets.entries)) {
+      final key = entry.key;
+      final ac = entry.value;
+      if (ac.sources.contains(source)) {
+        final updatedSources = Set<String>.from(ac.sources)..remove(source);
+        if (updatedSources.isEmpty) {
+          _targets.remove(key);
+          removedKeys.add(key);
+        } else {
+          final newActiveSource = ac.activeSource == source
+              ? updatedSources.first
+              : ac.activeSource;
+          _targets[key] = ac.copyWith(
+            sources: updatedSources,
+            activeSource: newActiveSource,
+          );
+        }
+      }
+    }
+
+    if (removedKeys.isNotEmpty) {
+      debugPrint(
+        '[TrafficAggregator] [PURGE SOURCE: $source] Removed ${removedKeys.length} targets | Remaining in DB: ${_targets.length}',
+      );
+    }
+
+    return removedKeys;
+  }
+
   /// Clears all stored targets
   void clear() {
     _targets.clear();

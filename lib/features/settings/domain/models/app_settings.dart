@@ -117,6 +117,8 @@ abstract class AppSettings with _$AppSettings {
     @Default('0.0.0.0') String gdl90BindIp,
     @Default(4000) int gdl90UdpPort,
     @Default(60) int gdl90TargetExpirySeconds,
+    @Default(true) bool ognEnabled,
+    @Default(true) bool pureTrackEnabled,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>

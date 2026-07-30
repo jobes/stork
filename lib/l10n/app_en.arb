@@ -884,6 +884,10 @@
   "gdl90TargetExpiryTitle": "Target Expiry Timeout",
   "gdl90StatusTitle": "Receiver Status",
   "gdl90StatusActive": "Active",
-  "gdl90StatusInactive": "Inactive (No signal)"
+  "gdl90StatusInactive": "Inactive (No signal)",
+  "ognEnableTitle": "Enable OGN",
+  "ognEnableDesc": "Receive and transmit traffic via Open Glider Network",
+  "pureTrackEnableTitle": "Enable PureTrack",
+  "pureTrackEnableDesc": "Receive traffic via PureTrack"
 }
 

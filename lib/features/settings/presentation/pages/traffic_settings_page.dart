@@ -296,6 +296,18 @@ class TrafficSettingsPage extends ConsumerWidget {
                 ),
               ],
               const Divider(height: 1),
+              SwitchListTile(
+                title: Text(
+                  l10n.ognEnableTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                subtitle: Text(l10n.ognEnableDesc),
+                value: settings.ognEnabled,
+                onChanged: (val) {
+                  ref.read(appSettingsProvider.notifier).updateOgnEnabled(val);
+                },
+              ),
+              const Divider(height: 1),
               const Gdl90SettingsCard(),
               const Divider(height: 1),
               const PureTrackSettingsCard(),

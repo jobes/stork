@@ -778,5 +778,9 @@
   "gdl90TargetExpiryTitle": "Čas vypršania platnosti cieľa",
   "gdl90StatusTitle": "Stav prijímača",
   "gdl90StatusActive": "Aktívny",
-  "gdl90StatusInactive": "Neaktívny (Bez signálu)"
+  "gdl90StatusInactive": "Neaktívny (Bez signálu)",
+  "ognEnableTitle": "Povoliť OGN",
+  "ognEnableDesc": "Prijímať a odosielať letovú prevádzku cez Open Glider Network",
+  "pureTrackEnableTitle": "Povoliť PureTrack",
+  "pureTrackEnableDesc": "Prijímať letovú prevádzku cez PureTrack"
 }

@@ -3559,6 +3559,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Inactive (No signal)'**
   String get gdl90StatusInactive;
+
+  /// No description provided for @ognEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable OGN'**
+  String get ognEnableTitle;
+
+  /// No description provided for @ognEnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive and transmit traffic via Open Glider Network'**
+  String get ognEnableDesc;
+
+  /// No description provided for @pureTrackEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable PureTrack'**
+  String get pureTrackEnableTitle;
+
+  /// No description provided for @pureTrackEnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive traffic via PureTrack'**
+  String get pureTrackEnableDesc;
 }
 
 class _AppLocalizationsDelegate

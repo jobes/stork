@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/data/puretrack_auth_service.dart';
 import '../../../telemetry/presentation/providers/puretrack_auth_provider.dart';
 
@@ -75,6 +76,8 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(pureTrackProvider);
+    final settingsAsync = ref.watch(appSettingsProvider);
+    final pureTrackEnabled = settingsAsync.value?.pureTrackEnabled ?? true;
     final authService = ref.read(pureTrackAuthServiceProvider);
     if (_usernameController.text.isEmpty &&
         authService.currentUsername != null) {
@@ -86,13 +89,28 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
     final isAuthenticated = authState == PureTrackAuthState.authenticated;
     final isAuthenticating = authState == PureTrackAuthState.authenticating;
 
-    return Card(
-      margin: const EdgeInsets.all(16.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SwitchListTile(
+          title: Text(
+            l10n.pureTrackEnableTitle,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          subtitle: Text(l10n.pureTrackEnableDesc),
+          value: pureTrackEnabled,
+          onChanged: (val) {
+            ref.read(appSettingsProvider.notifier).updatePureTrackEnabled(val);
+          },
+        ),
+        if (pureTrackEnabled)
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             Row(
               children: [
                 Icon(
@@ -226,7 +244,9 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
           ],
         ),
       ),
-    );
+    ),
+  ],
+);
   }
 
   Widget _buildStatusChip(

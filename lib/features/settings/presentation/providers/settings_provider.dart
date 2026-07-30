@@ -614,4 +614,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       (s) => s.copyWith(gdl90TargetExpirySeconds: seconds.clamp(10, 300)),
     );
   }
+
+  Future<SettingsUpdateResult> updateOgnEnabled(bool enabled) {
+    return _updateSettings((s) => s.copyWith(ognEnabled: enabled));
+  }
+
+  Future<SettingsUpdateResult> updatePureTrackEnabled(bool enabled) {
+    return _updateSettings((s) => s.copyWith(pureTrackEnabled: enabled));
+  }
 }

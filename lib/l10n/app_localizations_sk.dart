@@ -1853,4 +1853,17 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get gdl90StatusInactive => 'Neaktívny (Bez signálu)';
+
+  @override
+  String get ognEnableTitle => 'Povoliť OGN';
+
+  @override
+  String get ognEnableDesc =>
+      'Prijímať a odosielať letovú prevádzku cez Open Glider Network';
+
+  @override
+  String get pureTrackEnableTitle => 'Povoliť PureTrack';
+
+  @override
+  String get pureTrackEnableDesc => 'Prijímať letovú prevádzku cez PureTrack';
 }
