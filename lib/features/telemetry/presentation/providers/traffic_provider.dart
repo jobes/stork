@@ -623,7 +623,18 @@ class FilteredTraffic extends _$FilteredTraffic {
 
     if (settings == null) return traffic;
 
+    final hiddenIds = settings.hiddenAircraftIds;
+
     final filtered = traffic.where((ac) {
+      if (hiddenIds.isNotEmpty) {
+        final acId = ac.id.trim().toLowerCase();
+        final acIcao = ac.icaoHex?.trim().toLowerCase();
+        if (hiddenIds.contains(acId) ||
+            (acIcao != null && hiddenIds.contains(acIcao))) {
+          return false;
+        }
+      }
+
       if (settings.trafficFilterMaxHorizontalDistanceEnabled) {
         if (telemetry.latitude != null &&
             telemetry.longitude != null &&

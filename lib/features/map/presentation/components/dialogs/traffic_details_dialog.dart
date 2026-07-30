@@ -243,6 +243,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                                 ],
                               ),
                             ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -301,7 +302,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             _buildTelemetryColumn(
                               context,
@@ -314,6 +315,52 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                               l10n.trafficSourceLabel,
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              ref
+                                  .read(appSettingsProvider.notifier)
+                                  .hideAircraft(ac.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('${l10n.hideAircraft}: $nameLabel'),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.visibility_off_outlined,
+                                    size: 16,
+                                    color: theme.colorScheme.error.withValues(
+                                      alpha: 0.85,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    l10n.hideAircraft,
+                                    style: theme.textTheme.labelMedium?.copyWith(
+                                      color: theme.colorScheme.error.withValues(
+                                        alpha: 0.85,
+                                      ),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                         if (ac.isAnonymous) ...[
                           const SizedBox(height: 12),

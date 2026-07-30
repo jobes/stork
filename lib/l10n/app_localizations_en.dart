@@ -1858,4 +1858,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pureTrackEnableDesc => 'Receive traffic via PureTrack';
+
+  @override
+  String get hideAircraft => 'Hide';
+
+  @override
+  String get hiddenAircraftSection => 'Hidden Aircraft';
+
+  @override
+  String get noHiddenAircraft => 'No hidden aircraft.';
+
+  @override
+  String get unhideAircraft => 'Unhide';
+
+  @override
+  String get clearAllHiddenAircraft => 'Clear all hidden';
 }

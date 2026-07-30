@@ -311,12 +311,80 @@ class TrafficSettingsPage extends ConsumerWidget {
               const Gdl90SettingsCard(),
               const Divider(height: 1),
               const PureTrackSettingsCard(),
+              const Divider(height: 1),
+              _buildHiddenAircraftSection(context, ref, settings),
             ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text(e.toString())),
       ),
+    );
+  }
+
+  Widget _buildHiddenAircraftSection(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic settings,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final Set<String> hiddenIds = settings.hiddenAircraftIds ?? {};
+
+    return ExpansionTile(
+      leading: const Icon(Icons.visibility_off_outlined),
+      title: Text(
+        l10n.hiddenAircraftSection,
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(
+        hiddenIds.isEmpty
+            ? l10n.noHiddenAircraft
+            : '${hiddenIds.length} ${l10n.aircraftCountLabel.toLowerCase()}',
+      ),
+      children: [
+        if (hiddenIds.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              l10n.noHiddenAircraft,
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          )
+        else ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                icon: const Icon(Icons.delete_sweep_outlined, size: 18),
+                label: Text(l10n.clearAllHiddenAircraft),
+                onPressed: () {
+                  ref.read(appSettingsProvider.notifier).clearHiddenAircraft();
+                },
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          ...hiddenIds.map((id) {
+            return ListTile(
+              dense: true,
+              leading: const Icon(Icons.airplanemode_inactive_outlined),
+              title: Text(
+                id.toUpperCase(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: l10n.unhideAircraft,
+                onPressed: () {
+                  ref.read(appSettingsProvider.notifier).unhideAircraft(id);
+                },
+              ),
+            );
+          }),
+        ],
+      ],
     );
   }
 }

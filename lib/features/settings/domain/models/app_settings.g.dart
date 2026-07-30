@@ -143,6 +143,11 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
       (json['gdl90TargetExpirySeconds'] as num?)?.toInt() ?? 60,
   ognEnabled: json['ognEnabled'] as bool? ?? true,
   pureTrackEnabled: json['pureTrackEnabled'] as bool? ?? true,
+  hiddenAircraftIds:
+      (json['hiddenAircraftIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toSet() ??
+      const {},
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -197,6 +202,7 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'gdl90TargetExpirySeconds': instance.gdl90TargetExpirySeconds,
       'ognEnabled': instance.ognEnabled,
       'pureTrackEnabled': instance.pureTrackEnabled,
+      'hiddenAircraftIds': instance.hiddenAircraftIds.toList(),
     };
 
 const _$SpeedUnitEnumMap = {

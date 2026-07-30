@@ -3583,6 +3583,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Receive traffic via PureTrack'**
   String get pureTrackEnableDesc;
+
+  /// No description provided for @hideAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get hideAircraft;
+
+  /// No description provided for @hiddenAircraftSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden Aircraft'**
+  String get hiddenAircraftSection;
+
+  /// No description provided for @noHiddenAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'No hidden aircraft.'**
+  String get noHiddenAircraft;
+
+  /// No description provided for @unhideAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Unhide'**
+  String get unhideAircraft;
+
+  /// No description provided for @clearAllHiddenAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all hidden'**
+  String get clearAllHiddenAircraft;
 }
 
 class _AppLocalizationsDelegate

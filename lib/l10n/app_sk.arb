@@ -782,5 +782,10 @@
   "ognEnableTitle": "Povoliť OGN",
   "ognEnableDesc": "Prijímať a odosielať letovú prevádzku cez Open Glider Network",
   "pureTrackEnableTitle": "Povoliť PureTrack",
-  "pureTrackEnableDesc": "Prijímať letovú prevádzku cez PureTrack"
+  "pureTrackEnableDesc": "Prijímať letovú prevádzku cez PureTrack",
+  "hideAircraft": "Skryť",
+  "hiddenAircraftSection": "Skryté lietadlá",
+  "noHiddenAircraft": "Žiadne skryté lietadlá.",
+  "unhideAircraft": "Zobraziť znova",
+  "clearAllHiddenAircraft": "Vymazať všetky skryté"
 }

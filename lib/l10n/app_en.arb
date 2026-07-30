@@ -888,6 +888,11 @@
   "ognEnableTitle": "Enable OGN",
   "ognEnableDesc": "Receive and transmit traffic via Open Glider Network",
   "pureTrackEnableTitle": "Enable PureTrack",
-  "pureTrackEnableDesc": "Receive traffic via PureTrack"
+  "pureTrackEnableDesc": "Receive traffic via PureTrack",
+  "hideAircraft": "Hide",
+  "hiddenAircraftSection": "Hidden Aircraft",
+  "noHiddenAircraft": "No hidden aircraft.",
+  "unhideAircraft": "Unhide",
+  "clearAllHiddenAircraft": "Clear all hidden"
 }
 

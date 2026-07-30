@@ -622,4 +622,25 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<SettingsUpdateResult> updatePureTrackEnabled(bool enabled) {
     return _updateSettings((s) => s.copyWith(pureTrackEnabled: enabled));
   }
+
+  Future<SettingsUpdateResult> hideAircraft(String id) {
+    final cleanId = id.trim().toLowerCase();
+    if (cleanId.isEmpty) return Future.value(const SettingsUpdateSuccess());
+    return _updateSettings(
+      (s) => s.copyWith(hiddenAircraftIds: {...s.hiddenAircraftIds, cleanId}),
+    );
+  }
+
+  Future<SettingsUpdateResult> unhideAircraft(String id) {
+    final cleanId = id.trim().toLowerCase();
+    return _updateSettings(
+      (s) => s.copyWith(
+        hiddenAircraftIds: Set<String>.from(s.hiddenAircraftIds)..remove(cleanId),
+      ),
+    );
+  }
+
+  Future<SettingsUpdateResult> clearHiddenAircraft() {
+    return _updateSettings((s) => s.copyWith(hiddenAircraftIds: const {}));
+  }
 }

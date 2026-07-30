@@ -1866,4 +1866,19 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get pureTrackEnableDesc => 'Prijímať letovú prevádzku cez PureTrack';
+
+  @override
+  String get hideAircraft => 'Skryť';
+
+  @override
+  String get hiddenAircraftSection => 'Skryté lietadlá';
+
+  @override
+  String get noHiddenAircraft => 'Žiadne skryté lietadlá.';
+
+  @override
+  String get unhideAircraft => 'Zobraziť znova';
+
+  @override
+  String get clearAllHiddenAircraft => 'Vymazať všetky skryté';
 }

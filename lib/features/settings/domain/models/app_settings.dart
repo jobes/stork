@@ -119,6 +119,7 @@ abstract class AppSettings with _$AppSettings {
     @Default(60) int gdl90TargetExpirySeconds,
     @Default(true) bool ognEnabled,
     @Default(true) bool pureTrackEnabled,
+    @Default({}) Set<String> hiddenAircraftIds,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>
