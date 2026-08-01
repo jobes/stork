@@ -8,8 +8,8 @@ class DecayableField<T> {
 
   DecayableField({
     this.timeout = const Duration(milliseconds: 1500),
-    required void Function(T? newValue) onChanged,
-  }) : _onChanged = onChanged;
+    required this._onChanged,
+  });
 
   T? get value => _value;
 

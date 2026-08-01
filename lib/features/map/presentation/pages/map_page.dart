@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
+import '../../../../core/services/location_provider.dart';
 
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
@@ -67,6 +68,12 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    ref.read(compassOrientationOffsetProvider.notifier).onMetricsChanged();
   }
 
   @override

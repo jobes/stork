@@ -280,6 +280,18 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
   @override
   TelemetryState build() {
+    // Listen to device compass for low-speed heading.
+    // Must be in build() (not a void provider) so ref.listen properly
+    // subscribes to the StreamProvider.
+    ref.listen(compassStreamProvider, (previous, next) {
+      next.whenData((heading) {
+        if (heading == null) return;
+        if (!state.isFlying) {
+          updateGPS(heading: heading);
+        }
+      });
+    });
+
     ref.onDispose(() {
       _droneCanGpsTimeoutTimer?.cancel();
       _latitude.cancel();
@@ -605,17 +617,6 @@ void gpsListener(Ref ref) {
               .read(telemetryProvider.notifier)
               .updateGPS(heading: location.heading);
         }
-      }
-    });
-  });
-
-  // Listen to device compass for low-speed heading
-  ref.listen(compassStreamProvider, (previous, next) {
-    next.whenData((heading) {
-      if (heading == null) return;
-      final telemetry = ref.read(telemetryProvider);
-      if (telemetry.mapViewState != MapViewState.init && !telemetry.isFlying) {
-        ref.read(telemetryProvider.notifier).updateGPS(heading: heading);
       }
     });
   });

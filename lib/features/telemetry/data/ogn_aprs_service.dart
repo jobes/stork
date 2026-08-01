@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../domain/models/traffic_aircraft.dart';
 
-
 class OgnOutboundIsolate {
   static void entryPoint(SendPort mainSendPort) async {
     final isolateReceivePort = ReceivePort();
@@ -312,7 +311,7 @@ class OgnAprsService {
   final http.Client? _client;
   final Map<String, Map<String, String>> _ddbCache = {};
 
-  OgnAprsService({http.Client? client}) : _client = client;
+  OgnAprsService({this._client});
 
   Future<Map<String, String>?> lookupDdb(String deviceId) async {
     final results = await lookupDdbMultiple([deviceId]);

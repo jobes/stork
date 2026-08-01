@@ -54,12 +54,11 @@ class PureTrackAuthService {
   PureTrackAuthService({
     FlutterSecureStorage? storage,
     http.Client? client,
-    String baseUrl = 'https://puretrack.io',
+    this._baseUrl = 'https://puretrack.io',
     String? apiKey,
   }) : _storage = storage ?? const FlutterSecureStorage(),
        _ownsClient = client == null,
        _client = client ?? http.Client(),
-       _baseUrl = baseUrl,
        _apiKey =
            apiKey ??
            (dotenv.isInitialized ? (dotenv.env['PURETRACK_KEY'] ?? '') : '');

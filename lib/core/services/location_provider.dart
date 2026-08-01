@@ -1,10 +1,12 @@
+import 'dart:async';
+import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:maplibre/maplibre.dart';
 import 'location_service.dart';
 import '../../l10n/app_localizations.dart';
@@ -116,20 +118,120 @@ positionStream(Ref ref) {
   );
 }
 
-@riverpod
+/// Provider for the display orientation offset applied to the compass heading.
+/// Sensors report in the device's natural coordinate system, but when the
+/// display rotates (e.g. landscape), the screen "up" direction differs from
+/// the device's physical top. This offset compensates for that.
+///
+/// Typical values:
+/// - Portrait (natural): 0°
+/// - Landscape: 90° (device physical top to the left of screen)
+@Riverpod(keepAlive: true)
+class CompassOrientationOffset extends _$CompassOrientationOffset {
+  @override
+  double build() {
+    return _readDisplaySize();
+  }
+
+  double _readDisplaySize() {
+    final view = ui.PlatformDispatcher.instance.views.first;
+    final size = view.display.size;
+    return size.width > size.height ? 90.0 : 0.0;
+  }
+
+  /// Must be called from a widget when display metrics change (rotation).
+  void onMetricsChanged() {
+    state = _readDisplaySize();
+  }
+}
+
+@Riverpod(keepAlive: true)
 Stream<double?> compassStream(Ref ref) {
   DateTime? lastUpdate;
+  MagnetometerEvent? lastMag;
+  AccelerometerEvent? lastAcc;
 
-  return FlutterCompass.events
-          ?.where((event) {
-            final now = DateTime.now();
-            if (lastUpdate == null ||
-                now.difference(lastUpdate!) >= const Duration(seconds: 1)) {
-              lastUpdate = now;
-              return true;
-            }
-            return false;
-          })
-          .map((event) => event.heading) ??
-      const Stream.empty();
+  // Cache orientation offset locally — updated via ref.listen when display rotates.
+  var orientationOffset = 0.0;
+  ref.listen(compassOrientationOffsetProvider, (_, next) {
+    orientationOffset = next;
+  });
+
+  final controller = StreamController<double?>();
+
+  void tryEmit() {
+    if (lastMag == null || lastAcc == null) return;
+    final now = DateTime.now();
+    if (lastUpdate != null &&
+        now.difference(lastUpdate!) < const Duration(seconds: 1)) {
+      return;
+    }
+    lastUpdate = now;
+    final rawHeading = _computeHeading(lastMag!, lastAcc!);
+    if (rawHeading == null) return;
+    controller.add((rawHeading + orientationOffset) % 360);
+  }
+
+  final magSub = magnetometerEventStream().listen((mag) {
+    lastMag = mag;
+    tryEmit();
+  });
+  final accSub = accelerometerEventStream().listen((acc) {
+    lastAcc = acc;
+    tryEmit();
+  });
+
+  ref.onDispose(() {
+    magSub.cancel();
+    accSub.cancel();
+    controller.close();
+  });
+
+  return controller.stream;
+}
+
+/// Computes compass heading in degrees (0-360) from raw sensor data.
+/// Returns null if the device orientation prevents a valid calculation.
+///
+/// Implements Android's SensorManager.getRotationMatrix + getOrientation:
+///   H = magnetometer × accelerometer   (East-ish direction)
+///   M = accelerometer × H              (North-ish direction)
+///   azimuth = atan2(Hy, My)
+double? _computeHeading(MagnetometerEvent mag, AccelerometerEvent acc) {
+  final ax = acc.x;
+  final ay = acc.y;
+  final az = acc.z;
+
+  final mx = mag.x;
+  final my = mag.y;
+  final mz = mag.z;
+
+  if (ax * ax + ay * ay + az * az < 0.01) return null;
+
+  // Normalize accelerometer
+  final accNorm = sqrt(ax * ax + ay * ay + az * az);
+  final nax = ax / accNorm;
+  final nay = ay / accNorm;
+  final naz = az / accNorm;
+
+  // H = magnetometer × accelerometer (points East)
+  // Normalise H (cross-product magnitude = sine of angle between vectors)
+  double hx = my * naz - mz * nay;
+  double hy = mz * nax - mx * naz;
+  double hz = mx * nay - my * nax;
+  final hNorm = sqrt(hx * hx + hy * hy + hz * hz);
+  if (hNorm < 0.01) return null;
+  hx /= hNorm;
+  hy /= hNorm;
+  hz /= hNorm;
+
+  // M = accelerometer × H (points North)
+  final myResult = naz * hx - nax * hz;
+
+  // Azimuth from the device Y axis projected onto the horizontal plane:
+  //   azimuth = atan2(Hy, My)
+  double heading = atan2(hy, myResult) * 180 / pi;
+  if (heading < 0) heading += 360;
+
+  return heading;
 }
