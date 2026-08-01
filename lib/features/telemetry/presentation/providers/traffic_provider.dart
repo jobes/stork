@@ -304,8 +304,9 @@ class Traffic extends _$Traffic {
   }
 
   void processGdl90Target(Gdl90Target target) {
+    final vsMs = target.verticalSpeedFpm * 0.00508;
     debugPrint(
-      '[TrafficProvider] Received GDL90 target: id=${target.id}, callsign=${target.callsign ?? 'N/A'}, lat=${target.latitude.toStringAsFixed(4)}, lon=${target.longitude.toStringAsFixed(4)}, alt=${target.altitudeFeet}ft',
+      '[TrafficProvider] Received GDL90 target: id=${target.id}, callsign=${target.callsign ?? 'N/A'}, lat=${target.latitude.toStringAsFixed(4)}, lon=${target.longitude.toStringAsFixed(4)}, alt=${target.altitudeFeet}ft, vsFpm=${target.verticalSpeedFpm.toStringAsFixed(0)} (valid=${target.verticalSpeedValid}) → vsMs=${vsMs.toStringAsFixed(2)} m/s',
     );
     final mappedType = _mapGdl90EmitterCategory(target.emitterCategory);
 
@@ -318,7 +319,7 @@ class Traffic extends _$Traffic {
       altitude: target.altitudeFeet * 0.3048, // feet -> meters AMSL
       track: target.trackDegrees,
       groundSpeed: target.speedKnots * 0.514444, // kts -> m/s
-      verticalSpeed: target.verticalSpeedFpm * 0.00508, // ft/min -> m/s
+      verticalSpeed: vsMs, // ft/min -> m/s
       aircraftType: mappedType,
       lastSeen: target.lastUpdated,
       sources: const {'gdl90'},

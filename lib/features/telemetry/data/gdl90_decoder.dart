@@ -281,7 +281,9 @@ class Gdl90Decoder {
     }
 
     // Bytes 15 (LS nibble), 16: Vertical speed (12-bit signed, 64 ft/min resolution)
-    int rawVs = ((payload[15] & 0x0F) << 8) | (payload[16] & 0xFF);
+    final vsHi = payload[15] & 0x0F; // Upper 4 bits (from byte 15 LS nibble)
+    final vsLo = payload[16] & 0xFF; // Lower 8 bits
+    int rawVs = (vsHi << 8) | vsLo;
 
     // Byte 17: Track (8-bit resolution 360 / 256 degrees)
     final trackDegrees = (payload[17] & 0xFF) * (360.0 / 256.0);
@@ -297,6 +299,10 @@ class Gdl90Decoder {
       verticalSpeedFpm = rawVs * 64.0;
       verticalSpeedValid = true;
     }
+
+    debugPrint(
+      '[Gdl90Decoder] TrafficReport vs raw: payload[15]=0x${payload[15].toRadixString(16).padLeft(2, '0')} payload[16]=0x${payload[16].toRadixString(16).padLeft(2, '0')} → vsHi=$vsHi vsLo=$vsLo → rawVs=$rawVs → vsFpm=${verticalSpeedFpm.toStringAsFixed(0)} (valid=$verticalSpeedValid)',
+    );
 
     // Byte 19: Emitter Category
     final emitterCategory = payload[19] & 0xFF;

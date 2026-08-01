@@ -186,13 +186,13 @@ class Gdl90Service {
       for (final msg in messages) {
         if (msg is Gdl90TrafficMessage) {
           debugPrint(
-            '[Gdl90Service] GDL90 Traffic: id=${msg.target.id}, callsign=${msg.target.callsign ?? "N/A"}, lat=${msg.target.latitude}, lon=${msg.target.longitude}, alt=${msg.target.altitudeFeet}ft, speed=${msg.target.speedKnots}kts, track=${msg.target.trackDegrees}°',
+            '[Gdl90Service] GDL90 Traffic: id=${msg.target.id}, callsign=${msg.target.callsign ?? "N/A"}, lat=${msg.target.latitude}, lon=${msg.target.longitude}, alt=${msg.target.altitudeFeet}ft, speed=${msg.target.speedKnots}kts, track=${msg.target.trackDegrees}°, vsFpm=${msg.target.verticalSpeedFpm.toStringAsFixed(0)} (valid=${msg.target.verticalSpeedValid})',
           );
           _targets[msg.target.id] = msg.target;
           stateChanged = true;
         } else if (msg is Gdl90OwnshipMessage) {
           debugPrint(
-            '[Gdl90Service] GDL90 Ownship: id=${msg.target.id}, callsign=${msg.target.callsign ?? "N/A"}, lat=${msg.target.latitude}, lon=${msg.target.longitude}, alt=${msg.target.altitudeFeet}ft, speed=${msg.target.speedKnots}kts, track=${msg.target.trackDegrees}°',
+            '[Gdl90Service] GDL90 Ownship: id=${msg.target.id}, callsign=${msg.target.callsign ?? "N/A"}, lat=${msg.target.latitude}, lon=${msg.target.longitude}, alt=${msg.target.altitudeFeet}ft, speed=${msg.target.speedKnots}kts, track=${msg.target.trackDegrees}°, vsFpm=${msg.target.verticalSpeedFpm.toStringAsFixed(0)} (valid=${msg.target.verticalSpeedValid})',
           );
           _targets[msg.target.id] = msg.target;
           stateChanged = true;
