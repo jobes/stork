@@ -130,18 +130,28 @@ positionStream(Ref ref) {
 class CompassOrientationOffset extends _$CompassOrientationOffset {
   @override
   double build() {
-    return _readDisplaySize();
+    return _readOrientationOffset();
   }
 
-  double _readDisplaySize() {
+  /// Derives the orientation offset from the current viewport size
+  /// ([FlutterView.physicalSize]), which reflects the app's actual rotation on
+  /// every platform. [ui.Display.size] must not be used here — it reports the
+  /// physical display/monitor size, which does not rotate with the view (on
+  /// desktop it is the monitor's fixed size), so the offset would never update.
+  ///
+  /// Note: Flutter 3.x does not expose a signed display rotation (there is no
+  /// view rotation getter), so the two landscape directions cannot be told
+  /// apart from size alone. +90° assumes the device physical top is to the left
+  /// of the screen (the usual EFB mounting orientation).
+  double _readOrientationOffset() {
     final view = ui.PlatformDispatcher.instance.views.first;
-    final size = view.display.size;
+    final size = view.physicalSize;
     return size.width > size.height ? 90.0 : 0.0;
   }
 
   /// Must be called from a widget when display metrics change (rotation).
   void onMetricsChanged() {
-    state = _readDisplaySize();
+    state = _readOrientationOffset();
   }
 }
 
@@ -152,10 +162,12 @@ Stream<double?> compassStream(Ref ref) {
   AccelerometerEvent? lastAcc;
 
   // Cache orientation offset locally — updated via ref.listen when display rotates.
+  // fireImmediately applies the current offset before any sensor event is
+  // processed, so the first heading is already compensated.
   var orientationOffset = 0.0;
   ref.listen(compassOrientationOffsetProvider, (_, next) {
     orientationOffset = next;
-  });
+  }, fireImmediately: true);
 
   final controller = StreamController<double?>();
 

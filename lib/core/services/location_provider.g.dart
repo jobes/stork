@@ -230,7 +230,7 @@ final class CompassOrientationOffsetProvider
 }
 
 String _$compassOrientationOffsetHash() =>
-    r'486fe1eada7adcb2a91114e5c188020a876eecc3';
+    r'9b6bea387e542cb6265459d78a74c2c9b80240d8';
 
 /// Provider for the display orientation offset applied to the compass heading.
 /// Sensors report in the device's natural coordinate system, but when the
@@ -290,4 +290,4 @@ final class CompassStreamProvider
   }
 }
 
-String _$compassStreamHash() => r'1ce1e463f53a306dcfdda061e542ddb5bcf8fb0e';
+String _$compassStreamHash() => r'4f92ed651949d5901437ab22e0ff2b54d6e1b0cd';
