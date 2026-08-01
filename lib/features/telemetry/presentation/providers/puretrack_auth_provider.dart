@@ -77,10 +77,7 @@ class PureTrackNotifier extends _$PureTrackNotifier {
   }
 
   Future<PureTrackAuthResult> login(String username, String password) async {
-    return await _authService.login(
-      username: username,
-      password: password,
-    );
+    return await _authService.login(username: username, password: password);
   }
 
   Future<void> logout() async {

@@ -149,9 +149,7 @@ class PureTrackPacket {
       return 1;
     }
 
-    final type = parseType(
-      json['type'] ?? json['aircraft_type'] ?? json['O'],
-    );
+    final type = parseType(json['type'] ?? json['aircraft_type'] ?? json['O']);
 
     DateTime tSent;
     final tsRaw =
@@ -223,16 +221,16 @@ class PureTrackStreamService {
   final bool _ownsClient;
 
   PureTrackStreamService({
-    String baseUrl = 'https://puretrack.io',
+    this._baseUrl = 'https://puretrack.io',
     String? apiKey,
     http.Client? client,
     VoidCallback? onUnauthorized,
-  }) : _baseUrl = baseUrl,
-       _apiKey =
+  }) : _apiKey =
            apiKey ??
            (dotenv.isInitialized ? (dotenv.env['PURETRACK_KEY'] ?? '') : ''),
        _ownsClient = client == null,
        _client = client ?? http.Client(),
+       // ignore: prefer_initializing_formals
        _onUnauthorized = onUnauthorized;
 
   void setUnauthorizedHandler(VoidCallback handler) {
