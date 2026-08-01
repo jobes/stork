@@ -123,33 +123,104 @@ positionStream(Ref ref) {
 /// display rotates (e.g. landscape), the screen "up" direction differs from
 /// the device's physical top. This offset compensates for that.
 ///
+/// The offset is the *signed* rotation of the screen-up direction relative to
+/// the device's natural Y axis, derived from the gravity vector (accelerometer)
+/// in the device frame. Unlike a size-only heuristic it distinguishes the two
+/// landscape directions and yields 0° for a natural-landscape device in its
+/// natural orientation.
+///
 /// Typical values:
 /// - Portrait (natural): 0°
-/// - Landscape: 90° (device physical top to the left of screen)
+/// - Landscape, device physical top to the left of screen: +90°
+/// - Landscape, device physical top to the right of screen: -90°
+/// - Natural-landscape device, natural orientation: 0°
 @Riverpod(keepAlive: true)
 class CompassOrientationOffset extends _$CompassOrientationOffset {
+  static const double _kGravity = 9.80665;
+
+  // Low-pass filtered gravity (m/s²) in the device's natural coordinate frame,
+  // used to derive the signed screen-up rotation.
+  double _gx = 0;
+  double _gy = 0;
+  double _gz = 0;
+  bool _hasGravity = false;
+  StreamSubscription<AccelerometerEvent>? _sub;
+
   @override
   double build() {
-    return _readOrientationOffset();
+    // Initial value from the viewport size ([FlutterView.physicalSize]). Only a
+    // fallback — once sensor data arrives the state is replaced by the signed
+    // rotation derived from gravity.
+    final initial = _sizeBasedOffset();
+    _sub?.cancel();
+    _sub = accelerometerEventStream().listen(
+      _onAccelerometerEvent,
+      onError: (Object _) {
+        // No accelerometer available (e.g. some desktop/web targets): keep the
+        // size-based fallback.
+      },
+    );
+    ref.onDispose(() => _sub?.cancel());
+    return initial;
   }
 
-  /// Derives the orientation offset from the current viewport size
+  void _onAccelerometerEvent(AccelerometerEvent acc) {
+    // Low-pass filter to separate gravity from short-lived linear acceleration
+    // (turns, climbs, turbulence).
+    const alpha = 0.15;
+    if (!_hasGravity) {
+      _gx = acc.x;
+      _gy = acc.y;
+      _gz = acc.z;
+      _hasGravity = true;
+    } else {
+      _gx += alpha * (acc.x - _gx);
+      _gy += alpha * (acc.y - _gy);
+      _gz += alpha * (acc.z - _gz);
+    }
+    state = _readOrientationOffset();
+  }
+
+  /// Signed rotation (degrees) of the screen-up direction from the device's
+  /// natural Y axis, derived from the accelerometer gravity vector.
+  ///
+  /// sensors_plus normalises the accelerometer on every platform to point
+  /// "up" (away from gravity) in the device frame (Android convention), so
+  /// `atan2(gx, gy)` is the angle of the screen-up direction relative to the
+  /// device's natural top. The angle is quantised to the nearest 90°, matching
+  /// the display-rotation steps used by the OS.
+  double _readOrientationOffset() {
+    if (!_hasGravity) return _sizeBasedOffset();
+    final horiz = sqrt(_gx * _gx + _gy * _gy);
+    if (horiz < 0.3 * _kGravity) {
+      // Device nearly flat: gravity has no reliable in-screen-plane component.
+      // Keep the last known offset (or the size-based estimate).
+      return state;
+    }
+    final angle = atan2(_gx, _gy) * 180 / pi;
+    return (angle / 90).roundToDouble() * 90;
+  }
+
+  /// Fallback offset derived from the viewport size
   /// ([FlutterView.physicalSize]), which reflects the app's actual rotation on
   /// every platform. [ui.Display.size] must not be used here — it reports the
   /// physical display/monitor size, which does not rotate with the view (on
   /// desktop it is the monitor's fixed size), so the offset would never update.
   ///
-  /// Note: Flutter 3.x does not expose a signed display rotation (there is no
-  /// view rotation getter), so the two landscape directions cannot be told
-  /// apart from size alone. +90° assumes the device physical top is to the left
-  /// of the screen (the usual EFB mounting orientation).
-  double _readOrientationOffset() {
+  /// Size alone cannot distinguish the two landscape directions (Flutter does
+  /// not expose a signed display rotation), so this is used only as the initial
+  /// value and on devices without an accelerometer. +90° then assumes the
+  /// device physical top is to the left of the screen (the usual EFB mounting
+  /// orientation).
+  double _sizeBasedOffset() {
     final view = ui.PlatformDispatcher.instance.views.first;
     final size = view.physicalSize;
     return size.width > size.height ? 90.0 : 0.0;
   }
 
   /// Must be called from a widget when display metrics change (rotation).
+  /// Re-reads the current offset; with sensor data available this returns the
+  /// signed gravity-based value, otherwise the size-based fallback.
   void onMetricsChanged() {
     state = _readOrientationOffset();
   }
@@ -161,9 +232,10 @@ Stream<double?> compassStream(Ref ref) {
   MagnetometerEvent? lastMag;
   AccelerometerEvent? lastAcc;
 
-  // Cache orientation offset locally — updated via ref.listen when display rotates.
-  // fireImmediately applies the current offset before any sensor event is
-  // processed, so the first heading is already compensated.
+  // Cache the orientation offset locally — updated via ref.listen as the
+  // display rotates or gravity changes. fireImmediately applies the current
+  // offset before any sensor event is processed, so the first heading is
+  // already compensated.
   var orientationOffset = 0.0;
   ref.listen(compassOrientationOffsetProvider, (_, next) {
     orientationOffset = next;
