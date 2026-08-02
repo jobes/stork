@@ -85,4 +85,9 @@ Manages traffic filtering, collision avoidance parameters, and multi-source tele
   - **Session Management**: Interactive buttons to log in, log out, or invalidate active tokens.
   - **Status Indicators**: Real-time authentication status badge (authenticated, unauthenticated, error state).
   - **Stream Integration Toggle**: Switch to enable/disable PureTrack live telemetry streaming.
+- **GDL90 / SafeSky Receiver ([Gdl90SettingsCard](../../lib/features/settings/presentation/widgets/gdl90_settings_card.dart))**:
+  - **Enable Toggle**: Master switch enabling the local GDL90 UDP receiver (`gdl90Enabled`).
+  - **Receiver Status Indicator**: Live status dot driven by `gdl90HeartbeatActiveProvider` — **Active** while a GDL90 heartbeat was received within the last $10\text{ s}$, **Inactive (No signal)** otherwise.
+  - **Bind IP Address & UDP Port**: Text fields for `gdl90BindIp` (default `0.0.0.0`) and `gdl90UdpPort` (default `4000`, clamped to $1\text{–}65535$), protected by dedicated `FocusNode`s so rebuilds never overwrite in-progress user input.
+  - **Target Expiry Timeout**: Slider ($10\text{–}300\text{ s}$, $10\text{ s}$ steps) for `gdl90TargetExpirySeconds`, controlling how long a GDL90 target survives without a new report.
 

@@ -6,7 +6,7 @@ This document describes the design, mathematical model, 3D threat volume evaluat
 
 ## 1. System Overview
 
-The Collision Avoidance System (CAS) continuously monitors surrounding traffic received via the Open Glider Network (OGN) APRS network and compares target trajectories against the pilot's ownship telemetry. When a target's projected 3D trajectory breaches the configured safety volume within a short lookahead time horizon, the system flags the target as a collision threat, highlights it on the map with altitude trend tags, and displays a prominent warning banner.
+The Collision Avoidance System (CAS) continuously monitors surrounding traffic received from all telemetry sources — the Open Glider Network (OGN) APRS network, PureTrack SSE/WebSocket, and local GDL90 UDP receivers — and compares target trajectories against the pilot's ownship telemetry. When a target's projected 3D trajectory breaches the configured safety volume within a short lookahead time horizon, the system flags the target as a collision threat, highlights it on the map with altitude trend tags, and displays a prominent warning banner.
 
 ```mermaid
 graph TD
@@ -19,7 +19,7 @@ graph TD
     end
 
     subgraph Target Telemetry
-        OGN[OGN APRS Traffic Stream] --> TrafficProv[[ognTrafficProvider]]
+        MultiSrc[OGN / PureTrack / GDL90 Traffic] --> TrafficProv[[trafficProvider]]
         TrafficProv --> TargetHistory[Target Track History]
         TargetHistory --> TargetTurnRate[CasEvaluator.calculateTurnRate]
         TargetHistory --> TargetCircling[CasEvaluator.detectCircling]
@@ -31,7 +31,7 @@ graph TD
         TargetTurnRate --> CASEval
         TargetCircling --> CASEval
         AppSettings[[appSettingsProvider]] -->|Thresholds & Lookahead| CASEval
-        CASEval --> FilteredTraffic[[filteredOgnTrafficProvider]]
+        CASEval --> FilteredTraffic[[filteredTrafficProvider]]
     end
 
     subgraph Threat Alert & UI Presentation
@@ -115,8 +115,8 @@ $$d(t) \le d_{\text{effective}} \quad \text{AND} \quad \Delta h(t) \le h_{\text{
 ```mermaid
 sequenceDiagram
     participant T as Telemetry Stream
-    participant P as ognTrafficProvider
-    participant F as filteredOgnTrafficProvider
+    participant P as trafficProvider
+    participant F as filteredTrafficProvider
     participant A as activeCollisionAlertProvider
     participant UI as CollisionWarningBanner
 
@@ -132,10 +132,10 @@ sequenceDiagram
 ```
 
 ### 4.1. Key Providers
-1. **`filteredOgnTrafficProvider`** ([ogn_traffic_provider.dart](../../lib/features/telemetry/presentation/providers/ogn_traffic_provider.dart#L348)):
-   Applies spatial distance limits and runs `CasEvaluator.evaluateThreat` for all targets. Returns updated list of `OgnTrafficAircraft` with attached threat metadata (`isCollisionThreat`, `tCpa`, `minDistance`).
-2. **`activeCollisionAlertProvider`** ([ogn_traffic_provider.dart](../../lib/features/telemetry/presentation/providers/ogn_traffic_provider.dart#L461)):
-   Filters all active threats (`ac.isCollisionThreat == true`), sorts them by shortest $t_{\text{CPA}}$ and shortest separation distance, and returns the top-priority threat target (or `null` if clear).
+1.  **`filteredTrafficProvider`** ([traffic_provider.dart](../../lib/features/telemetry/presentation/providers/traffic_provider.dart#L348)):
+    Applies spatial distance limits and runs `CasEvaluator.evaluateThreat` for all targets. Returns updated list of `TrafficAircraft` with attached threat metadata (`isCollisionThreat`, `tCpa`, `minDistance`).
+2.  **`activeCollisionAlertProvider`** ([traffic_provider.dart](../../lib/features/telemetry/presentation/providers/traffic_provider.dart#L461)):
+    Filters all active threats (`ac.isCollisionThreat == true`), sorts them by shortest $t_{\text{CPA}}$ and shortest separation distance, and returns the top-priority threat target (or `null` if clear).
 
 ---
 
