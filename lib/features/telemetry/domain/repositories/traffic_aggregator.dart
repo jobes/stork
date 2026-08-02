@@ -228,6 +228,38 @@ class TrafficAggregator {
     return removedKeys;
   }
 
+  /// Removes [source] only from targets whose ICAO hex address matches
+  /// [icaoHex] — used when a live source (e.g. GDL90) drops a single target.
+  /// If an aircraft ends up with no remaining sources, it is removed entirely.
+  List<String> purgeSourceFromIcao(String source, String icaoHex) {
+    if (_targets.isEmpty) return const [];
+    final normalized = icaoHex.toLowerCase();
+    final removedKeys = <String>[];
+
+    for (final entry in List.of(_targets.entries)) {
+      final key = entry.key;
+      final ac = entry.value;
+      if (ac.sources.contains(source) &&
+          ac.icaoHex?.toLowerCase() == normalized) {
+        final updatedSources = Set<String>.from(ac.sources)..remove(source);
+        if (updatedSources.isEmpty) {
+          _targets.remove(key);
+          removedKeys.add(key);
+        } else {
+          final newActiveSource = ac.activeSource == source
+              ? updatedSources.first
+              : ac.activeSource;
+          _targets[key] = ac.copyWith(
+            sources: updatedSources,
+            activeSource: newActiveSource,
+          );
+        }
+      }
+    }
+
+    return removedKeys;
+  }
+
   /// Clears all stored targets
   void clear() {
     _targets.clear();

@@ -55,6 +55,7 @@ class Traffic extends _$Traffic {
       List.unmodifiable(_ownshipTrackHistory);
 
   StreamSubscription<List<Gdl90Target>>? _gdl90Sub;
+  final Set<String> _knownGdl90Ids = {};
 
   @override
   List<TrafficAircraft> build() {
@@ -291,16 +292,37 @@ class Traffic extends _$Traffic {
   void _listenToGdl90() {
     final gdl90Service = ref.read(gdl90ServiceProvider);
     _gdl90Sub?.cancel();
-    _gdl90Sub = gdl90Service.targetStream.listen((targets) {
-      for (final t in targets) {
-        processGdl90Target(t);
-      }
-    });
+    _gdl90Sub = gdl90Service.targetStream.listen(_processGdl90Targets);
     // Process any targets already received before the stream subscription
     // was set up (broadcast streams don't replay past events).
-    for (final t in gdl90Service.targets) {
+    _processGdl90Targets(gdl90Service.targets);
+  }
+
+  /// Processes the current GDL90 target list and mirrors the service's own
+  /// expiry: when the service drops a target, its 'gdl90' source is removed
+  /// from the aggregator so the aircraft does not linger on the map until the
+  /// much longer aggregator stale-purge.
+  void _processGdl90Targets(List<Gdl90Target> targets) {
+    final currentIds = <String>{};
+    for (final t in targets) {
+      currentIds.add(t.id);
       processGdl90Target(t);
     }
+
+    final removedIds = _knownGdl90Ids.difference(currentIds);
+    if (removedIds.isNotEmpty) {
+      for (final id in removedIds) {
+        final purgedKeys = _aggregator.purgeSourceFromIcao('gdl90', id);
+        for (final key in purgedKeys) {
+          _trackHistories.remove(key);
+        }
+      }
+      publishState();
+    }
+
+    _knownGdl90Ids
+      ..clear()
+      ..addAll(currentIds);
   }
 
   void processGdl90Target(Gdl90Target target) {
@@ -399,6 +421,9 @@ class Traffic extends _$Traffic {
     final purgedIds = _aggregator.purgeSource(source);
     for (final id in purgedIds) {
       _trackHistories.remove(id);
+    }
+    if (source == 'gdl90') {
+      _knownGdl90Ids.clear();
     }
     publishState();
   }

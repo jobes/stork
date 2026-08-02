@@ -14,18 +14,24 @@ class Gdl90SettingsCard extends ConsumerStatefulWidget {
 class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
   late TextEditingController _ipController;
   late TextEditingController _portController;
+  late final FocusNode _ipFocusNode;
+  late final FocusNode _portFocusNode;
 
   @override
   void initState() {
     super.initState();
     _ipController = TextEditingController();
     _portController = TextEditingController();
+    _ipFocusNode = FocusNode();
+    _portFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     _ipController.dispose();
     _portController.dispose();
+    _ipFocusNode.dispose();
+    _portFocusNode.dispose();
     super.dispose();
   }
 
@@ -39,10 +45,12 @@ class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
 
     return settingsAsync.when(
       data: (settings) {
-        if (_ipController.text.isEmpty && !FocusNode().hasFocus) {
+        // Populate fields only while the user is not editing them, so a
+        // rebuild never overwrites text the user is currently typing.
+        if (_ipController.text.isEmpty && !_ipFocusNode.hasFocus) {
           _ipController.text = settings.gdl90BindIp;
         }
-        if (_portController.text.isEmpty && !FocusNode().hasFocus) {
+        if (_portController.text.isEmpty && !_portFocusNode.hasFocus) {
           _portController.text = settings.gdl90UdpPort.toString();
         }
 
@@ -86,10 +94,9 @@ class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
                           ? l10n.gdl90StatusActive
                           : l10n.gdl90StatusInactive,
                       style: TextStyle(
-                        color:
-                            isGdl90Active
-                                ? Colors.green
-                                : theme.colorScheme.onSurfaceVariant,
+                        color: isGdl90Active
+                            ? Colors.green
+                            : theme.colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -107,6 +114,7 @@ class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
                       flex: 3,
                       child: TextField(
                         controller: _ipController,
+                        focusNode: _ipFocusNode,
                         decoration: InputDecoration(
                           labelText: l10n.gdl90BindIpTitle,
                           isDense: true,
@@ -124,6 +132,7 @@ class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
                       flex: 2,
                       child: TextField(
                         controller: _portController,
+                        focusNode: _portFocusNode,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           labelText: l10n.gdl90PortTitle,
