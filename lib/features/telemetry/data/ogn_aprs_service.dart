@@ -312,7 +312,7 @@ class OgnAprsService {
   final http.Client? _client;
   final Map<String, Map<String, String>> _ddbCache = {};
 
-  OgnAprsService({http.Client? client}) : _client = client;
+  OgnAprsService({this._client});
 
   Future<Map<String, String>?> lookupDdb(String deviceId) async {
     final results = await lookupDdbMultiple([deviceId]);

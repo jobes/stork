@@ -172,6 +172,125 @@ final class PositionStreamProvider
 
 String _$positionStreamHash() => r'2611525349d8ee2601c7a5f4bebca30d0fa1aeb2';
 
+/// Provider for the display orientation offset applied to the compass heading.
+/// Sensors report in the device's natural coordinate system, but when the
+/// display rotates (e.g. landscape), the screen "up" direction differs from
+/// the device's physical top. This offset compensates for that.
+///
+/// The offset is the *signed* rotation of the screen-up direction relative to
+/// the device's natural Y axis, derived from the gravity vector (accelerometer)
+/// in the device frame. Unlike a size-only heuristic it distinguishes the two
+/// landscape directions and yields 0° for a natural-landscape device in its
+/// natural orientation.
+///
+/// Typical values:
+/// - Portrait (natural): 0°
+/// - Landscape, device physical top to the left of screen: +90°
+/// - Landscape, device physical top to the right of screen: -90°
+/// - Natural-landscape device, natural orientation: 0°
+
+@ProviderFor(CompassOrientationOffset)
+final compassOrientationOffsetProvider = CompassOrientationOffsetProvider._();
+
+/// Provider for the display orientation offset applied to the compass heading.
+/// Sensors report in the device's natural coordinate system, but when the
+/// display rotates (e.g. landscape), the screen "up" direction differs from
+/// the device's physical top. This offset compensates for that.
+///
+/// The offset is the *signed* rotation of the screen-up direction relative to
+/// the device's natural Y axis, derived from the gravity vector (accelerometer)
+/// in the device frame. Unlike a size-only heuristic it distinguishes the two
+/// landscape directions and yields 0° for a natural-landscape device in its
+/// natural orientation.
+///
+/// Typical values:
+/// - Portrait (natural): 0°
+/// - Landscape, device physical top to the left of screen: +90°
+/// - Landscape, device physical top to the right of screen: -90°
+/// - Natural-landscape device, natural orientation: 0°
+final class CompassOrientationOffsetProvider
+    extends $NotifierProvider<CompassOrientationOffset, double> {
+  /// Provider for the display orientation offset applied to the compass heading.
+  /// Sensors report in the device's natural coordinate system, but when the
+  /// display rotates (e.g. landscape), the screen "up" direction differs from
+  /// the device's physical top. This offset compensates for that.
+  ///
+  /// The offset is the *signed* rotation of the screen-up direction relative to
+  /// the device's natural Y axis, derived from the gravity vector (accelerometer)
+  /// in the device frame. Unlike a size-only heuristic it distinguishes the two
+  /// landscape directions and yields 0° for a natural-landscape device in its
+  /// natural orientation.
+  ///
+  /// Typical values:
+  /// - Portrait (natural): 0°
+  /// - Landscape, device physical top to the left of screen: +90°
+  /// - Landscape, device physical top to the right of screen: -90°
+  /// - Natural-landscape device, natural orientation: 0°
+  CompassOrientationOffsetProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'compassOrientationOffsetProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$compassOrientationOffsetHash();
+
+  @$internal
+  @override
+  CompassOrientationOffset create() => CompassOrientationOffset();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(double value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<double>(value),
+    );
+  }
+}
+
+String _$compassOrientationOffsetHash() =>
+    r'c8cd2a98755e687667937b2dd7f921ce441570e9';
+
+/// Provider for the display orientation offset applied to the compass heading.
+/// Sensors report in the device's natural coordinate system, but when the
+/// display rotates (e.g. landscape), the screen "up" direction differs from
+/// the device's physical top. This offset compensates for that.
+///
+/// The offset is the *signed* rotation of the screen-up direction relative to
+/// the device's natural Y axis, derived from the gravity vector (accelerometer)
+/// in the device frame. Unlike a size-only heuristic it distinguishes the two
+/// landscape directions and yields 0° for a natural-landscape device in its
+/// natural orientation.
+///
+/// Typical values:
+/// - Portrait (natural): 0°
+/// - Landscape, device physical top to the left of screen: +90°
+/// - Landscape, device physical top to the right of screen: -90°
+/// - Natural-landscape device, natural orientation: 0°
+
+abstract class _$CompassOrientationOffset extends $Notifier<double> {
+  double build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<double, double>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<double, double>,
+              double,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(compassStream)
 final compassStreamProvider = CompassStreamProvider._();
 
@@ -184,7 +303,7 @@ final class CompassStreamProvider
         argument: null,
         retry: null,
         name: r'compassStreamProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -203,4 +322,4 @@ final class CompassStreamProvider
   }
 }
 
-String _$compassStreamHash() => r'62b8dd0ec3d4061c6fc519496cb5fb2638274668';
+String _$compassStreamHash() => r'4f92ed651949d5901437ab22e0ff2b54d6e1b0cd';

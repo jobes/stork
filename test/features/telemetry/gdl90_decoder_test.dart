@@ -140,15 +140,13 @@ void main() {
       // Track: 180 deg -> rawTrack = 180 * 256 / 360 = 128 = 0x80
       payload[17] = 128;
 
-      // Emitter Category: 8 (Glider) — SafeSky format (byte 19)
-      // Standard GDL90 would use byte 18.
-      payload[19] = 8;
+      // Emitter Category: 8 (Glider) — byte 18 (GDL90 ICD)
+      payload[18] = 8;
 
-      // Callsign: "OK-1234 " (8 bytes: indices 20..27) — SafeSky format
-      // Standard GDL90 would use bytes 19..26.
+      // Callsign: "OK-1234 " (8 bytes: indices 19..26, GDL90 ICD)
       final csBytes = 'OK-1234 '.codeUnits;
       for (int i = 0; i < 8; i++) {
-        payload[20 + i] = csBytes[i];
+        payload[19 + i] = csBytes[i];
       }
 
       final framed = createFrame(payload);
@@ -171,6 +169,111 @@ void main() {
       expect(target.trackDegrees, closeTo(180.0, 1.0));
       expect(target.verticalSpeedFpm, closeTo(512.0, 64.0)); // 8 * 64
       expect(target.emitterCategory, equals(8));
+    });
+
+    test('Accepts real Traffic Reports captured in gdl90-log.txt', () {
+      // Raw frames captured from the log — real SafeSky GDL90 output from
+      // real traffic. These were previously rejected with "FCS MISMATCH"
+      // because the CRC-16/CCITT table had wrong entries at indices 62, 63
+      // and 229.
+      final frames = <String, List<int>>{
+        // KSIA (64-byte datagram, second message)
+        'KSIA': [
+          0x7E,
+          0x14,
+          0x00,
+          0x49,
+          0xD3,
+          0xFE,
+          0x22,
+          0x6D,
+          0x64,
+          0x0C,
+          0xA2,
+          0x22,
+          0x05,
+          0x3B,
+          0x88,
+          0x05,
+          0x50,
+          0x00,
+          0x4E,
+          0x07,
+          0x4F,
+          0x4B,
+          0x53,
+          0x49,
+          0x41,
+          0x20,
+          0x20,
+          0x20,
+          0x00,
+          0x50,
+          0x5D,
+          0x7E,
+        ],
+        // ANES (32-byte datagram)
+        'ANES': [
+          0x7E,
+          0x14,
+          0x01,
+          0xEA,
+          0x93,
+          0xBB,
+          0x21,
+          0x95,
+          0x32,
+          0x0D,
+          0x39,
+          0xB8,
+          0x09,
+          0x1B,
+          0x88,
+          0x08,
+          0x90,
+          0x00,
+          0xB2,
+          0x01,
+          0x48,
+          0x41,
+          0x4E,
+          0x45,
+          0x53,
+          0x20,
+          0x20,
+          0x20,
+          0x00,
+          0x7C,
+          0x43,
+          0x7E,
+        ],
+      };
+
+      for (final entry in frames.entries) {
+        final decoder = Gdl90Decoder();
+        final messages = decoder.processBytes(Uint8List.fromList(entry.value));
+
+        expect(
+          messages,
+          isNotEmpty,
+          reason: '${entry.key} frame should pass FCS validation and decode',
+        );
+        expect(messages.first, isA<Gdl90TrafficMessage>());
+      }
+
+      // Spot-check the decoded KSIA target values against the log output.
+      // Callsign field is bytes 19..26 ("OKSIA"), emitter category is byte 18.
+      final ksia =
+          Gdl90Decoder().processBytes(Uint8List.fromList(frames['KSIA']!)).first
+              as Gdl90TrafficMessage;
+      expect(ksia.target.id, equals('49D3FE'));
+      expect(ksia.target.callsign, equals('OKSIA'));
+      expect(ksia.target.latitude, closeTo(48.4134, 0.001));
+      expect(ksia.target.longitude, closeTo(17.7656, 0.001));
+      expect(ksia.target.altitudeFeet, closeTo(1075.0, 1.0));
+      expect(ksia.target.speedKnots, closeTo(85.0, 1.0));
+      expect(ksia.target.verticalSpeedFpm, closeTo(0.0, 0.1));
+      expect(ksia.target.emitterCategory, equals(7)); // helicopter
     });
   });
 }

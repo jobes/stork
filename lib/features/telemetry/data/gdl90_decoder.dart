@@ -304,11 +304,11 @@ class Gdl90Decoder {
       '[Gdl90Decoder] TrafficReport vs raw: payload[15]=0x${payload[15].toRadixString(16).padLeft(2, '0')} payload[16]=0x${payload[16].toRadixString(16).padLeft(2, '0')} → vsHi=$vsHi vsLo=$vsLo → rawVs=$rawVs → vsFpm=${verticalSpeedFpm.toStringAsFixed(0)} (valid=$verticalSpeedValid)',
     );
 
-    // Byte 19: Emitter Category
-    final emitterCategory = payload[19] & 0xFF;
+    // Byte 18: Emitter Category (GDL90 ICD — Light/Medium/Heavy/Helicopter/etc.)
+    final emitterCategory = payload[18] & 0xFF;
 
-    // Bytes 20..27: Call-sign (8 ASCII characters)
-    final callsignBytes = payload.sublist(20, 28);
+    // Bytes 19..26: Call-sign (8 ASCII characters, space-padded, GDL90 ICD)
+    final callsignBytes = payload.sublist(19, 27);
     final rawCallsign = String.fromCharCodes(
       callsignBytes,
     ).replaceAll('\x00', '').trim();
@@ -401,8 +401,8 @@ class Gdl90Decoder {
     0x8738,
     0xf7df,
     0xe7fe,
-    0xd7dd,
-    0xc7fc,
+    0xd79d,
+    0xc7bc,
     0x48c4,
     0x58e5,
     0x6886,
@@ -568,7 +568,7 @@ class Gdl90Decoder {
     0xdd6c,
     0xcd4d,
     0xbdaa,
-    0xadcb,
+    0xad8b,
     0x9de8,
     0x8dc9,
     0x7c26,
