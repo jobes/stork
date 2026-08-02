@@ -6,9 +6,10 @@ import 'package:stork/features/navigation/presentation/providers/navigation_prov
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
+import '../../../helpers/sensors_mock.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  mockSensorsPlus();
 
   group('Navigation Auto-Advance Tests', () {
     late ProviderContainer container;

@@ -5,10 +5,13 @@ import 'package:mocktail/mocktail.dart';
 import 'package:stork/core/native/dronecan/static_pressure.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/core/services/cannelloni_service.dart';
+import '../../../helpers/sensors_mock.dart';
 
 class MockCannelloniService extends Mock implements CannelloniService {}
 
 void main() {
+  mockSensorsPlus();
+
   group('DroneCAN StaticPressure', () {
     test('StaticPressure parsing from payload works correctly', () {
       // 101325.0 Pa in Float32 (little-endian) is [0x80, 0xe6, 0xc5, 0x47]

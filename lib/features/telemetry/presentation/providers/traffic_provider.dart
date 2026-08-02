@@ -330,7 +330,8 @@ class Traffic extends _$Traffic {
     }
 
     // Force immediate filter update if time elapsed >= 15s OR if camera turned/shifted significantly
-    if (timeSinceLastSent >= kTrafficFilterMaxUnsentDuration || significantShift) {
+    if (timeSinceLastSent >= kTrafficFilterMaxUnsentDuration ||
+        significantShift) {
       _filterDebounceTimer?.cancel();
       _sendFilter(bounds);
       return;

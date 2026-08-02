@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/flight_duration_provider.dart';
+import '../../../../helpers/sensors_mock.dart';
 
 void main() {
+  mockSensorsPlus();
+
   group('Flight Duration Provider Tests', () {
     // Helper to advance time while keeping telemetry speed alive and updating coordinates to simulate movement
     void elapseFlight(

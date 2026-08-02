@@ -39,7 +39,7 @@ abstract class _$FlightRecords extends $AsyncNotifier<FlightRecordsState> {
   FutureOr<FlightRecordsState> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<FlightRecordsState>, FlightRecordsState>;
     final element =
@@ -50,6 +50,6 @@ abstract class _$FlightRecords extends $AsyncNotifier<FlightRecordsState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

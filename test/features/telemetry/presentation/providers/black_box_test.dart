@@ -15,6 +15,7 @@ import 'package:stork/features/telemetry/presentation/providers/black_box_provid
 import 'package:stork/core/services/database/black_box_database_io.dart';
 import 'package:stork/features/telemetry/presentation/providers/black_box_repository_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/flight_records_provider.dart';
+import '../../../../helpers/sensors_mock.dart';
 
 class MockAppSettingsNotifier extends AppSettingsNotifier {
   final AppSettings _settings;
@@ -25,6 +26,8 @@ class MockAppSettingsNotifier extends AppSettingsNotifier {
 }
 
 void main() {
+  mockSensorsPlus();
+
   late Database db;
   late IoBlackBoxDatabase blackBoxDb;
   late String dbPath;

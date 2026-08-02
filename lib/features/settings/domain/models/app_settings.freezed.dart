@@ -15,15 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AppSettings {
 
- double get mapFontSize; double get mapDefaultZoom; double get mapOverviewZoom; double get mapFollowZoom; RangeThresholds get flightSpeedThresholds; double get flightSpeedMaxRange; int get courseLineSegmentsCount; int get courseLineSegmentDuration; bool get autoSelectDevice; CannelloniDevice? get selectedDevice; bool get areWidgetsDraggable; Map<String, WidgetPosition> get widgetPositions; SpeedUnit get speedUnit; double get qnh; double get qfe; bool get autoQnh; AltitudeUnit get altitudeUnit; AltitudeUnit get heightUnit; double get averageSpeed; String? get pilotId; String? get airplaneId; TemperatureUnit get temperatureUnit; RangeThresholds get oilTempThresholds; double get oilTempMaxRange;// 140 °C
- PressureUnit get pressureUnit; RangeThresholds get oilPressureThresholds; double get oilPressureMaxRange;// 8.0 bar
- RangeThresholds get fuelThresholds; RangeThresholds get egtThresholds; double get egtMaxRange;// 950 °C
- RangeThresholds get chtThresholds; double get chtMaxRange;// 160 °C
- RangeThresholds get rpmThresholds; double get rpmMaxRange; bool get trafficFilterMaxHorizontalDistanceEnabled; double get trafficMaxHorizontalDistance;// meters
- bool get trafficFilterMaxVerticalDistanceEnabled; double get trafficMaxVerticalDistance;// meters
- bool get casEnabled; double get casLookaheadTime;// seconds
- double get casHorizontalThreshold;// meters
- double get casVerticalThreshold;
+ double get mapFontSize; double get mapDefaultZoom; double get mapOverviewZoom; double get mapFollowZoom; RangeThresholds get flightSpeedThresholds; double get flightSpeedMaxRange; int get courseLineSegmentsCount; int get courseLineSegmentDuration; bool get autoSelectDevice; CannelloniDevice? get selectedDevice; bool get areWidgetsDraggable; Map<String, WidgetPosition> get widgetPositions; SpeedUnit get speedUnit; double get qnh; double get qfe; bool get autoQnh; AltitudeUnit get altitudeUnit; AltitudeUnit get heightUnit; double get averageSpeed; String? get pilotId; String? get airplaneId; TemperatureUnit get temperatureUnit; RangeThresholds get oilTempThresholds; double get oilTempMaxRange; PressureUnit get pressureUnit; RangeThresholds get oilPressureThresholds; double get oilPressureMaxRange; RangeThresholds get fuelThresholds; RangeThresholds get egtThresholds; double get egtMaxRange; RangeThresholds get chtThresholds; double get chtMaxRange; RangeThresholds get rpmThresholds; double get rpmMaxRange; bool get trafficFilterMaxHorizontalDistanceEnabled; double get trafficMaxHorizontalDistance; bool get trafficFilterMaxVerticalDistanceEnabled; double get trafficMaxVerticalDistance; bool get casEnabled; double get casLookaheadTime; double get casHorizontalThreshold; double get casVerticalThreshold;
 /// Create a copy of AppSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -366,31 +358,23 @@ class _AppSettings extends AppSettings {
 @override@JsonKey() final  TemperatureUnit temperatureUnit;
 @override@JsonKey() final  RangeThresholds oilTempThresholds;
 @override@JsonKey() final  double oilTempMaxRange;
-// 140 °C
 @override@JsonKey() final  PressureUnit pressureUnit;
 @override@JsonKey() final  RangeThresholds oilPressureThresholds;
 @override@JsonKey() final  double oilPressureMaxRange;
-// 8.0 bar
 @override@JsonKey() final  RangeThresholds fuelThresholds;
 @override@JsonKey() final  RangeThresholds egtThresholds;
 @override@JsonKey() final  double egtMaxRange;
-// 950 °C
 @override@JsonKey() final  RangeThresholds chtThresholds;
 @override@JsonKey() final  double chtMaxRange;
-// 160 °C
 @override@JsonKey() final  RangeThresholds rpmThresholds;
 @override@JsonKey() final  double rpmMaxRange;
 @override@JsonKey() final  bool trafficFilterMaxHorizontalDistanceEnabled;
 @override@JsonKey() final  double trafficMaxHorizontalDistance;
-// meters
 @override@JsonKey() final  bool trafficFilterMaxVerticalDistanceEnabled;
 @override@JsonKey() final  double trafficMaxVerticalDistance;
-// meters
 @override@JsonKey() final  bool casEnabled;
 @override@JsonKey() final  double casLookaheadTime;
-// seconds
 @override@JsonKey() final  double casHorizontalThreshold;
-// meters
 @override@JsonKey() final  double casVerticalThreshold;
 
 /// Create a copy of AppSettings

@@ -8,9 +8,10 @@ import 'package:stork/features/telemetry/presentation/providers/agl_provider.dar
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
+import '../../helpers/sensors_mock.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  mockSensorsPlus();
   group('Terrain Web Mercator and Terrarium math tests', () {
     test(
       'Equator and Prime Meridian (0,0) translates to exact middle tile and pixel',

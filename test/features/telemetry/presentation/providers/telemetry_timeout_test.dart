@@ -4,8 +4,11 @@ import 'package:fake_async/fake_async.dart';
 import 'package:stork/features/telemetry/domain/models/map_view_state.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/decayable_field.dart';
+import '../../../../helpers/sensors_mock.dart';
 
 void main() {
+  mockSensorsPlus();
+
   group('Telemetry Timeout and Null Defaults', () {
     test('Everything in telemetry is null on start except mapViewState', () {
       final container = ProviderContainer();
