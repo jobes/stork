@@ -44,6 +44,7 @@ class TrafficAggregator {
     }
 
     var existing = _targets[canonicalId];
+    var existingKey = canonicalId;
 
     // Cross-source deduplication by ICAO 24-bit hex address:
     // When a new source reports an aircraft with a known ICAO (e.g. GDL90
@@ -55,8 +56,10 @@ class TrafficAggregator {
       for (final entry in _targets.entries) {
         if (entry.value.icaoHex?.toLowerCase() == icaoNormalized) {
           // Found a match by ICAO — merge this new source into the existing
-          // target using the existing canonical ID as the key
+          // target using the existing canonical ID as the key, so the same
+          // aircraft never appears twice on the map.
           existing = entry.value;
+          existingKey = entry.key;
           debugPrint(
             '[TrafficAggregator] [$source ICAO-MERGE] GDL90 id=$canonicalId '
             'matched existing OGN id=${entry.key} via ICAO $icaoNormalized',
@@ -73,15 +76,12 @@ class TrafficAggregator {
         sources: {source},
         activeSource: source,
       );
-      // debugPrint(
-      //   '[TrafficAggregator] [$source ADD] ID: $canonicalId (${rawAircraft.callsign}) | Total targets in DB: ${_targets.length}',
-      // );
     } else {
       final updatedSources = {...existing.sources, source};
 
       // T_sent arbitration rule: only update position & dynamic fields if tSent is strictly newer
       if (tSent.isAfter(existing.lastSeen)) {
-        _targets[canonicalId] = existing.copyWith(
+        _targets[existingKey] = existing.copyWith(
           callsign: rawAircraft.callsign.isNotEmpty
               ? rawAircraft.callsign
               : existing.callsign,
@@ -103,12 +103,9 @@ class TrafficAggregator {
           sources: updatedSources,
           activeSource: source,
         );
-        // debugPrint(
-        //   '[TrafficAggregator] [$source UPDATE] ID: $canonicalId (${rawAircraft.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}',
-        // );
       } else {
         // Discard unchanged or stale position update, but preserve metadata
-        _targets[canonicalId] = existing.copyWith(
+        _targets[existingKey] = existing.copyWith(
           registration: existing.registration ?? rawAircraft.registration,
           aircraftModel: existing.aircraftModel ?? rawAircraft.aircraftModel,
           cn: existing.cn ?? rawAircraft.cn,

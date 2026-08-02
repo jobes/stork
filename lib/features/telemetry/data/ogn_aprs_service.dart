@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../domain/models/traffic_aircraft.dart';
+import '../domain/utils/canonical_id.dart';
 
 class OgnOutboundIsolate {
   static void entryPoint(SendPort mainSendPort) async {
@@ -248,7 +249,6 @@ class OgnInboundConnection {
         timeout: const Duration(seconds: 5),
       );
       _isConnected = true;
-      // debugPrint('OGN Inbound: Connected to aprs.glidernet.org:14580 🚀');
 
       _socket!
           .cast<List<int>>()
@@ -383,11 +383,6 @@ class OgnAprsService {
     return results;
   }
 
-  /// Returns true if [id] is a 6-character hex string (FLARM ID or ICAO).
-  static bool _isHex6(String id) {
-    return RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(id);
-  }
-
   TrafficAircraft? parseAprsLine(String line) {
     if (line.startsWith('#')) return null;
 
@@ -485,7 +480,7 @@ class OgnAprsService {
     return TrafficAircraft(
       id: id,
       callsign: rawCallsign,
-      icaoHex: _isHex6(id) ? id.toLowerCase() : null,
+      icaoHex: CanonicalId.isIcaoHex(id) ? id.toLowerCase() : null,
       latitude: lat,
       longitude: lon,
       altitude: altitude,

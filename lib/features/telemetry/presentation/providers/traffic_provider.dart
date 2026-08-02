@@ -141,9 +141,6 @@ class Traffic extends _$Traffic {
 
   void publishState() {
     state = _aggregator.targets;
-    // debugPrint(
-    //   '[Traffic] [PUBLISH STATE] Published ${state.length} targets to Riverpod UI listeners',
-    // );
   }
 
   void _connectInbound() {
@@ -152,15 +149,9 @@ class Traffic extends _$Traffic {
     if (_isConnecting) return;
     _isConnecting = true;
     _reconnectTimer?.cancel();
-    // debugPrint('[Traffic] Connecting to OGN APRS server...');
 
-    int lineCount = 0;
     _inboundConnection = OgnInboundConnection(
       onLineReceived: (line) {
-        if (lineCount < 5) {
-          // debugPrint('[OGN APRS Raw Line sample] $line');
-          lineCount++;
-        }
         try {
           final aircraft = _aprsService.parseAprsLine(line);
           if (aircraft != null) {
@@ -251,7 +242,9 @@ class Traffic extends _$Traffic {
       registration: packet.registration,
       aircraftModel: packet.model,
       cn: packet.cn,
-      icaoHex: _isIcaoLike(packet.canonicalId) ? packet.canonicalId : null,
+      icaoHex: CanonicalId.isIcaoHex(packet.canonicalId)
+          ? packet.canonicalId
+          : null,
       latitude: packet.latitude,
       longitude: packet.longitude,
       altitude: packet.altitude,
@@ -317,8 +310,11 @@ class Traffic extends _$Traffic {
           _trackHistories.remove(key);
         }
       }
-      publishState();
     }
+
+    // Publish immediately (once per batch) so GDL90 updates/expiries reach the
+    // UI without waiting for the periodic publish timer.
+    publishState();
 
     _knownGdl90Ids
       ..clear()
@@ -327,9 +323,6 @@ class Traffic extends _$Traffic {
 
   void processGdl90Target(Gdl90Target target) {
     final vsMs = target.verticalSpeedFpm * 0.00508;
-    debugPrint(
-      '[TrafficProvider] Received GDL90 target: id=${target.id}, callsign=${target.callsign ?? 'N/A'}, lat=${target.latitude.toStringAsFixed(4)}, lon=${target.longitude.toStringAsFixed(4)}, alt=${target.altitudeFeet}ft, vsFpm=${target.verticalSpeedFpm.toStringAsFixed(0)} (valid=${target.verticalSpeedValid}) → vsMs=${vsMs.toStringAsFixed(2)} m/s',
-    );
     final mappedType = _mapGdl90EmitterCategory(target.emitterCategory);
 
     final aircraft = TrafficAircraft(
@@ -371,12 +364,6 @@ class Traffic extends _$Traffic {
       turnRate: turnRate,
       isCircling: isCircling,
     );
-  }
-
-  /// Returns true if [id] looks like a 6-char hex ICAO address (could also be
-  /// a FLARM ID — used as a best-effort hint for cross-source deduplication).
-  static bool _isIcaoLike(String id) {
-    return RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(id);
   }
 
   int _mapGdl90EmitterCategory(int cat) {

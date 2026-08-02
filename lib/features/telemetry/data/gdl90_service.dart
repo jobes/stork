@@ -162,11 +162,6 @@ class Gdl90Service {
 
   void _handleDatagram(Uint8List bytes) {
     try {
-      final hexRaw = bytes
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join(' ');
-      debugPrint('[Gdl90Service] RAW Datagram (${bytes.length}B): [$hexRaw]');
-
       final messages = _decoder.processBytes(bytes);
       if (messages.isEmpty) {
         debugPrint(
@@ -175,35 +170,21 @@ class Gdl90Service {
         return;
       }
 
-      debugPrint(
-        '[Gdl90Service] Decoded ${messages.length} GDL90 message(s) from datagram',
-      );
-
       _recordHeartbeat();
 
-      bool stateChanged = false;
+      var hasTraffic = false;
 
       for (final msg in messages) {
         if (msg is Gdl90TrafficMessage) {
-          debugPrint(
-            '[Gdl90Service] GDL90 Traffic: id=${msg.target.id}, callsign=${msg.target.callsign ?? "N/A"}, lat=${msg.target.latitude}, lon=${msg.target.longitude}, alt=${msg.target.altitudeFeet}ft, speed=${msg.target.speedKnots}kts, track=${msg.target.trackDegrees}°, vsFpm=${msg.target.verticalSpeedFpm.toStringAsFixed(0)} (valid=${msg.target.verticalSpeedValid})',
-          );
           _targets[msg.target.id] = msg.target;
-          stateChanged = true;
-        } else if (msg is Gdl90OwnshipMessage) {
-          debugPrint(
-            '[Gdl90Service] GDL90 Ownship: id=${msg.target.id}, callsign=${msg.target.callsign ?? "N/A"}, lat=${msg.target.latitude}, lon=${msg.target.longitude}, alt=${msg.target.altitudeFeet}ft, speed=${msg.target.speedKnots}kts, track=${msg.target.trackDegrees}°, vsFpm=${msg.target.verticalSpeedFpm.toStringAsFixed(0)} (valid=${msg.target.verticalSpeedValid})',
-          );
-          _targets[msg.target.id] = msg.target;
-          stateChanged = true;
-        } else {
-          debugPrint(
-            '[Gdl90Service] Other GDL90 Message parsed: ${msg.runtimeType}',
-          );
+          hasTraffic = true;
         }
+        // Gdl90OwnshipMessage carries the receiver's OWN position — it is
+        // intentionally NOT part of traffic targets (the own aircraft must
+        // never appear as a traffic target on the map).
       }
 
-      if (stateChanged) {
+      if (hasTraffic) {
         // Notify with full target list so consumers always have the complete
         // picture (e.g., for purge-on-next-tick scenarios).
         _notifyTargets();

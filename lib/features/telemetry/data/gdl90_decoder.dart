@@ -300,10 +300,6 @@ class Gdl90Decoder {
       verticalSpeedValid = true;
     }
 
-    debugPrint(
-      '[Gdl90Decoder] TrafficReport vs raw: payload[15]=0x${payload[15].toRadixString(16).padLeft(2, '0')} payload[16]=0x${payload[16].toRadixString(16).padLeft(2, '0')} → vsHi=$vsHi vsLo=$vsLo → rawVs=$rawVs → vsFpm=${verticalSpeedFpm.toStringAsFixed(0)} (valid=$verticalSpeedValid)',
-    );
-
     // Byte 18: Emitter Category (GDL90 ICD — Light/Medium/Heavy/Helicopter/etc.)
     final emitterCategory = payload[18] & 0xFF;
 
