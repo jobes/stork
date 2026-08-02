@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import '../../../../helpers/sensors_mock.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   group('NavigationNotifier Tests', () {
     late ProviderContainer container;
 
     setUp(() async {
+      mockSensorsPlus();
       SharedPreferences.setMockInitialValues({});
       container = ProviderContainer(
         overrides: [

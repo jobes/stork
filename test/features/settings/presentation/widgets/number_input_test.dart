@@ -37,8 +37,9 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // The initial controller text is initialized using toStringAsFixed, which always outputs "1.5" (unlocalized)
-    expect(find.text('1.5'), findsOneWidget);
+    // The initial controller text is formatted with the German locale, which
+    // uses a comma as the decimal separator.
+    expect(find.text('1,5'), findsOneWidget);
 
     // Enter a new value using a comma: "2,5"
     await tester.enterText(find.byType(TextField), '2,5');
@@ -47,7 +48,7 @@ void main() {
 
     // Verify that value was successfully parsed via NumberFormat.decimalPattern and changed to 2.5
     expect(lastChangedValue, equals(2.5));
-    expect(find.text('2.5'), findsOneWidget);
+    expect(find.text('2,5'), findsOneWidget);
 
     // Enter another valid value using a comma: "3,8"
     await tester.enterText(find.byType(TextField), '3,8');
@@ -61,7 +62,7 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(lastChangedValue, equals(3.8));
-    expect(find.text('3.8'), findsOneWidget);
+    expect(find.text('3,8'), findsOneWidget);
   });
 
   testWidgets(

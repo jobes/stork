@@ -89,7 +89,7 @@ abstract class _$NearbyFrequencies
   FutureOr<NearbyFrequenciesState> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<NearbyFrequenciesState>, NearbyFrequenciesState>;
@@ -104,6 +104,6 @@ abstract class _$NearbyFrequencies
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

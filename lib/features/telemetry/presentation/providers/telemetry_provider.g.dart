@@ -47,7 +47,7 @@ abstract class _$TelemetryNotifier extends $Notifier<TelemetryState> {
   TelemetryState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<TelemetryState, TelemetryState>;
     final element =
         ref.element
@@ -57,7 +57,7 @@ abstract class _$TelemetryNotifier extends $Notifier<TelemetryState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -146,7 +146,7 @@ abstract class _$DisableTelemetryAnimations
   Map<TelemetryField, bool> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<Map<TelemetryField, bool>, Map<TelemetryField, bool>>;
     final element =
@@ -157,6 +157,6 @@ abstract class _$DisableTelemetryAnimations
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

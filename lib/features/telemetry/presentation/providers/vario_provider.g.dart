@@ -47,7 +47,7 @@ abstract class _$VarioNotifier extends $Notifier<VarioState> {
   VarioState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<VarioState, VarioState>;
     final element =
         ref.element
@@ -57,6 +57,6 @@ abstract class _$VarioNotifier extends $Notifier<VarioState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

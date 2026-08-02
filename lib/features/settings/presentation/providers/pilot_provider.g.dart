@@ -39,7 +39,7 @@ abstract class _$PilotState extends $AsyncNotifier<List<Pilot>> {
   FutureOr<List<Pilot>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Pilot>>, List<Pilot>>;
     final element =
         ref.element
@@ -49,7 +49,7 @@ abstract class _$PilotState extends $AsyncNotifier<List<Pilot>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

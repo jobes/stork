@@ -4,8 +4,11 @@ import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/traffic_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
+import '../../../../helpers/sensors_mock.dart';
 
 void main() {
+  setUp(mockSensorsPlus);
+
   group('filteredTrafficProvider Tests', () {
     final now = DateTime.now();
     const myPosLat = 48.1486;

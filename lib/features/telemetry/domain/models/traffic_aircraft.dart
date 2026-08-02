@@ -18,7 +18,8 @@ class TrafficAircraft {
   final bool isCollisionThreat;
   final double? tCpa; // seconds
   final double? minDistance; // meters
-  final Set<String> sources; // e.g. {'ogn'}, {'puretrack'}, {'ogn', 'puretrack'}
+  final Set<String>
+  sources; // e.g. {'ogn'}, {'puretrack'}, {'ogn', 'puretrack'}
   final String activeSource; // Source of the latest accepted position update
 
   TrafficAircraft({

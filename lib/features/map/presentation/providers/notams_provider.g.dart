@@ -166,7 +166,7 @@ abstract class _$Notams extends $AsyncNotifier<List<Notam>> {
   FutureOr<List<Notam>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Notam>>, List<Notam>>;
     final element =
         ref.element
@@ -176,6 +176,6 @@ abstract class _$Notams extends $AsyncNotifier<List<Notam>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

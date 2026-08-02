@@ -48,7 +48,7 @@ abstract class _$OfflineMapsNotifier extends $Notifier<OfflineMapsState> {
   OfflineMapsState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<OfflineMapsState, OfflineMapsState>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$OfflineMapsNotifier extends $Notifier<OfflineMapsState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
