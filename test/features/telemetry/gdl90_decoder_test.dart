@@ -93,6 +93,27 @@ void main() {
       final hb = messages.first as Gdl90HeartbeatMessage;
       expect(hb.gpsPositionValid, isTrue);
     });
+
+    test('Accepts a valid standard 7-byte heartbeat via CRC', () {
+      // Standard GDL90 heartbeat: 5-byte body + 2-byte FCS.
+      final body = [0x00, 0x81, 0x01, 0x00, 0x10];
+      final fcs = Gdl90Decoder.calculateFcsGdl90(body);
+      final payload = [...body, fcs & 0xFF, (fcs >> 8) & 0xFF];
+
+      expect(Gdl90Decoder.validateFcs(payload), isTrue);
+    });
+
+    test('Rejects a structurally valid but corrupt 7-byte heartbeat', () {
+      // Standard 5-byte heartbeat body with plausible status bytes
+      // (st1 = 0x81: GPS valid, reserved bits 0; st2 = 0x01: UTC valid,
+      // reserved bits 0) but a CRC that does not validate. A 7-byte payload is
+      // exactly the standard heartbeat size, so it must only be accepted via a
+      // valid CRC — not via the structural fallback (which exists only for
+      // payloads longer than 7 bytes, e.g. SafeSky extra status bytes).
+      final payload = [0x00, 0x81, 0x01, 0x00, 0x10, 0x00, 0x00];
+
+      expect(Gdl90Decoder.validateFcs(payload), isFalse);
+    });
   });
 
   group('Gdl90Decoder - Traffic Report (0x14)', () {
@@ -276,5 +297,58 @@ void main() {
       expect(ksia.target.verticalSpeedFpm, closeTo(0.0, 0.1));
       expect(ksia.target.emitterCategory, equals(7)); // helicopter
     });
+  });
+
+  group('Gdl90Decoder - Frame length bound', () {
+    test('Drops oversized frame without a closing flag', () {
+      final decoder = Gdl90Decoder();
+
+      // Start a frame with more bytes than maxFrameLength and never close it.
+      final oversized = Uint8List.fromList([
+        Gdl90Decoder.flagByte,
+        ...List.filled(Gdl90Decoder.maxFrameLength + 20, 0x01),
+      ]);
+      final messages = decoder.processBytes(oversized);
+
+      expect(messages, isEmpty);
+    });
+
+    test('Drops oversized frame containing escape sequences', () {
+      final decoder = Gdl90Decoder();
+
+      // Alternate escaped bytes (0x7D + byte) so the overflow must be detected
+      // in the decoded-byte append path too. Each (0x7D, byte) pair appends a
+      // single decoded byte, so double the payload size is needed to overflow.
+      final oversized = Uint8List.fromList([
+        Gdl90Decoder.flagByte,
+        ...List.generate(
+          (Gdl90Decoder.maxFrameLength + 20) * 2,
+          (i) => i.isEven ? Gdl90Decoder.escapeByte : 0x01,
+        ),
+      ]);
+      final messages = decoder.processBytes(oversized);
+
+      expect(messages, isEmpty);
+    });
+
+    test(
+      'Recovers and decodes a valid frame after dropping an oversized one',
+      () {
+        final decoder = Gdl90Decoder();
+
+        // Corrupt oversized frame, immediately followed by a valid heartbeat.
+        final oversized = Uint8List.fromList([
+          Gdl90Decoder.flagByte,
+          ...List.filled(Gdl90Decoder.maxFrameLength + 10, 0x01),
+        ]);
+        decoder.processBytes(oversized);
+
+        final valid = createFrame([0x00, 0x81, 0x01, 0x00, 0x10, 0x00]);
+        final more = decoder.processBytes(valid);
+
+        expect(more.length, equals(1));
+        expect(more.first, isA<Gdl90HeartbeatMessage>());
+      },
+    );
   });
 }

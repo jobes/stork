@@ -67,10 +67,6 @@ class TrafficAggregator {
           // aircraft never appears twice on the map.
           existing = entry.value;
           existingKey = entry.key;
-          debugPrint(
-            '[TrafficAggregator] [$source ICAO-MERGE] GDL90 id=$canonicalId '
-            'matched existing OGN id=${entry.key} via ICAO $icaoNormalized',
-          );
           break;
         }
       }

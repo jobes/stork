@@ -786,6 +786,15 @@
   "hideAircraft": "Skryť",
   "hiddenAircraftSection": "Skryté lietadlá",
   "noHiddenAircraft": "Žiadne skryté lietadlá.",
+  "hiddenAircraftCount": "{count, plural, =1{1 skryté lietadlo} few{{count} skryté lietadlá} other{{count} skrytých lietadiel}}",
+  "@hiddenAircraftCount": {
+    "description": "Počet skrytých lietadiel",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "unhideAircraft": "Zobraziť znova",
   "clearAllHiddenAircraft": "Vymazať všetky skryté"
 }

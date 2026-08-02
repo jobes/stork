@@ -341,7 +341,7 @@ class TrafficSettingsPage extends ConsumerWidget {
       subtitle: Text(
         hiddenIds.isEmpty
             ? l10n.noHiddenAircraft
-            : '${hiddenIds.length} ${l10n.aircraftCountLabel.toLowerCase()}',
+            : l10n.hiddenAircraftCount(hiddenIds.length),
       ),
       children: [
         if (hiddenIds.isEmpty)

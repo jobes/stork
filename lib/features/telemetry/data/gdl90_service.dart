@@ -32,7 +32,15 @@ class Gdl90Service {
   String _bindHost = '0.0.0.0';
   int _bindPort = 4000;
   int _expirySeconds = 60;
-  bool _isBinding = false;
+
+  /// The bind currently in flight, if any. Concurrent [start]/[updateConfig]
+  /// calls await this future so the socket is always (re)bound to the latest
+  /// host/port/enabled configuration.
+  Future<void>? _pendingBind;
+
+  /// Host/port the currently open socket was bound to (''/0 when none).
+  String _boundHost = '';
+  int _boundPort = 0;
 
   /// Stream of active GDL90 targets
   Stream<List<Gdl90Target>> get targetStream => _targetStreamController.stream;
@@ -63,6 +71,10 @@ class Gdl90Service {
     int port = 4000,
     int expirySeconds = 60,
   }) async {
+    // Wait for any in-flight bind to settle before applying the initial
+    // config, so a concurrent bind cannot clobber it.
+    await _awaitPendingBind();
+
     _enabled = enabled;
     _bindHost = host;
     _bindPort = port;
@@ -76,6 +88,10 @@ class Gdl90Service {
 
     if (_enabled) {
       await _bindSocket();
+    } else {
+      // A disabled start must not leave a bound socket behind (e.g. when a
+      // previous bind was still in flight).
+      await _closeSocket();
     }
   }
 
@@ -93,6 +109,11 @@ class Gdl90Service {
       '[Gdl90Service] Updating config (enabled: $enabled, host: $host, port: $port, expiry: ${expirySeconds}s, needsRebind: $needsRebind)',
     );
 
+    // Apply the latest host/port/enabled state only after any in-flight bind
+    // has settled, so it cannot be clobbered by a concurrent bind (and the
+    // disable case always ends with a closed socket).
+    await _awaitPendingBind();
+
     _enabled = enabled;
     _bindHost = host;
     _bindPort = port;
@@ -106,14 +127,63 @@ class Gdl90Service {
     }
   }
 
+  /// Awaits any bind currently in flight, if there is one.
+  Future<void> _awaitPendingBind() async {
+    final pending = _pendingBind;
+    if (pending != null) {
+      await pending;
+    }
+  }
+
+  /// Whether the open socket is already bound to the current host/port.
+  bool get _isBoundToCurrentConfig =>
+      _socket != null && _boundHost == _bindHost && _boundPort == _bindPort;
+
+  /// Binds the UDP socket to the current host/port. Concurrent calls are
+  /// serialized: if a bind is already in flight, later callers await it and
+  /// then re-evaluate the latest configuration, so config updates made while
+  /// binding are never lost to an early return.
   Future<void> _bindSocket() async {
-    if (_isBinding) return;
     // UDP sockets are not available on Web — GDL90 requires native UDP
     if (kIsWeb) {
       debugPrint('[Gdl90Service] GDL90 UDP not supported on Web platform');
       return;
     }
-    _isBinding = true;
+
+    while (true) {
+      // Serialize: wait for any in-flight bind to settle first.
+      final pending = _pendingBind;
+      if (pending != null) {
+        await pending;
+        continue;
+      }
+
+      // Re-evaluate the current configuration: another caller may have changed
+      // host/port/enabled while we were waiting.
+      if (!_enabled || _isBoundToCurrentConfig) return;
+
+      final completer = Completer<void>();
+      _pendingBind = completer.future;
+      try {
+        final bound = await _performBind();
+        completer.complete();
+        // On a failed bind, stop here and let a later config change trigger a
+        // new attempt (avoids a tight retry loop when e.g. the port is in use).
+        if (!bound) return;
+      } catch (e, stackTrace) {
+        completer.completeError(e, stackTrace);
+        rethrow;
+      } finally {
+        _pendingBind = null;
+      }
+
+      // The config may have changed while binding — loop to re-evaluate.
+    }
+  }
+
+  /// Performs a single bind with the current host/port. Returns whether the
+  /// bind succeeded (failures are logged, not thrown).
+  Future<bool> _performBind() async {
     await _closeSocket();
 
     try {
@@ -136,6 +206,9 @@ class Gdl90Service {
         reuseAddress: true,
         reusePort: true,
       );
+
+      _boundHost = _bindHost;
+      _boundPort = _bindPort;
 
       debugPrint(
         '[Gdl90Service] Successfully bound UDP socket on $_bindHost:$_bindPort (${address.address})',
@@ -160,12 +233,13 @@ class Gdl90Service {
           debugPrint('[Gdl90Service] UDP Socket closed');
         },
       );
+
+      return true;
     } catch (e, stackTrace) {
       debugPrint(
         '[Gdl90Service] Failed to bind UDP socket on $_bindHost:$_bindPort: $e\n$stackTrace',
       );
-    } finally {
-      _isBinding = false;
+      return false;
     }
   }
 
@@ -265,6 +339,8 @@ class Gdl90Service {
       _socket?.close();
       _socket = null;
     }
+    _boundHost = '';
+    _boundPort = 0;
   }
 
   /// Stop listener and dispose all resources

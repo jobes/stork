@@ -297,6 +297,9 @@ class Traffic extends _$Traffic {
   /// from the aggregator so the aircraft does not linger on the map until the
   /// much longer aggregator stale-purge.
   void _processGdl90Targets(List<Gdl90Target> targets) {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.gdl90Enabled) return;
+
     final currentIds = <String>{};
     for (final t in targets) {
       currentIds.add(t.id);
@@ -323,6 +326,9 @@ class Traffic extends _$Traffic {
   }
 
   void processGdl90Target(Gdl90Target target) {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.gdl90Enabled) return;
+
     final vsMs = target.verticalSpeedFpm * 0.00508;
     final mappedType = _mapGdl90EmitterCategory(target.emitterCategory);
 

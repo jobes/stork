@@ -240,7 +240,10 @@ class OgnInboundConnection {
   }
 
   Future<void> connect() async {
-    await disconnect();
+    // Tear down any previous socket without notifying: onDone/onError drive
+    // reconnection, and notifying here would fire onDisconnected on every
+    // fresh connect (the provider recreates the connection per reconnect).
+    await disconnect(isManual: true);
     _hasNotifiedDisconnected = false;
     try {
       _socket = await Socket.connect(

@@ -53,8 +53,13 @@ Gdl90Service gdl90Service(Ref ref) {
     final s = settingsAsync.value;
     if (s == null) return;
 
-    await applyGdl90Settings(service, s, alreadyStarted: started);
+    // Flip the flag BEFORE awaiting so that a settings emission arriving while
+    // the first application is still in flight (e.g. during the socket bind)
+    // passes alreadyStarted: true and service.start() runs exactly once.
+    final alreadyStarted = started;
     started = true;
+
+    await applyGdl90Settings(service, s, alreadyStarted: alreadyStarted);
   }
 
   // fireImmediately applies settings that are already loaded; if they are

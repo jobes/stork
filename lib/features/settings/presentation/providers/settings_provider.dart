@@ -600,7 +600,16 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   }
 
   Future<SettingsUpdateResult> updateGdl90BindIp(String ip) {
-    return _updateSettings((s) => s.copyWith(gdl90BindIp: ip.trim()));
+    final trimmed = ip.trim();
+    if (trimmed.isEmpty) {
+      return Future.value(
+        SettingsUpdateFailure(
+          ArgumentError('Bind IP must not be empty'),
+          StackTrace.current,
+        ),
+      );
+    }
+    return _updateSettings((s) => s.copyWith(gdl90BindIp: trimmed));
   }
 
   Future<SettingsUpdateResult> updateGdl90UdpPort(int port) {
@@ -635,7 +644,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     final cleanId = id.trim().toLowerCase();
     return _updateSettings(
       (s) => s.copyWith(
-        hiddenAircraftIds: Set<String>.from(s.hiddenAircraftIds)..remove(cleanId),
+        hiddenAircraftIds: Set<String>.from(s.hiddenAircraftIds)
+          ..remove(cleanId),
       ),
     );
   }

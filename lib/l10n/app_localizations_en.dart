@@ -1869,6 +1869,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noHiddenAircraft => 'No hidden aircraft.';
 
   @override
+  String hiddenAircraftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hidden aircraft',
+      one: '1 hidden aircraft',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get unhideAircraft => 'Unhide';
 
   @override

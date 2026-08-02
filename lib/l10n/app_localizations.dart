@@ -3602,6 +3602,12 @@ abstract class AppLocalizations {
   /// **'No hidden aircraft.'**
   String get noHiddenAircraft;
 
+  /// Number of hidden aircraft
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hidden aircraft} other{{count} hidden aircraft}}'**
+  String hiddenAircraftCount(int count);
+
   /// No description provided for @unhideAircraft.
   ///
   /// In en, this message translates to:

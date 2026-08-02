@@ -325,18 +325,31 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                           alignment: Alignment.centerLeft,
                           child: InkWell(
                             borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              ref
+                            onTap: () async {
+                              final result = await ref
                                   .read(appSettingsProvider.notifier)
                                   .hideAircraft(ac.id);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${l10n.hideAircraft}: $nameLabel',
+                              if (!context.mounted) return;
+                              if (result is SettingsUpdateSuccess) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${l10n.hideAircraft}: $nameLabel',
+                                    ),
+                                    duration: const Duration(seconds: 2),
                                   ),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
+                                );
+                              } else if (result is SettingsUpdateFailure) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      l10n.settingsUpdateFailed(
+                                        result.error.toString(),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
                             },
                             child: Padding(
                               padding: const EdgeInsets.symmetric(

@@ -122,7 +122,7 @@ Parsed traffic from all networks is unified into the [TrafficAircraft](../../lib
 *   `id`: Canonical unique identifier.
 *   `callsign`: Raw callsign or tail number.
 *   `registration`, `aircraftModel`, `cn`: Resolved aircraft metadata.
-*   `icaoHex`: ICAO 24-bit hex address (always set for GDL90 targets; set for PureTrack when its ID is ICAO-like) — the key used for cross-source deduplication.
+*   `icaoHex`: ICAO 24-bit hex address (always set for GDL90 targets; set for OGN and PureTrack when their identifier is ICAO-like) — the key used for cross-source deduplication.
 *   `latitude`, `longitude`, `altitude`: Current position and MSL altitude in meters.
 *   `altitudeValid`, `speedValid`, `verticalSpeedValid`: Validity flags (default `true`) propagated from GDL90's `0xFFF`/`0x800` unavailable markers. The aggregator preserves a previously known value when an incoming field is marked invalid, and the details dialog renders `-` for invalid fields.
 *   `track`, `groundSpeed`, `verticalSpeed`: Kinematic vectors.

@@ -120,10 +120,16 @@ class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
                           isDense: true,
                           border: const OutlineInputBorder(),
                         ),
-                        onSubmitted: (val) {
-                          ref
+                        onSubmitted: (val) async {
+                          final result = await ref
                               .read(appSettingsProvider.notifier)
                               .updateGdl90BindIp(val);
+                          if (result is SettingsUpdateSuccess) {
+                            final saved = ref.read(appSettingsProvider).value;
+                            if (saved != null) {
+                              _ipController.text = saved.gdl90BindIp;
+                            }
+                          }
                         },
                       ),
                     ),
@@ -139,12 +145,18 @@ class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
                           isDense: true,
                           border: const OutlineInputBorder(),
                         ),
-                        onSubmitted: (val) {
+                        onSubmitted: (val) async {
                           final parsedPort = int.tryParse(val);
-                          if (parsedPort != null) {
-                            ref
-                                .read(appSettingsProvider.notifier)
-                                .updateGdl90UdpPort(parsedPort);
+                          if (parsedPort == null) return;
+                          final result = await ref
+                              .read(appSettingsProvider.notifier)
+                              .updateGdl90UdpPort(parsedPort);
+                          if (result is SettingsUpdateSuccess) {
+                            final saved = ref.read(appSettingsProvider).value;
+                            if (saved != null) {
+                              _portController.text = saved.gdl90UdpPort
+                                  .toString();
+                            }
                           }
                         },
                       ),

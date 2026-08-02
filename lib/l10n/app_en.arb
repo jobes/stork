@@ -892,6 +892,15 @@
   "hideAircraft": "Hide",
   "hiddenAircraftSection": "Hidden Aircraft",
   "noHiddenAircraft": "No hidden aircraft.",
+  "hiddenAircraftCount": "{count, plural, =1{1 hidden aircraft} other{{count} hidden aircraft}}",
+  "@hiddenAircraftCount": {
+    "description": "Number of hidden aircraft",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "unhideAircraft": "Unhide",
   "clearAllHiddenAircraft": "Clear all hidden"
 }

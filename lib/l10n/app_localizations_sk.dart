@@ -1877,6 +1877,18 @@ class AppLocalizationsSk extends AppLocalizations {
   String get noHiddenAircraft => 'Žiadne skryté lietadlá.';
 
   @override
+  String hiddenAircraftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count skrytých lietadiel',
+      few: '$count skryté lietadlá',
+      one: '1 skryté lietadlo',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get unhideAircraft => 'Zobraziť znova';
 
   @override

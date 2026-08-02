@@ -40,6 +40,12 @@ class Gdl90Decoder {
   static const int flagByte = 0x7E;
   static const int escapeByte = 0x7D;
 
+  /// Maximum unstuffed GDL90 payload length. The largest standard GDL90
+  /// message (ForeFlight, 0x21) is 92 bytes; 256 gives ample headroom while
+  /// bounding memory so a corrupted stream without a closing flag cannot grow
+  /// [_frameBuffer] across datagrams without limit.
+  static const int maxFrameLength = 256;
+
   /// Injectable clock so time-dependent decoding (target `lastUpdated`) can be
   /// tested deterministically. Defaults to the wall clock.
   final DateTime Function() _now;
@@ -69,6 +75,17 @@ class Gdl90Decoder {
       }
 
       if (!_inFrame) {
+        continue;
+      }
+
+      // Bound the frame buffer: if appending another byte would exceed the
+      // maximum frame length, the frame is a corrupt stream without a closing
+      // flag, not a valid GDL90 message. Drop the stale partial frame and wait
+      // for the next flag byte so it cannot grow across datagrams without limit.
+      if (_frameBuffer.length >= maxFrameLength) {
+        _frameBuffer.clear();
+        _inFrame = false;
+        _escaped = false;
         continue;
       }
 
@@ -135,8 +152,11 @@ class Gdl90Decoder {
     // 3. Heartbeat (0x00) fallback: some implementations (SafeSky) append extra
     //    status bytes after the standard 5-byte heartbeat, making FCS validation
     //    over the full payload impossible. Only bypass for structurally valid
-    //    heartbeat payloads (standard GDL90 heartbeat is 5 bytes + FCS = 7 min).
-    if (payload[0] == 0x00 && len >= 7) {
+    //    heartbeat payloads longer than the standard 7-byte heartbeat
+    //    (5 data bytes + 2 FCS). Exactly 7-byte payloads must validate their
+    //    CRC via calculateFcsGdl90 / calculateFcs1021 above (checks 1 & 2 already
+    //    run over the 5-byte body when len == 7), so no structural fallback applies.
+    if (payload[0] == 0x00 && len > 7) {
       // Try FCS over the standard 5-byte heartbeat body (ID + 4 data bytes)
       final calcHeartbeatFcs = calculateFcsGdl90(payload, 0, 5);
       if (rxLittleEndian == calcHeartbeatFcs ||
@@ -149,7 +169,8 @@ class Gdl90Decoder {
         return true;
       }
 
-      // Last resort: validate heartbeat structure (status byte 1 bit 7 is GPS
+      // Last resort (only for payloads longer than the standard 7-byte
+      // heartbeat): validate heartbeat structure (status byte 1 bit 7 is GPS
       // valid flag — must be 0 or 1, and the reserved bits in status bytes
       // should be 0 in compliant implementations)
       final st1 = payload[1] & 0xFF;
@@ -212,10 +233,12 @@ class Gdl90Decoder {
     final gpsValid = (st1 & 0x80) != 0;
     final utcValid = (st2 & 0x01) != 0;
 
-    final tsMsb = (payload[3] & 0x80) != 0 ? 1 : 0;
-    final tsB1 = payload[3] & 0x7F;
+    // 17-bit time stamp (LSB-first): bit 16 is Status Byte 2 bit 7, bits 0-7
+    // are payload[3] (low byte) and bits 8-15 are payload[4] (high byte).
+    final tsMsb = (st2 & 0x80) != 0 ? 1 : 0;
+    final tsB1 = payload[3] & 0xFF;
     final tsB2 = payload[4] & 0xFF;
-    final timeStampSeconds = (tsMsb << 15) | (tsB1 << 8) | tsB2;
+    final timeStampSeconds = (tsMsb << 16) | (tsB2 << 8) | tsB1;
 
     return Gdl90HeartbeatMessage(
       gpsPositionValid: gpsValid,
