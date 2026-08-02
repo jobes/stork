@@ -594,4 +594,63 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       ),
     );
   }
+
+  Future<SettingsUpdateResult> updateGdl90Enabled(bool enabled) {
+    return _updateSettings((s) => s.copyWith(gdl90Enabled: enabled));
+  }
+
+  Future<SettingsUpdateResult> updateGdl90BindIp(String ip) {
+    final trimmed = ip.trim();
+    if (trimmed.isEmpty) {
+      return Future.value(
+        SettingsUpdateFailure(
+          ArgumentError('Bind IP must not be empty'),
+          StackTrace.current,
+        ),
+      );
+    }
+    return _updateSettings((s) => s.copyWith(gdl90BindIp: trimmed));
+  }
+
+  Future<SettingsUpdateResult> updateGdl90UdpPort(int port) {
+    return _updateSettings(
+      (s) => s.copyWith(gdl90UdpPort: port.clamp(1, 65535)),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateGdl90TargetExpirySeconds(int seconds) {
+    return _updateSettings(
+      (s) => s.copyWith(gdl90TargetExpirySeconds: seconds.clamp(10, 300)),
+    );
+  }
+
+  Future<SettingsUpdateResult> updateOgnEnabled(bool enabled) {
+    return _updateSettings((s) => s.copyWith(ognEnabled: enabled));
+  }
+
+  Future<SettingsUpdateResult> updatePureTrackEnabled(bool enabled) {
+    return _updateSettings((s) => s.copyWith(pureTrackEnabled: enabled));
+  }
+
+  Future<SettingsUpdateResult> hideAircraft(String id) {
+    final cleanId = id.trim().toLowerCase();
+    if (cleanId.isEmpty) return Future.value(const SettingsUpdateSuccess());
+    return _updateSettings(
+      (s) => s.copyWith(hiddenAircraftIds: {...s.hiddenAircraftIds, cleanId}),
+    );
+  }
+
+  Future<SettingsUpdateResult> unhideAircraft(String id) {
+    final cleanId = id.trim().toLowerCase();
+    return _updateSettings(
+      (s) => s.copyWith(
+        hiddenAircraftIds: Set<String>.from(s.hiddenAircraftIds)
+          ..remove(cleanId),
+      ),
+    );
+  }
+
+  Future<SettingsUpdateResult> clearHiddenAircraft() {
+    return _updateSettings((s) => s.copyWith(hiddenAircraftIds: const {}));
+  }
 }

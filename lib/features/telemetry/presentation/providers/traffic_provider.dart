@@ -20,6 +20,8 @@ import '../../domain/utils/canonical_id.dart';
 import '../../data/puretrack_stream_service.dart';
 import 'puretrack_auth_provider.dart';
 import 'agl_provider.dart';
+import '../../domain/models/gdl90_target.dart';
+import 'gdl90_provider.dart';
 
 part 'traffic_provider.g.dart';
 
@@ -52,12 +54,18 @@ class Traffic extends _$Traffic {
   List<TrackHistoryPoint> get ownshipTrackHistory =>
       List.unmodifiable(_ownshipTrackHistory);
 
+  StreamSubscription<List<Gdl90Target>>? _gdl90Sub;
+  final Set<String> _knownGdl90Ids = {};
+
   @override
   List<TrafficAircraft> build() {
     _aprsService = ref.read(ognAprsServiceProvider);
 
     // Eagerly read pureTrackProvider so connection state is managed on app start
     ref.read(pureTrackProvider);
+
+    // Eagerly initialize GDL90 service & listen to stream
+    _listenToGdl90();
 
     _decayTimer = Timer.periodic(
       const Duration(seconds: 5),
@@ -71,6 +79,28 @@ class Traffic extends _$Traffic {
     // Listen to changes in settings & active aircraft OGN config
     ref.listen(appSettingsProvider, (prev, next) {
       _updateOutboundTrackingState();
+      final prevOgn = prev?.value?.ognEnabled ?? true;
+      final nextOgn = next.value?.ognEnabled ?? true;
+      if (prevOgn != nextOgn) {
+        if (nextOgn) {
+          _connectInbound();
+        } else {
+          _disconnectInbound();
+          purgeSourceTraffic('ogn');
+        }
+      }
+
+      final prevPt = prev?.value?.pureTrackEnabled ?? true;
+      final nextPt = next.value?.pureTrackEnabled ?? true;
+      if (prevPt != nextPt && !nextPt) {
+        purgeSourceTraffic('puretrack');
+      }
+
+      final prevGdl = prev?.value?.gdl90Enabled ?? true;
+      final nextGdl = next.value?.gdl90Enabled ?? true;
+      if (prevGdl != nextGdl && !nextGdl) {
+        purgeSourceTraffic('gdl90');
+      }
     });
 
     ref.listen(aircraftStateProvider, (prev, next) {
@@ -91,6 +121,7 @@ class Traffic extends _$Traffic {
     });
 
     ref.onDispose(() {
+      _gdl90Sub?.cancel();
       _decayTimer?.cancel();
       _publishTimer?.cancel();
       _outboundTimer?.cancel();
@@ -100,31 +131,27 @@ class Traffic extends _$Traffic {
       _outboundManager?.stop();
     });
 
-    _connectInbound();
+    final initialSettings = ref.read(appSettingsProvider).value;
+    if (initialSettings?.ognEnabled ?? true) {
+      _connectInbound();
+    }
 
     return const [];
   }
 
   void publishState() {
     state = _aggregator.targets;
-    debugPrint(
-      '[Traffic] [PUBLISH STATE] Published ${state.length} targets to Riverpod UI listeners',
-    );
   }
 
   void _connectInbound() {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.ognEnabled) return;
     if (_isConnecting) return;
     _isConnecting = true;
     _reconnectTimer?.cancel();
-    debugPrint('[Traffic] Connecting to OGN APRS server...');
 
-    int lineCount = 0;
     _inboundConnection = OgnInboundConnection(
       onLineReceived: (line) {
-        if (lineCount < 5) {
-          debugPrint('[OGN APRS Raw Line sample] $line');
-          lineCount++;
-        }
         try {
           final aircraft = _aprsService.parseAprsLine(line);
           if (aircraft != null) {
@@ -152,7 +179,16 @@ class Traffic extends _$Traffic {
         });
   }
 
+  void _disconnectInbound() {
+    _reconnectTimer?.cancel();
+    _inboundConnection?.disconnect(isManual: true);
+    _inboundConnection = null;
+    _isConnecting = false;
+  }
+
   void _scheduleReconnect() {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.ognEnabled) return;
     _reconnectTimer?.cancel();
     _reconnectAttempts++;
     final delaySeconds = (_reconnectAttempts * 2).clamp(2, 30);
@@ -165,10 +201,15 @@ class Traffic extends _$Traffic {
   final Map<String, List<TrackHistoryPoint>> _trackHistories = {};
 
   void _updateAircraft(TrafficAircraft aircraft) {
-    _aggregator.processOgnUpdate(aircraft);
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.ognEnabled) return;
 
-    final canonicalId = CanonicalId.normalize(aircraft.id);
-    final history = _trackHistories.putIfAbsent(canonicalId, () => []);
+    // The stored key can differ from the incoming id when the aircraft is
+    // merged into an existing cross-source entry (e.g. OGN FLARM id vs GDL90
+    // ICAO) — always address the aggregator/history by the stored key.
+    final storedKey = _aggregator.processOgnUpdate(aircraft);
+
+    final history = _trackHistories.putIfAbsent(storedKey, () => []);
     history.add(
       TrackHistoryPoint(
         timestamp: aircraft.lastSeen,
@@ -185,13 +226,15 @@ class Traffic extends _$Traffic {
     final isCircling = CasEvaluator.detectCircling(history);
 
     _aggregator.updateComputedFields(
-      canonicalId,
+      storedKey,
       turnRate: turnRate,
       isCircling: isCircling,
     );
   }
 
   void processPureTrackPacket(PureTrackPacket packet) {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.pureTrackEnabled) return;
     final mappedType = AircraftType.fromPureTrackType(
       packet.aircraftType,
     ).ognCode;
@@ -201,6 +244,9 @@ class Traffic extends _$Traffic {
       registration: packet.registration,
       aircraftModel: packet.model,
       cn: packet.cn,
+      icaoHex: CanonicalId.isIcaoHex(packet.canonicalId)
+          ? packet.canonicalId
+          : null,
       latitude: packet.latitude,
       longitude: packet.longitude,
       altitude: packet.altitude,
@@ -212,10 +258,9 @@ class Traffic extends _$Traffic {
       sources: const {'puretrack'},
       activeSource: 'puretrack',
     );
-    _aggregator.processPureTrackUpdate(aircraft);
+    final storedKey = _aggregator.processPureTrackUpdate(aircraft);
 
-    final canonicalId = packet.canonicalId;
-    final history = _trackHistories.putIfAbsent(canonicalId, () => []);
+    final history = _trackHistories.putIfAbsent(storedKey, () => []);
     history.add(
       TrackHistoryPoint(
         timestamp: packet.tSent,
@@ -232,10 +277,112 @@ class Traffic extends _$Traffic {
     final isCircling = CasEvaluator.detectCircling(history);
 
     _aggregator.updateComputedFields(
-      canonicalId,
+      storedKey,
       turnRate: turnRate,
       isCircling: isCircling,
     );
+  }
+
+  void _listenToGdl90() {
+    final gdl90Service = ref.read(gdl90ServiceProvider);
+    _gdl90Sub?.cancel();
+    _gdl90Sub = gdl90Service.targetStream.listen(_processGdl90Targets);
+    // Process any targets already received before the stream subscription
+    // was set up (broadcast streams don't replay past events).
+    _processGdl90Targets(gdl90Service.targets);
+  }
+
+  /// Processes the current GDL90 target list and mirrors the service's own
+  /// expiry: when the service drops a target, its 'gdl90' source is removed
+  /// from the aggregator so the aircraft does not linger on the map until the
+  /// much longer aggregator stale-purge.
+  void _processGdl90Targets(List<Gdl90Target> targets) {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.gdl90Enabled) return;
+
+    final currentIds = <String>{};
+    for (final t in targets) {
+      currentIds.add(t.id);
+      processGdl90Target(t);
+    }
+
+    final removedIds = _knownGdl90Ids.difference(currentIds);
+    if (removedIds.isNotEmpty) {
+      for (final id in removedIds) {
+        final purgedKeys = _aggregator.purgeSourceFromIcao('gdl90', id);
+        for (final key in purgedKeys) {
+          _trackHistories.remove(key);
+        }
+      }
+    }
+
+    // Publish immediately (once per batch) so GDL90 updates/expiries reach the
+    // UI without waiting for the periodic publish timer.
+    publishState();
+
+    _knownGdl90Ids
+      ..clear()
+      ..addAll(currentIds);
+  }
+
+  void processGdl90Target(Gdl90Target target) {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.gdl90Enabled) return;
+
+    final vsMs = target.verticalSpeedFpm * 0.00508;
+    final mappedType = _mapGdl90EmitterCategory(target.emitterCategory);
+
+    final aircraft = TrafficAircraft(
+      id: target.id,
+      callsign: target.callsign ?? target.id,
+      icaoHex: target.id, // GDL90 ID is the ICAO 24-bit hex address
+      latitude: target.latitude,
+      longitude: target.longitude,
+      altitude: target.altitudeFeet * 0.3048, // feet -> meters AMSL
+      altitudeValid: target.altitudeValid,
+      track: target.trackDegrees,
+      groundSpeed: target.speedKnots * 0.514444, // kts -> m/s
+      speedValid: target.speedValid,
+      verticalSpeed: vsMs, // ft/min -> m/s
+      verticalSpeedValid: target.verticalSpeedValid,
+      aircraftType: mappedType,
+      lastSeen: target.lastUpdated,
+      sources: const {'gdl90'},
+      activeSource: 'gdl90',
+    );
+    final storedKey = _aggregator.processGdl90Update(aircraft);
+
+    final history = _trackHistories.putIfAbsent(storedKey, () => []);
+    history.add(
+      TrackHistoryPoint(
+        timestamp: target.lastUpdated,
+        trackRad: target.trackDegrees * math.pi / 180.0,
+      ),
+    );
+    history.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final latestTime = history.last.timestamp;
+    history.removeWhere(
+      (p) => latestTime.difference(p.timestamp).inSeconds > 15,
+    );
+
+    final turnRate = CasEvaluator.calculateTurnRate(history);
+    final isCircling = CasEvaluator.detectCircling(history);
+
+    _aggregator.updateComputedFields(
+      storedKey,
+      turnRate: turnRate,
+      isCircling: isCircling,
+    );
+  }
+
+  /// Maps a GDL90 Traffic Report emitter category (GDL90 ICD §3.5.1.10) to an
+  /// `AircraftType`. Note: the GDL90 table differs from the ADS-B (DO-282)
+  /// table — code 8 is reserved, glider is 9, lighter-than-air is 10,
+  /// parachutist is 11, ultralight/hang glider/paraglider is 12 and UAV is 14.
+  /// SafeSky gliders are transmitted as category 9, so mapping 9 to anything
+  /// but `glider` would mislabel them.
+  int _mapGdl90EmitterCategory(int cat) {
+    return AircraftType.fromGdl90EmitterCategory(cat).ognCode;
   }
 
   void _cleanupStaleTraffic() {
@@ -248,6 +395,17 @@ class Traffic extends _$Traffic {
     if (purgedIds.isNotEmpty) {
       publishState();
     }
+  }
+
+  void purgeSourceTraffic(String source) {
+    final purgedIds = _aggregator.purgeSource(source);
+    for (final id in purgedIds) {
+      _trackHistories.remove(id);
+    }
+    if (source == 'gdl90') {
+      _knownGdl90Ids.clear();
+    }
+    publishState();
   }
 
   Future<void> loadDdbDetails(String id) async {
@@ -393,7 +551,8 @@ class Traffic extends _$Traffic {
       orElse: () => null,
     );
 
-    if (activeAircraft != null &&
+    if (settings.ognEnabled &&
+        activeAircraft != null &&
         activeAircraft.sendLivePosition &&
         RegExp(
           r'^[0-9A-Fa-f]{6}$',
@@ -470,7 +629,18 @@ class FilteredTraffic extends _$FilteredTraffic {
 
     if (settings == null) return traffic;
 
+    final hiddenIds = settings.hiddenAircraftIds;
+
     final filtered = traffic.where((ac) {
+      if (hiddenIds.isNotEmpty) {
+        final acId = ac.id.trim().toLowerCase();
+        final acIcao = ac.icaoHex?.trim().toLowerCase();
+        if (hiddenIds.contains(acId) ||
+            (acIcao != null && hiddenIds.contains(acIcao))) {
+          return false;
+        }
+      }
+
       if (settings.trafficFilterMaxHorizontalDistanceEnabled) {
         if (telemetry.latitude != null &&
             telemetry.longitude != null &&

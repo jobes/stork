@@ -20,4 +20,11 @@ class CanonicalId {
 
     return trimmed.toLowerCase();
   }
+
+  /// Returns true if [id] is a 6-character hexadecimal string (FLARM ID or
+  /// ICAO 24-bit address). Used as a best-effort hint for cross-source
+  /// deduplication (e.g. GDL90 sends the bare ICAO, OGN may use a FLARM ID).
+  static bool isIcaoHex(String id) {
+    return RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(id.trim());
+  }
 }

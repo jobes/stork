@@ -1822,4 +1822,75 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get trafficSourcePureTrack => 'PureTrack';
+
+  @override
+  String get trafficSourceGdl90 => 'GDL90';
+
+  @override
+  String get gdl90SettingsTitle => 'GDL90 / SafeSky Prijímač';
+
+  @override
+  String get gdl90EnableTitle => 'Povoliť GDL90 prijímač';
+
+  @override
+  String get gdl90EnableDesc =>
+      'Prijímať lokálnu letovú prevádzku cez UDP (SafeSky, Stratux, SkyEcho 2, atď.)';
+
+  @override
+  String get gdl90BindIpTitle => 'IP Adresa prijímača';
+
+  @override
+  String get gdl90PortTitle => 'UDP Port';
+
+  @override
+  String get gdl90TargetExpiryTitle => 'Čas vypršania platnosti cieľa';
+
+  @override
+  String get gdl90StatusTitle => 'Stav prijímača';
+
+  @override
+  String get gdl90StatusActive => 'Aktívny';
+
+  @override
+  String get gdl90StatusInactive => 'Neaktívny (Bez signálu)';
+
+  @override
+  String get ognEnableTitle => 'Povoliť OGN';
+
+  @override
+  String get ognEnableDesc =>
+      'Prijímať a odosielať letovú prevádzku cez Open Glider Network';
+
+  @override
+  String get pureTrackEnableTitle => 'Povoliť PureTrack';
+
+  @override
+  String get pureTrackEnableDesc => 'Prijímať letovú prevádzku cez PureTrack';
+
+  @override
+  String get hideAircraft => 'Skryť';
+
+  @override
+  String get hiddenAircraftSection => 'Skryté lietadlá';
+
+  @override
+  String get noHiddenAircraft => 'Žiadne skryté lietadlá.';
+
+  @override
+  String hiddenAircraftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count skrytých lietadiel',
+      few: '$count skryté lietadlá',
+      one: '1 skryté lietadlo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get unhideAircraft => 'Zobraziť znova';
+
+  @override
+  String get clearAllHiddenAircraft => 'Vymazať všetky skryté';
 }

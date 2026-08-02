@@ -11,23 +11,35 @@ class TrafficAggregator {
   /// Map of canonical IDs to target states
   Map<String, TrafficAircraft> get targetMap => Map.unmodifiable(_targets);
 
-  /// Processes an incoming OGN aircraft packet with T_sent position arbitration
-  void processOgnUpdate(TrafficAircraft rawAircraft) {
-    processAircraftUpdate(rawAircraft, source: 'ogn');
+  /// Processes an incoming OGN aircraft packet with T_sent position arbitration.
+  /// Returns the canonical ID under which the aircraft is stored (the existing
+  /// key when an ICAO merge occurs, otherwise the normalized incoming ID).
+  String processOgnUpdate(TrafficAircraft rawAircraft) {
+    return processAircraftUpdate(rawAircraft, source: 'ogn');
   }
 
-  /// Processes an incoming PureTrack aircraft packet with T_sent position arbitration
-  void processPureTrackUpdate(TrafficAircraft rawAircraft) {
-    processAircraftUpdate(rawAircraft, source: 'puretrack');
+  /// Processes an incoming PureTrack aircraft packet with T_sent position
+  /// arbitration. Returns the canonical ID under which the aircraft is stored.
+  String processPureTrackUpdate(TrafficAircraft rawAircraft) {
+    return processAircraftUpdate(rawAircraft, source: 'puretrack');
   }
 
-  /// Processes an incoming aircraft update from any telemetry source with T_sent position arbitration
-  void processAircraftUpdate(
+  /// Processes an incoming GDL90 aircraft packet with T_sent position
+  /// arbitration. Returns the canonical ID under which the aircraft is stored.
+  String processGdl90Update(TrafficAircraft rawAircraft) {
+    return processAircraftUpdate(rawAircraft, source: 'gdl90');
+  }
+
+  /// Processes an incoming aircraft update from any telemetry source with
+  /// T_sent position arbitration. Returns the canonical ID under which the
+  /// aircraft is stored (the existing key when an ICAO merge occurs, otherwise
+  /// the normalized incoming ID).
+  String processAircraftUpdate(
     TrafficAircraft rawAircraft, {
     required String source,
   }) {
     final canonicalId = CanonicalId.normalize(rawAircraft.id);
-    if (canonicalId.isEmpty) return;
+    if (canonicalId.isEmpty) return canonicalId;
 
     final now = DateTime.now();
     var tSent = rawAircraft.lastSeen;
@@ -38,7 +50,27 @@ class TrafficAggregator {
       tSent = now;
     }
 
-    final existing = _targets[canonicalId];
+    var existing = _targets[canonicalId];
+    var existingKey = canonicalId;
+
+    // Cross-source deduplication by ICAO 24-bit hex address:
+    // When a new source reports an aircraft with a known ICAO (e.g. GDL90
+    // sends id=166752), search for an existing target from another source
+    // that shares the same ICAO but a different canonical ID (e.g. OGN
+    // uses FLARM id FLRDDA5E6 for the same physical aircraft).
+    if (existing == null && rawAircraft.icaoHex != null) {
+      final icaoNormalized = rawAircraft.icaoHex!.toLowerCase();
+      for (final entry in _targets.entries) {
+        if (entry.value.icaoHex?.toLowerCase() == icaoNormalized) {
+          // Found a match by ICAO — merge this new source into the existing
+          // target using the existing canonical ID as the key, so the same
+          // aircraft never appears twice on the map.
+          existing = entry.value;
+          existingKey = entry.key;
+          break;
+        }
+      }
+    }
 
     if (existing == null) {
       _targets[canonicalId] = rawAircraft.copyWith(
@@ -47,15 +79,15 @@ class TrafficAggregator {
         sources: {source},
         activeSource: source,
       );
-      debugPrint(
-        '[TrafficAggregator] [$source ADD] ID: $canonicalId (${rawAircraft.callsign}) | Total targets in DB: ${_targets.length}',
-      );
     } else {
       final updatedSources = {...existing.sources, source};
 
       // T_sent arbitration rule: only update position & dynamic fields if tSent is strictly newer
       if (tSent.isAfter(existing.lastSeen)) {
-        _targets[canonicalId] = existing.copyWith(
+        // When a source reports a field as unavailable (e.g. GDL90 0xFFF
+        // altitude), keep the previously known value instead of resetting it
+        // to 0, and record the validity flag for the UI.
+        _targets[existingKey] = existing.copyWith(
           callsign: rawAircraft.callsign.isNotEmpty
               ? rawAircraft.callsign
               : existing.callsign,
@@ -64,31 +96,41 @@ class TrafficAggregator {
           cn: rawAircraft.cn ?? existing.cn,
           latitude: rawAircraft.latitude,
           longitude: rawAircraft.longitude,
-          altitude: rawAircraft.altitude,
+          altitude: rawAircraft.altitudeValid
+              ? rawAircraft.altitude
+              : existing.altitude,
           track: rawAircraft.track,
-          groundSpeed: rawAircraft.groundSpeed,
-          verticalSpeed: rawAircraft.verticalSpeed,
+          groundSpeed: rawAircraft.speedValid
+              ? rawAircraft.groundSpeed
+              : existing.groundSpeed,
+          verticalSpeed: rawAircraft.verticalSpeedValid
+              ? rawAircraft.verticalSpeed
+              : existing.verticalSpeed,
           aircraftType: rawAircraft.aircraftType != 0
               ? rawAircraft.aircraftType
               : existing.aircraftType,
           lastSeen: tSent,
           isAnonymous: rawAircraft.isAnonymous,
+          icaoHex: existing.icaoHex ?? rawAircraft.icaoHex,
+          altitudeValid: rawAircraft.altitudeValid,
+          speedValid: rawAircraft.speedValid,
+          verticalSpeedValid: rawAircraft.verticalSpeedValid,
           sources: updatedSources,
           activeSource: source,
         );
-        debugPrint(
-          '[TrafficAggregator] [$source UPDATE] ID: $canonicalId (${rawAircraft.callsign}) | Fix timestamp advanced to $tSent | Total targets in DB: ${_targets.length}',
-        );
       } else {
         // Discard unchanged or stale position update, but preserve metadata
-        _targets[canonicalId] = existing.copyWith(
+        _targets[existingKey] = existing.copyWith(
           registration: existing.registration ?? rawAircraft.registration,
           aircraftModel: existing.aircraftModel ?? rawAircraft.aircraftModel,
           cn: existing.cn ?? rawAircraft.cn,
+          icaoHex: existing.icaoHex ?? rawAircraft.icaoHex,
           sources: updatedSources,
         );
       }
     }
+
+    return existingKey;
   }
 
   /// Updates computed fields (turnRate, isCircling) on an existing target without changing activeSource or position arbitration
@@ -164,6 +206,72 @@ class TrafficAggregator {
     }
 
     return staleKeys;
+  }
+
+  /// Purges a source from all target aircraft. If an aircraft has no remaining sources, it is removed.
+  List<String> purgeSource(String source) {
+    if (_targets.isEmpty) return const [];
+    final removedKeys = <String>[];
+
+    for (final entry in List.of(_targets.entries)) {
+      final key = entry.key;
+      final ac = entry.value;
+      if (ac.sources.contains(source)) {
+        final updatedSources = Set<String>.from(ac.sources)..remove(source);
+        if (updatedSources.isEmpty) {
+          _targets.remove(key);
+          removedKeys.add(key);
+        } else {
+          final newActiveSource = ac.activeSource == source
+              ? updatedSources.first
+              : ac.activeSource;
+          _targets[key] = ac.copyWith(
+            sources: updatedSources,
+            activeSource: newActiveSource,
+          );
+        }
+      }
+    }
+
+    if (removedKeys.isNotEmpty) {
+      debugPrint(
+        '[TrafficAggregator] [PURGE SOURCE: $source] Removed ${removedKeys.length} targets | Remaining in DB: ${_targets.length}',
+      );
+    }
+
+    return removedKeys;
+  }
+
+  /// Removes [source] only from targets whose ICAO hex address matches
+  /// [icaoHex] — used when a live source (e.g. GDL90) drops a single target.
+  /// If an aircraft ends up with no remaining sources, it is removed entirely.
+  List<String> purgeSourceFromIcao(String source, String icaoHex) {
+    if (_targets.isEmpty) return const [];
+    final normalized = icaoHex.toLowerCase();
+    final removedKeys = <String>[];
+
+    for (final entry in List.of(_targets.entries)) {
+      final key = entry.key;
+      final ac = entry.value;
+      if (ac.sources.contains(source) &&
+          ac.icaoHex?.toLowerCase() == normalized) {
+        final updatedSources = Set<String>.from(ac.sources)..remove(source);
+        if (updatedSources.isEmpty) {
+          _targets.remove(key);
+          removedKeys.add(key);
+        } else {
+          final newActiveSource = ac.activeSource == source
+              ? updatedSources.first
+              : ac.activeSource;
+          _targets[key] = ac.copyWith(
+            sources: updatedSources,
+            activeSource: newActiveSource,
+          );
+        }
+      }
+    }
+
+    return removedKeys;
   }
 
   /// Clears all stored targets

@@ -123,6 +123,70 @@ void main() {
         expect(filtered.first.id, equals('NEAR01'));
       },
     );
+
+    test('excludes aircraft whose id or icaoHex is in hiddenAircraftIds', () {
+      // Aircraft hidden by bare ICAO (GDL90 source).
+      final hiddenGdl90 = TrafficAircraft(
+        id: '166752',
+        callsign: 'SAFE1',
+        icaoHex: '166752',
+        latitude: 48.16,
+        longitude: 17.11,
+        altitude: 600,
+        track: 90,
+        groundSpeed: 20,
+        verticalSpeed: 0,
+        aircraftType: 1,
+        lastSeen: now,
+      );
+
+      // Same physical aircraft reported by OGN under a different canonical id
+      // but sharing the same ICAO — must also be hidden.
+      final hiddenMerged = TrafficAircraft(
+        id: 'FLRDDA5E6',
+        callsign: 'OK-1234',
+        icaoHex: '166752',
+        latitude: 48.16,
+        longitude: 17.11,
+        altitude: 600,
+        track: 90,
+        groundSpeed: 20,
+        verticalSpeed: 0,
+        aircraftType: 1,
+        lastSeen: now,
+      );
+
+      final visible = TrafficAircraft(
+        id: 'VISIBLE',
+        callsign: 'VIS',
+        latitude: 48.16,
+        longitude: 17.11,
+        altitude: 600,
+        track: 90,
+        groundSpeed: 20,
+        verticalSpeed: 0,
+        aircraftType: 1,
+        lastSeen: now,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          trafficProvider.overrideWith(
+            () => _MockTraffic([hiddenGdl90, hiddenMerged, visible]),
+          ),
+          appSettingsProvider.overrideWith(
+            () => _MockAppSettingsNotifier(
+              const AppSettings(hiddenAircraftIds: {'166752'}),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final filtered = container.read(filteredTrafficProvider);
+      expect(filtered.length, equals(1));
+      expect(filtered.first.id, equals('VISIBLE'));
+    });
   });
 }
 

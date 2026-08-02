@@ -136,6 +136,18 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
       (json['casHorizontalThreshold'] as num?)?.toDouble() ?? 300.0,
   casVerticalThreshold:
       (json['casVerticalThreshold'] as num?)?.toDouble() ?? 100.0,
+  gdl90Enabled: json['gdl90Enabled'] as bool? ?? true,
+  gdl90BindIp: json['gdl90BindIp'] as String? ?? '0.0.0.0',
+  gdl90UdpPort: (json['gdl90UdpPort'] as num?)?.toInt() ?? 4000,
+  gdl90TargetExpirySeconds:
+      (json['gdl90TargetExpirySeconds'] as num?)?.toInt() ?? 60,
+  ognEnabled: json['ognEnabled'] as bool? ?? true,
+  pureTrackEnabled: json['pureTrackEnabled'] as bool? ?? true,
+  hiddenAircraftIds:
+      (json['hiddenAircraftIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toSet() ??
+      const {},
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -184,6 +196,13 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'casLookaheadTime': instance.casLookaheadTime,
       'casHorizontalThreshold': instance.casHorizontalThreshold,
       'casVerticalThreshold': instance.casVerticalThreshold,
+      'gdl90Enabled': instance.gdl90Enabled,
+      'gdl90BindIp': instance.gdl90BindIp,
+      'gdl90UdpPort': instance.gdl90UdpPort,
+      'gdl90TargetExpirySeconds': instance.gdl90TargetExpirySeconds,
+      'ognEnabled': instance.ognEnabled,
+      'pureTrackEnabled': instance.pureTrackEnabled,
+      'hiddenAircraftIds': instance.hiddenAircraftIds.toList(),
     };
 
 const _$SpeedUnitEnumMap = {

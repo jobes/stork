@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../domain/models/traffic_aircraft.dart';
+import '../domain/utils/canonical_id.dart';
 
 class OgnOutboundIsolate {
   static void entryPoint(SendPort mainSendPort) async {
@@ -239,7 +240,10 @@ class OgnInboundConnection {
   }
 
   Future<void> connect() async {
-    await disconnect();
+    // Tear down any previous socket without notifying: onDone/onError drive
+    // reconnection, and notifying here would fire onDisconnected on every
+    // fresh connect (the provider recreates the connection per reconnect).
+    await disconnect(isManual: true);
     _hasNotifiedDisconnected = false;
     try {
       _socket = await Socket.connect(
@@ -248,7 +252,6 @@ class OgnInboundConnection {
         timeout: const Duration(seconds: 5),
       );
       _isConnected = true;
-      debugPrint('OGN Inbound: Connected to aprs.glidernet.org:14580 🚀');
 
       _socket!
           .cast<List<int>>()
@@ -298,12 +301,13 @@ class OgnInboundConnection {
     }
   }
 
-  Future<void> disconnect() async {
+  Future<void> disconnect({bool isManual = false}) async {
     _isConnected = false;
-    await _socket?.close();
     _socket?.destroy();
     _socket = null;
-    _notifyDisconnected();
+    if (!isManual) {
+      _notifyDisconnected();
+    }
   }
 }
 
@@ -479,6 +483,7 @@ class OgnAprsService {
     return TrafficAircraft(
       id: id,
       callsign: rawCallsign,
+      icaoHex: CanonicalId.isIcaoHex(id) ? id.toLowerCase() : null,
       latitude: lat,
       longitude: lon,
       altitude: altitude,

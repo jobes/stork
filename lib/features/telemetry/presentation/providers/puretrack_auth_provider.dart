@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../data/puretrack_auth_service.dart';
 import '../../data/puretrack_stream_service.dart';
 import 'traffic_provider.dart';
@@ -43,13 +44,32 @@ class PureTrackNotifier extends _$PureTrackNotifier {
 
     _authSubscription = _authService.authStateStream.listen((state) {
       this.state = state;
-      if (state == PureTrackAuthState.authenticated &&
+      final settings = ref.read(appSettingsProvider).value;
+      final pureTrackEnabled = settings?.pureTrackEnabled ?? true;
+      if (pureTrackEnabled &&
+          state == PureTrackAuthState.authenticated &&
           _authService.currentToken != null) {
         _connectStream(_authService.currentToken!);
       } else {
         _streamService.disconnect();
         _streamSubscription?.cancel();
         _streamSubscription = null;
+      }
+    });
+
+    ref.listen(appSettingsProvider, (prev, next) {
+      final prevEnabled = prev?.value?.pureTrackEnabled ?? true;
+      final nextEnabled = next.value?.pureTrackEnabled ?? true;
+      if (prevEnabled != nextEnabled) {
+        if (nextEnabled &&
+            _authService.currentState == PureTrackAuthState.authenticated &&
+            _authService.currentToken != null) {
+          _connectStream(_authService.currentToken!);
+        } else if (!nextEnabled) {
+          _streamService.disconnect();
+          _streamSubscription?.cancel();
+          _streamSubscription = null;
+        }
       }
     });
 
@@ -69,6 +89,8 @@ class PureTrackNotifier extends _$PureTrackNotifier {
   }
 
   void _connectStream(String token) {
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings != null && !settings.pureTrackEnabled) return;
     _streamSubscription?.cancel();
     _streamSubscription = _streamService.stream.listen((packet) {
       ref.read(trafficProvider.notifier).processPureTrackPacket(packet);
@@ -85,7 +107,7 @@ class PureTrackNotifier extends _$PureTrackNotifier {
     _streamSubscription = null;
     _streamService.disconnect();
     await _authService.logout();
-    ref.read(trafficProvider.notifier).publishState();
+    ref.read(trafficProvider.notifier).purgeSourceTraffic('puretrack');
   }
 
   Future<void> invalidateToken() async {
@@ -93,5 +115,6 @@ class PureTrackNotifier extends _$PureTrackNotifier {
     _streamSubscription = null;
     _streamService.disconnect();
     await _authService.invalidateToken();
+    ref.read(trafficProvider.notifier).purgeSourceTraffic('puretrack');
   }
 }

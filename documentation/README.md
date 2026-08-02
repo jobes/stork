@@ -54,7 +54,7 @@ Documents in this section detail user-facing features, overlay widgets, custom c
 *   [Variometer (Vertical Speed Indicator)](features/vario.md)
     *   *Documents the barometric and GPS-based vertical speed estimation pipeline with linear regression smoothing, EMA output filtering, and the fallback logic between pressure and GPS sources. Covers noise rejection strategy, display formatting, and all tunable parameters.*
 *   [Multi-Source Traffic Monitoring and Live Beaconing](features/traffic.md)
-    *   *Details the multi-source traffic pipeline aggregating Open Glider Network (OGN) APRS and PureTrack SSE/WebSocket streams, canonical ID target deduplication, dynamic spatial viewport filtering, DDB metadata lookup API, background Isolate position broadcasting, Riverpod providers, MapLibre dynamic icon rotation with trajectory lookahead, dynamic theme source chips, and interactive traffic details dialog.*
+    *   *Details the multi-source traffic pipeline aggregating Open Glider Network (OGN) APRS, PureTrack SSE/WebSocket, and local GDL90 UDP receiver (SafeSky/Stratux/SkyEcho 2) streams, canonical ID target deduplication with cross-source ICAO merging, dynamic spatial viewport filtering, DDB metadata lookup API, background Isolate position broadcasting, Riverpod providers, MapLibre dynamic icon rotation with trajectory lookahead, dynamic theme source chips, and interactive traffic details dialog.*
 *   [Collision Avoidance System (CAS)](features/collision-avoidance-system.md)
     *   *Documents the 3D threat volume evaluation engine, dynamic kinematic position prediction with turn rate integration, thermal co-circling false-alarm suppression logic, map altitude trend tags, threat icon styling, and interactive collision warning banner.*
 

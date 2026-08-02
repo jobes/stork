@@ -124,8 +124,9 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
 
                   // Absolute altitude
                   final absAltVal = altUnit.convertFromMeters(ac.altitude);
-                  final absAltLabel =
-                      '${absAltVal.round()} ${altUnit.getLabel(l10n)}';
+                  final absAltLabel = ac.altitudeValid
+                      ? '${absAltVal.round()} ${altUnit.getLabel(l10n)}'
+                      : '-';
 
                   // Last seen / inactivity timer
                   final diff = DateTime.now().toUtc().difference(ac.lastSeen);
@@ -140,13 +141,16 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
 
                   // Ground speed
                   final gsVal = speedUnit.convertFromMs(ac.groundSpeed);
-                  final gsLabel =
-                      '${gsVal.round()} ${speedUnit.getLabel(l10n)}';
+                  final gsLabel = ac.speedValid
+                      ? '${gsVal.round()} ${speedUnit.getLabel(l10n)}'
+                      : '-';
 
                   // Vario
                   final vsVal = ac.verticalSpeed;
-                  final vsLabel =
-                      '${vsVal >= 0.0 ? "+" : ""}${vsVal.toStringAsFixed(1)} ${l10n.varioUnitMs}';
+                  final vsLabel = ac.verticalSpeedValid
+                      ? '${vsVal >= 0.0 ? "+" : ""}'
+                            '${vsVal.toStringAsFixed(1)} ${l10n.varioUnitMs}'
+                      : '-';
 
                   // Aircraft Category & Icon details
                   final acType = AircraftType.fromOgnCode(ac.aircraftType);
@@ -243,6 +247,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                                 ],
                               ),
                             ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -301,7 +306,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             _buildTelemetryColumn(
                               context,
@@ -314,6 +319,67 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                               l10n.trafficSourceLabel,
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () async {
+                              final result = await ref
+                                  .read(appSettingsProvider.notifier)
+                                  .hideAircraft(ac.id);
+                              if (!context.mounted) return;
+                              if (result is SettingsUpdateSuccess) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${l10n.hideAircraft}: $nameLabel',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              } else if (result is SettingsUpdateFailure) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      l10n.settingsUpdateFailed(
+                                        result.error.toString(),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.visibility_off_outlined,
+                                    size: 16,
+                                    color: theme.colorScheme.error.withValues(
+                                      alpha: 0.85,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    l10n.hideAircraft,
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: theme.colorScheme.error
+                                              .withValues(alpha: 0.85),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                         if (ac.isAnonymous) ...[
                           const SizedBox(height: 12),
@@ -374,6 +440,7 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
     final String activeSource = ac.activeSource;
     final hasOgn = sources.contains('ogn');
     final hasPureTrack = sources.contains('puretrack');
+    final hasGdl90 = sources.contains('gdl90');
 
     final List<Widget> badges = [];
 
@@ -396,6 +463,18 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
           context,
           name: l10n.trafficSourcePureTrack,
           color: theme.colorScheme.secondary,
+          isActive: isActive,
+        ),
+      );
+    }
+
+    if (hasGdl90) {
+      final isActive = activeSource == 'gdl90';
+      badges.add(
+        _buildSourceChip(
+          context,
+          name: l10n.trafficSourceGdl90,
+          color: theme.colorScheme.tertiary,
           isActive: isActive,
         ),
       );

@@ -3499,6 +3499,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PureTrack'**
   String get trafficSourcePureTrack;
+
+  /// No description provided for @trafficSourceGdl90.
+  ///
+  /// In en, this message translates to:
+  /// **'GDL90'**
+  String get trafficSourceGdl90;
+
+  /// No description provided for @gdl90SettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GDL90 / SafeSky Receiver'**
+  String get gdl90SettingsTitle;
+
+  /// No description provided for @gdl90EnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable GDL90 Receiver'**
+  String get gdl90EnableTitle;
+
+  /// No description provided for @gdl90EnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive local GDL90 traffic over UDP (SafeSky, Stratux, SkyEcho 2, etc.)'**
+  String get gdl90EnableDesc;
+
+  /// No description provided for @gdl90BindIpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bind IP Address'**
+  String get gdl90BindIpTitle;
+
+  /// No description provided for @gdl90PortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'UDP Port'**
+  String get gdl90PortTitle;
+
+  /// No description provided for @gdl90TargetExpiryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Expiry Timeout'**
+  String get gdl90TargetExpiryTitle;
+
+  /// No description provided for @gdl90StatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver Status'**
+  String get gdl90StatusTitle;
+
+  /// No description provided for @gdl90StatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get gdl90StatusActive;
+
+  /// No description provided for @gdl90StatusInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive (No signal)'**
+  String get gdl90StatusInactive;
+
+  /// No description provided for @ognEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable OGN'**
+  String get ognEnableTitle;
+
+  /// No description provided for @ognEnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive and transmit traffic via Open Glider Network'**
+  String get ognEnableDesc;
+
+  /// No description provided for @pureTrackEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable PureTrack'**
+  String get pureTrackEnableTitle;
+
+  /// No description provided for @pureTrackEnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive traffic via PureTrack'**
+  String get pureTrackEnableDesc;
+
+  /// No description provided for @hideAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get hideAircraft;
+
+  /// No description provided for @hiddenAircraftSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden Aircraft'**
+  String get hiddenAircraftSection;
+
+  /// No description provided for @noHiddenAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'No hidden aircraft.'**
+  String get noHiddenAircraft;
+
+  /// Number of hidden aircraft
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hidden aircraft} other{{count} hidden aircraft}}'**
+  String hiddenAircraftCount(int count);
+
+  /// No description provided for @unhideAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Unhide'**
+  String get unhideAircraft;
+
+  /// No description provided for @clearAllHiddenAircraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all hidden'**
+  String get clearAllHiddenAircraft;
 }
 
 class _AppLocalizationsDelegate

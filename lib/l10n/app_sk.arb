@@ -768,5 +768,33 @@
   "pureTrackSessionExpiredBanner": "PureTrack relácia vypršala. Kliknite pre opätovné prihlásenie.",
   "trafficSourceLabel": "Zdroj dát",
   "trafficSourceOgn": "OGN",
-  "trafficSourcePureTrack": "PureTrack"
+  "trafficSourcePureTrack": "PureTrack",
+  "trafficSourceGdl90": "GDL90",
+  "gdl90SettingsTitle": "GDL90 / SafeSky Prijímač",
+  "gdl90EnableTitle": "Povoliť GDL90 prijímač",
+  "gdl90EnableDesc": "Prijímať lokálnu letovú prevádzku cez UDP (SafeSky, Stratux, SkyEcho 2, atď.)",
+  "gdl90BindIpTitle": "IP Adresa prijímača",
+  "gdl90PortTitle": "UDP Port",
+  "gdl90TargetExpiryTitle": "Čas vypršania platnosti cieľa",
+  "gdl90StatusTitle": "Stav prijímača",
+  "gdl90StatusActive": "Aktívny",
+  "gdl90StatusInactive": "Neaktívny (Bez signálu)",
+  "ognEnableTitle": "Povoliť OGN",
+  "ognEnableDesc": "Prijímať a odosielať letovú prevádzku cez Open Glider Network",
+  "pureTrackEnableTitle": "Povoliť PureTrack",
+  "pureTrackEnableDesc": "Prijímať letovú prevádzku cez PureTrack",
+  "hideAircraft": "Skryť",
+  "hiddenAircraftSection": "Skryté lietadlá",
+  "noHiddenAircraft": "Žiadne skryté lietadlá.",
+  "hiddenAircraftCount": "{count, plural, =1{1 skryté lietadlo} few{{count} skryté lietadlá} other{{count} skrytých lietadiel}}",
+  "@hiddenAircraftCount": {
+    "description": "Počet skrytých lietadiel",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unhideAircraft": "Zobraziť znova",
+  "clearAllHiddenAircraft": "Vymazať všetky skryté"
 }

@@ -89,6 +89,52 @@ void main() {
       expect(mockRepository.currentSettings.mapFontSize, equals(1.5));
     });
 
+    test(
+      'Rejects an empty GDL90 bind IP without persisting it, and trims valid ones',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        // Keep the provider alive by listening to it
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
+
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
+
+        // Whitespace-only input must fail without touching state or repository
+        final emptyResult = await notifier.updateGdl90BindIp('   ');
+        expect(emptyResult, isA<SettingsUpdateFailure>());
+        expect(
+          container.read(appSettingsProvider),
+          isA<AsyncData<AppSettings>>(),
+        );
+        expect(
+          container.read(appSettingsProvider).value?.gdl90BindIp,
+          equals('0.0.0.0'),
+        );
+        expect(mockRepository.currentSettings.gdl90BindIp, equals('0.0.0.0'));
+
+        // Non-empty input is trimmed and persisted via the normal path
+        final validResult = await notifier.updateGdl90BindIp(' 192.168.1.7 ');
+        expect(validResult, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.gdl90BindIp,
+          equals('192.168.1.7'),
+        );
+        expect(
+          mockRepository.currentSettings.gdl90BindIp,
+          equals('192.168.1.7'),
+        );
+      },
+    );
+
     test('Serializes sequential writes to the repository', () async {
       mockRepository.delay = const Duration(milliseconds: 20);
 
@@ -814,5 +860,126 @@ void main() {
         );
       },
     );
+
+    test(
+      'hideAircraft adds a normalized aircraft id and persists it',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWith(
+              (ref) async => mockRepository,
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final sub = container.listen(appSettingsProvider, (_, _) {});
+        addTearDown(sub.close);
+
+        await container.read(appSettingsProvider.future);
+        final notifier = container.read(appSettingsProvider.notifier);
+
+        final result = await notifier.hideAircraft('  FLRDDA5E6 ');
+        expect(result, isA<SettingsUpdateSuccess>());
+        expect(
+          container.read(appSettingsProvider).value?.hiddenAircraftIds,
+          contains('flrdda5e6'),
+        );
+        expect(
+          mockRepository.currentSettings.hiddenAircraftIds,
+          contains('flrdda5e6'),
+        );
+      },
+    );
+
+    test('unhideAircraft removes the aircraft id and persists it', () async {
+      mockRepository.currentSettings = const AppSettings(
+        hiddenAircraftIds: {'flrdda5e6', 'ogn123456'},
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      final result = await notifier.unhideAircraft('FLRDDA5E6');
+      expect(result, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.hiddenAircraftIds,
+        isNot(contains('flrdda5e6')),
+      );
+      expect(
+        container.read(appSettingsProvider).value?.hiddenAircraftIds,
+        contains('ogn123456'),
+      );
+      expect(
+        mockRepository.currentSettings.hiddenAircraftIds,
+        isNot(contains('flrdda5e6')),
+      );
+    });
+
+    test('hideAircraft with an empty id is a no-op success', () async {
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      final result = await notifier.hideAircraft('   ');
+      expect(result, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.hiddenAircraftIds,
+        isEmpty,
+      );
+      expect(mockRepository.currentSettings.hiddenAircraftIds, isEmpty);
+    });
+
+    test('clearHiddenAircraft removes all hidden aircraft ids', () async {
+      mockRepository.currentSettings = const AppSettings(
+        hiddenAircraftIds: {'flrdda5e6', 'ogn123456'},
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      final result = await notifier.clearHiddenAircraft();
+      expect(result, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.hiddenAircraftIds,
+        isEmpty,
+      );
+      expect(mockRepository.currentSettings.hiddenAircraftIds, isEmpty);
+    });
   });
 }

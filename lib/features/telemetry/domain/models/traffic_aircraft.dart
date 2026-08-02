@@ -4,12 +4,17 @@ class TrafficAircraft {
   final String? registration;
   final String? aircraftModel;
   final String? cn;
+  final String?
+  icaoHex; // ICAO 24-bit hex address for cross-source dedup (GDL90, ADS-B)
   final double latitude;
   final double longitude;
   final double altitude; // AMSL in meters
+  final bool altitudeValid; // false when altitude is unavailable (GDL90 0xFFF)
   final double track; // degrees
   final double groundSpeed; // m/s
+  final bool speedValid; // false when ground speed is unavailable
   final double verticalSpeed; // m/s (vario)
+  final bool verticalSpeedValid; // false when vertical speed is unavailable
   final int aircraftType;
   final DateTime lastSeen;
   final bool isAnonymous;
@@ -28,6 +33,7 @@ class TrafficAircraft {
     this.registration,
     this.aircraftModel,
     this.cn,
+    this.icaoHex,
     required this.latitude,
     required this.longitude,
     required this.altitude,
@@ -42,6 +48,9 @@ class TrafficAircraft {
     this.isCollisionThreat = false,
     this.tCpa,
     this.minDistance,
+    this.altitudeValid = true,
+    this.speedValid = true,
+    this.verticalSpeedValid = true,
     Set<String>? sources,
     this.activeSource = 'ogn',
   }) : sources = sources ?? const {'ogn'};
@@ -52,12 +61,16 @@ class TrafficAircraft {
     String? registration,
     String? aircraftModel,
     String? cn,
+    String? icaoHex,
     double? latitude,
     double? longitude,
     double? altitude,
+    bool? altitudeValid,
     double? track,
     double? groundSpeed,
+    bool? speedValid,
     double? verticalSpeed,
+    bool? verticalSpeedValid,
     int? aircraftType,
     DateTime? lastSeen,
     bool? isAnonymous,
@@ -75,12 +88,16 @@ class TrafficAircraft {
       registration: registration ?? this.registration,
       aircraftModel: aircraftModel ?? this.aircraftModel,
       cn: cn ?? this.cn,
+      icaoHex: icaoHex ?? this.icaoHex,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       altitude: altitude ?? this.altitude,
+      altitudeValid: altitudeValid ?? this.altitudeValid,
       track: track ?? this.track,
       groundSpeed: groundSpeed ?? this.groundSpeed,
+      speedValid: speedValid ?? this.speedValid,
       verticalSpeed: verticalSpeed ?? this.verticalSpeed,
+      verticalSpeedValid: verticalSpeedValid ?? this.verticalSpeedValid,
       aircraftType: aircraftType ?? this.aircraftType,
       lastSeen: lastSeen ?? this.lastSeen,
       isAnonymous: isAnonymous ?? this.isAnonymous,

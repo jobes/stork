@@ -874,6 +874,34 @@
   "pureTrackSessionExpiredBanner": "PureTrack session expired. Tap to re-authenticate.",
   "trafficSourceLabel": "Data Source",
   "trafficSourceOgn": "OGN",
-  "trafficSourcePureTrack": "PureTrack"
+  "trafficSourcePureTrack": "PureTrack",
+  "trafficSourceGdl90": "GDL90",
+  "gdl90SettingsTitle": "GDL90 / SafeSky Receiver",
+  "gdl90EnableTitle": "Enable GDL90 Receiver",
+  "gdl90EnableDesc": "Receive local GDL90 traffic over UDP (SafeSky, Stratux, SkyEcho 2, etc.)",
+  "gdl90BindIpTitle": "Bind IP Address",
+  "gdl90PortTitle": "UDP Port",
+  "gdl90TargetExpiryTitle": "Target Expiry Timeout",
+  "gdl90StatusTitle": "Receiver Status",
+  "gdl90StatusActive": "Active",
+  "gdl90StatusInactive": "Inactive (No signal)",
+  "ognEnableTitle": "Enable OGN",
+  "ognEnableDesc": "Receive and transmit traffic via Open Glider Network",
+  "pureTrackEnableTitle": "Enable PureTrack",
+  "pureTrackEnableDesc": "Receive traffic via PureTrack",
+  "hideAircraft": "Hide",
+  "hiddenAircraftSection": "Hidden Aircraft",
+  "noHiddenAircraft": "No hidden aircraft.",
+  "hiddenAircraftCount": "{count, plural, =1{1 hidden aircraft} other{{count} hidden aircraft}}",
+  "@hiddenAircraftCount": {
+    "description": "Number of hidden aircraft",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unhideAircraft": "Unhide",
+  "clearAllHiddenAircraft": "Clear all hidden"
 }
 

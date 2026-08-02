@@ -137,7 +137,7 @@ final class PureTrackNotifierProvider
   }
 }
 
-String _$pureTrackNotifierHash() => r'bed4116d5308344745353193ecc6747ac1dd04d4';
+String _$pureTrackNotifierHash() => r'53e48f7f3c995d82efd5b9a4f5d2d5192f870a88';
 
 abstract class _$PureTrackNotifier extends $Notifier<PureTrackAuthState> {
   PureTrackAuthState build();
