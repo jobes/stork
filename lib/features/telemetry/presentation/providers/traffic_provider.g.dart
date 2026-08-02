@@ -88,7 +88,7 @@ abstract class _$Traffic extends $Notifier<List<TrafficAircraft>> {
   List<TrafficAircraft> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<List<TrafficAircraft>, List<TrafficAircraft>>;
     final element =
         ref.element
@@ -98,7 +98,7 @@ abstract class _$Traffic extends $Notifier<List<TrafficAircraft>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -140,7 +140,7 @@ abstract class _$FilteredTraffic extends $Notifier<List<TrafficAircraft>> {
   List<TrafficAircraft> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<List<TrafficAircraft>, List<TrafficAircraft>>;
     final element =
         ref.element
@@ -150,7 +150,7 @@ abstract class _$FilteredTraffic extends $Notifier<List<TrafficAircraft>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

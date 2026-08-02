@@ -48,7 +48,7 @@ abstract class _$ThrottledTelemetry extends $Notifier<TelemetryState> {
   TelemetryState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<TelemetryState, TelemetryState>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$ThrottledTelemetry extends $Notifier<TelemetryState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

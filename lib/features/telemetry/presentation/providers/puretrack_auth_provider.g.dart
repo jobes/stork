@@ -143,7 +143,7 @@ abstract class _$PureTrackNotifier extends $Notifier<PureTrackAuthState> {
   PureTrackAuthState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<PureTrackAuthState, PureTrackAuthState>;
     final element =
         ref.element
@@ -153,6 +153,6 @@ abstract class _$PureTrackNotifier extends $Notifier<PureTrackAuthState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

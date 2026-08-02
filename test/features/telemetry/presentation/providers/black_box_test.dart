@@ -15,6 +15,7 @@ import 'package:stork/features/telemetry/presentation/providers/black_box_provid
 import 'package:stork/core/services/database/black_box_database_io.dart';
 import 'package:stork/features/telemetry/presentation/providers/black_box_repository_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/flight_records_provider.dart';
+import '../../../../helpers/sensors_mock.dart';
 
 class MockAppSettingsNotifier extends AppSettingsNotifier {
   final AppSettings _settings;
@@ -30,6 +31,7 @@ void main() {
   late String dbPath;
 
   setUp(() {
+    mockSensorsPlus();
     final tempDir = Directory.systemTemp.createTempSync('blackbox_test_');
     dbPath = p.join(tempDir.path, 'test_db.sqlite');
 

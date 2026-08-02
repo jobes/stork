@@ -95,7 +95,7 @@ abstract class _$TerrainElevation extends $Notifier<AsyncValue<double?>> {
   AsyncValue<double?> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<double?>, AsyncValue<double?>>;
     final element =
         ref.element
@@ -105,7 +105,7 @@ abstract class _$TerrainElevation extends $Notifier<AsyncValue<double?>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -234,7 +234,7 @@ abstract class _$AutoQnhCalibrator extends $Notifier<AutoQnhCalibratorState> {
   AutoQnhCalibratorState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AutoQnhCalibratorState, AutoQnhCalibratorState>;
     final element =
@@ -245,7 +245,7 @@ abstract class _$AutoQnhCalibrator extends $Notifier<AutoQnhCalibratorState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
