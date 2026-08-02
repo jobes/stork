@@ -11,28 +11,35 @@ class TrafficAggregator {
   /// Map of canonical IDs to target states
   Map<String, TrafficAircraft> get targetMap => Map.unmodifiable(_targets);
 
-  /// Processes an incoming OGN aircraft packet with T_sent position arbitration
-  void processOgnUpdate(TrafficAircraft rawAircraft) {
-    processAircraftUpdate(rawAircraft, source: 'ogn');
+  /// Processes an incoming OGN aircraft packet with T_sent position arbitration.
+  /// Returns the canonical ID under which the aircraft is stored (the existing
+  /// key when an ICAO merge occurs, otherwise the normalized incoming ID).
+  String processOgnUpdate(TrafficAircraft rawAircraft) {
+    return processAircraftUpdate(rawAircraft, source: 'ogn');
   }
 
-  /// Processes an incoming PureTrack aircraft packet with T_sent position arbitration
-  void processPureTrackUpdate(TrafficAircraft rawAircraft) {
-    processAircraftUpdate(rawAircraft, source: 'puretrack');
+  /// Processes an incoming PureTrack aircraft packet with T_sent position
+  /// arbitration. Returns the canonical ID under which the aircraft is stored.
+  String processPureTrackUpdate(TrafficAircraft rawAircraft) {
+    return processAircraftUpdate(rawAircraft, source: 'puretrack');
   }
 
-  /// Processes an incoming GDL90 aircraft packet with T_sent position arbitration
-  void processGdl90Update(TrafficAircraft rawAircraft) {
-    processAircraftUpdate(rawAircraft, source: 'gdl90');
+  /// Processes an incoming GDL90 aircraft packet with T_sent position
+  /// arbitration. Returns the canonical ID under which the aircraft is stored.
+  String processGdl90Update(TrafficAircraft rawAircraft) {
+    return processAircraftUpdate(rawAircraft, source: 'gdl90');
   }
 
-  /// Processes an incoming aircraft update from any telemetry source with T_sent position arbitration
-  void processAircraftUpdate(
+  /// Processes an incoming aircraft update from any telemetry source with
+  /// T_sent position arbitration. Returns the canonical ID under which the
+  /// aircraft is stored (the existing key when an ICAO merge occurs, otherwise
+  /// the normalized incoming ID).
+  String processAircraftUpdate(
     TrafficAircraft rawAircraft, {
     required String source,
   }) {
     final canonicalId = CanonicalId.normalize(rawAircraft.id);
-    if (canonicalId.isEmpty) return;
+    if (canonicalId.isEmpty) return canonicalId;
 
     final now = DateTime.now();
     var tSent = rawAircraft.lastSeen;
@@ -81,6 +88,9 @@ class TrafficAggregator {
 
       // T_sent arbitration rule: only update position & dynamic fields if tSent is strictly newer
       if (tSent.isAfter(existing.lastSeen)) {
+        // When a source reports a field as unavailable (e.g. GDL90 0xFFF
+        // altitude), keep the previously known value instead of resetting it
+        // to 0, and record the validity flag for the UI.
         _targets[existingKey] = existing.copyWith(
           callsign: rawAircraft.callsign.isNotEmpty
               ? rawAircraft.callsign
@@ -90,16 +100,25 @@ class TrafficAggregator {
           cn: rawAircraft.cn ?? existing.cn,
           latitude: rawAircraft.latitude,
           longitude: rawAircraft.longitude,
-          altitude: rawAircraft.altitude,
+          altitude: rawAircraft.altitudeValid
+              ? rawAircraft.altitude
+              : existing.altitude,
           track: rawAircraft.track,
-          groundSpeed: rawAircraft.groundSpeed,
-          verticalSpeed: rawAircraft.verticalSpeed,
+          groundSpeed: rawAircraft.speedValid
+              ? rawAircraft.groundSpeed
+              : existing.groundSpeed,
+          verticalSpeed: rawAircraft.verticalSpeedValid
+              ? rawAircraft.verticalSpeed
+              : existing.verticalSpeed,
           aircraftType: rawAircraft.aircraftType != 0
               ? rawAircraft.aircraftType
               : existing.aircraftType,
           lastSeen: tSent,
           isAnonymous: rawAircraft.isAnonymous,
           icaoHex: existing.icaoHex ?? rawAircraft.icaoHex,
+          altitudeValid: rawAircraft.altitudeValid,
+          speedValid: rawAircraft.speedValid,
+          verticalSpeedValid: rawAircraft.verticalSpeedValid,
           sources: updatedSources,
           activeSource: source,
         );
@@ -114,6 +133,8 @@ class TrafficAggregator {
         );
       }
     }
+
+    return existingKey;
   }
 
   /// Updates computed fields (turnRate, isCircling) on an existing target without changing activeSource or position arbitration

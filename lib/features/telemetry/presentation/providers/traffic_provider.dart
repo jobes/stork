@@ -204,10 +204,12 @@ class Traffic extends _$Traffic {
     final settings = ref.read(appSettingsProvider).value;
     if (settings != null && !settings.ognEnabled) return;
 
-    _aggregator.processOgnUpdate(aircraft);
+    // The stored key can differ from the incoming id when the aircraft is
+    // merged into an existing cross-source entry (e.g. OGN FLARM id vs GDL90
+    // ICAO) — always address the aggregator/history by the stored key.
+    final storedKey = _aggregator.processOgnUpdate(aircraft);
 
-    final canonicalId = CanonicalId.normalize(aircraft.id);
-    final history = _trackHistories.putIfAbsent(canonicalId, () => []);
+    final history = _trackHistories.putIfAbsent(storedKey, () => []);
     history.add(
       TrackHistoryPoint(
         timestamp: aircraft.lastSeen,
@@ -224,7 +226,7 @@ class Traffic extends _$Traffic {
     final isCircling = CasEvaluator.detectCircling(history);
 
     _aggregator.updateComputedFields(
-      canonicalId,
+      storedKey,
       turnRate: turnRate,
       isCircling: isCircling,
     );
@@ -256,10 +258,9 @@ class Traffic extends _$Traffic {
       sources: const {'puretrack'},
       activeSource: 'puretrack',
     );
-    _aggregator.processPureTrackUpdate(aircraft);
+    final storedKey = _aggregator.processPureTrackUpdate(aircraft);
 
-    final canonicalId = packet.canonicalId;
-    final history = _trackHistories.putIfAbsent(canonicalId, () => []);
+    final history = _trackHistories.putIfAbsent(storedKey, () => []);
     history.add(
       TrackHistoryPoint(
         timestamp: packet.tSent,
@@ -276,7 +277,7 @@ class Traffic extends _$Traffic {
     final isCircling = CasEvaluator.detectCircling(history);
 
     _aggregator.updateComputedFields(
-      canonicalId,
+      storedKey,
       turnRate: turnRate,
       isCircling: isCircling,
     );
@@ -332,18 +333,20 @@ class Traffic extends _$Traffic {
       latitude: target.latitude,
       longitude: target.longitude,
       altitude: target.altitudeFeet * 0.3048, // feet -> meters AMSL
+      altitudeValid: target.altitudeValid,
       track: target.trackDegrees,
       groundSpeed: target.speedKnots * 0.514444, // kts -> m/s
+      speedValid: target.speedValid,
       verticalSpeed: vsMs, // ft/min -> m/s
+      verticalSpeedValid: target.verticalSpeedValid,
       aircraftType: mappedType,
       lastSeen: target.lastUpdated,
       sources: const {'gdl90'},
       activeSource: 'gdl90',
     );
-    _aggregator.processGdl90Update(aircraft);
+    final storedKey = _aggregator.processGdl90Update(aircraft);
 
-    final canonicalId = CanonicalId.normalize(target.id);
-    final history = _trackHistories.putIfAbsent(canonicalId, () => []);
+    final history = _trackHistories.putIfAbsent(storedKey, () => []);
     history.add(
       TrackHistoryPoint(
         timestamp: target.lastUpdated,
@@ -360,7 +363,7 @@ class Traffic extends _$Traffic {
     final isCircling = CasEvaluator.detectCircling(history);
 
     _aggregator.updateComputedFields(
-      canonicalId,
+      storedKey,
       turnRate: turnRate,
       isCircling: isCircling,
     );

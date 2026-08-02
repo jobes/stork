@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, debugPrint, visibleForTesting;
 import '../domain/models/gdl90_target.dart';
 import 'gdl90_decoder.dart';
 
@@ -192,6 +193,14 @@ class Gdl90Service {
     } catch (e, stackTrace) {
       debugPrint('[Gdl90Service] Error parsing datagram: $e\n$stackTrace');
     }
+  }
+
+  /// Feeds raw UDP datagram bytes through the decoder and updates internal
+  /// target/heartbeat state. Exposed for unit tests (the socket listener uses
+  /// the same path).
+  @visibleForTesting
+  void handleDatagram(Uint8List bytes) {
+    _handleDatagram(bytes);
   }
 
   void _startExpiryTimer() {

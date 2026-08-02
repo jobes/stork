@@ -11,6 +11,12 @@ TrafficAircraft buildAircraft({
   DateTime? lastSeen,
   double latitude = 48.0,
   double longitude = 17.0,
+  double altitude = 500,
+  double groundSpeed = 30,
+  double verticalSpeed = 0,
+  bool altitudeValid = true,
+  bool speedValid = true,
+  bool verticalSpeedValid = true,
 }) {
   return TrafficAircraft(
     id: id,
@@ -18,10 +24,13 @@ TrafficAircraft buildAircraft({
     icaoHex: icaoHex,
     latitude: latitude,
     longitude: longitude,
-    altitude: 500,
+    altitude: altitude,
+    altitudeValid: altitudeValid,
     track: 180,
-    groundSpeed: 30,
-    verticalSpeed: 0,
+    groundSpeed: groundSpeed,
+    speedValid: speedValid,
+    verticalSpeed: verticalSpeed,
+    verticalSpeedValid: verticalSpeedValid,
     aircraftType: 1,
     lastSeen: lastSeen ?? DateTime.now(),
   );
@@ -48,10 +57,12 @@ void main() {
           callsign: 'OK-1234',
           lastSeen: DateTime.now().add(const Duration(seconds: 1)),
         );
-        aggregator.processGdl90Update(gdl90);
+        final storedKey = aggregator.processGdl90Update(gdl90);
 
         // Exactly one entry for the physical aircraft, stored under the
-        // first-seen (OGN) canonical ID.
+        // first-seen (OGN) canonical ID — which is also the returned key so
+        // callers can address the merged entry (e.g. computed-field updates).
+        expect(storedKey, equals('dda5e6'));
         expect(aggregator.targets.length, equals(1));
         final merged = aggregator.targets.first;
         expect(merged.id, equals('dda5e6'));
@@ -66,10 +77,11 @@ void main() {
       aggregator.processOgnUpdate(
         buildAircraft(id: 'DDA5E6', icaoHex: '166752'),
       );
-      aggregator.processGdl90Update(
+      final key = aggregator.processGdl90Update(
         buildAircraft(id: 'ABCDEF', icaoHex: 'ABCDEF'),
       );
 
+      expect(key, equals('abcdef'));
       expect(aggregator.targets.length, equals(2));
     });
 
@@ -101,6 +113,73 @@ void main() {
       expect(merged.latitude, equals(48.1));
       // activeSource stays on the newer OGN fix.
       expect(merged.activeSource, equals('ogn'));
+    });
+
+    test('invalid GDL90 fix keeps previously known altitude/speed values', () {
+      final aggregator = TrafficAggregator();
+      final now = DateTime.now();
+
+      aggregator.processOgnUpdate(
+        buildAircraft(
+          id: 'DDA5E6',
+          icaoHex: '166752',
+          lastSeen: now,
+          altitude: 1000,
+          groundSpeed: 40,
+          verticalSpeed: 2,
+        ),
+      );
+
+      // GDL90 reports a newer fix but altitude/speed/VS are unavailable
+      // (0xFFF) → previously known values must be preserved, flags updated.
+      aggregator.processGdl90Update(
+        buildAircraft(
+          id: '166752',
+          icaoHex: '166752',
+          lastSeen: now.add(const Duration(seconds: 1)),
+          altitude: 0,
+          groundSpeed: 0,
+          verticalSpeed: 0,
+          altitudeValid: false,
+          speedValid: false,
+          verticalSpeedValid: false,
+        ),
+      );
+
+      expect(aggregator.targets.length, equals(1));
+      final merged = aggregator.targets.first;
+      expect(merged.sources, containsAll({'ogn', 'gdl90'}));
+      expect(merged.altitude, equals(1000));
+      expect(merged.groundSpeed, equals(40));
+      expect(merged.verticalSpeed, equals(2));
+      expect(merged.altitudeValid, isFalse);
+      expect(merged.speedValid, isFalse);
+      expect(merged.verticalSpeedValid, isFalse);
+    });
+
+    test('updateComputedFields reaches a merged entry via its stored key', () {
+      final aggregator = TrafficAggregator();
+      aggregator.processOgnUpdate(
+        buildAircraft(id: 'DDA5E6', icaoHex: '166752'),
+      );
+      final storedKey = aggregator.processGdl90Update(
+        buildAircraft(
+          id: '166752',
+          icaoHex: '166752',
+          lastSeen: DateTime.now().add(const Duration(seconds: 1)),
+        ),
+      );
+
+      expect(storedKey, equals('dda5e6'));
+      aggregator.updateComputedFields(
+        storedKey,
+        turnRate: 0.12,
+        isCircling: true,
+      );
+
+      final merged = aggregator.targets.first;
+      expect(merged.turnRate, closeTo(0.12, 1e-9));
+      expect(merged.isCircling, isTrue);
     });
   });
 

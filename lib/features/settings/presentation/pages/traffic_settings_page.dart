@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/altitude_unit.dart';
+import '../../domain/models/app_settings.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/puretrack_settings_card.dart';
 import '../widgets/gdl90_settings_card.dart';
@@ -325,11 +326,11 @@ class TrafficSettingsPage extends ConsumerWidget {
   Widget _buildHiddenAircraftSection(
     BuildContext context,
     WidgetRef ref,
-    dynamic settings,
+    AppSettings settings,
   ) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final Set<String> hiddenIds = settings.hiddenAircraftIds ?? {};
+    final Set<String> hiddenIds = settings.hiddenAircraftIds;
 
     return ExpansionTile(
       leading: const Icon(Icons.visibility_off_outlined),
@@ -353,7 +354,10 @@ class TrafficSettingsPage extends ConsumerWidget {
           )
         else ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 4.0,
+            ),
             child: Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
