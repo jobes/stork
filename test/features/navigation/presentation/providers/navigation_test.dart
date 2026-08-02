@@ -6,12 +6,11 @@ import 'package:stork/features/navigation/presentation/providers/navigation_prov
 import '../../../../helpers/sensors_mock.dart';
 
 void main() {
-  mockSensorsPlus();
-
   group('NavigationNotifier Tests', () {
     late ProviderContainer container;
 
     setUp(() async {
+      mockSensorsPlus();
       SharedPreferences.setMockInitialValues({});
       container = ProviderContainer(
         overrides: [

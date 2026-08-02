@@ -26,13 +26,12 @@ class MockAppSettingsNotifier extends AppSettingsNotifier {
 }
 
 void main() {
-  mockSensorsPlus();
-
   late Database db;
   late IoBlackBoxDatabase blackBoxDb;
   late String dbPath;
 
   setUp(() {
+    mockSensorsPlus();
     final tempDir = Directory.systemTemp.createTempSync('blackbox_test_');
     dbPath = p.join(tempDir.path, 'test_db.sqlite');
 

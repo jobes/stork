@@ -7,7 +7,7 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_provid
 import '../../../../helpers/sensors_mock.dart';
 
 void main() {
-  mockSensorsPlus();
+  setUp(mockSensorsPlus);
 
   group('filteredTrafficProvider Tests', () {
     final now = DateTime.now();

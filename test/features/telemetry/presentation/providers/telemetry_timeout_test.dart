@@ -7,7 +7,7 @@ import 'package:stork/features/telemetry/presentation/providers/decayable_field.
 import '../../../../helpers/sensors_mock.dart';
 
 void main() {
-  mockSensorsPlus();
+  setUp(mockSensorsPlus);
 
   group('Telemetry Timeout and Null Defaults', () {
     test('Everything in telemetry is null on start except mapViewState', () {

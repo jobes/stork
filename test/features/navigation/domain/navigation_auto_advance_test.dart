@@ -9,12 +9,11 @@ import 'package:stork/features/settings/domain/models/app_settings.dart';
 import '../../../helpers/sensors_mock.dart';
 
 void main() {
-  mockSensorsPlus();
-
   group('Navigation Auto-Advance Tests', () {
     late ProviderContainer container;
 
     setUp(() async {
+      mockSensorsPlus();
       SharedPreferences.setMockInitialValues({});
       container = ProviderContainer(
         overrides: [

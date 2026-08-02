@@ -6,7 +6,7 @@ import 'package:stork/features/telemetry/presentation/providers/throttled_teleme
 import '../../../../helpers/sensors_mock.dart';
 
 void main() {
-  mockSensorsPlus();
+  setUp(mockSensorsPlus);
 
   group('ThrottledTelemetryProvider Tests', () {
     test('initial state matches raw telemetry state', () {

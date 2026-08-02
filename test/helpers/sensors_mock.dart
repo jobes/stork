@@ -12,10 +12,11 @@ import 'package:flutter_test/flutter_test.dart';
 ///   sensor data, so the compass heading simply stays `null` and
 ///   telemetry/compass logic does nothing.
 ///
-/// Mock handlers are cleared automatically after each test, so this can be
-/// called once at the start of `main()` (it is idempotent). Use it in any test
-/// file that reads providers which listen to sensors (e.g. `telemetryProvider`,
-/// `aglProvider`, `navigationProvider`).
+/// Mock handlers are cleared automatically after each test, so this **must**
+/// be registered again for every test — call it from a `setUp()` callback, not
+/// just once at the start of `main()`. Use it in any test file that reads
+/// providers which listen to sensors (e.g. `telemetryProvider`, `aglProvider`,
+/// `navigationProvider`).
 void mockSensorsPlus() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

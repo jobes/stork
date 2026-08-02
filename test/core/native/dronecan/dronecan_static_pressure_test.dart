@@ -10,7 +10,7 @@ import '../../../helpers/sensors_mock.dart';
 class MockCannelloniService extends Mock implements CannelloniService {}
 
 void main() {
-  mockSensorsPlus();
+  setUp(mockSensorsPlus);
 
   group('DroneCAN StaticPressure', () {
     test('StaticPressure parsing from payload works correctly', () {

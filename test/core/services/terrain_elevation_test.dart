@@ -11,7 +11,7 @@ import 'package:stork/features/settings/domain/models/app_settings.dart';
 import '../../helpers/sensors_mock.dart';
 
 void main() {
-  mockSensorsPlus();
+  setUp(mockSensorsPlus);
   group('Terrain Web Mercator and Terrarium math tests', () {
     test(
       'Equator and Prime Meridian (0,0) translates to exact middle tile and pixel',
