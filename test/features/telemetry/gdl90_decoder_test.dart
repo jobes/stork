@@ -140,8 +140,9 @@ void main() {
       // Track: 180 deg -> rawTrack = 180 * 256 / 360 = 128 = 0x80
       payload[17] = 128;
 
-      // Emitter Category: 8 (Glider) — byte 18 (GDL90 ICD)
-      payload[18] = 8;
+      // Emitter Category: 9 (Glider / sailplane) — byte 18 (GDL90 ICD).
+      // Note: in the GDL90 table glider is 9 (8 is reserved).
+      payload[18] = 9;
 
       // Callsign: "OK-1234 " (8 bytes: indices 19..26, GDL90 ICD)
       final csBytes = 'OK-1234 '.codeUnits;
@@ -168,7 +169,7 @@ void main() {
       expect(target.speedKnots, closeTo(120.0, 1.0));
       expect(target.trackDegrees, closeTo(180.0, 1.0));
       expect(target.verticalSpeedFpm, closeTo(512.0, 64.0)); // 8 * 64
-      expect(target.emitterCategory, equals(8));
+      expect(target.emitterCategory, equals(9)); // GDL90 glider / sailplane
     });
 
     test('Accepts real Traffic Reports captured in gdl90-log.txt', () {

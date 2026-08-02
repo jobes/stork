@@ -369,30 +369,14 @@ class Traffic extends _$Traffic {
     );
   }
 
+  /// Maps a GDL90 Traffic Report emitter category (GDL90 ICD §3.5.1.10) to an
+  /// `AircraftType`. Note: the GDL90 table differs from the ADS-B (DO-282)
+  /// table — code 8 is reserved, glider is 9, lighter-than-air is 10,
+  /// parachutist is 11, ultralight/hang glider/paraglider is 12 and UAV is 14.
+  /// SafeSky gliders are transmitted as category 9, so mapping 9 to anything
+  /// but `glider` would mislabel them.
   int _mapGdl90EmitterCategory(int cat) {
-    switch (cat) {
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-      case 5:
-      case 6:
-        return AircraftType.poweredAircraft.ognCode;
-      case 7:
-        return AircraftType.helicopter.ognCode;
-      case 8:
-        return AircraftType.glider.ognCode;
-      case 9:
-        return AircraftType.balloon.ognCode;
-      case 10:
-        return AircraftType.skydiver.ognCode;
-      case 11:
-        return AircraftType.paraglider.ognCode;
-      case 13:
-        return AircraftType.uav.ognCode;
-      default:
-        return AircraftType.other.ognCode;
-    }
+    return AircraftType.fromGdl90EmitterCategory(cat).ognCode;
   }
 
   void _cleanupStaleTraffic() {

@@ -59,4 +59,38 @@ enum AircraftType {
   static AircraftType fromPureTrackType(int code) {
     return fromOgnCode(code);
   }
+
+  /// Maps a GDL90 Traffic Report emitter category (GDL90 ICD §3.5.1.10) to an
+  /// `AircraftType`.
+  ///
+  /// The GDL90 table differs from the ADS-B (DO-282) one: code 8 is reserved,
+  /// **9 is glider / sailplane**, 10 is lighter-than-air, 11 is parachutist /
+  /// skydiver, 12 is ultralight / hang glider / paraglider and 14 is UAV.
+  /// SafeSky transmits gliders as category 9, so mapping 9 to anything other
+  /// than `glider` would mislabel them.
+  static AircraftType fromGdl90EmitterCategory(int code) {
+    switch (code) {
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+      case 6:
+        return AircraftType.poweredAircraft;
+      case 7:
+        return AircraftType.helicopter;
+      case 9: // Glider / sailplane
+        return AircraftType.glider;
+      case 10: // Lighter-than-air (balloon / airship)
+        return AircraftType.balloon;
+      case 11: // Parachutist / skydiver
+        return AircraftType.skydiver;
+      case 12: // Ultralight / hang glider / paraglider
+        return AircraftType.paraglider;
+      case 14: // Unmanned aerial vehicle
+        return AircraftType.uav;
+      default:
+        return AircraftType.other;
+    }
+  }
 }
