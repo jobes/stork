@@ -48,7 +48,7 @@ final class Gdl90ServiceProvider
   }
 }
 
-String _$gdl90ServiceHash() => r'4c3addfabcefae9f190d61bee11239a81d600c74';
+String _$gdl90ServiceHash() => r'99d01506bbcd0f579f317d97885897f32e0d1ffc';
 
 @ProviderFor(gdl90HeartbeatActive)
 final gdl90HeartbeatActiveProvider = Gdl90HeartbeatActiveProvider._();
@@ -82,4 +82,4 @@ final class Gdl90HeartbeatActiveProvider
 }
 
 String _$gdl90HeartbeatActiveHash() =>
-    r'f927c33cfb25b90defb3f2ccf37e164fd8928883';
+    r'd39e4ec2dcc2a1f2358c6c5955a05c16d73565cb';

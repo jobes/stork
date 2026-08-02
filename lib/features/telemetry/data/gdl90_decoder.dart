@@ -35,8 +35,14 @@ class Gdl90OwnshipMessage extends Gdl90Message {
 
 /// GDL90 Protocol Decoder
 class Gdl90Decoder {
+  Gdl90Decoder({DateTime Function()? now}) : _now = now ?? DateTime.now;
+
   static const int flagByte = 0x7E;
   static const int escapeByte = 0x7D;
+
+  /// Injectable clock so time-dependent decoding (target `lastUpdated`) can be
+  /// tested deterministically. Defaults to the wall clock.
+  final DateTime Function() _now;
 
   final List<int> _frameBuffer = [];
   bool _inFrame = false;
@@ -80,7 +86,7 @@ class Gdl90Decoder {
   }
 
   /// Decode an unstuffed payload (including 2 trailing FCS bytes)
-  static Gdl90Message? decodeMessage(List<int> payload) {
+  Gdl90Message? decodeMessage(List<int> payload) {
     if (payload.length < 3) {
       return null; // Min length: ID (1 byte) + FCS (2 bytes)
     }
@@ -197,7 +203,7 @@ class Gdl90Decoder {
   }
 
   /// Parse Heartbeat (0x00)
-  static Gdl90HeartbeatMessage? parseHeartbeat(List<int> payload) {
+  Gdl90HeartbeatMessage? parseHeartbeat(List<int> payload) {
     if (payload.length < 5) return null; // 5 bytes min data payload
 
     final st1 = payload[1] & 0xFF;
@@ -219,7 +225,7 @@ class Gdl90Decoder {
   }
 
   /// Parse Traffic Report (0x14) or Ownship Report (0x0A)
-  static Gdl90Message? parseTrafficReport(
+  Gdl90Message? parseTrafficReport(
     List<int> payload, {
     required bool isOwnship,
   }) {
@@ -322,7 +328,7 @@ class Gdl90Decoder {
       speedValid: speedValid,
       verticalSpeedFpm: verticalSpeedFpm,
       verticalSpeedValid: verticalSpeedValid,
-      lastUpdated: DateTime.now(),
+      lastUpdated: _now(),
       emitterCategory: emitterCategory,
     );
 

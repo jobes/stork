@@ -58,6 +58,14 @@ Uint8List buildHeartbeatFrame() {
   return createFrame(payload);
 }
 
+/// Builds a valid framed GDL90 Ownship Report (msg ID 0x0A) datagram. The own
+/// aircraft must never appear as a traffic target on the map.
+Uint8List buildOwnshipFrame() {
+  final payload = List<int>.filled(28, 0);
+  payload[0] = 0x0A; // Ownship Report
+  return createFrame(payload);
+}
+
 void main() {
   group('Gdl90Service - Heartbeat tracking', () {
     late Gdl90Service service;
@@ -112,6 +120,15 @@ void main() {
       expect(service.targets, isEmpty);
     });
 
+    test('ownship report does not add a traffic target', () {
+      service.handleDatagram(buildOwnshipFrame());
+
+      // The own aircraft must never be tracked as traffic, but the datagram
+      // still proves the receiver is alive.
+      expect(service.targets, isEmpty);
+      expect(service.lastHeartbeatTime, isNotNull);
+    });
+
     test('datagram with corrupted FCS is ignored', () {
       final corrupted = Uint8List.fromList(buildTrafficFrame());
       // Corrupt an ICAO payload byte so the FCS no longer matches.
@@ -147,6 +164,60 @@ void main() {
       await service.dispose();
 
       expect(done.isCompleted, isTrue);
+    });
+  });
+
+  group('Gdl90Service - injectable clock', () {
+    test('isHeartbeatActive decays after the 10s active window', () {
+      var now = DateTime(2026, 1, 1, 12, 0, 0);
+      final service = Gdl90Service(now: () => now);
+      addTearDown(service.dispose);
+
+      service.handleDatagram(buildHeartbeatFrame());
+      expect(service.isHeartbeatActive, isTrue);
+
+      now = now.add(const Duration(seconds: 11));
+      expect(service.isHeartbeatActive, isFalse);
+    });
+
+    test('targets are purged once they pass the expiry timeout', () {
+      var now = DateTime(2026, 1, 1, 12, 0, 0);
+      final service = Gdl90Service(now: () => now);
+      addTearDown(service.dispose);
+
+      service.handleDatagram(buildTrafficFrame());
+      expect(service.targets, hasLength(1));
+
+      // Still within the default 60s expiry.
+      now = now.add(const Duration(seconds: 59));
+      service.purgeExpiredTargets();
+      expect(service.targets, hasLength(1));
+
+      // Past the expiry — the periodic timer uses the same purge path.
+      now = now.add(const Duration(seconds: 2));
+      service.purgeExpiredTargets();
+      expect(service.targets, isEmpty);
+    });
+
+    test('expiry purge emits an updated target list', () async {
+      var now = DateTime(2026, 1, 1, 12, 0, 0);
+      final service = Gdl90Service(now: () => now);
+      addTearDown(service.dispose);
+
+      final emitted = <List<Gdl90Target>>[];
+      final sub = service.targetStream.listen(emitted.add);
+
+      service.handleDatagram(buildTrafficFrame());
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, isNotEmpty);
+
+      now = now.add(const Duration(seconds: 61));
+      service.purgeExpiredTargets();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(emitted.last, isEmpty);
+
+      await sub.cancel();
     });
   });
 }

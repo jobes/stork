@@ -25,7 +25,8 @@ abstract class Gdl90Target with _$Gdl90Target {
     @Default(0) int emitterCategory, // GDL90 emitter category code
   }) = _Gdl90Target;
 
-  bool isExpired([int timeoutSeconds = 60]) {
-    return DateTime.now().difference(lastUpdated).inSeconds > timeoutSeconds;
+  bool isExpired([int timeoutSeconds = 60, DateTime? now]) {
+    return (now ?? DateTime.now()).difference(lastUpdated).inSeconds >
+        timeoutSeconds;
   }
 }

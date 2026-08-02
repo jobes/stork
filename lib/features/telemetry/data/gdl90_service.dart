@@ -8,7 +8,15 @@ import 'gdl90_decoder.dart';
 
 /// UDP Network Listener & Service for GDL90 Traffic Broadcasts
 class Gdl90Service {
-  final Gdl90Decoder _decoder = Gdl90Decoder();
+  Gdl90Service({DateTime Function()? now})
+    : _now = now ?? DateTime.now,
+      _decoder = Gdl90Decoder(now: now ?? DateTime.now);
+
+  /// Injectable clock for deterministic heartbeat/expiry tests. The decoder
+  /// shares the same clock so target `lastUpdated` stays consistent.
+  final DateTime Function() _now;
+
+  final Gdl90Decoder _decoder;
   final Map<String, Gdl90Target> _targets = {};
   final StreamController<List<Gdl90Target>> _targetStreamController =
       StreamController<List<Gdl90Target>>.broadcast();
@@ -38,7 +46,7 @@ class Gdl90Service {
   /// Whether a heartbeat was received within the last 10 seconds
   bool get isHeartbeatActive {
     if (_lastHeartbeatTime == null) return false;
-    return DateTime.now().difference(_lastHeartbeatTime!) <=
+    return _now().difference(_lastHeartbeatTime!) <=
         const Duration(seconds: 10);
   }
 
@@ -215,7 +223,7 @@ class Gdl90Service {
 
     final staleKeys = <String>[];
     for (final entry in _targets.entries) {
-      if (entry.value.isExpired(_expirySeconds)) {
+      if (entry.value.isExpired(_expirySeconds, _now())) {
         staleKeys.add(entry.key);
       }
     }
@@ -231,8 +239,15 @@ class Gdl90Service {
     }
   }
 
+  /// Runs the expired-target purge immediately. Exposed for unit tests (the
+  /// periodic expiry timer uses the same path).
+  @visibleForTesting
+  void purgeExpiredTargets() {
+    _purgeExpiredTargets();
+  }
+
   void _recordHeartbeat() {
-    _lastHeartbeatTime = DateTime.now();
+    _lastHeartbeatTime = _now();
     if (!_heartbeatStreamController.isClosed) {
       _heartbeatStreamController.add(_lastHeartbeatTime!);
     }

@@ -7,34 +7,54 @@ import '../../data/gdl90_service.dart';
 
 part 'gdl90_provider.g.dart';
 
+/// Applies [settings] to the GDL90 [service], routing the first application
+/// through [Gdl90Service.start] and every subsequent one through
+/// [Gdl90Service.updateConfig]. Keeping this decision in a plain function makes
+/// the start-once-vs-update orchestration unit-testable without binding a UDP
+/// socket.
+///
+/// Pass [alreadyStarted] = whether the service has been started before.
+Future<void> applyGdl90Settings(
+  Gdl90Service service,
+  AppSettings settings, {
+  required bool alreadyStarted,
+}) async {
+  if (!alreadyStarted) {
+    // First application must go through start(): unlike updateConfig it always
+    // schedules the expiry timer and binds the socket, even when the loaded
+    // settings equal the service defaults.
+    await service.start(
+      enabled: settings.gdl90Enabled,
+      host: settings.gdl90BindIp,
+      port: settings.gdl90UdpPort,
+      expirySeconds: settings.gdl90TargetExpirySeconds,
+    );
+  } else {
+    await service.updateConfig(
+      enabled: settings.gdl90Enabled,
+      host: settings.gdl90BindIp,
+      port: settings.gdl90UdpPort,
+      expirySeconds: settings.gdl90TargetExpirySeconds,
+    );
+  }
+}
+
 @Riverpod(keepAlive: true)
 Gdl90Service gdl90Service(Ref ref) {
   final service = Gdl90Service();
+
+  // Tracks whether the service has already been started. Safe to keep as a
+  // closure-local: this provider is keepAlive with no watched dependencies, so
+  // build() runs exactly once for the app's lifetime. If it ever gains
+  // dependencies, this flag must move into a Notifier to survive rebuilds.
   var started = false;
 
   Future<void> apply(AsyncValue<AppSettings> settingsAsync) async {
     final s = settingsAsync.value;
     if (s == null) return;
 
-    if (!started) {
-      // First application must go through start(): unlike updateConfig it
-      // always schedules the expiry timer and binds the socket, even when
-      // the loaded settings equal the service defaults.
-      started = true;
-      await service.start(
-        enabled: s.gdl90Enabled,
-        host: s.gdl90BindIp,
-        port: s.gdl90UdpPort,
-        expirySeconds: s.gdl90TargetExpirySeconds,
-      );
-    } else {
-      await service.updateConfig(
-        enabled: s.gdl90Enabled,
-        host: s.gdl90BindIp,
-        port: s.gdl90UdpPort,
-        expirySeconds: s.gdl90TargetExpirySeconds,
-      );
-    }
+    await applyGdl90Settings(service, s, alreadyStarted: started);
+    started = true;
   }
 
   // fireImmediately applies settings that are already loaded; if they are
@@ -59,6 +79,10 @@ Stream<bool> gdl90HeartbeatActive(Ref ref) async* {
 
   yield service.isHeartbeatActive;
 
+  // Bridge the two event sources — a periodic poll (isHeartbeatActive decays
+  // to false 10 s after the last heartbeat) and immediate re-emission on each
+  // heartbeat — through a single broadcast controller forwarded to the
+  // provider stream.
   final controller = StreamController<bool>();
 
   void checkAndEmit() {
@@ -79,7 +103,5 @@ Stream<bool> gdl90HeartbeatActive(Ref ref) async* {
     controller.close();
   });
 
-  await for (final status in controller.stream) {
-    yield status;
-  }
+  yield* controller.stream;
 }
