@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
@@ -23,11 +24,15 @@ import '../../../telemetry/presentation/providers/traffic_provider.dart';
 import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import 'notams_provider.dart';
+import 'airspace_activity_provider.dart';
+import 'airspace_highlight_layers.dart';
+import '../../domain/utils/airspace_activity_utils.dart';
 import '../../utils/geojson_builder.dart';
 
 part 'map_camera_provider.g.dart';
 part 'map_camera_interpolation.dart';
 part 'map_camera_style.dart';
+part 'map_camera_airspace.dart';
 
 const double kTrafficLookaheadPeriodSeconds = 10.0;
 const double kTrafficBaseIconSizePx = 64.0;
@@ -46,6 +51,11 @@ class MapCamera extends _$MapCamera {
   int _programmaticMoveCount = 0;
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
+
+  // Last applied airspace activity id lists, used to skip redundant map style
+  // updates (removeLayer + addLayer) when nothing changed.
+  List<String>? _lastActiveAirspaceIds;
+  List<String>? _lastInactiveAirspaceIds;
 
   Timer? _interpolationTimer;
   Geographic? _currentInterpolatedCenter;
@@ -251,6 +261,11 @@ class MapCamera extends _$MapCamera {
       if (next.hasValue) {
         updateNotamsOnMap();
       }
+    });
+
+    // Listen to airspace activity (AUP/UUP) updates to redraw airspaces on map
+    ref.listen(airspaceActivityProvider, (previous, next) {
+      unawaited(updateAirspacesOnMap());
     });
 
     // Listen to traffic updates to redraw traffic on map

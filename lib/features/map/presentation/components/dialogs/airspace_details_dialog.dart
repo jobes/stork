@@ -1,15 +1,20 @@
+import 'dart:async';
+
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
+import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
+import 'package:stork/features/telemetry/presentation/utils/vhf_radio_frequency.dart';
+import 'package:stork/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/airspace_metadata.dart';
+import '../../../domain/models/airspace_activity_status.dart';
 import '../../providers/airspace_metadata_provider.dart';
+import '../../providers/airspace_activity_provider.dart' as activity_provider;
 import '../../../utils/openaip_enums.dart';
 import 'base_details_dialog.dart';
-import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
-import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
-import 'package:stork/features/telemetry/presentation/utils/vhf_radio_frequency.dart';
 
 class AirspaceDetailsDialog extends StatelessWidget {
   final List<dynamic> features;
@@ -98,7 +103,7 @@ class AirspaceDetailsDialog extends StatelessWidget {
   }
 }
 
-class AirspaceDetailCard extends ConsumerWidget {
+class AirspaceDetailCard extends ConsumerStatefulWidget {
   final String airspaceId;
   final String countryCode;
   final String fallbackName;
@@ -111,11 +116,41 @@ class AirspaceDetailCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AirspaceDetailCard> createState() => _AirspaceDetailCardState();
+}
+
+class _AirspaceDetailCardState extends ConsumerState<AirspaceDetailCard> {
+  /// Re-evaluates the time-dependent AUP/UUP status while the dialog is open,
+  /// so a status change at a validity boundary (e.g. 08:00 UTC) is reflected
+  /// without waiting for a new fetch.
+  static const Duration _refreshInterval = Duration(seconds: 30);
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshTimer = Timer.periodic(_refreshInterval, (_) => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final metadataAsync = ref.watch(
-      airspaceMetadataProvider(airspaceId, countryCode),
+      airspaceMetadataProvider(widget.airspaceId, widget.countryCode),
+    );
+
+    // Real-time AUP/UUP activity for this airspace (if pre-fetched).
+    final activity = ref.watch(
+      activity_provider.airspaceActivityProvider.select(
+        (map) => map[widget.airspaceId],
+      ),
     );
 
     return Container(
@@ -130,7 +165,16 @@ class AirspaceDetailCard extends ConsumerWidget {
           if (metadata == null) {
             return _buildError(l10n, isDark);
           }
-          return _buildContent(context, ref, metadata, l10n, isDark);
+          // Attach the real-time AUP/UUP activity (effective at the current
+          // time) to the static metadata so `activityStatus` is meaningful.
+          final effective = activity == null
+              ? metadata
+              : metadata.copyWith(
+                  activityStatus: activity.statusAt(clock.now()),
+                  activityValidFrom: activity.validFrom,
+                  activityValidTo: activity.validTo,
+                );
+          return _buildContent(context, ref, effective, l10n, isDark, activity);
         },
         loading: () => _buildLoading(l10n, isDark),
         error: (err, stack) => _buildError(l10n, isDark),
@@ -143,7 +187,7 @@ class AirspaceDetailCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          fallbackName.isNotEmpty ? fallbackName : l10n.airspace,
+          widget.fallbackName.isNotEmpty ? widget.fallbackName : l10n.airspace,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -188,8 +232,9 @@ class AirspaceDetailCard extends ConsumerWidget {
     AirspaceMetadata metadata,
     AppLocalizations l10n,
     bool isDark,
+    AupAirspaceActivity? activity,
   ) {
-    final name = metadata.name.isNotEmpty ? metadata.name : fallbackName;
+    final name = metadata.name.isNotEmpty ? metadata.name : widget.fallbackName;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,6 +293,30 @@ class AirspaceDetailCard extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 10),
+
+        // Real-time activity status (AUP/UUP)
+        if (activity != null) ...[
+          _buildActivityStatusRow(
+            metadata.activityStatus ?? AirspaceActivityStatus.unknown,
+            activity.source,
+            l10n,
+            isDark,
+          ),
+          if (metadata.activityValidFrom != null ||
+              metadata.activityValidTo != null) ...[
+            const SizedBox(height: 4),
+            _buildInfoRow(
+              icon: Icons.schedule,
+              label: l10n.airspaceActivityTimeWindow,
+              value: _formatTimeWindow(
+                metadata.activityValidFrom,
+                metadata.activityValidTo,
+              ),
+              isDark: isDark,
+            ),
+          ],
+          const SizedBox(height: 8),
+        ],
 
         // Type
         _buildInfoRow(
@@ -313,6 +382,95 @@ class AirspaceDetailCard extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Renders the real-time AUP/UUP activity status badge (Active / Inactive /
+  /// Activity Unknown) together with the activity source.
+  Widget _buildActivityStatusRow(
+    AirspaceActivityStatus status,
+    String source,
+    AppLocalizations l10n,
+    bool isDark,
+  ) {
+    final (Color bg, Color fg, IconData icon, String label) = switch (status) {
+      AirspaceActivityStatus.active => (
+        const Color(0x4D9C27B0),
+        const Color(0xFFE040FB),
+        Icons.bolt,
+        l10n.airspaceActivityStatusActive,
+      ),
+      AirspaceActivityStatus.inactive => (
+        const Color(0x334CAF50),
+        const Color(0xFF66BB6A),
+        Icons.block,
+        l10n.airspaceActivityStatusInactive,
+      ),
+      AirspaceActivityStatus.unknown => (
+        const Color(0x33808080),
+        isDark ? Colors.blueGrey.shade300 : Colors.blueGrey.shade700,
+        Icons.help_outline,
+        l10n.airspaceActivityStatusUnknown,
+      ),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: fg.withValues(alpha: 0.6)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 14, color: fg),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: fg,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              source,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.white38 : Colors.black38,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Formats the AUP/UUP validity window as `HH:mm UTC – HH:mm UTC`.
+  String _formatTimeWindow(DateTime? from, DateTime? to) {
+    String formatUtc(DateTime dt) {
+      final utc = dt.toUtc();
+      final h = utc.hour.toString().padLeft(2, '0');
+      final m = utc.minute.toString().padLeft(2, '0');
+      return '$h:$m UTC';
+    }
+
+    if (from != null && to != null) {
+      return '${formatUtc(from)} – ${formatUtc(to)}';
+    }
+    if (from != null) return '${formatUtc(from)} – …';
+    if (to != null) return '… – ${formatUtc(to)}';
+    return '—';
   }
 
   Widget _buildLimitsRow(

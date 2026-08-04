@@ -99,6 +99,9 @@ class FirUtils {
     }
   }
 
+  /// The loaded FIR features (empty when [initialize] has not run yet).
+  static List<FirFeature> get features => _features ?? const [];
+
   static String? getFirForCoordinate(double lat, double lon) {
     final features = _features;
     if (features == null || features.isEmpty) {
@@ -121,6 +124,29 @@ class FirUtils {
     }
 
     return null;
+  }
+
+  /// Returns the ICAO designators of all FIRs whose boundary is within
+  /// [bufferMeters] of ([lat], [lon]). Points inside a FIR always match
+  /// (distance is treated as 0).
+  static List<String> firsNearCoordinate(
+    double lat,
+    double lon, {
+    double bufferMeters = 30000.0,
+  }) {
+    final features = _features;
+    if (features == null || features.isEmpty) {
+      return const [];
+    }
+
+    final result = <String>[];
+    for (final feature in features) {
+      final distance = GeoUtils.distanceToPolygons(lat, lon, feature.polygons);
+      if (distance <= bufferMeters) {
+        result.add(feature.icao);
+      }
+    }
+    return result;
   }
 
   static List<Geographic> getRouteChunkPoints(
