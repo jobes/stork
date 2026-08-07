@@ -304,7 +304,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
 
   Future<int> _downloadAndStoreMetadata(String country, String type) async {
     final url =
-        '${ApiConstants.openAipMetadataBaseUrl}/${country.toLowerCase()}_$type.geojson?alt=media';
+        '${ApiConstants.openAipMetadataBaseUrl}/${country.toLowerCase()}_$type.geojson';
 
     try {
       final response = await http.get(Uri.parse(url));

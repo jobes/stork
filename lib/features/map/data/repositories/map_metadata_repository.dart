@@ -91,7 +91,7 @@ class MapMetadataRepository {
   ) async {
     final lowerCountryCode = countryCode.toLowerCase();
     final rawUrl =
-        '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_apt.geojson?alt=media';
+        '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_apt.geojson';
     final url = kIsWeb
         ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
         : rawUrl;
@@ -111,7 +111,7 @@ class MapMetadataRepository {
   ) async {
     final lowerCountryCode = countryCode.toLowerCase();
     final rawUrl =
-        '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_asp.geojson?alt=media';
+        '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_asp.geojson';
     final url = kIsWeb
         ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
         : rawUrl;
