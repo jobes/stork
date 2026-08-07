@@ -46,7 +46,7 @@ The download process is optimized for efficiency and reliability:
 ### Airspace & Airport Metadata
 A unique feature of the Stork offline system is the two-stage metadata acquisition:
 1. **Extraction**: After downloading OpenAIP tiles, the system scans a subset of these tiles (typically at zoom level 10) to identify which countries are covered by the region.
-2. **Supplemental Fetching**: Based on the identified countries, the system fetches high-detail GeoJSON metadata (airspaces and airports) from Google Cloud Storage.
+2. **Supplemental Fetching**: Based on the identified countries, the system fetches high-detail GeoJSON metadata (airspaces and airports) from the HuggingFace OpenAIP dataset.
 3. **Local Storage**: These features are parsed and stored in the local database, allowing the map to display interactive aeronautical details even when offline. For more information on how this data is modeled, parsed, and accessed, see the [Aeronautical Metadata and Map Interaction](aeronautical-metadata.md) documentation.
 
 ## Performance Optimizations
