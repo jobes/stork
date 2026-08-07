@@ -24,8 +24,8 @@ graph TD
     AptDlg -->|Watch| AptProvider[[airportMetadataProvider](../../lib/features/map/presentation/providers/airport_metadata_provider.dart)]
     AspDlg -->|Watch| AspProvider[[airspaceMetadataProvider](../../lib/features/map/presentation/providers/airspace_metadata_provider.dart)]
     
-    AptProvider -->|Read Cache / DB / GCS| Repo[[MapMetadataRepository](../../lib/features/map/data/repositories/map_metadata_repository.dart)]
-    AspProvider -->|Read Cache / DB / GCS| Repo
+    AptProvider -->|Read Cache / DB / HuggingFace| Repo[[MapMetadataRepository](../../lib/features/map/data/repositories/map_metadata_repository.dart)]
+    AspProvider -->|Read Cache / DB / HuggingFace| Repo
 ```
 
 ---
@@ -90,14 +90,14 @@ graph TD
     A[Request Metadata] --> B{Is Feature in SQLite DB?}
     B -->|Yes| C[Return DB JSON & Cache]
     B -->|No| D{Is Online?}
-    D -->|Yes| E[Fetch Country GeoJSON from GCS]
+    D -->|Yes| E[Fetch Country GeoJSON from HuggingFace]
     E -->|Success| F[Store in DB, Cache & Return]
     E -->|Fail| G[Return Null / Error]
     D -->|No| H[Return Null / Offline Error]
 ```
 
 1.  **Local Database Look-up**: The repository queries the local SQLite database (`DatabaseService.getOpenAipFeature`) using the feature's `id`. If found, the JSON string is decoded and returned immediately.
-2.  **Remote Fallback**: If the feature is missing from the database (e.g., when browsing the map online without downloading the offline region first), the repository fetches the supplemental country-specific GeoJSON files from Google Cloud Storage:
+2.  **Remote Fallback**: If the feature is missing from the database (e.g., when browsing the map online without downloading the offline region first), the repository fetches the supplemental country-specific GeoJSON files from the HuggingFace OpenAIP dataset:
     *   Airports: `${OpenAipMetadataBaseUrl}/${countryCode}_apt.geojson`
     *   Airspaces: `${OpenAipMetadataBaseUrl}/${countryCode}_asp.geojson`
 3.  **Database Ingestion**: The downloaded country GeoJSON dataset is parsed inside a background isolate (`compute`) and all features are written to the SQLite database via `DatabaseService.insertOpenAipFeatures`. This ensures that subsequent lookups for any feature in that country occur entirely offline.
