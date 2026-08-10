@@ -21,11 +21,13 @@ extension MapCameraAirspace on MapCamera {
       return;
     }
 
-    // Serialize executions: wait for any in-flight highlight application so
-    // concurrent airspaceActivityProvider emissions cannot interleave
-    // removeLayer/addLayer mutations on the map style.
-    final prior = _airspaceHighlightInFlight;
-    if (prior != null) {
+    // Serialize executions: loop until there is no in-flight highlight
+    // application so concurrent airspaceActivityProvider emissions cannot
+    // interleave removeLayer/addLayer mutations on the map style. The guard
+    // must be re-read after each await — otherwise two calls waiting on the
+    // same prior future would both resume and start new work concurrently.
+    while (_airspaceHighlightInFlight != null) {
+      final prior = _airspaceHighlightInFlight!;
       await prior.catchError((_) {});
     }
 
