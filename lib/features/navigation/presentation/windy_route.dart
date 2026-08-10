@@ -16,8 +16,7 @@ String buildWindyRouteUrl(
   final route = <String>[
     if (currentLatitude != null &&
         currentLongitude != null &&
-        currentLatitude != 0.0 &&
-        currentLongitude != 0.0)
+        !(currentLatitude == 0.0 && currentLongitude == 0.0))
       '$currentLatitude,$currentLongitude',
     ...points.map((p) => '${p.latitude},${p.longitude}'),
   ];

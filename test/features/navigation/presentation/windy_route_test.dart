@@ -32,6 +32,33 @@ void main() {
       );
     });
 
+    test('prepends the current position when latitude is 0 (equator)', () {
+      expect(
+        buildWindyRouteUrl(
+          points,
+          currentLatitude: 0.0,
+          currentLongitude: 17.1,
+        ),
+        'https://www.windy.com/route-planner/vfr/'
+        '0.0,17.1;48.716,19.099;49.0,20.0',
+      );
+    });
+
+    test(
+      'prepends the current position when longitude is 0 (prime meridian)',
+      () {
+        expect(
+          buildWindyRouteUrl(
+            points,
+            currentLatitude: 48.1,
+            currentLongitude: 0.0,
+          ),
+          'https://www.windy.com/route-planner/vfr/'
+          '48.1,0.0;48.716,19.099;49.0,20.0',
+        );
+      },
+    );
+
     test('ignores the current position when it is 0,0', () {
       expect(
         buildWindyRouteUrl(points, currentLatitude: 0.0, currentLongitude: 0.0),
