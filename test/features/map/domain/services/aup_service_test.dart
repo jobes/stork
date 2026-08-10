@@ -172,6 +172,15 @@ void main() {
     </BODY></HTML>
     ''';
 
+    const midnightHtml = '''
+    <HTML><BODY>
+    <TR><TD class="title1">OD 04. 08. 2026 06:00 DO 05. 08. 2026 06:00 </TD></TR>
+    <TR><TH class="titlex">C/ Prostory spravovane AMC (AMA) : </TH></TR>
+    <TR><TD class="data">1.</TD><TD class="data">TRA8</TD><TD class="data">GND</TD><TD class="data">F155</TD><TD class="data">24:00</TD><TD class="data">24:00</TD><TD class="data">LKKT</TD><TD class="data">PJE</TD></TR>
+    <TR><TH class="titlex">D/ Prostory nespravovane AMC (NAM) : </TH></TR>
+    </BODY></HTML>
+    ''';
+
     const uupHtml = '''
     <HTML><BODY>
     <TR><TD class="title1">OD 04. 08. 2026 13:04 DO 05. 08. 2026 06:00 </TD></TR>
@@ -233,6 +242,15 @@ void main() {
       expect(result.first.designator, 'LKTRA7');
       expect(result.first.validFrom, DateTime.utc(2026, 8, 5, 5));
       expect(result.first.validTo, DateTime.utc(2026, 8, 5, 5, 59));
+    });
+
+    test('accepts 24:00 as the end of the day', () {
+      final result = CzeAupService.parseAupDocument(midnightHtml, isUup: false);
+
+      expect(result, hasLength(1));
+      expect(result.first.designator, 'LKTRA8');
+      expect(result.first.validFrom, DateTime.utc(2026, 8, 5));
+      expect(result.first.validTo, DateTime.utc(2026, 8, 6));
     });
 
     test('UUP rows with CNL cancel, other rows update the activation', () {

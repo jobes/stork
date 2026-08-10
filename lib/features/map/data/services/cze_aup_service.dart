@@ -316,7 +316,8 @@ class CzeAupService implements AupService {
     if (match == null) return null;
     final hours = int.parse(match.group(1)!);
     final minutes = int.parse(match.group(2)!);
-    if (hours > 23 || minutes > 59) return null;
+    if (hours > 24 || minutes > 59) return null;
+    if (hours == 24 && minutes != 0) return null;
     return Duration(hours: hours, minutes: minutes);
   }
 

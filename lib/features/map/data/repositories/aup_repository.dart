@@ -141,9 +141,17 @@ class AupRepository {
   /// caches them for the rest of the session (the offline map data does not
   /// change at runtime).
   Future<List<Map<String, dynamic>>> _fetchAspFeatures() {
-    return _aspFeaturesCache ??= _metadataRepository.fetchAllFeaturesFromDb(
-      'asp',
-    );
+    final cached = _aspFeaturesCache;
+    if (cached != null) {
+      return cached;
+    }
+
+    final future = _metadataRepository.fetchAllFeaturesFromDb('asp');
+    _aspFeaturesCache = future;
+    return future.catchError((error) {
+      _aspFeaturesCache = null;
+      throw error;
+    });
   }
 
   Future<Map<String, String>> _networkIdIndexForCountry(String country) async {
@@ -169,7 +177,7 @@ class AupRepository {
       }
     } catch (e) {
       debugPrint('AUP: network metadata fallback failed for $country: $e');
-      index = const {};
+      return const {};
     }
     _networkIdIndexByCountry[lower] = index;
     return index;

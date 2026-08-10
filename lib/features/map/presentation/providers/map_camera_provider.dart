@@ -57,6 +57,10 @@ class MapCamera extends _$MapCamera {
   List<String>? _lastActiveAirspaceIds;
   List<String>? _lastInactiveAirspaceIds;
 
+  // In-flight airspace highlight application, used to serialize concurrent
+  // updateAirspacesOnMap() executions so layer mutations cannot interleave.
+  Future<void>? _airspaceHighlightInFlight;
+
   Timer? _interpolationTimer;
   Geographic? _currentInterpolatedCenter;
   double? _currentInterpolatedZoom;

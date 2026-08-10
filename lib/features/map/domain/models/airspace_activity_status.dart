@@ -70,7 +70,8 @@ class AupAirspaceActivity {
     required this.updatedAt,
   });
 
-  bool get isCurrentlyActive => status == AirspaceActivityStatus.active;
+  bool get isCurrentlyActive =>
+      statusAt(clock.now()) == AirspaceActivityStatus.active;
 
   /// Returns the effective status at [now].
   ///

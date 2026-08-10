@@ -92,7 +92,9 @@ class FirUtils {
           ),
         );
       }
-      _features = parsedFeatures;
+      // Store an unmodifiable list so callers of [features] cannot mutate the
+      // shared FIR index.
+      _features = List.unmodifiable(parsedFeatures);
     } catch (_) {
       _features = null;
       rethrow;

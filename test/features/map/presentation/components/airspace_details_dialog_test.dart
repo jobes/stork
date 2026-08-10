@@ -145,7 +145,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Aktivita neznáma'), findsOneWidget);
-      expect(find.text('Platnosť'), findsNothing);
+      // The validity row is rendered even for unknown status; match the full
+      // rendered label ('Platnosť: ') as produced by _buildInfoRow.
+      expect(find.text('Platnosť: '), findsOneWidget);
       expect(find.textContaining('08:00 UTC'), findsOneWidget);
     },
   );

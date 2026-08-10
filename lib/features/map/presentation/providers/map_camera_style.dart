@@ -252,7 +252,12 @@ extension MapCameraStyle on MapCamera {
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();
       updateNotamsOnMap();
+      // The (re)loaded style wiped the runtime highlight layers, so clear the
+      // diff cache to force updateAirspacesOnMap to re-apply them.
+      _lastActiveAirspaceIds = null;
+      _lastInactiveAirspaceIds = null;
       await updateAirspacesOnMap();
+      if (!refAccess.mounted) return;
       _updateTrafficFilter();
       debugPrint('Aircraft symbols initialized 😎');
     } catch (e) {

@@ -392,22 +392,23 @@ class _AirspaceDetailCardState extends ConsumerState<AirspaceDetailCard> {
     AppLocalizations l10n,
     bool isDark,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     final (Color bg, Color fg, IconData icon, String label) = switch (status) {
       AirspaceActivityStatus.active => (
-        const Color(0x4D9C27B0),
-        const Color(0xFFE040FB),
+        colorScheme.primaryContainer,
+        colorScheme.onPrimaryContainer,
         Icons.bolt,
         l10n.airspaceActivityStatusActive,
       ),
       AirspaceActivityStatus.inactive => (
-        const Color(0x334CAF50),
-        const Color(0xFF66BB6A),
+        colorScheme.secondaryContainer,
+        colorScheme.onSecondaryContainer,
         Icons.block,
         l10n.airspaceActivityStatusInactive,
       ),
       AirspaceActivityStatus.unknown => (
-        const Color(0x33808080),
-        isDark ? Colors.blueGrey.shade300 : Colors.blueGrey.shade700,
+        colorScheme.surfaceContainerHighest,
+        colorScheme.onSurfaceVariant,
         Icons.help_outline,
         l10n.airspaceActivityStatusUnknown,
       ),

@@ -19,8 +19,15 @@ Future<Map<String, dynamic>>? _openaipStyleJson;
 
 Future<Map<String, dynamic>> _loadOpenAipStyleJson() {
   return _openaipStyleJson ??= () async {
-    final raw = await rootBundle.loadString('assets/openaip/styles.json');
-    return jsonDecode(raw) as Map<String, dynamic>;
+    try {
+      final raw = await rootBundle.loadString('assets/openaip/styles.json');
+      return jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      // Clear the cached future so a failed load/decode can be retried on a
+      // later call instead of reusing the failed future forever.
+      _openaipStyleJson = null;
+      rethrow;
+    }
   }();
 }
 

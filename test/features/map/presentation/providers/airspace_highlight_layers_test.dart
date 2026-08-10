@@ -71,7 +71,7 @@ class FakeStyleController extends StyleController {
   List<String> getAttributionsSync() => const [];
 
   @override
-  List<String> getLayerIds() => [...removedLayerIds];
+  List<String> getLayerIds() => addedLayers.map((e) => e.layer.id).toList();
 
   @override
   Future<void> addImage(String id, Uint8List bytes) async {}

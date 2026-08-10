@@ -21,6 +21,14 @@ extension MapCameraAirspace on MapCamera {
       return;
     }
 
+    // Serialize executions: wait for any in-flight highlight application so
+    // concurrent airspaceActivityProvider emissions cannot interleave
+    // removeLayer/addLayer mutations on the map style.
+    final prior = _airspaceHighlightInFlight;
+    if (prior != null) {
+      await prior.catchError((_) {});
+    }
+
     final style = _mapController!.style!;
     final activities = refAccess.read(airspaceActivityProvider);
 
@@ -33,9 +41,32 @@ extension MapCameraAirspace on MapCamera {
         listEquals(_lastInactiveAirspaceIds, inactiveIds)) {
       return;
     }
-    _lastActiveAirspaceIds = List<String>.of(activeIds);
-    _lastInactiveAirspaceIds = List<String>.of(inactiveIds);
 
+    final work = _applyAirspaceHighlights(
+      style,
+      activeIds: activeIds,
+      inactiveIds: inactiveIds,
+    );
+    _airspaceHighlightInFlight = work;
+    try {
+      await work;
+    } finally {
+      // Clear the guard only when it still references this work, so a newer
+      // execution that took over the guard is not cleared prematurely.
+      if (identical(_airspaceHighlightInFlight, work)) {
+        _airspaceHighlightInFlight = null;
+      }
+    }
+  }
+
+  /// Applies the active/inactive highlight layers to the map style and caches
+  /// the applied id lists only on success, so a failed application is retried
+  /// on the next call. Never throws — errors are logged via [debugPrint].
+  Future<void> _applyAirspaceHighlights(
+    StyleController style, {
+    required List<String> activeIds,
+    required List<String> inactiveIds,
+  }) async {
     try {
       await AirspaceHighlightLayers().updateLayers(
         style,
@@ -43,9 +74,13 @@ extension MapCameraAirspace on MapCamera {
         inactiveIds: inactiveIds,
       );
     } catch (e) {
-      debugPrint(
-        'AirspaceActivityController: failed to apply highlight layers: $e',
-      );
+      debugPrint('MapCameraAirspace: failed to apply highlight layers: $e');
+      return;
     }
+
+    // Cache only after the layers were successfully applied, so a failed
+    // application is retried on the next call.
+    _lastActiveAirspaceIds = List<String>.of(activeIds);
+    _lastInactiveAirspaceIds = List<String>.of(inactiveIds);
   }
 }

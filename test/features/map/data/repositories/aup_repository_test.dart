@@ -13,10 +13,17 @@ class FakeMapMetadataRepository extends MapMetadataRepository {
 
   List<Map<String, dynamic>> features = [];
   Map<String, AirspaceMetadata> networkFeatures = {};
+  int dbFetchCount = 0;
   int networkFetchCount = 0;
+  bool failDbFetchOnce = false;
+  bool failNetworkFetchOnce = false;
 
   @override
   Future<List<Map<String, dynamic>>> fetchAllFeaturesFromDb(String type) async {
+    dbFetchCount++;
+    if (failDbFetchOnce && dbFetchCount == 1) {
+      throw StateError('db fetch failed');
+    }
     return features;
   }
 
@@ -25,6 +32,9 @@ class FakeMapMetadataRepository extends MapMetadataRepository {
     String countryCode,
   ) async {
     networkFetchCount++;
+    if (failNetworkFetchOnce && networkFetchCount == 1) {
+      throw StateError('network fetch failed');
+    }
     return networkFeatures;
   }
 }
@@ -203,6 +213,30 @@ void main() {
     );
 
     test(
+      'retries the database read after a failure instead of caching it',
+      () async {
+        final metadataRepository = FakeMapMetadataRepository()
+          ..failDbFetchOnce = true
+          ..features = [
+            {'_id': 'asp_123', 'name': 'R 33'},
+          ];
+        final repository = AupRepository([SvkAupService()], metadataRepository);
+
+        await expectLater(
+          repository.bindToOpenAipIds([_activity('R33')], 'LZBB'),
+          throwsStateError,
+        );
+
+        final result = await repository.bindToOpenAipIds([
+          _activity('R33'),
+        ], 'LZBB');
+
+        expect(result.first.airspaceId, 'asp_123');
+        expect(metadataRepository.dbFetchCount, 2);
+      },
+    );
+
+    test(
       'network fallback matches by name token (LZP23 -> "LZP23 SALA")',
       () async {
         final metadataRepository = FakeMapMetadataRepository();
@@ -218,6 +252,31 @@ void main() {
 
         expect(result.first.airspaceId, 'asp_999');
         expect(metadataRepository.networkFetchCount, 1);
+      },
+    );
+
+    test(
+      'retries the network fallback after a failure instead of caching empty',
+      () async {
+        final metadataRepository = FakeMapMetadataRepository()
+          ..failNetworkFetchOnce = true
+          ..features = []
+          ..networkFeatures = {
+            'asp_777': _metadata(id: 'asp_777', name: 'R 44'),
+          };
+        final repository = AupRepository([SvkAupService()], metadataRepository);
+
+        final firstResult = await repository.bindToOpenAipIds([
+          _activity('R44'),
+        ], 'LZBB');
+
+        final secondResult = await repository.bindToOpenAipIds([
+          _activity('R44'),
+        ], 'LZBB');
+
+        expect(firstResult.first.airspaceId, 'R44');
+        expect(secondResult.first.airspaceId, 'asp_777');
+        expect(metadataRepository.networkFetchCount, 2);
       },
     );
 
