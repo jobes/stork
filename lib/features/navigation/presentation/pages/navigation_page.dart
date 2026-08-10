@@ -6,6 +6,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import '../providers/navigation_provider.dart';
+import '../windy_route.dart';
 
 class NavigationPage extends ConsumerWidget {
   const NavigationPage({super.key});
@@ -399,6 +400,19 @@ class NavigationPage extends ConsumerWidget {
                                 ),
                               ],
                             ),
+                          ),
+                        ),
+                        // Windy weather button
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                          child: FilledButton.tonalIcon(
+                            onPressed: () => openWindyRoute(
+                              points,
+                              currentLatitude: telemetry.latitude,
+                              currentLongitude: telemetry.longitude,
+                            ),
+                            icon: const Icon(Icons.cloud_outlined),
+                            label: Text(l10n.weatherInWindy),
                           ),
                         ),
                         // Reorderable Waypoints List

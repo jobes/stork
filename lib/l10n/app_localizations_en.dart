@@ -919,6 +919,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navigationDetailsTitle => 'Navigation Details';
 
   @override
+  String get weatherInWindy => 'Weather in Windy';
+
+  @override
   String get nearestPoint => 'Nearest Point';
 
   @override

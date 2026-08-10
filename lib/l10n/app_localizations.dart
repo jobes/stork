@@ -1838,6 +1838,12 @@ abstract class AppLocalizations {
   /// **'Navigation Details'**
   String get navigationDetailsTitle;
 
+  /// No description provided for @weatherInWindy.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather in Windy'**
+  String get weatherInWindy;
+
   /// No description provided for @nearestPoint.
   ///
   /// In en, this message translates to:
