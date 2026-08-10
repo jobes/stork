@@ -84,25 +84,25 @@ class MapAssetsServer {
           .toList();
 
       if (segments.isEmpty) {
-        return _sendNotFound(request);
+        return await _sendNotFound(request);
       }
 
       final firstSegment = segments[0];
 
       // Route PMTiles requests
       if (firstSegment == 'pmtiles' && segments.length >= 5) {
-        return _handlePmTilesRequest(request, segments);
+        return await _handlePmTilesRequest(request, segments);
       }
 
       // Route static asset requests
       if (firstSegment == 'openaip' || firstSegment == 'fonts') {
-        return _handleAssetRequest(request, segments);
+        return await _handleAssetRequest(request, segments);
       }
 
-      return _sendNotFound(request);
+      return await _sendNotFound(request);
     } catch (e) {
       debugPrint('Error handling request ${request.uri}: $e');
-      return _sendError(request);
+      return await _sendError(request);
     }
   }
 
