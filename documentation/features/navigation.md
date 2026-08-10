@@ -121,6 +121,7 @@ The navigation feature is exposed across three main UI views:
 Accessing this screen displays:
 - **Status Dashboard**: A gradient header summary cards showing total distance, estimated total flight duration, active speed source, and navigation status (Active/Stopped).
 - **Control Bar**: A play/stop action button to toggle active routing, and a sweep-delete button to clear the entire path.
+- **Windy Button**: A prominent full-width **Weather in Windy** button below the summary card that opens the Windy route planner for the whole route (starting from the current GPS position when available). Shares the `openWindyRoute`/`buildWindyRouteUrl` helpers with the details dialog (see `presentation/windy_route.dart`).
 - **Reorderable Waypoint Log**: Uses `ReorderableListView.builder` allowing users to drag waypoints to reorder the sequence. Individual waypoints can be deleted, and each list item displays its individual leg statistics alongside cumulative totals and ETAs.
 
 ### 5.2. Map Overlay Telemetry Widget ([NavigationTelemetryWidget](../../lib/features/navigation/presentation/widgets/navigation_telemetry_widget.dart))
@@ -136,3 +137,4 @@ A glassmorphic popup containing:
 - High-level progress metrics to the nearest waypoint and final destination (with ETAs).
 - Active speed label.
 - Scrollable list showing the sequence of waypoints, complete with sub-leg distances, durations, and snap ETA timestamps.
+- A prominent full-width **Weather in Windy** button that opens the Windy route planner in an external app/browser for the whole route (`https://www.windy.com/route-planner/vfr/lat,lng;lat,lng;...`), starting from the current GPS position when available, followed by the waypoints.

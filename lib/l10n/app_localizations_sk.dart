@@ -920,6 +920,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get navigationDetailsTitle => 'Detaily navigácie';
 
   @override
+  String get weatherInWindy => 'Počasie vo Windy';
+
+  @override
   String get nearestPoint => 'Najbližší bod';
 
   @override

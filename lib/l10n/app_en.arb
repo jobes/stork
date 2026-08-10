@@ -463,6 +463,7 @@
   "clearNavigation": "Clear route",
   "clearNavigationConfirm": "Are you sure you want to clear the navigation route?",
   "navigationDetailsTitle": "Navigation Details",
+  "weatherInWindy": "Weather in Windy",
   "nearestPoint": "Nearest Point",
   "destinationPoint": "Destination",
   "activeSpeedLabel": "Speed for ETA: {value} {unit}",

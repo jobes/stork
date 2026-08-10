@@ -375,6 +375,7 @@
   "clearNavigation": "Zrušiť navigáciu",
   "clearNavigationConfirm": "Naozaj chcete zrušiť navigáciu a vymazať celú trasu?",
   "navigationDetailsTitle": "Detaily navigácie",
+  "weatherInWindy": "Počasie vo Windy",
   "nearestPoint": "Najbližší bod",
   "destinationPoint": "Cieľ",
   "activeSpeedLabel": "Rýchlosť pre ETA: {value} {unit}",
