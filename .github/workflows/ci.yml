@@ -26,6 +26,9 @@ jobs:
           submodules: recursive
           persist-credentials: false
 
+      - name: Create .env file from template
+        run: cp .env.example .env
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
