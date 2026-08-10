@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-**Stork** is a high-performance aeronautical navigation (EFB) application for glider and aircraft pilots, built with Flutter. It combines offline vector mapping, real-time DroneCAN telemetry over CAN-over-IP, and live aeronautical data into a single cockpit tool. Stork targets **Android, iOS, Linux, macOS, Windows, and Web**.
+**Stork** is a high-performance aeronautical navigation (EFB) application for glider and aircraft pilots, built with Flutter. It combines offline vector mapping, real-time DroneCAN telemetry over CAN-over-IP, and live aeronautical data into a single cockpit tool. Stork targets **Android** (currently the only supported platform).
 
 ## 🚀 Key Features
 
@@ -33,7 +33,7 @@
 **UX & Platform**
 - **Customizable Widgets & Layouts** — draggable/resizable overlay widgets and map telemetry overlays.
 - **Multi-language Support** — English and Slovak.
-- **Cross-platform** — Android, iOS, Linux, macOS, Windows, and Web.
+- **Platform** — Android (currently the only supported target).
 
 ## 🛠️ Tech Stack
 

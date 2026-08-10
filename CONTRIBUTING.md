@@ -36,7 +36,7 @@ There are many ways to contribute:
 
 ### Prerequisites
 
-- Flutter SDK (latest stable, see `environment.sdk` in `pubspec.yaml`)
+- Flutter SDK (latest stable channel)
 - Android Studio and/or VS Code with the Flutter/Dart extensions
 - `dart` CLI (bundled with the Flutter SDK)
 
