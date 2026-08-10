@@ -111,142 +111,144 @@ class _PureTrackSettingsCardState extends ConsumerState<PureTrackSettingsCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.satellite_alt_rounded,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(
-                        l10n.pureTrackTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                      Icon(
+                        Icons.satellite_alt_rounded,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.pureTrackTitle,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              l10n.pureTrackDescription,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      _buildStatusChip(context, authState, l10n),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (!isAuthenticated) ...[
+                    TextField(
+                      controller: _usernameController,
+                      enabled: !isAuthenticating,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: l10n.pureTrackUsername,
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: const OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _passwordController,
+                      enabled: !isAuthenticating,
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: l10n.pureTrackPassword,
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                        border: const OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                    ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 8),
                       Text(
-                        l10n.pureTrackDescription,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                        _errorMessage!,
+                        style: TextStyle(
+                          color: theme.colorScheme.error,
+                          fontSize: 12,
                         ),
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _buildStatusChip(context, authState, l10n),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (!isAuthenticated) ...[
-              TextField(
-                controller: _usernameController,
-                enabled: !isAuthenticating,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: l10n.pureTrackUsername,
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passwordController,
-                enabled: !isAuthenticating,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: l10n.pureTrackPassword,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: isAuthenticating ? null : _handleLogin,
+                        child: isAuthenticating
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(l10n.pureTrackLogin),
+                      ),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                ),
-              ),
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _errorMessage!,
-                  style: TextStyle(
-                    color: theme.colorScheme.error,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: isAuthenticating ? null : _handleLogin,
-                  child: isAuthenticating
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l10n.pureTrackLogin),
-                ),
-              ),
-            ] else ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(
-                    alpha: 0.3,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.check_circle_outline,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _usernameController.text.isNotEmpty
-                            ? _usernameController.text
-                            : l10n.pureTrackStatusConnected,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
+                  ] else ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer.withValues(
+                          alpha: 0.3,
                         ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _usernameController.text.isNotEmpty
+                                  ? _usernameController.text
+                                  : l10n.pureTrackStatusConnected,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _handleLogout,
+                        icon: const Icon(Icons.logout),
+                        label: Text(l10n.pureTrackLogout),
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _handleLogout,
-                  icon: const Icon(Icons.logout),
-                  label: Text(l10n.pureTrackLogout),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    ),
-  ],
-);
+            ),
+          ),
+      ],
+    );
   }
 
   Widget _buildStatusChip(
