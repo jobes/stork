@@ -1,0 +1,50 @@
+name: ✨ Feature Request
+description: Suggest a new feature or improvement for Stork.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please search existing issues first
+        to avoid duplicates.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Motivation
+      description: What problem does this feature solve, or why is it needed?
+      placeholder: "As a pilot, I want to ... because ..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the feature or behaviour you would like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative solutions or workarounds you have considered.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of the app does this affect?
+      multiple: true
+      options:
+        - Map / Navigation
+        - Telemetry (DroneCAN)
+        - Traffic / CAS
+        - Flight logging
+        - Aeronautical data (AUP, NOTAM, OpenAIP)
+        - Settings / UI
+        - Documentation
+        - Other
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, mockups, or links that help explain the request.
