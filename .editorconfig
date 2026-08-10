@@ -1,0 +1,45 @@
+# Editor configuration — https://editorconfig.org
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Dart/Flutter (dart format uses 2-space indentation)
+[*.dart]
+indent_style = space
+indent_size = 2
+max_line_length = 80
+
+# YAML (pubspec, GitHub workflows, dependabot)
+[*.{yaml,yml}]
+indent_style = space
+indent_size = 2
+
+# Markdown (avoid trailing whitespace in prose)
+[*.md]
+trim_trailing_whitespace = false
+
+# JSON / ARB
+[*.{json,arb}]
+indent_style = space
+indent_size = 2
+
+# Gradle (Kotlin DSL)
+[*.{gradle,kts}]
+indent_style = space
+indent_size = 4
+
+# Shell scripts
+[*.sh]
+indent_style = space
+indent_size = 2
+
+# Makefiles must use tabs
+[Makefile]
+indent_style = tab

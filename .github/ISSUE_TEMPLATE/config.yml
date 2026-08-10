@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/jobes/stork/security/advisories
+    about: Please report security vulnerabilities privately, not as public issues.
+  - name: Documentation
+    url: https://github.com/jobes/stork/tree/main/documentation
+    about: Please check the project documentation before opening an issue.
