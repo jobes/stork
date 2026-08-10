@@ -149,6 +149,10 @@ extension MapCameraStyle on MapCamera {
       );
       if (!refAccess.mounted) return;
 
+      // Real-time airspace activity (AUP/UUP) highlight layers are defined in
+      // `assets/openaip/styles.json` (on the existing `openaip-data` source)
+      // and their filters are updated dynamically in `updateAirspacesOnMap()`.
+
       await style.addSource(
         GeoJsonSource(
           id: 'aircraft-source',
@@ -248,6 +252,12 @@ extension MapCameraStyle on MapCamera {
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();
       updateNotamsOnMap();
+      // The (re)loaded style wiped the runtime highlight layers, so clear the
+      // diff cache to force updateAirspacesOnMap to re-apply them.
+      _lastActiveAirspaceIds = null;
+      _lastInactiveAirspaceIds = null;
+      await updateAirspacesOnMap();
+      if (!refAccess.mounted) return;
       _updateTrafficFilter();
       debugPrint('Aircraft symbols initialized 😎');
     } catch (e) {

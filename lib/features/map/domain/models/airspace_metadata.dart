@@ -2,6 +2,7 @@ import 'airspace_class.dart';
 import 'airspace_type.dart';
 import 'airspace_limit.dart';
 import 'airspace_activity.dart';
+import 'airspace_activity_status.dart';
 import 'airspace_frequency.dart';
 
 class AirspaceMetadata {
@@ -19,6 +20,11 @@ class AirspaceMetadata {
   final List<AirspaceFrequency>? frequencies;
   final Map<String, dynamic>? geometry;
 
+  /// Real-time activity status resolved from an AUP/UUP source (if available).
+  final AirspaceActivityStatus? activityStatus;
+  final DateTime? activityValidFrom;
+  final DateTime? activityValidTo;
+
   AirspaceMetadata({
     required this.id,
     required this.name,
@@ -33,7 +39,50 @@ class AirspaceMetadata {
     this.onRequest,
     this.frequencies,
     this.geometry,
+    this.activityStatus,
+    this.activityValidFrom,
+    this.activityValidTo,
   });
+
+  /// Returns a copy of this metadata with optional field overrides. Used to
+  /// attach real-time AUP/UUP activity information to the static metadata.
+  AirspaceMetadata copyWith({
+    String? id,
+    String? name,
+    AirspaceClass? icaoClass,
+    AirspaceType? type,
+    String? country,
+    AirspaceLimit? limitLower,
+    AirspaceLimit? limitUpper,
+    AirspaceActivity? activity,
+    bool? byNotam,
+    bool? onDemand,
+    bool? onRequest,
+    List<AirspaceFrequency>? frequencies,
+    Map<String, dynamic>? geometry,
+    AirspaceActivityStatus? activityStatus,
+    DateTime? activityValidFrom,
+    DateTime? activityValidTo,
+  }) {
+    return AirspaceMetadata(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      icaoClass: icaoClass ?? this.icaoClass,
+      type: type ?? this.type,
+      country: country ?? this.country,
+      limitLower: limitLower ?? this.limitLower,
+      limitUpper: limitUpper ?? this.limitUpper,
+      activity: activity ?? this.activity,
+      byNotam: byNotam ?? this.byNotam,
+      onDemand: onDemand ?? this.onDemand,
+      onRequest: onRequest ?? this.onRequest,
+      frequencies: frequencies ?? this.frequencies,
+      geometry: geometry ?? this.geometry,
+      activityStatus: activityStatus ?? this.activityStatus,
+      activityValidFrom: activityValidFrom ?? this.activityValidFrom,
+      activityValidTo: activityValidTo ?? this.activityValidTo,
+    );
+  }
 
   List<List<List<List<double>>>> get polygons {
     final geom = geometry;
@@ -103,6 +152,15 @@ class AirspaceMetadata {
       geometry: json['geometry'] != null
           ? Map<String, dynamic>.from(json['geometry'] as Map)
           : null,
+      activityStatus: json['activityStatus'] != null
+          ? AirspaceActivityStatus.fromPayload(json['activityStatus'])
+          : null,
+      activityValidFrom: json['activityValidFrom'] != null
+          ? DateTime.tryParse(json['activityValidFrom'].toString())
+          : null,
+      activityValidTo: json['activityValidTo'] != null
+          ? DateTime.tryParse(json['activityValidTo'].toString())
+          : null,
     );
   }
 
@@ -126,6 +184,11 @@ class AirspaceMetadata {
       if (frequencies != null)
         'frequencies': frequencies!.map((f) => f.toJson()).toList(),
       if (geometry != null) 'geometry': geometry,
+      if (activityStatus != null) 'activityStatus': activityStatus!.name,
+      if (activityValidFrom != null)
+        'activityValidFrom': activityValidFrom!.toIso8601String(),
+      if (activityValidTo != null)
+        'activityValidTo': activityValidTo!.toIso8601String(),
     };
   }
 }

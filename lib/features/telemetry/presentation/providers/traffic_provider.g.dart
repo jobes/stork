@@ -82,7 +82,7 @@ final class TrafficProvider
   }
 }
 
-String _$trafficHash() => r'41148e32780f2bca7479d59c27f5164daaa9e39f';
+String _$trafficHash() => r'4bdaca67addbb89be6117c2ea72c5c692de3ee87';
 
 abstract class _$Traffic extends $Notifier<List<TrafficAircraft>> {
   List<TrafficAircraft> build();

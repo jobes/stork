@@ -144,6 +144,7 @@ A multi-airspace listing card featuring:
 *   **Limit Range Indicators**: Renders lower limits in orange (floor) and upper limits in blue (ceiling), translating flight levels and height values into standard symbols (e.g. `FL 120` or `2000 ft MSL`).
 *   **Operational Badges**: Renders colored labels for active flags such as `byNotam`, `onRequest`, or `onDemand`.
 *   **OpenAIP Link-out**: Provides an external redirect button targeting the official OpenAIP data portal: `https://www.openaip.net/data/airspaces/${id}`.
+*   **Real-time AUP/UUP Status Badge**: When live activity has been pre-fetched for the airspace, the card also shows a `Active` / `Inactive` / `Activity Unknown` badge with its validity window. See [Active Airspaces (AUP/UUP)](active-airspaces.md) for the full pipeline.
 
 ---
 

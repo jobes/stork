@@ -1688,6 +1688,30 @@ abstract class AppLocalizations {
   /// **'Unknown'**
   String get airspaceActivityUnknown;
 
+  /// No description provided for @airspaceActivityStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get airspaceActivityStatusActive;
+
+  /// No description provided for @airspaceActivityStatusInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get airspaceActivityStatusInactive;
+
+  /// No description provided for @airspaceActivityStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Unknown'**
+  String get airspaceActivityStatusUnknown;
+
+  /// No description provided for @airspaceActivityTimeWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Validity'**
+  String get airspaceActivityTimeWindow;
+
   /// No description provided for @flightTime.
   ///
   /// In en, this message translates to:

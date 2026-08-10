@@ -13,6 +13,7 @@ import 'core/router/app_router.dart';
 import 'package:stork/core/services/cannelloni_service.dart';
 import 'package:stork/core/utils/time_utils.dart';
 import 'package:stork/features/map/domain/utils/fir_utils.dart';
+import 'package:stork/features/map/presentation/providers/airspace_activity_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/black_box_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 
@@ -48,6 +49,9 @@ class _StorkAppState extends ConsumerState<StorkApp>
     ref.read(blackBoxServiceProvider);
     // Warm up the GPS Listener to ensure background location updates run continuously
     ref.read(gpsListenerProvider);
+    // Warm up the airspace activity (AUP/UUP) pre-fetcher so it monitors the
+    // aircraft position from app start.
+    ref.read(airspaceActivityProvider);
   }
 
   @override
