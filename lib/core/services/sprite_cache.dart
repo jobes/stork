@@ -49,20 +49,20 @@ class SpriteCache {
     return _frameCache.putIfAbsent(key, () async {
       try {
         final index = await _loadIndex(scale);
-        final frame = index[frameId];
-        if (frame == null) {
-          throw StateError(
+        final (x, y, width, height) = switch (index[frameId]) {
+          {
+            'x': final num x,
+            'y': final num y,
+            'width': final num width,
+            'height': final num height,
+          } =>
+            (x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble()),
+          _ => throw StateError(
             'Sprite frame "$frameId" not found in ${_indexPathFor(scale)}',
-          );
-        }
+          ),
+        };
         final sheet = await _loadSheet(scale);
-        return _crop(
-          sheet,
-          (frame['x'] as num).toDouble(),
-          (frame['y'] as num).toDouble(),
-          (frame['width'] as num).toDouble(),
-          (frame['height'] as num).toDouble(),
-        );
+        return _crop(sheet, x, y, width, height);
       } catch (error, stackTrace) {
         // Do not cache failures so a later request can retry (e.g. after a
         // sprite regeneration).

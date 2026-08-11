@@ -2,12 +2,16 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../services/sprite_cache.dart';
 
+part 'sprite_icon.g.dart';
+
 /// Provides the shared [SpriteCache] used by [SpriteIcon]. The cache is created
 /// once and lives for the lifetime of the app, so cropped frames are reused.
-final spriteCacheProvider = Provider<SpriteCache>((ref) => SpriteCache());
+@Riverpod(keepAlive: true)
+SpriteCache spriteCache(Ref ref) => SpriteCache();
 
 /// Renders a single frame from the app MapLibre sprite
 /// (`assets/map_sprites/`, sprite id "default").
@@ -69,6 +73,11 @@ class SpriteIcon extends ConsumerWidget {
           image: image,
           width: width,
           height: height,
+          // When no explicit size is given, the frame is rendered at its
+          // native logical size. The frame was cropped from a sprite sheet
+          // matching the device pixel ratio, so the sprite scale must be
+          // forwarded here or 2x frames would be drawn at double size.
+          scale: scale,
           fit: BoxFit.contain,
           color: color,
           filterQuality: FilterQuality.medium,

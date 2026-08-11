@@ -282,7 +282,7 @@ Tapping an aircraft icon on the map queries features from `traffic-layer` and op
 +---------------------------------------------------+
 ```
 
-The dialog's aircraft icon is rendered from the app sprite via `SpriteIcon` (`frameId: acType.trafficMapIconId`), tinted to match the map's colour state — flying targets use the same blue `#2196F3` as `traffic-layer`, stationary targets use grey. See the [Map Sprite & Icon System](../architecture/map-sprite.md).
+The dialog's aircraft icon is rendered from the app sprite via `SpriteIcon` (`frameId: acType.trafficMapIconId`), tinted blue (`#2196F3`) for flying targets (`groundSpeed > 1.0 m/s`) and grey for stationary targets. Unlike the map layer, `TrafficDetailsDialog` does **not** pass `isCollisionThreat` to `SpriteIcon`, so it never uses the map's red `#FF3333` threat colour — collision threats are not tinted red in the dialog. See the [Map Sprite & Icon System](../architecture/map-sprite.md).
 
 The dialog displays localized source chips (`[ OGN ]`, `[ PureTrack ]`, `[ GDL90 ]`) using theme-adaptive color tokens (`Theme.of(context)`), highlighting the `activeSource` of the aircraft. Fields whose GDL90 validity flag is `false` (e.g. unavailable altitude) render as `-`.
 
