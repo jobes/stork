@@ -1,8 +1,10 @@
 /// A point of interest (POI) that can be displayed as a marker on the map.
 ///
-/// Each value maps to a PNG asset rendered as a map-pin badge (see
-/// `assets/images/poi/`). Icons are registered in the map style via
-/// `MapCameraStyle.handleStyleLoaded`.
+/// Each value maps to a map-pin badge icon provided by the app sprite
+/// (`assets/map_sprites/`, sprite id "default") under [mapIconId]
+/// (`poi-icon-<name>`). The same sprite frame is used on the map and in the
+/// Flutter UI (favourites list and dialogs, via `SpriteIcon`) — no separate
+/// PNG assets are bundled at runtime.
 enum PoiType {
   home('home'),
   thermal('thermal'),
@@ -18,8 +20,6 @@ enum PoiType {
   final String assetName;
 
   const PoiType(this.assetName);
-
-  String get assetPath => 'assets/images/poi/$assetName.png';
 
   String get mapIconId => 'poi-icon-$assetName';
 }

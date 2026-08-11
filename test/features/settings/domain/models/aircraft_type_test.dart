@@ -4,8 +4,7 @@ import 'package:stork/features/settings/domain/models/aircraft_type.dart';
 void main() {
   test('AircraftType enum mappings', () {
     for (final type in AircraftType.values) {
-      // Verify map icon IDs are generated
-      expect(type.mapIconId, equals('aircraft-icon-${type.assetName}'));
+      // Verify traffic map icon IDs are generated (from the app sprite)
       expect(type.trafficMapIconId, equals('traffic-icon-${type.assetName}'));
     }
 

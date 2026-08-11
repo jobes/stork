@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:textf/textf.dart';
 
+import '../../../../core/widgets/sprite_icon.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../providers/favorites_provider.dart';
@@ -41,7 +42,11 @@ class FavoriteDetailsDialog extends ConsumerWidget {
                   color: scheme.primary.withAlpha(28),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Image.asset(point.icon.assetPath, width: 44, height: 44),
+                child: SpriteIcon(
+                  frameId: point.icon.mapIconId,
+                  width: 44,
+                  height: 44,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

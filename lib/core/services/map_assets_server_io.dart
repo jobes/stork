@@ -95,7 +95,9 @@ class MapAssetsServer {
       }
 
       // Route static asset requests
-      if (firstSegment == 'openaip' || firstSegment == 'fonts') {
+      if (firstSegment == 'openaip' ||
+          firstSegment == 'fonts' ||
+          firstSegment == 'map_sprites') {
         return await _handleAssetRequest(request, segments);
       }
 
@@ -161,9 +163,12 @@ class MapAssetsServer {
     HttpRequest request,
     List<String> segments,
   ) async {
-    final String assetPath = segments[0] == 'openaip'
-        ? 'assets/openaip/${segments.sublist(1).join('/')}'
-        : 'assets/fonts/${segments.sublist(1).join('/')}';
+    final String assetPath = switch (segments[0]) {
+      'openaip' => 'assets/openaip/${segments.sublist(1).join('/')}',
+      'fonts' => 'assets/fonts/${segments.sublist(1).join('/')}',
+      'map_sprites' => 'assets/map_sprites/${segments.sublist(1).join('/')}',
+      _ => throw StateError('Unsupported asset root: ${segments[0]}'),
+    };
 
     try {
       final data = await bundle.load(assetPath);

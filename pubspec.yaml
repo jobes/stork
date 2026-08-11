@@ -109,16 +109,18 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  # assets/images/aircraft_types/ and assets/images/poi/ are NOT bundled: the
+  # runtime icons come from assets/map_sprites/ (via SpriteIcon), which is the
+  # single source of truth for icon art.
   assets:
     - assets/images/
-    - assets/images/aircraft_types/
-    - assets/images/poi/
     - assets/openaip/styles.json
     - assets/openaip/sprite.pbf
     - assets/openaip/sprite.png
     - assets/openaip/sprite.json
     - assets/openaip/sprite@2x.png
     - assets/openaip/sprite@2x.json
+    - assets/map_sprites/
     - assets/geojson/fir.geojson
     - assets/fonts/Roboto Bold,Noto Sans Bold/
     - assets/fonts/Roboto Italic,Noto Sans Regular/

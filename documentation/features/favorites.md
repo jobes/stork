@@ -49,8 +49,8 @@ graph TD
     *   Provides `toJson` / `fromJson` for persistence (the `icon` is serialized by enum name).
 
 2.  **[PoiType](../../lib/features/map/domain/models/poi_type.dart)**: The set of POI categories (e.g. `home`, `thermal`, `airfield`, `outlanding`, `fuel`, `restaurant`, `viewpoint`, `camping`, `hospital`, `parking`).
-    *   Each value maps to a PNG asset under `assets/images/poi/` (`assetPath`) and to a MapLibre style image id (`mapIconId`, `poi-icon-<name>`).
-    *   Lives in the **map** feature domain because it owns the POI assets and map style image registration.
+    *   Each value maps to a MapLibre sprite frame (`mapIconId`, `poi-icon-<name>`) in `assets/map_sprites/` (sprite id `default`). The same frame is used on the map and in the Flutter UI (favourites list and dialogs) via `SpriteIcon` — no separate PNG assets are bundled at runtime.
+    *   Lives in the **map** feature domain because it owns the POI sprite frames and map style icon ids.
 
 > **Cross-feature dependency note**: `favorites/domain` depends on `map/domain` (`PoiType`), and the map feature (map camera provider / bottom sheet) reads the favourites provider. This is an intentional, documented coupling — the favourites markers are rendered entirely by the map feature's style pipeline. Keeping `PoiType` in `map/domain` is preferred over duplicating it in `favorites/domain`, since it is tightly bound to the map assets and style icon ids.
 
@@ -78,7 +78,7 @@ graph TD
 
 On style (re)load the map camera:
 
-1.  Registers every `PoiType` icon via `style.addImageFromAssets(id: type.mapIconId, asset: type.assetPath)` (each failure is caught and logged so one bad asset does not break the map).
+1.  Relies on the app sprite (`assets/map_sprites/`, sprite id `default`) which already contains every `PoiType` icon as a `poi-icon-<name>` frame — no icons are added programmatically.
 2.  Adds the `favorites-source` GeoJSON source (initially an empty `FeatureCollection`).
 3.  Adds the `favorites-layer` `SymbolStyleLayer` that renders the POI icon (`icon-image` from the feature property) plus a name label (`text-field: ['get', 'name']`), with overlap/placement allowed and label size scaled by the user `mapFontSize` setting.
 4.  Calls `updateFavoritesOnMap()` to seed the layer with the currently saved points.

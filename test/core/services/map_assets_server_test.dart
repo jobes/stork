@@ -32,6 +32,7 @@ void main() {
       MapAssetsServer.bundle = _FakeAssetBundle({
         'assets/openaip/styles.json': utf8.encode('{"ok":true}'),
         'assets/fonts/Roboto Regular,Noto Sans Regular/0-255.pbf': [1, 2, 3],
+        'assets/map_sprites/sprite.json': utf8.encode('{"poi-icon-home":{}}'),
       });
 
       await MapAssetsServer.start();
@@ -98,6 +99,27 @@ void main() {
         client.close(force: true);
       }
     });
+
+    test(
+      'serves app sprite JSON asset with application/json content type',
+      () async {
+        final client = HttpClient();
+        try {
+          final request = await client.getUrl(
+            baseUri.replace(path: '/map_sprites/sprite.json'),
+          );
+          final response = await request.close();
+
+          expect(response.statusCode, HttpStatus.ok);
+          expect(response.headers.contentType?.mimeType, 'application/json');
+
+          final body = await response.transform(utf8.decoder).join();
+          expect(body, contains('poi-icon-home'));
+        } finally {
+          client.close(force: true);
+        }
+      },
+    );
 
     test('returns 404 for unknown top-level path', () async {
       final client = HttpClient();

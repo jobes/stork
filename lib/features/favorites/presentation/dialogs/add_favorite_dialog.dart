@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:textf/textf.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/widgets/sprite_icon.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/domain/models/poi_type.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
@@ -160,7 +161,7 @@ class _AddFavoriteDialogState extends ConsumerState<AddFavoriteDialog> {
                   ? scheme.primary.withAlpha(32)
                   : Colors.transparent,
             ),
-            child: Image.asset(type.assetPath, width: 36, height: 36),
+            child: SpriteIcon(frameId: type.mapIconId, width: 36, height: 36),
           ),
         );
       }).toList(),

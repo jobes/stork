@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/widgets/sprite_icon.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../../map/presentation/providers/map_camera_provider.dart';
@@ -162,7 +163,11 @@ class FavoritesPage extends ConsumerWidget {
             color: scheme.primary.withAlpha(28),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Image.asset(point.icon.assetPath, width: 30, height: 30),
+          child: SpriteIcon(
+            frameId: point.icon.mapIconId,
+            width: 30,
+            height: 30,
+          ),
         ),
         title: Text(
           point.name,

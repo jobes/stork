@@ -16,6 +16,8 @@ Documents in this section cover the core infrastructure, networking protocols, h
     *   *Covers the SQLite database schema (offline regions, map tiles, and OpenAIP metadata), indexing optimizations, batch transaction management, and conditional platform support (native SQLite vs Web stubs).*
 *   [Localization and Internationalization](architecture/localization.md)
     *   *Describes the application resource bundle (`.arb`) setup and code generation for multi-language support.*
+*   [Map Sprite & Icon System](architecture/map-sprite.md)
+    *   *Documents the single app sprite (`assets/map_sprites/`, sprite id `default`) shared by the native map renderer and the Flutter UI: registration in `styles.json`, serving via the local asset server, the SDF traffic silhouettes with `icon-color` tinting, and the `SpriteIcon`/`SpriteCache` widget pipeline used in the favourites and traffic UIs.*
 
 ---
 
