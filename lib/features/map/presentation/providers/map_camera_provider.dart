@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'dart:ui' as ui;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
@@ -60,7 +61,7 @@ class MapCamera extends _$MapCamera {
   // updateAirspacesOnMap() executions so layer mutations cannot interleave.
   Future<void>? _airspaceHighlightInFlight;
 
-  Timer? _interpolationTimer;
+  Ticker? _interpolationTicker;
   Geographic? _currentInterpolatedCenter;
   double? _currentInterpolatedZoom;
   double? _currentInterpolatedPitch;
@@ -96,7 +97,7 @@ class MapCamera extends _$MapCamera {
         // Update aircraft symbol if initialized
         if (_isAircraftSymbolInitialized &&
             _mapController?.style != null &&
-            _interpolationTimer == null) {
+            _interpolationTicker == null) {
           if (next.latitude != previous?.latitude ||
               next.longitude != previous?.longitude ||
               next.heading != previous?.heading) {
@@ -825,7 +826,7 @@ class MapCamera extends _$MapCamera {
 
   bool get isMovingProgrammatically {
     if (_programmaticMoveCount > 0 ||
-        _interpolationTimer != null ||
+        _interpolationTicker != null ||
         _isTransitionAnimating) {
       return true;
     }
