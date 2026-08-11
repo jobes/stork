@@ -240,15 +240,15 @@ Outbound beaconing starts automatically when:
 The MapLibre integration handles traffic visualization in [map_camera_style.dart](../../lib/features/map/presentation/providers/map_camera_style.dart#L183) and [map_camera_provider.dart](../../lib/features/map/presentation/providers/map_camera_provider.dart#L528).
 
 ### 7.1. Layer Architecture
-*   **`traffic-source`:** GeoJSON source holding target points with feature properties (`id`, `heading`, `icon-image`, `altitudeTag`, `isThreat`, `possiblePositionRatio`).
-*   **`traffic-layer`:** Symbol layer rendering custom aircraft icons rotated according to target track (`heading`) and displaying dynamic relative altitude tags (`altitudeTag`) for active threats.
+*   **`traffic-source`:** GeoJSON source holding target points with feature properties (`id`, `heading`, `icon-image`, `altitudeTag`, `isThreat`, `isFlying`, `possiblePositionRatio`). The `icon-image` is always the single SDF frame `traffic-icon-<type>`; `isThreat`/`isFlying` drive the `icon-color` paint expression (see § 7.2).
+*   **`traffic-layer`:** Symbol layer rendering the SDF aircraft silhouettes from the app sprite (rotated according to target track `heading`) and displaying dynamic relative altitude tags (`altitudeTag`) for active threats.
 *   **`traffic-possible-layer`:** Symbol layer rendering position uncertainty rings when lookahead projection is active.
 
 ### 7.2. Icon Registration, Category Styling & Threat Highlighting
-`MapCameraStyleNotifier` dynamically generates and registers tinted icon assets for all 13 `AircraftType` categories:
-*   **Active Traffic (Flying, $GS > 1.0\text{ m/s}$):** Colored aircraft icon (`type.trafficMapIconId`).
-*   **Inactive / Stationary Traffic ($GS \le 1.0\text{ m/s}$):** Grey-tinted icon (`type.inactiveTrafficMapIconId`).
-*   **Collision Threat Targets (`isCollisionThreat == true`):** Highlighted threat icon (`type.threatTrafficMapIconId`) and bold red altitude tag text (`#FF3333` with black halo outline).
+Traffic icons come from the app sprite ([`assets/map_sprites/`](../../assets/map_sprites/), sprite id `"default"`) as SDF silhouettes (`traffic-icon-<type>`). Colour state is applied per layer via the `icon-color` expression on `traffic-layer` (no runtime tinting):
+*   **Active Traffic (Flying, $GS > 1.0\text{ m/s}$):** Blue icon (`#2196F3`) — `isFlying == true`.
+*   **Inactive / Stationary Traffic ($GS \le 1.0\text{ m/s}$):** Grey icon (`#9E9E9E`).
+*   **Collision Threat Targets (`isCollisionThreat == true`):** Red icon (`#FF3333`) and bold red altitude tag text (`#FF3333` with black halo outline).
 
 ### 7.3. Trajectory Lookahead Vector
 To compensate for network latency and depict true relative movement, Stork projects each aircraft's estimated future position:
@@ -281,6 +281,8 @@ Tapping an aircraft icon on the map queries features from `traffic-layer` and op
 | Glider                                            |
 +---------------------------------------------------+
 ```
+
+The dialog's aircraft icon is rendered from the app sprite via `SpriteIcon` (`frameId: acType.trafficMapIconId`), tinted to match the map's colour state — flying targets use the same blue `#2196F3` as `traffic-layer`, stationary targets use grey. See the [Map Sprite & Icon System](../architecture/map-sprite.md).
 
 The dialog displays localized source chips (`[ OGN ]`, `[ PureTrack ]`, `[ GDL90 ]`) using theme-adaptive color tokens (`Theme.of(context)`), highlighting the `activeSource` of the aircraft. Fields whose GDL90 validity flag is `false` (e.g. unavailable altitude) render as `-`.
 

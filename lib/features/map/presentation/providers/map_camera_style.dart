@@ -1,80 +1,20 @@
 part of 'map_camera_provider.dart';
 
+// Icon sizes relative to the sprite frames (see
+// documentation/architecture/map-sprite.md). Kept as named constants so a
+// sprite regeneration that changes frame sizes only needs updating here.
+const double kAircraftIconSize = 0.88; // 192px frame -> previous size (676/4)
+const double kTrafficIconSize = 0.40; // 128px SDF frame
+const double kPoiIconSize = 0.64; // 64px frame
+
 extension MapCameraStyle on MapCamera {
   Future<void> handleStyleLoaded(StyleController style) async {
     try {
-      // Load all aircraft type icons into style
-      for (final type in AircraftType.values) {
-        try {
-          await style.addImageFromAssets(
-            id: type.mapIconId,
-            asset: type.assetPath,
-          );
-          if (!refAccess.mounted) return;
-
-          // Clean untinted icon for flying traffic
-          await style.addImageFromAssets(
-            id: type.trafficMapIconId,
-            asset: type.assetPath,
-          );
-          if (!refAccess.mounted) return;
-
-          // Grey tinted icon for inactive (ground / stationary) traffic
-          final inactiveBytes = await _loadAndTintImage(
-            type.assetPath,
-            const Color(0xFF9E9E9E),
-          );
-          if (!refAccess.mounted) return;
-          await style.addImage(type.inactiveTrafficMapIconId, inactiveBytes);
-          if (!refAccess.mounted) return;
-
-          // Red tinted icon for threat traffic
-          final threatBytes = await _loadAndTintImage(
-            type.assetPath,
-            const Color(0xFFFF0000),
-          );
-          if (!refAccess.mounted) return;
-          await style.addImage(type.threatTrafficMapIconId, threatBytes);
-          if (!refAccess.mounted) return;
-        } catch (e) {
-          debugPrint('Failed to load aircraft icon for ${type.name}: $e');
-        }
-      }
-
-      // Load all POI (point of interest) icons into style
-      for (final type in PoiType.values) {
-        try {
-          await style.addImageFromAssets(
-            id: type.mapIconId,
-            asset: type.assetPath,
-          );
-          if (!refAccess.mounted) return;
-        } catch (e) {
-          debugPrint('Failed to load POI icon for ${type.name}: $e');
-        }
-      }
-
-      // Traffic possible location indicator image
-      await style.addImageFromAssets(
-        id: 'possibleLoc',
-        asset: 'assets/images/possible-loc.png',
-      );
-      if (!refAccess.mounted) return;
-
-      // Legacy fallbacks
-      await style.addImageFromAssets(
-        id: 'aircraft-icon',
-        asset: 'assets/images/aircraft.png',
-      );
-      if (!refAccess.mounted) return;
-
-      final defaultTrafficBytes = await _loadAndTintImage(
-        'assets/images/aircraft.png',
-        const Color(0xFF2196F3),
-      );
-      if (!refAccess.mounted) return;
-      await style.addImage('traffic-aircraft-icon', defaultTrafficBytes);
-      if (!refAccess.mounted) return;
+      // All map icons come from the app sprite (`assets/map_sprites/`, sprite
+      // id "default"): `aircraft-icon` (aircraft-layer), `possibleLoc`
+      // (traffic-possible-layer), `traffic-icon-*` (traffic-layer, SDF
+      // silhouettes tinted via the `icon-color` expression) and `poi-icon-*`
+      // (favorites-layer). No icons are added programmatically here.
 
       final telemetry = refAccess.read(telemetryProvider);
       final settings = refAccess.read(appSettingsProvider).value;
@@ -189,7 +129,7 @@ extension MapCameraStyle on MapCamera {
             'icon-pitch-alignment': 'viewport',
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
-            'icon-size': 1 / 4,
+            'icon-size': kAircraftIconSize,
           },
         ),
       );
@@ -235,7 +175,7 @@ extension MapCameraStyle on MapCamera {
             'icon-pitch-alignment': 'viewport',
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
-            'icon-size': 0.12,
+            'icon-size': kTrafficIconSize,
             'text-font': ['Roboto Regular,Noto Sans Regular'],
             'text-field': ['get', 'altitudeTag'],
             'text-size': 11.0 * mapFontSize,
@@ -245,6 +185,22 @@ extension MapCameraStyle on MapCamera {
             'text-ignore-placement': true,
           },
           paint: {
+            'icon-color': [
+              'case',
+              [
+                '==',
+                ['get', 'isThreat'],
+                true,
+              ],
+              mapColorHex(kTrafficThreatColor),
+              [
+                '==',
+                ['get', 'isFlying'],
+                true,
+              ],
+              mapColorHex(kTrafficFlyingColor),
+              mapColorHex(kTrafficInactiveColor),
+            ],
             'text-color': [
               'case',
               [
@@ -252,7 +208,7 @@ extension MapCameraStyle on MapCamera {
                 ['get', 'isThreat'],
                 true,
               ],
-              '#FF3333',
+              mapColorHex(kTrafficThreatColor),
               '#FFFFFF',
             ],
             'text-halo-color': '#000000',
@@ -277,7 +233,7 @@ extension MapCameraStyle on MapCamera {
           sourceId: 'favorites-source',
           layout: {
             'icon-image': ['get', 'icon-image'],
-            'icon-size': 0.16,
+            'icon-size': kPoiIconSize,
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
             'text-font': ['Roboto Mono Regular,Noto Sans Regular'],
@@ -308,41 +264,5 @@ extension MapCameraStyle on MapCamera {
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');
     }
-  }
-}
-
-Future<Uint8List> _loadAndTintImage(String assetPath, Color color) async {
-  ui.Codec? codec;
-  ui.Image? image;
-  ui.Picture? picture;
-  ui.Image? tintedImage;
-  try {
-    final data = await rootBundle.load(assetPath);
-    codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-    final frame = await codec.getNextFrame();
-    image = frame.image;
-
-    final pictureRecorder = ui.PictureRecorder();
-    final canvas = Canvas(pictureRecorder);
-    final paint = Paint()
-      ..colorFilter = ColorFilter.mode(color, BlendMode.modulate);
-    canvas.drawImage(image, Offset.zero, paint);
-
-    picture = pictureRecorder.endRecording();
-    tintedImage = await picture.toImage(image.width, image.height);
-    final byteData = await tintedImage.toByteData(
-      format: ui.ImageByteFormat.png,
-    );
-    if (byteData == null) {
-      throw StateError(
-        'Failed to convert tinted image to PNG byte data for $assetPath',
-      );
-    }
-    return byteData.buffer.asUint8List();
-  } finally {
-    codec?.dispose();
-    image?.dispose();
-    picture?.dispose();
-    tintedImage?.dispose();
   }
 }

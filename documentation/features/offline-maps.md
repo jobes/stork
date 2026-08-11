@@ -63,6 +63,8 @@ The application runs a local `HttpServer` that acts as a proxy for all map reque
 
 This hybrid approach ensures that users always have access to the best available data: low-latency, offline-capable maps for downloaded regions, and full global coverage when connected to the internet.
 
+In addition to tiles, the local server proxies the static style assets referenced by the map style: the OpenAIP sprite (`openaip` segment), the fonts (`fonts` segment), and the **app sprite** (`map_sprites` segment — see the [Map Sprite & Icon System](../architecture/map-sprite.md)). This keeps all `asset://` URLs in the style resolvable through the same local proxy.
+
 ### Dynamic Style Rewriting ([StyleService](../../lib/core/services/style_service_io.dart))
 
 For the transparent tile serving proxy to work, the map style definitions must be dynamically rewired before they are loaded by the MapLibre engine. This is handled by [StyleService](../../lib/core/services/style_service_io.dart):

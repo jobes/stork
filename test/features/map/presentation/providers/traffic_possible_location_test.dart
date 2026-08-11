@@ -1,14 +1,24 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:stork/core/utils/geo_utils.dart';
 import 'package:stork/features/telemetry/domain/models/traffic_aircraft.dart';
 
+import '../../../../helpers/sprite_test_utils.dart';
+
 void main() {
   group('Traffic Possible Location Tests', () {
-    test('assets exist in expected locations', () {
-      final pngAsset = File('assets/images/possible-loc.png');
-      expect(pngAsset.existsSync(), isTrue);
+    test('possibleLoc sprite frame exists and fits the sheet', () {
+      final index = loadSpriteIndex();
+      expect(
+        index.containsKey('possibleLoc'),
+        isTrue,
+        reason: 'Sprite frame missing: possibleLoc',
+      );
+      expect(
+        overflowingFrames(index),
+        isEmpty,
+        reason: 'Some sprite frames overflow the sheet',
+      );
     });
 
     test(

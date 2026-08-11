@@ -37,6 +37,10 @@
     {
       "id": "protomaps",
       "url": "https://protomaps.github.io/basemaps-assets/sprites/v4/light"
+    },
+    {
+      "id": "default",
+      "url": "asset://map_sprites/sprite"
     }
   ],
   "glyphs": "asset://fonts/{fontstack}/{range}.pbf",

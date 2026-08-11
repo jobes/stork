@@ -18,12 +18,12 @@ enum AircraftType {
 
   const AircraftType(this.ognCode, this.assetName);
 
-  String get assetPath => 'assets/images/aircraft_types/$assetName.png';
-
-  String get mapIconId => 'aircraft-icon-$assetName';
+  /// Traffic icon id — resolved from the app sprite (`assets/map_sprites/`,
+  /// sprite id "default"). The icon is an SDF silhouette tinted per state via
+  /// the `icon-color` expression on `traffic-layer`, and via the `color`
+  /// parameter of `SpriteIcon` in the Flutter UI (e.g. the traffic details
+  /// dialog). No separate PNG assets are bundled at runtime.
   String get trafficMapIconId => 'traffic-icon-$assetName';
-  String get inactiveTrafficMapIconId => 'traffic-icon-inactive-$assetName';
-  String get threatTrafficMapIconId => 'traffic-icon-threat-$assetName';
 
   static AircraftType fromOgnCode(int code) {
     switch (code) {

@@ -1,6 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../../core/utils/geo_utils.dart';
+import '../../../../../core/widgets/sprite_icon.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../settings/domain/models/aircraft_type.dart';
 import '../../../../settings/domain/models/altitude_unit.dart';
@@ -9,7 +13,7 @@ import '../../../../settings/presentation/extensions/aircraft_type_extension.dar
 import '../../../../settings/presentation/providers/settings_provider.dart';
 import '../../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../../telemetry/presentation/providers/traffic_provider.dart';
-import '../../../../../core/utils/geo_utils.dart';
+import '../../providers/traffic_colors.dart';
 import 'base_details_dialog.dart';
 
 class TrafficDetailsDialog extends ConsumerStatefulWidget {
@@ -213,12 +217,15 @@ class _TrafficDetailsDialogState extends ConsumerState<TrafficDetailsDialog> {
                                       ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Image.asset(
-                                acType.assetPath,
+                              // The sprite stores the traffic icons as white
+                              // SDF silhouettes, so they are always tinted
+                              // (flying = the same blue used on the map).
+                              child: SpriteIcon(
+                                frameId: acType.trafficMapIconId,
                                 width: 24,
                                 height: 24,
                                 color: isFlying
-                                    ? null
+                                    ? kTrafficFlyingColor
                                     : (isDark
                                           ? Colors.grey[500]
                                           : Colors.grey[600]),

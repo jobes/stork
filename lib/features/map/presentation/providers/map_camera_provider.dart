@@ -4,9 +4,6 @@ import 'dart:math' as math;
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
-import 'package:flutter/services.dart';
-import 'package:flutter/material.dart'
-    show Color, Paint, Canvas, ColorFilter, BlendMode, Offset;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -27,7 +24,7 @@ import '../../../favorites/presentation/providers/favorites_provider.dart';
 import 'notams_provider.dart';
 import 'airspace_activity_provider.dart';
 import 'airspace_highlight_layers.dart';
-import '../../domain/models/poi_type.dart';
+import 'traffic_colors.dart';
 import '../../domain/utils/airspace_activity_utils.dart';
 import '../../utils/geojson_builder.dart';
 
@@ -622,11 +619,9 @@ class MapCamera extends _$MapCamera {
     final features = traffic.map((ac) {
       final acType = AircraftType.fromOgnCode(ac.aircraftType);
       final isFlying = ac.groundSpeed > 1.0;
-      final iconId = ac.isCollisionThreat
-          ? acType.threatTrafficMapIconId
-          : (isFlying
-                ? acType.trafficMapIconId
-                : acType.inactiveTrafficMapIconId);
+      // Single SDF sprite icon; the colour state is applied per layer via the
+      // `icon-color` expression on `traffic-layer`.
+      final iconId = acType.trafficMapIconId;
 
       double possiblePositionRatio = 0.0;
       if (isFlying && ac.groundSpeed > 0) {
@@ -707,6 +702,7 @@ class MapCamera extends _$MapCamera {
           'icon-image': iconId,
           'altitudeTag': altitudeTagStr,
           'isThreat': ac.isCollisionThreat,
+          'isFlying': isFlying,
           'possiblePositionRatio': possiblePositionRatio,
         },
       };
