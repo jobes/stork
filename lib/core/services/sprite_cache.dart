@@ -62,7 +62,7 @@ class SpriteCache {
           ),
         };
         final sheet = await _loadSheet(scale);
-        return _crop(sheet, x, y, width, height);
+        return await _crop(sheet, x, y, width, height);
       } catch (error, stackTrace) {
         // Do not cache failures so a later request can retry (e.g. after a
         // sprite regeneration).
