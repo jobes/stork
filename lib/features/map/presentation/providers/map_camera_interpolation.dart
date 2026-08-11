@@ -8,7 +8,7 @@ extension MapCameraInterpolation on MapCamera {
     required double targetBearing,
     required Duration duration,
   }) {
-    _interpolationTimer?.cancel();
+    _stopInterpolation();
 
     final startCamera = _mapController?.camera;
     if (startCamera == null) return;
@@ -23,30 +23,36 @@ extension MapCameraInterpolation on MapCamera {
     _currentInterpolatedPitch = startPitch;
     _currentInterpolatedBearing = startBearing;
 
-    final startTime = DateTime.now();
-    const interval = Duration(milliseconds: 16); // ~60 FPS
+    final totalMs = duration.inMilliseconds <= 0 ? 1 : duration.inMilliseconds;
 
-    _interpolationTimer = Timer.periodic(interval, (timer) {
+    // Vsync-aligned Ticker instead of Timer.periodic: exactly one tick per
+    // rendered frame, so no camera/GeoJSON updates are wasted on frames that
+    // are never drawn, and ticking pauses automatically when the app stops
+    // producing frames (e.g. backgrounded).
+    _interpolationTicker = Ticker((elapsed) {
       if (!refAccess.mounted || _mapController == null) {
-        timer.cancel();
-        _interpolationTimer = null;
+        _stopInterpolation();
         return;
       }
 
-      final elapsed = DateTime.now().difference(startTime);
-      double t = elapsed.inMilliseconds / duration.inMilliseconds;
-      if (t >= 1.0) {
-        t = 1.0;
-        timer.cancel();
-        _interpolationTimer = null;
-      }
+      // Progress in [0, 1].
+      final t = elapsed.inMilliseconds / totalMs;
+      final progress = t >= 1.0 ? 1.0 : t;
 
       // Linear interpolation for camera
-      final lat = _interpolateLinear(startCenter.lat, targetCenter.lat, t);
-      final lon = _interpolateLinear(startCenter.lon, targetCenter.lon, t);
-      final zoom = _interpolateLinear(startZoom, targetZoom, t);
-      final pitch = _interpolateLinear(startPitch, targetPitch, t);
-      final bearing = _interpolateAngle(startBearing, targetBearing, t);
+      final lat = _interpolateLinear(
+        startCenter.lat,
+        targetCenter.lat,
+        progress,
+      );
+      final lon = _interpolateLinear(
+        startCenter.lon,
+        targetCenter.lon,
+        progress,
+      );
+      final zoom = _interpolateLinear(startZoom, targetZoom, progress);
+      final pitch = _interpolateLinear(startPitch, targetPitch, progress);
+      final bearing = _interpolateAngle(startBearing, targetBearing, progress);
 
       final currentCenter = Geographic(lat: lat, lon: lon);
       _currentInterpolatedCenter = currentCenter;
@@ -63,7 +69,7 @@ extension MapCameraInterpolation on MapCamera {
       _lastProgrammaticMoveTime = DateTime.now();
 
       // Interpolate the course line symbol 2x faster for snappier tracking
-      double t2 = t * 2;
+      double t2 = progress * 2;
       if (t2 > 1.0) t2 = 1.0;
 
       final lat2 = _interpolateLinear(startCenter.lat, targetCenter.lat, t2);
@@ -78,7 +84,12 @@ extension MapCameraInterpolation on MapCamera {
         courseLon: lon2,
         courseBearing: bearing2,
       );
+
+      if (t >= 1.0) {
+        _stopInterpolation();
+      }
     });
+    _interpolationTicker!.start();
   }
 
   void _updateAircraftAndCourseLine({
@@ -128,9 +139,14 @@ extension MapCameraInterpolation on MapCamera {
     return (start + diff * t) % 360;
   }
 
+  void _stopInterpolation() {
+    _interpolationTicker?.stop();
+    _interpolationTicker?.dispose();
+    _interpolationTicker = null;
+  }
+
   void _cancelInterpolation() {
-    _interpolationTimer?.cancel();
-    _interpolationTimer = null;
+    _stopInterpolation();
     _currentInterpolatedCenter = null;
     _currentInterpolatedZoom = null;
     _currentInterpolatedPitch = null;

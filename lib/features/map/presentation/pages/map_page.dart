@@ -159,27 +159,39 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
           children: [
             styleAsync.when(
               data: (style) {
-                return AircraftMap(
-                  style: style,
-                  onUserInteraction: cameraController.handleUserInteraction,
-                  onMapCreated: cameraController.attachController,
-                  onStyleLoaded: (style) {
-                    unawaited(cameraController.handleStyleLoaded(style));
-                  },
-                  onEvent: (event) {
-                    if (_isDrawerOpen) return;
-                    cameraController.handleMapEvent(
-                      event,
-                      onFeaturesTapped: (features, coordinate) {
-                        if (!mounted) return;
-                        showMapFeaturesBottomSheet(
-                          context,
-                          features,
-                          coordinate,
-                        );
-                      },
-                    );
-                  },
+                // Keep the native MapLibre platform view inside its own
+                // compositing layer, as recommended by Flutter's guidance for
+                // Android hybrid-composition platform views. This gives the
+                // compositor a stable, cached layer for the map's texture so
+                // page-level repaints (drawer transitions, dialogs, banner
+                // toggles, layout changes) never re-composite the platform
+                // view. Note: the overlay telemetry widgets are already
+                // isolated by their own RepaintBoundary inside TelemetryCard,
+                // so this is mostly defensive — the per-frame jank wins come
+                // from throttling the platform-channel source updates instead.
+                return RepaintBoundary(
+                  child: AircraftMap(
+                    style: style,
+                    onUserInteraction: cameraController.handleUserInteraction,
+                    onMapCreated: cameraController.attachController,
+                    onStyleLoaded: (style) {
+                      unawaited(cameraController.handleStyleLoaded(style));
+                    },
+                    onEvent: (event) {
+                      if (_isDrawerOpen) return;
+                      cameraController.handleMapEvent(
+                        event,
+                        onFeaturesTapped: (features, coordinate) {
+                          if (!mounted) return;
+                          showMapFeaturesBottomSheet(
+                            context,
+                            features,
+                            coordinate,
+                          );
+                        },
+                      );
+                    },
+                  ),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
