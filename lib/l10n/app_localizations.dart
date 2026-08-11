@@ -2084,6 +2084,144 @@ abstract class AppLocalizations {
   /// **'Please enter a name'**
   String get pleaseEnterName;
 
+  /// No description provided for @addToFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favourites'**
+  String get addToFavorites;
+
+  /// No description provided for @favoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourites'**
+  String get favoritesTitle;
+
+  /// No description provided for @favoritePointTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New favourite point'**
+  String get favoritePointTitle;
+
+  /// No description provided for @favoriteIconLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get favoriteIconLabel;
+
+  /// No description provided for @favoriteNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get favoriteNameLabel;
+
+  /// No description provided for @favoriteNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Home airfield'**
+  String get favoriteNameHint;
+
+  /// No description provided for @favoriteDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get favoriteDescriptionLabel;
+
+  /// No description provided for @favoriteDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a description…'**
+  String get favoriteDescriptionHint;
+
+  /// No description provided for @favoriteFormattingHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Select text and use the toolbar for **bold** and *italic*, or type the markers manually.'**
+  String get favoriteFormattingHelp;
+
+  /// No description provided for @favoriteFormatBold.
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get favoriteFormatBold;
+
+  /// No description provided for @favoriteFormatItalic.
+  ///
+  /// In en, this message translates to:
+  /// **'Italic'**
+  String get favoriteFormatItalic;
+
+  /// No description provided for @favoriteSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite point saved'**
+  String get favoriteSaved;
+
+  /// No description provided for @favoriteFailedToSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save favourite point'**
+  String get favoriteFailedToSave;
+
+  /// No description provided for @favoriteDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite point'**
+  String get favoriteDetailsTitle;
+
+  /// No description provided for @favoriteDescriptionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No description'**
+  String get favoriteDescriptionEmpty;
+
+  /// No description provided for @favoriteEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit favourite point'**
+  String get favoriteEditTitle;
+
+  /// No description provided for @favoriteFailedToLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load favourite points'**
+  String get favoriteFailedToLoad;
+
+  /// No description provided for @favoritesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No favourite points yet'**
+  String get favoritesEmptyTitle;
+
+  /// No description provided for @favoritesEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save points from the map to manage them here.'**
+  String get favoritesEmptyHint;
+
+  /// No description provided for @showOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Show on map'**
+  String get showOnMap;
+
+  /// No description provided for @favoriteAddedToNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to navigation'**
+  String get favoriteAddedToNavigation;
+
+  /// No description provided for @favoriteDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete favourite point \"{name}\"?'**
+  String favoriteDeleteConfirm(String name);
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
   /// No description provided for @deleteFlightConfirmation.
   ///
   /// In en, this message translates to:

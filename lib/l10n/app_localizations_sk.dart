@@ -1045,6 +1045,78 @@ class AppLocalizationsSk extends AppLocalizations {
   String get pleaseEnterName => 'Prosím, zadajte názov';
 
   @override
+  String get addToFavorites => 'Pridať do obľúbených';
+
+  @override
+  String get favoritesTitle => 'Obľúbené';
+
+  @override
+  String get favoritePointTitle => 'Nový obľúbený bod';
+
+  @override
+  String get favoriteIconLabel => 'Ikona';
+
+  @override
+  String get favoriteNameLabel => 'Názov';
+
+  @override
+  String get favoriteNameHint => 'napr. Domáce letisko';
+
+  @override
+  String get favoriteDescriptionLabel => 'Popis';
+
+  @override
+  String get favoriteDescriptionHint => 'Pridajte popis…';
+
+  @override
+  String get favoriteFormattingHelp =>
+      'Označte text a použite panel na **tučné** a *kurzívu*, alebo zadajte značky ručne.';
+
+  @override
+  String get favoriteFormatBold => 'Tučné';
+
+  @override
+  String get favoriteFormatItalic => 'Kurzíva';
+
+  @override
+  String get favoriteSaved => 'Obľúbený bod bol uložený';
+
+  @override
+  String get favoriteFailedToSave => 'Nepodarilo sa uložiť obľúbený bod';
+
+  @override
+  String get favoriteDetailsTitle => 'Obľúbený bod';
+
+  @override
+  String get favoriteDescriptionEmpty => 'Bez popisu';
+
+  @override
+  String get favoriteEditTitle => 'Upraviť obľúbený bod';
+
+  @override
+  String get favoriteFailedToLoad => 'Nepodarilo sa načítať obľúbené body';
+
+  @override
+  String get favoritesEmptyTitle => 'Zatiaľ žiadne obľúbené body';
+
+  @override
+  String get favoritesEmptyHint => 'Tu môžete spravovať body uložené z mapy.';
+
+  @override
+  String get showOnMap => 'Zobraziť na mape';
+
+  @override
+  String get favoriteAddedToNavigation => 'Pridané do navigácie';
+
+  @override
+  String favoriteDeleteConfirm(String name) {
+    return 'Odstrániť obľúbený bod \"$name\"?';
+  }
+
+  @override
+  String get edit => 'Upraviť';
+
+  @override
   String deleteFlightConfirmation(String name) {
     return 'Naozaj chcete vymazať \"$name\"?';
   }

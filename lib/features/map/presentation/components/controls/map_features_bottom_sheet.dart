@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../../favorites/presentation/dialogs/add_favorite_dialog.dart';
+import '../../../../favorites/presentation/dialogs/favorite_details_dialog.dart';
+import '../../../../favorites/presentation/providers/favorites_provider.dart';
 import '../../providers/airport_metadata_provider.dart';
 import '../dialogs/airport_details_dialog.dart';
 import '../dialogs/airspace_details_dialog.dart';
@@ -64,6 +67,16 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
       }
     }
     return list;
+  }
+
+  /// Helper method to find a favourite point feature in the features list
+  Map<dynamic, dynamic>? _findFavoriteFeature() {
+    for (final f in features) {
+      if (f is Map && f['layerType'] == 'favorite') {
+        return f;
+      }
+    }
+    return null;
   }
 
   /// Helper method to find traffic features in the features list
@@ -187,15 +200,47 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
     final airspaceFeatures = _findAirspaceFeatures();
     final notamFeatures = _findNotamFeatures();
     final trafficFeatures = _findTrafficFeatures();
+    final favoriteFeature = _findFavoriteFeature();
     final l10n = AppLocalizations.of(context)!;
 
     final navigationAsync = ref.watch(navigationProvider);
     final hasRoute = navigationAsync.value?.points.isNotEmpty ?? false;
 
+    FavoritePoint? favoritePoint;
+    if (favoriteFeature != null) {
+      final favoriteId = favoriteFeature['properties']?['id']?.toString() ?? '';
+      if (favoriteId.isNotEmpty) {
+        // Watch (not read) so the sheet rebuilds once favourites finish
+        // loading, showing the details tile instead of "Add to favourites"
+        // for an already-saved point.
+        final favorites = ref.watch(favoritesProvider).value ?? [];
+        for (final f in favorites) {
+          if (f.id == favoriteId) {
+            favoritePoint = f;
+            break;
+          }
+        }
+      }
+    }
+
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (favoritePoint case final FavoritePoint point)
+            ListTile(
+              leading: const Icon(Icons.star, color: Colors.amber),
+              title: Text(l10n.favoriteDetailsTitle),
+              subtitle: Text(
+                point.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () {
+                Navigator.pop(context); // Close bottom sheet
+                showFavoriteDetailsDialog(context, point);
+              },
+            ),
           if (airportFeature != null)
             ListTile(
               leading: const Icon(Icons.flight_land),
@@ -255,6 +300,44 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(context); // Close bottom sheet
                 _showNotamsDetails(context, notamFeatures, ref);
+              },
+            ),
+          // 'Add to favourites' is hidden when tapping an airport or an already
+          // saved favourite point
+          if (airportFeature == null && favoritePoint == null)
+            ListTile(
+              leading: const Icon(Icons.star_border),
+              title: Text(l10n.addToFavorites),
+              subtitle: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      _getPointName(context),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              onTap: () {
+                final messenger = ScaffoldMessenger.of(context);
+                Navigator.pop(context); // Close bottom sheet
+                showAddFavoriteDialog(
+                  context,
+                  latitude: coordinate.lat,
+                  longitude: coordinate.lon,
+                  suggestedName: _getPointName(context),
+                ).then((point) {
+                  if (point != null) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.favoriteSaved)),
+                    );
+                  }
+                });
               },
             ),
           ListTile(

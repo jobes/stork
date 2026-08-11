@@ -426,6 +426,36 @@
   "avgRpmLabel": "Priemerné RPM motora",
   "failedToAddNavigationPoint": "Nepodarilo sa pridať navigačný bod",
   "pleaseEnterName": "Prosím, zadajte názov",
+  "addToFavorites": "Pridať do obľúbených",
+  "favoritesTitle": "Obľúbené",
+  "favoritePointTitle": "Nový obľúbený bod",
+  "favoriteIconLabel": "Ikona",
+  "favoriteNameLabel": "Názov",
+  "favoriteNameHint": "napr. Domáce letisko",
+  "favoriteDescriptionLabel": "Popis",
+  "favoriteDescriptionHint": "Pridajte popis…",
+  "favoriteFormattingHelp": "Označte text a použite panel na **tučné** a *kurzívu*, alebo zadajte značky ručne.",
+  "favoriteFormatBold": "Tučné",
+  "favoriteFormatItalic": "Kurzíva",
+  "favoriteSaved": "Obľúbený bod bol uložený",
+  "favoriteFailedToSave": "Nepodarilo sa uložiť obľúbený bod",
+  "favoriteDetailsTitle": "Obľúbený bod",
+  "favoriteDescriptionEmpty": "Bez popisu",
+  "favoriteEditTitle": "Upraviť obľúbený bod",
+  "favoriteFailedToLoad": "Nepodarilo sa načítať obľúbené body",
+  "favoritesEmptyTitle": "Zatiaľ žiadne obľúbené body",
+  "favoritesEmptyHint": "Tu môžete spravovať body uložené z mapy.",
+  "showOnMap": "Zobraziť na mape",
+  "favoriteAddedToNavigation": "Pridané do navigácie",
+  "favoriteDeleteConfirm": "Odstrániť obľúbený bod \"{name}\"?",
+  "@favoriteDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "edit": "Upraviť",
   "deleteFlightConfirmation": "Naozaj chcete vymazať \"{name}\"?",
   "@deleteFlightConfirmation": {
     "placeholders": {

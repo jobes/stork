@@ -7,6 +7,7 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/navigation/presentation/pages/navigation_page.dart';
 import '../../features/telemetry/presentation/pages/flight_records_page.dart';
 import '../../features/settings/presentation/pages/profile_page.dart';
+import '../../features/favorites/presentation/pages/favorites_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -24,6 +25,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/navigation',
       builder: (context, state) => const NavigationPage(),
+    ),
+    GoRoute(
+      path: '/favorites',
+      builder: (context, state) => const FavoritesPage(),
     ),
     GoRoute(
       path: '/flight-records',

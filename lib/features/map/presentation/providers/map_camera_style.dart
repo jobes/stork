@@ -41,6 +41,19 @@ extension MapCameraStyle on MapCamera {
         }
       }
 
+      // Load all POI (point of interest) icons into style
+      for (final type in PoiType.values) {
+        try {
+          await style.addImageFromAssets(
+            id: type.mapIconId,
+            asset: type.assetPath,
+          );
+          if (!refAccess.mounted) return;
+        } catch (e) {
+          debugPrint('Failed to load POI icon for ${type.name}: $e');
+        }
+      }
+
       // Traffic possible location indicator image
       await style.addImageFromAssets(
         id: 'possibleLoc',
@@ -249,9 +262,41 @@ extension MapCameraStyle on MapCamera {
       );
       if (!refAccess.mounted) return;
 
+      // User favourite points (rendered with POI icons from PoiType)
+      await style.addSource(
+        GeoJsonSource(
+          id: 'favorites-source',
+          data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        SymbolStyleLayer(
+          id: 'favorites-layer',
+          sourceId: 'favorites-source',
+          layout: {
+            'icon-image': ['get', 'icon-image'],
+            'icon-size': 0.16,
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+            'text-font': ['Roboto Mono Regular,Noto Sans Regular'],
+            'text-field': ['get', 'name'],
+            'text-size': 12.0 * mapFontSize,
+            'text-offset': [0, 0.8],
+            'text-anchor': 'top',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
+          },
+          paint: {'text-color': '#000000', 'text-halo-width': 0},
+        ),
+      );
+      if (!refAccess.mounted) return;
+
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();
       updateNotamsOnMap();
+      updateFavoritesOnMap();
       // The (re)loaded style wiped the runtime highlight layers, so clear the
       // diff cache to force updateAirspacesOnMap to re-apply them.
       _lastActiveAirspaceIds = null;
