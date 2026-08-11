@@ -65,6 +65,7 @@ dependencies:
   photo_view: ^0.15.0
   share_plus: ^13.1.0
   flutter_secure_storage: ^11.0.0
+  textf: ^1.2.4
 
 dev_dependencies:
   flutter_test:
@@ -111,6 +112,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/aircraft_types/
+    - assets/images/poi/
     - assets/openaip/styles.json
     - assets/openaip/sprite.pbf
     - assets/openaip/sprite.png

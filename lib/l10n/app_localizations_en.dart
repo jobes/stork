@@ -1044,6 +1044,79 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseEnterName => 'Please enter a name';
 
   @override
+  String get addToFavorites => 'Add to favourites';
+
+  @override
+  String get favoritesTitle => 'Favourites';
+
+  @override
+  String get favoritePointTitle => 'New favourite point';
+
+  @override
+  String get favoriteIconLabel => 'Icon';
+
+  @override
+  String get favoriteNameLabel => 'Name';
+
+  @override
+  String get favoriteNameHint => 'e.g. Home airfield';
+
+  @override
+  String get favoriteDescriptionLabel => 'Description';
+
+  @override
+  String get favoriteDescriptionHint => 'Add a description…';
+
+  @override
+  String get favoriteFormattingHelp =>
+      'Select text and use the toolbar for **bold** and *italic*, or type the markers manually.';
+
+  @override
+  String get favoriteFormatBold => 'Bold';
+
+  @override
+  String get favoriteFormatItalic => 'Italic';
+
+  @override
+  String get favoriteSaved => 'Favourite point saved';
+
+  @override
+  String get favoriteFailedToSave => 'Failed to save favourite point';
+
+  @override
+  String get favoriteDetailsTitle => 'Favourite point';
+
+  @override
+  String get favoriteDescriptionEmpty => 'No description';
+
+  @override
+  String get favoriteEditTitle => 'Edit favourite point';
+
+  @override
+  String get favoriteFailedToLoad => 'Failed to load favourite points';
+
+  @override
+  String get favoritesEmptyTitle => 'No favourite points yet';
+
+  @override
+  String get favoritesEmptyHint =>
+      'Save points from the map to manage them here.';
+
+  @override
+  String get showOnMap => 'Show on map';
+
+  @override
+  String get favoriteAddedToNavigation => 'Added to navigation';
+
+  @override
+  String favoriteDeleteConfirm(String name) {
+    return 'Delete favourite point \"$name\"?';
+  }
+
+  @override
+  String get edit => 'Edit';
+
+  @override
   String deleteFlightConfirmation(String name) {
     return 'Are you sure you want to delete \"$name\"?';
   }

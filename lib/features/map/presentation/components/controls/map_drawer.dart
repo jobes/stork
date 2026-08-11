@@ -171,6 +171,14 @@ class MapDrawer extends ConsumerWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.star_outline),
+              title: Text(l10n.favoritesTitle),
+              onTap: () {
+                context.pop();
+                context.push('/favorites');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.history),
               title: Text(l10n.flightRecords),
               onTap: () {

@@ -39,6 +39,8 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Describes the offline-first architecture with PMTiles, tile local caching proxies using an embedded local HTTP server, dynamic MapLibre style rewriting, and openAIP country-based metadata fetching/syncing.*
 *   [Aeronautical Metadata and Map Interaction](features/aeronautical-metadata.md)
     *   *Explains how OpenAIP airport and airspace metadata is synchronized, cached in the local SQLite database, queried on map tap coordinates, and presented in the interactive details dialogs.*
+*   [Favourite Points (Map POI)](features/favorites.md)
+    *   *Describes the user-defined favourite points: Freezed domain model, SharedPreferences JSON persistence, keep-alive Riverpod notifier with persistence-first writes, the MapLibre `favorites-layer` symbol rendering with POI icons, tap interaction and `focusOnPoint` camera preview, plus the add/edit/details dialogs and the dedicated Favourites page.*
 *   [Active Airspaces (AUP/UUP)](features/active-airspaces.md)
     *   *Describes the real-time airspace activity system: AUP/UUP data sources (Slovak LzPS ArcGIS and Czech ŘLP AUP portal), openAIP id binding, 30 km FIR-buffer pre-fetching with Riverpod, MapLibre active/inactive highlight layers, and the live status badges in the airspace details dialog.*
 *   [NOTAM (Notice to Airmen) Alerts](features/notams.md)

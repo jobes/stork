@@ -514,6 +514,36 @@
   "avgRpmLabel": "Average engine RPM",
   "failedToAddNavigationPoint": "Failed to add navigation point",
   "pleaseEnterName": "Please enter a name",
+  "addToFavorites": "Add to favourites",
+  "favoritesTitle": "Favourites",
+  "favoritePointTitle": "New favourite point",
+  "favoriteIconLabel": "Icon",
+  "favoriteNameLabel": "Name",
+  "favoriteNameHint": "e.g. Home airfield",
+  "favoriteDescriptionLabel": "Description",
+  "favoriteDescriptionHint": "Add a description…",
+  "favoriteFormattingHelp": "Select text and use the toolbar for **bold** and *italic*, or type the markers manually.",
+  "favoriteFormatBold": "Bold",
+  "favoriteFormatItalic": "Italic",
+  "favoriteSaved": "Favourite point saved",
+  "favoriteFailedToSave": "Failed to save favourite point",
+  "favoriteDetailsTitle": "Favourite point",
+  "favoriteDescriptionEmpty": "No description",
+  "favoriteEditTitle": "Edit favourite point",
+  "favoriteFailedToLoad": "Failed to load favourite points",
+  "favoritesEmptyTitle": "No favourite points yet",
+  "favoritesEmptyHint": "Save points from the map to manage them here.",
+  "showOnMap": "Show on map",
+  "favoriteAddedToNavigation": "Added to navigation",
+  "favoriteDeleteConfirm": "Delete favourite point \"{name}\"?",
+  "@favoriteDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "edit": "Edit",
   "deleteFlightConfirmation": "Are you sure you want to delete \"{name}\"?",
   "@deleteFlightConfirmation": {
     "placeholders": {

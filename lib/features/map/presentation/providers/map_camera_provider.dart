@@ -23,9 +23,11 @@ import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/presentation/providers/traffic_provider.dart';
 import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../favorites/presentation/providers/favorites_provider.dart';
 import 'notams_provider.dart';
 import 'airspace_activity_provider.dart';
 import 'airspace_highlight_layers.dart';
+import '../../domain/models/poi_type.dart';
 import '../../domain/utils/airspace_activity_utils.dart';
 import '../../utils/geojson_builder.dart';
 
@@ -267,6 +269,13 @@ class MapCamera extends _$MapCamera {
       }
     });
 
+    // Listen to favourites updates to redraw favourite points on map
+    ref.listen(favoritesProvider, (previous, next) {
+      if (next.hasValue) {
+        updateFavoritesOnMap();
+      }
+    });
+
     // Listen to airspace activity (AUP/UUP) updates to redraw airspaces on map
     ref.listen(airspaceActivityProvider, (previous, next) {
       unawaited(updateAirspacesOnMap());
@@ -332,6 +341,10 @@ class MapCamera extends _$MapCamera {
     }
   }
 
+  /// Moves the camera. By default a lat/lon of exactly 0.0 is treated as an
+  /// invalid telemetry coordinate and the move is skipped. Pass
+  /// [allowZeroCoordinate] when the target is an explicit point (e.g. a
+  /// favourite) so valid Equator / Prime Meridian locations are honoured.
   Future<void> moveCamera({
     required Geographic center,
     required double zoom,
@@ -339,9 +352,11 @@ class MapCamera extends _$MapCamera {
     double bearing = 0,
     bool animate = true,
     Duration? duration,
+    bool allowZeroCoordinate = false,
   }) async {
     _cancelInterpolation();
-    if (_mapController != null && center.lat != 0 && center.lon != 0) {
+    if (_mapController != null &&
+        (allowZeroCoordinate || (center.lat != 0 && center.lon != 0))) {
       _programmaticMoveCount++;
       _lastProgrammaticMoveTime = DateTime.now();
       Object? token;
@@ -376,6 +391,41 @@ class MapCamera extends _$MapCamera {
         }
       }
     }
+  }
+
+  /// Moves the camera to the given point and switches to the north-up overview
+  /// state so the map acts as a static "preview" (it stops following the
+  /// aircraft). Used e.g. when showing a favourite point from its list page.
+  ///
+  /// Waits for the map controller when the map page is not mounted yet (e.g.
+  /// when navigating to the map from another page).
+  Future<void> focusOnPoint({
+    required double latitude,
+    required double longitude,
+    double zoom = 10.0,
+  }) async {
+    _followResumeTimer?.cancel();
+    _isFollowPaused = false;
+
+    // Leave follow mode so the camera no longer tracks the aircraft.
+    ref.read(telemetryProvider.notifier).setMapViewState(MapViewState.overview);
+
+    if (_mapController == null) {
+      await _controllerCompleter.future;
+      if (!ref.mounted) return;
+    }
+
+    await moveCamera(
+      center: Geographic(lon: longitude, lat: latitude),
+      zoom: zoom,
+      pitch: 0,
+      bearing: 0,
+      animate: true,
+      // The coordinates are an explicit point, so lat/lon of 0.0 (Equator /
+      // Prime Meridian) are valid and must not be rejected by the telemetry
+      // invalid-coordinate guard.
+      allowZeroCoordinate: true,
+    );
   }
 
   void handleUserInteraction({bool isExplicitInteraction = true}) {
@@ -715,6 +765,11 @@ class MapCamera extends _$MapCamera {
         layerIds: ['notams-fill-layer'],
       );
 
+      final favoriteFeatures = _mapController!.featuresAtPoint(
+        event.screenPoint,
+        layerIds: ['favorites-layer'],
+      );
+
       final trafficFeatures = _mapController!.featuresAtPoint(
         event.screenPoint,
         layerIds: ['traffic-layer'],
@@ -747,6 +802,13 @@ class MapCamera extends _$MapCamera {
           'id': f.id,
           'properties': f.properties,
           'layerType': 'notam',
+        });
+      }
+      for (final f in favoriteFeatures) {
+        featureMaps.add({
+          'id': f.id,
+          'properties': f.properties,
+          'layerType': 'favorite',
         });
       }
       for (final f in trafficFeatures) {
@@ -985,6 +1047,38 @@ class MapCamera extends _$MapCamera {
     _mapController!.style!.updateGeoJsonSource(
       id: 'notams-source',
       data: geojson,
+    );
+  }
+
+  void updateFavoritesOnMap() {
+    if (_mapController == null ||
+        !_isAircraftSymbolInitialized ||
+        _mapController?.style == null) {
+      return;
+    }
+
+    final favorites = ref.read(favoritesProvider).value ?? [];
+
+    final features = favorites.map((f) {
+      return {
+        'type': 'Feature',
+        'id': f.id,
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [f.longitude, f.latitude],
+        },
+        'properties': {
+          'id': f.id,
+          'icon-image': f.icon.mapIconId,
+          'name': f.name,
+          'description': f.description,
+        },
+      };
+    }).toList();
+
+    _mapController!.style!.updateGeoJsonSource(
+      id: 'favorites-source',
+      data: jsonEncode({'type': 'FeatureCollection', 'features': features}),
     );
   }
 }

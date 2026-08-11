@@ -21,10 +21,10 @@ graph TD
     Sheet -->|Select Airport| AptDlg[AirportDetailsDialog]
     Sheet -->|Select Airspaces| AspDlg[AirspaceDetailsDialog]
     
-    AptDlg -->|Watch| AptProvider[[airportMetadataProvider](../../lib/features/map/presentation/providers/airport_metadata_provider.dart)]
-    AspDlg -->|Watch| AspProvider[[airspaceMetadataProvider](../../lib/features/map/presentation/providers/airspace_metadata_provider.dart)]
+    AptDlg -->|Watch| AptProvider[airportMetadataProvider]
+    AspDlg -->|Watch| AspProvider[airspaceMetadataProvider]
     
-    AptProvider -->|Read Cache / DB / HuggingFace| Repo[[MapMetadataRepository](../../lib/features/map/data/repositories/map_metadata_repository.dart)]
+    AptProvider -->|Read Cache / DB / HuggingFace| Repo[MapMetadataRepository]
     AspProvider -->|Read Cache / DB / HuggingFace| Repo
 ```
 

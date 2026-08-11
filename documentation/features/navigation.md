@@ -23,13 +23,13 @@ graph TD
     Map[Map Screen: Tap Feature] -->|Show Bottom Sheet| BS[MapFeaturesBottomSheet]
     BS -->|addPoint| NP[NavigationNotifier / Riverpod]
     
-    NP -->|Save State| Repo[[NavigationRepository](../../lib/features/navigation/data/repositories/navigation_repository.dart)]
+    NP -->|Save State| Repo[NavigationRepository]
     Repo -->|Local Storage JSON| Storage[(Device Storage)]
     
-    Tel[TelemetryProvider: Lat/Lon, Speed] -->|Check updates| Adv[[navigationAutoAdvanceProvider](../../lib/features/navigation/presentation/providers/navigation_provider.dart)]
+    Tel[TelemetryProvider: Lat/Lon, Speed] -->|Check updates| Adv[navigationAutoAdvanceProvider]
     Adv -->|Auto-remove reached waypoints| NP
     
-    NP -->|Re-calculate route| Calc[[NavigationCalculations](../../lib/features/navigation/domain/models/navigation_calculations.dart)]
+    NP -->|Re-calculate route| Calc[NavigationCalculations]
     Calc -->|Expose calculations| NavUI[NavigationPage & Map Widget]
 ```
 

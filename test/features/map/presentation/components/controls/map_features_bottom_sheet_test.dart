@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
+import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/map/domain/models/poi_type.dart';
 import 'package:stork/features/map/presentation/components/controls/map_features_bottom_sheet.dart';
 import 'package:stork/features/map/presentation/components/dialogs/airport_details_dialog.dart';
 import 'package:stork/features/map/presentation/components/dialogs/airspace_details_dialog.dart';
@@ -599,6 +602,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      // 'Add to favourites' is hidden for airports, so the name appears once
+      expect(find.byIcon(Icons.star_border), findsNothing);
       expect(find.text('Martin (LKMK)'), findsOneWidget);
 
       final navTile = find.byIcon(Icons.navigation_outlined);
@@ -680,6 +685,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      // 'Add to favourites' is hidden for airports, so the name appears once
+      expect(find.byIcon(Icons.star_border), findsNothing);
       expect(find.text('Martin Site'), findsOneWidget);
 
       final navTile = find.byIcon(Icons.navigation_outlined);
@@ -737,7 +744,10 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Bratislava'), findsOneWidget);
+      // 'Add to favourites' is shown for non-airport points, so the name
+      // appears both in the favourites and navigation tiles
+      expect(find.byIcon(Icons.star_border), findsOneWidget);
+      expect(find.text('Bratislava'), findsWidgets);
 
       final navTile = find.byIcon(Icons.navigation_outlined);
       expect(navTile, findsOneWidget);
@@ -750,6 +760,68 @@ void main() {
       final pt = navState.points.first;
       expect(pt.name, equals('Bratislava'));
       expect(pt.isAirport, isFalse);
+    },
+  );
+
+  testWidgets(
+    'MapFeaturesBottomSheet hides "Add to favourites" when tapping a favourite point',
+    (WidgetTester tester) async {
+      const point = FavoritePoint(
+        id: 'fav-1',
+        latitude: 48.0,
+        longitude: 17.0,
+        icon: PoiType.viewpoint,
+        name: 'My favourite',
+        description: 'Some description',
+      );
+      SharedPreferences.setMockInitialValues({
+        'favorite_points': json.encode([point.toJson()]),
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWith(
+            (ref) => SharedPreferences.getInstance(),
+          ),
+          openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
+        ],
+      );
+      addTearDown(container.dispose);
+      // Pre-load favourites so the bottom sheet reads them synchronously
+      await container.read(favoritesProvider.future);
+
+      final features = [
+        {
+          'layerType': 'favorite',
+          'properties': {'id': 'fav-1', 'name': 'My favourite'},
+        },
+      ];
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: MapFeaturesBottomSheet(
+                features: features,
+                coordinate: Geographic(lat: 0.0, lon: 0.0),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Favourite details tile is shown
+      expect(find.byIcon(Icons.star), findsOneWidget);
+      expect(find.text('My favourite'), findsOneWidget);
+      // 'Add to favourites' is hidden when tapping a favourite point
+      expect(find.byIcon(Icons.star_border), findsNothing);
+      // Navigation tile is still available
+      expect(find.byIcon(Icons.navigation_outlined), findsOneWidget);
     },
   );
 
