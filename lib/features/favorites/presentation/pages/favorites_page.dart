@@ -127,10 +127,11 @@ class FavoritesPage extends ConsumerWidget {
     );
     if (confirmed != true || !context.mounted) return;
     final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref.read(favoritesProvider.notifier).removeFavorite(point.id);
-    } catch (e) {
-      debugPrint('Failed to delete favourite point: $e');
+    final result = await ref
+        .read(favoritesProvider.notifier)
+        .removeFavorite(point.id);
+    if (result is FavoriteSaveFailure) {
+      debugPrint('Failed to delete favourite point: ${result.error}');
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.favoriteFailedToSave)),
       );

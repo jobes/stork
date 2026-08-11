@@ -21,10 +21,15 @@ class FavoritesRepository {
     try {
       final decoded = json.decode(jsonStr);
       if (decoded is! List) return [];
-      return decoded
-          .whereType<Map<String, dynamic>>()
-          .map(FavoritePoint.fromJson)
-          .toList();
+      final favorites = <FavoritePoint>[];
+      for (final entry in decoded.whereType<Map<String, dynamic>>()) {
+        try {
+          favorites.add(FavoritePoint.fromJson(entry));
+        } catch (e) {
+          debugPrint('Skipping invalid favorite entry: $e');
+        }
+      }
+      return favorites;
     } catch (e) {
       debugPrint('Failed to load favorites from SharedPreferences: $e');
       return [];

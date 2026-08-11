@@ -40,6 +40,29 @@ void main() {
       expect(favorites.first.latitude, equals(48.0));
     });
 
+    test('loadFavorites keeps valid entries and skips malformed ones', () {
+      final repository = FavoritesRepository(prefs);
+      const valid = FavoritePoint(
+        id: 'f1',
+        latitude: 48.0,
+        longitude: 17.0,
+        icon: PoiType.viewpoint,
+        name: 'Viewpoint',
+      );
+      // Missing required fields (latitude, icon, name) so fromJson throws.
+      final malformed = <String, dynamic>{'id': 'bad'};
+
+      prefs.setString(
+        'favorite_points',
+        json.encode([valid.toJson(), malformed]),
+      );
+
+      final favorites = repository.loadFavorites();
+      expect(favorites, hasLength(1));
+      expect(favorites.first.id, equals('f1'));
+      expect(favorites.first.name, equals('Viewpoint'));
+    });
+
     test('loadFavorites returns empty list on parsing exception', () {
       final repository = FavoritesRepository(prefs);
       prefs.setString('favorite_points', 'invalid_json');

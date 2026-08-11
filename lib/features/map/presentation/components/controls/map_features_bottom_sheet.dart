@@ -302,9 +302,9 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
                 _showNotamsDetails(context, notamFeatures, ref);
               },
             ),
-          // 'Add to favourites' is hidden when tapping an airport or an already
-          // saved favourite point
-          if (airportFeature == null && favoritePoint == null)
+          // 'Add to favourites' is hidden when tapping an airport or any
+          // favourite-layer feature (even while favourites are loading)
+          if (airportFeature == null && favoriteFeature == null)
             ListTile(
               leading: const Icon(Icons.star_border),
               title: Text(l10n.addToFavorites),

@@ -117,17 +117,14 @@ class _AddFavoriteDialogState extends ConsumerState<AddFavoriteDialog> {
           );
 
     setState(() => _saving = true);
-    try {
-      if (initial != null) {
-        await ref.read(favoritesProvider.notifier).updateFavorite(point);
-      } else {
-        await ref.read(favoritesProvider.notifier).addFavorite(point);
-      }
-      if (!mounted) return;
+    final result = initial != null
+        ? await ref.read(favoritesProvider.notifier).updateFavorite(point)
+        : await ref.read(favoritesProvider.notifier).addFavorite(point);
+    if (!mounted) return;
+    if (result is FavoriteSaveSuccess) {
       Navigator.of(context).pop(point);
-    } catch (e) {
-      debugPrint('Failed to add favourite point: $e');
-      if (!mounted) return;
+    } else if (result is FavoriteSaveFailure) {
+      debugPrint('Failed to add favourite point: ${result.error}');
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

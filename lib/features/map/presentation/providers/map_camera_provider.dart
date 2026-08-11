@@ -341,6 +341,10 @@ class MapCamera extends _$MapCamera {
     }
   }
 
+  /// Moves the camera. By default a lat/lon of exactly 0.0 is treated as an
+  /// invalid telemetry coordinate and the move is skipped. Pass
+  /// [allowZeroCoordinate] when the target is an explicit point (e.g. a
+  /// favourite) so valid Equator / Prime Meridian locations are honoured.
   Future<void> moveCamera({
     required Geographic center,
     required double zoom,
@@ -348,9 +352,11 @@ class MapCamera extends _$MapCamera {
     double bearing = 0,
     bool animate = true,
     Duration? duration,
+    bool allowZeroCoordinate = false,
   }) async {
     _cancelInterpolation();
-    if (_mapController != null && center.lat != 0 && center.lon != 0) {
+    if (_mapController != null &&
+        (allowZeroCoordinate || (center.lat != 0 && center.lon != 0))) {
       _programmaticMoveCount++;
       _lastProgrammaticMoveTime = DateTime.now();
       Object? token;
@@ -415,6 +421,10 @@ class MapCamera extends _$MapCamera {
       pitch: 0,
       bearing: 0,
       animate: true,
+      // The coordinates are an explicit point, so lat/lon of 0.0 (Equator /
+      // Prime Meridian) are valid and must not be rejected by the telemetry
+      // invalid-coordinate guard.
+      allowZeroCoordinate: true,
     );
   }
 
