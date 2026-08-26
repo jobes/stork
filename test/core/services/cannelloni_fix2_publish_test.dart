@@ -12,12 +12,15 @@ Fix2 _fix2({
   double longitude = 17.0,
   int satellites = 10,
   int status = 3,
+  int gnssTimestamp = 0,
+  int gnssTimeStandard = 0,
+  int numLeapSeconds = 0,
 }) {
   return Fix2(
     timestamp: 0,
-    gnssTimestamp: 0,
-    gnssTimeStandard: 0,
-    numLeapSeconds: 0,
+    gnssTimestamp: gnssTimestamp,
+    gnssTimeStandard: gnssTimeStandard,
+    numLeapSeconds: numLeapSeconds,
     latitude: latitude,
     longitude: longitude,
     altitude: 300.0,
@@ -103,5 +106,75 @@ void main() {
     expect(state.gpsHorizontalAccuracy, 5.0);
     expect(state.gpsVerticalAccuracy, 6.0);
     expect(state.gpsAltitude, 300.0);
+  });
+
+  group('gpsTimestamp conversion from Fix2.gnssTimeStandard', () {
+    const gpsEpochMicros =
+        315964800000000; // 1980-01-06T00:00:00Z in UNIX micros
+    const microsPerSecond = 1000000;
+    // Microseconds since the standard's own epoch (same value for all cases).
+    const gnssTs = 123456789000000;
+
+    DateTime? publishedTimestamp({
+      required int gnssTimeStandard,
+      required int numLeapSeconds,
+    }) {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      publishDroneCanFix(
+        _fix2(
+          gnssTimestamp: gnssTs,
+          gnssTimeStandard: gnssTimeStandard,
+          numLeapSeconds: numLeapSeconds,
+        ),
+        container.read(telemetryProvider.notifier),
+      );
+
+      return container.read(telemetryProvider).gpsTimestamp;
+    }
+
+    test('UTC standard publishes the timestamp directly', () {
+      expect(
+        publishedTimestamp(gnssTimeStandard: 4, numLeapSeconds: 18),
+        DateTime.fromMicrosecondsSinceEpoch(gnssTs, isUtc: true),
+      );
+    });
+
+    test('GPS standard converts using numLeapSeconds and the GPS epoch', () {
+      const leap = 18;
+      expect(
+        publishedTimestamp(gnssTimeStandard: 2, numLeapSeconds: leap),
+        DateTime.fromMicrosecondsSinceEpoch(
+          gpsEpochMicros + gnssTs - leap * microsPerSecond,
+          isUtc: true,
+        ),
+      );
+    });
+
+    test('TAI standard converts using numLeapSeconds', () {
+      const leap = 37;
+      expect(
+        publishedTimestamp(gnssTimeStandard: 1, numLeapSeconds: leap),
+        DateTime.fromMicrosecondsSinceEpoch(
+          gnssTs - leap * microsPerSecond,
+          isUtc: true,
+        ),
+      );
+    });
+
+    test('UNKNOWN standard yields no UTC timestamp', () {
+      expect(
+        publishedTimestamp(gnssTimeStandard: 0, numLeapSeconds: 18),
+        isNull,
+      );
+    });
+
+    test('unsupported standard yields no UTC timestamp', () {
+      expect(
+        publishedTimestamp(gnssTimeStandard: 5, numLeapSeconds: 18),
+        isNull,
+      );
+    });
   });
 }

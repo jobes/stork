@@ -35,6 +35,53 @@ class PendingRequest {
 
 CannelloniService? _activeInstance;
 
+/// Microseconds in one second (1e6), used for leap-second conversion.
+const int _microsecondsPerSecond = 1000000;
+
+/// UNIX-epoch microseconds of the GPS epoch (1980-01-06T00:00:00Z).
+const int _gpsEpochMicroseconds = 315964800 * _microsecondsPerSecond;
+
+/// DroneCAN [Fix2.gnssTimeStandard] values (uavcan.equipment.gnss.Fix2).
+const int _gnssTimeStandardTai = 1;
+const int _gnssTimeStandardGps = 2;
+const int _gnssTimeStandardUtc = 4;
+
+/// Converts a DroneCAN [Fix2] GNSS timestamp to a UTC [DateTime], or `null`
+/// when no UTC time can be derived.
+///
+/// [Fix2.gnssTimestamp] is microseconds since the epoch of
+/// [Fix2.gnssTimeStandard]. Per the DroneCAN spec:
+/// - UTC: already in the UNIX epoch — returned unchanged.
+/// - GPS/TAI: converted to the UNIX epoch by subtracting
+///   [Fix2.numLeapSeconds] (GPS is additionally offset by its 1980 epoch).
+/// - UNKNOWN or any unsupported standard: no UTC time — returns `null`.
+@visibleForTesting
+DateTime? gnssTimestampToUtc(Fix2 fix2) {
+  if (fix2.gnssTimestamp <= 0) return null;
+  switch (fix2.gnssTimeStandard) {
+    case _gnssTimeStandardUtc:
+      return DateTime.fromMicrosecondsSinceEpoch(
+        fix2.gnssTimestamp,
+        isUtc: true,
+      );
+    case _gnssTimeStandardGps:
+      return DateTime.fromMicrosecondsSinceEpoch(
+        fix2.gnssTimestamp +
+            _gpsEpochMicroseconds -
+            fix2.numLeapSeconds * _microsecondsPerSecond,
+        isUtc: true,
+      );
+    case _gnssTimeStandardTai:
+      return DateTime.fromMicrosecondsSinceEpoch(
+        fix2.gnssTimestamp - fix2.numLeapSeconds * _microsecondsPerSecond,
+        isUtc: true,
+      );
+    default:
+      // UNKNOWN (and any unsupported standard, e.g. GLONASS): no UTC time.
+      return null;
+  }
+}
+
 /// Publishes a DroneCAN [Fix2] into telemetry as the authoritative GPS source.
 ///
 /// Invalid fixes (see [Fix2.hasValidFix]) are ignored: publishing them would
@@ -54,9 +101,7 @@ bool publishDroneCanFix(Fix2 fix2, TelemetryNotifier telemetry) {
     return false;
   }
 
-  final DateTime? timestamp = fix2.gnssTimestamp > 0
-      ? DateTime.fromMicrosecondsSinceEpoch(fix2.gnssTimestamp, isUtc: true)
-      : null;
+  final DateTime? timestamp = gnssTimestampToUtc(fix2);
 
   telemetry.updateGPS(
     latitude: fix2.latitude,
