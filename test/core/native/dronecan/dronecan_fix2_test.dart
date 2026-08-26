@@ -298,5 +298,54 @@ void main() {
         expect(fix2.verticalAccuracy, closeTo(0.5, 0.001));
       },
     );
+
+    group('hasValidFix', () {
+      test('is true for a 3D fix with satellites and non-zero position', () {
+        final fix2 = Fix2.fromPayload(
+          generateFix2Payload(status: 3, satellites: 10),
+        );
+        expect(fix2.hasValidFix, isTrue);
+      });
+
+      test('is true for a 2D fix with satellites and non-zero position', () {
+        final fix2 = Fix2.fromPayload(
+          generateFix2Payload(status: 2, satellites: 6),
+        );
+        expect(fix2.hasValidFix, isTrue);
+      });
+
+      test('is false when status is NO_FIX (0)', () {
+        final fix2 = Fix2.fromPayload(
+          generateFix2Payload(status: 0, satellites: 0),
+        );
+        expect(fix2.hasValidFix, isFalse);
+      });
+
+      test('is false when status is TIME_ONLY (1)', () {
+        final fix2 = Fix2.fromPayload(
+          generateFix2Payload(status: 1, satellites: 0),
+        );
+        expect(fix2.hasValidFix, isFalse);
+      });
+
+      test('is false when there are no satellites', () {
+        final fix2 = Fix2.fromPayload(
+          generateFix2Payload(status: 3, satellites: 0),
+        );
+        expect(fix2.hasValidFix, isFalse);
+      });
+
+      test('is false when position is 0,0', () {
+        final fix2 = Fix2.fromPayload(
+          generateFix2Payload(
+            status: 3,
+            satellites: 8,
+            latitude: 0.0,
+            longitude: 0.0,
+          ),
+        );
+        expect(fix2.hasValidFix, isFalse);
+      });
+    });
   });
 }

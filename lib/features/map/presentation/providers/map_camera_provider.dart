@@ -489,19 +489,21 @@ class MapCamera extends _$MapCamera {
       final location = await LocationService.getGpsLocationOnly(
         requestPermission: true,
       );
+      final hasPermission = await LocationService.hasPermission();
+
+      // Start the continuous phone GPS stream whenever permission is granted,
+      // so positions keep flowing after this initial one-shot fix.
+      if (hasPermission) {
+        ref.read(geolocatorStreamProvider.notifier).start();
+      }
 
       if (location != null) {
         ref
             .read(telemetryProvider.notifier)
             .updateGPS(latitude: location.lat, longitude: location.lon);
-      } else {
-        // If GPS is denied or failed, return to init state
-        final hasPermission = await LocationService.hasPermission();
-        if (!hasPermission) {
-          ref
-              .read(telemetryProvider.notifier)
-              .setMapViewState(MapViewState.init);
-        }
+      } else if (!hasPermission) {
+        // If GPS is denied, return to init state
+        ref.read(telemetryProvider.notifier).setMapViewState(MapViewState.init);
       }
     } else {
       final nextState = mapViewState == MapViewState.follow
@@ -545,6 +547,9 @@ class MapCamera extends _$MapCamera {
         ref
             .read(telemetryProvider.notifier)
             .setMapViewState(MapViewState.waitingForGps);
+
+        // Start the continuous phone GPS stream.
+        ref.read(geolocatorStreamProvider.notifier).start();
 
         final realLocation = await LocationService.getGpsLocationOnly(
           requestPermission: false,

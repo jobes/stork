@@ -12,8 +12,11 @@ The system uses a tiered approach to location fetching to ensure a smooth user e
 
 ### Providers
 - [currentLocationProvider](../../lib/core/services/location_provider.dart): A one-time fetch used for initial map setup.
-- [positionStreamProvider](../../lib/core/services/location_provider.dart): A continuous `StreamProvider` that listens for GPS updates. 
-    - **Optimization**: It remains idle in `init` mode to prevent unnecessary permission prompts or background battery drain.
+- [geolocatorStreamProvider](../../lib/core/services/location_provider.dart): A single, persistent `Stream<Position>` from the OS, owned by a keepAlive notifier. Started explicitly via `GeolocatorStream.start()` when the map first needs a fix (permission granted / user enables tracking); never torn down afterwards. `gpsListener` (in `telemetry_provider.dart`) subscribes to it directly and feeds positions into the telemetry.
+
+### Battery Optimizations
+- **No GPS in `init` mode**: The native stream is only started once GPS is actually enabled (explicit `GeolocatorStream.start()` from the GPS toggle / auto-start), so no location permission prompt or background battery drain happens before that.
+- **Low-power mode while DroneCAN GPS is active**: `GeolocatorStream.setDroneCanActive(true)` downgrades the phone stream to `lowest` accuracy / 100 km distance filter / 10 s interval (MSL off) whenever a DroneCAN GPS is the active source — its emissions are ignored anyway, so this only saves battery. The high-accuracy mode (`bestForNavigation` / 1 s) is restored automatically 5 s after the last valid DroneCAN fix. Switching restarts are serialised and the old subscription is awaited before re-creating, so the OS stream is never left dead.
 
 ## 2. Map View States ([MapViewState](../../lib/features/telemetry/domain/models/map_view_state.dart))
 

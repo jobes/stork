@@ -35,6 +35,44 @@ class PendingRequest {
 
 CannelloniService? _activeInstance;
 
+/// Publishes a DroneCAN [Fix2] into telemetry as the authoritative GPS source.
+///
+/// Invalid fixes (see [Fix2.hasValidFix]) are ignored: publishing them would
+/// mark DroneCAN GPS as active and suppress the phone's own GPS stream,
+/// freezing the map on a stale/zero coordinate. The 5 s DroneCAN timeout in
+/// [TelemetryNotifier] never fires because every (even invalid) broadcast
+/// re-arms it. Returns `true` when the fix was actually published.
+@visibleForTesting
+bool publishDroneCanFix(Fix2 fix2, TelemetryNotifier telemetry) {
+  if (!fix2.hasValidFix) {
+    debugPrint(
+      '[DroneCAN] Ignoring Fix2 with invalid fix '
+      '(status=${fix2.status}, sats=${fix2.satellites}, '
+      'lat=${fix2.latitude.toStringAsFixed(6)}, '
+      'lon=${fix2.longitude.toStringAsFixed(6)})',
+    );
+    return false;
+  }
+
+  final DateTime? timestamp = fix2.gnssTimestamp > 0
+      ? DateTime.fromMicrosecondsSinceEpoch(fix2.gnssTimestamp, isUtc: true)
+      : null;
+
+  telemetry.updateGPS(
+    latitude: fix2.latitude,
+    longitude: fix2.longitude,
+    heading: fix2.heading,
+    groundSpeed: fix2.groundSpeed,
+    gpsSatelliteCount: fix2.satellites,
+    gpsHorizontalAccuracy: fix2.horizontalAccuracy,
+    gpsVerticalAccuracy: fix2.verticalAccuracy,
+    gpsAltitude: fix2.altitude,
+    gpsTimestamp: timestamp,
+    isDroneCan: true,
+  );
+  return true;
+}
+
 @Riverpod(keepAlive: true)
 class CannelloniService extends _$CannelloniService {
   static const _disconnectGracePeriod = Duration(milliseconds: 3000);
@@ -567,24 +605,10 @@ class CannelloniService extends _$CannelloniService {
   }
 
   void _updateTelemetryGPS(Fix2 fix2) {
-    final DateTime? timestamp = fix2.gnssTimestamp > 0
-        ? DateTime.fromMicrosecondsSinceEpoch(fix2.gnssTimestamp, isUtc: true)
-        : null;
-
-    ref
-        .read(telemetryProvider.notifier)
-        .updateGPS(
-          latitude: fix2.latitude,
-          longitude: fix2.longitude,
-          heading: fix2.heading,
-          groundSpeed: fix2.groundSpeed,
-          gpsSatelliteCount: fix2.satellites,
-          gpsHorizontalAccuracy: fix2.horizontalAccuracy,
-          gpsVerticalAccuracy: fix2.verticalAccuracy,
-          gpsAltitude: fix2.altitude,
-          gpsTimestamp: timestamp,
-          isDroneCan: true,
-        );
+    // Only a real 2D/3D fix is usable as the own position. Invalid fixes are
+    // dropped in [publishDroneCanFix] so they can never mark DroneCAN GPS as
+    // active and suppress the phone GPS stream.
+    publishDroneCanFix(fix2, ref.read(telemetryProvider.notifier));
   }
 
   void _updateTelemetryIceStatus(IceStatus msg) {

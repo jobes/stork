@@ -345,10 +345,20 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   }) {
     if (isDroneCan) {
       _lastDroneCanFixTime = DateTime.now();
+      // Downgrade the phone GPS stream to save battery while DroneCAN GPS is
+      // the active source (its positions are ignored anyway).
+      unawaited(
+        ref.read(geolocatorStreamProvider.notifier).setDroneCanActive(true),
+      );
       _droneCanGpsTimeoutTimer?.cancel();
       _droneCanGpsTimeoutTimer = Timer(const Duration(seconds: 5), () {
         _lastDroneCanFixTime = null;
         state = state.copyWith(isGpsDroneCan: false);
+        // Restore the high-accuracy phone GPS now that DroneCAN is no longer
+        // providing a fix.
+        unawaited(
+          ref.read(geolocatorStreamProvider.notifier).setDroneCanActive(false),
+        );
       });
     } else if (_lastDroneCanFixTime != null &&
         DateTime.now().difference(_lastDroneCanFixTime!) <=
@@ -595,31 +605,38 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
 @Riverpod(keepAlive: true)
 void gpsListener(Ref ref) {
-  // Listen to high-frequency GPS stream
-  ref.listen(positionStreamProvider, (previous, next) {
-    next.whenData((location) {
-      final telemetry = ref.read(telemetryProvider);
-      if (telemetry.mapViewState != MapViewState.init) {
-        ref
-            .read(telemetryProvider.notifier)
-            .updateGPS(
-              latitude: location.lat,
-              longitude: location.lon,
-              groundSpeed: location.groundSpeed,
-              gpsHorizontalAccuracy: location.horizontalAccuracy,
-              gpsVerticalAccuracy: location.verticalAccuracy,
-              gpsAltitude: location.altitude,
-              gpsTimestamp: location.timestamp,
-            );
+  // Subscribe directly to the persistent OS position stream. We deliberately
+  // do NOT go through a Riverpod StreamProvider here: in Riverpod 3 a
+  // provider-to-provider watch/listen does not reliably keep a StreamProvider
+  // subscribed, so the phone GPS stream never delivered positions to the
+  // telemetry (frozen aircraft, no ground speed / GPS accuracy). A plain
+  // StreamSubscription on the keepAlive notifier's broadcast stream is
+  // deterministic and always active.
+  final stream = ref.watch(geolocatorStreamProvider).stream;
+  final subscription = stream.listen((pos) {
+    final telemetry = ref.read(telemetryProvider);
+    // Apply phone GPS only when the map actually wants tracking and no
+    // DroneCAN GPS is the active source.
+    if (telemetry.mapViewState != MapViewState.init &&
+        !telemetry.isGpsDroneCan) {
+      ref
+          .read(telemetryProvider.notifier)
+          .updateGPS(
+            latitude: pos.latitude,
+            longitude: pos.longitude,
+            groundSpeed: pos.speed,
+            gpsHorizontalAccuracy: pos.accuracy,
+            gpsVerticalAccuracy: pos.altitudeAccuracy,
+            gpsAltitude: pos.altitude,
+            gpsTimestamp: pos.timestamp,
+          );
 
-        if (telemetry.isFlying) {
-          ref
-              .read(telemetryProvider.notifier)
-              .updateGPS(heading: location.heading);
-        }
+      if (telemetry.isFlying) {
+        ref.read(telemetryProvider.notifier).updateGPS(heading: pos.heading);
       }
-    });
+    }
   });
+  ref.onDispose(subscription.cancel);
 }
 
 @Riverpod(keepAlive: true)
