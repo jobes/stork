@@ -35,6 +35,98 @@ class PendingRequest {
 
 CannelloniService? _activeInstance;
 
+/// Microseconds in one second (1e6), used for leap-second conversion.
+const int _microsecondsPerSecond = 1000000;
+
+/// Seconds between TAI and UTC that are independent of leap seconds
+/// (UTC = TAI - 10, before the leap-second correction).
+const int _taiUtcOffsetSeconds = 10;
+
+/// Seconds between GPS time and UTC that are independent of leap seconds
+/// (UTC = GPS + 9, before the leap-second correction).
+const int _gpsUtcOffsetSeconds = 9;
+
+/// DroneCAN [Fix2.gnssTimeStandard] values (uavcan.equipment.gnss.Fix2).
+const int _gnssTimeStandardTai = 1;
+const int _gnssTimeStandardUtc = 2;
+const int _gnssTimeStandardGps = 3;
+
+/// Converts a DroneCAN [Fix2] GNSS timestamp to a UTC [DateTime], or `null`
+/// when no UTC time can be derived.
+///
+/// [Fix2.gnssTimestamp] is microseconds since the epoch of
+/// [Fix2.gnssTimeStandard]. Per the DroneCAN spec, all three standards are
+/// measured from the corresponding time scale at UTC 1970-01-01 (there is no
+/// 1980 GPS epoch offset), and convert to UTC as follows:
+/// - UTC: already in the UNIX epoch — returned unchanged.
+/// - GPS: UTC = GPS - [Fix2.numLeapSeconds] + 9 seconds.
+/// - TAI: UTC = TAI - [Fix2.numLeapSeconds] - 10 seconds.
+/// - UNKNOWN or any unsupported standard: no UTC time — returns `null`.
+@visibleForTesting
+DateTime? gnssTimestampToUtc(Fix2 fix2) {
+  if (fix2.gnssTimestamp <= 0) return null;
+  switch (fix2.gnssTimeStandard) {
+    case _gnssTimeStandardUtc:
+      return DateTime.fromMicrosecondsSinceEpoch(
+        fix2.gnssTimestamp,
+        isUtc: true,
+      );
+    case _gnssTimeStandardGps:
+      return DateTime.fromMicrosecondsSinceEpoch(
+        fix2.gnssTimestamp -
+            fix2.numLeapSeconds * _microsecondsPerSecond +
+            _gpsUtcOffsetSeconds * _microsecondsPerSecond,
+        isUtc: true,
+      );
+    case _gnssTimeStandardTai:
+      return DateTime.fromMicrosecondsSinceEpoch(
+        fix2.gnssTimestamp -
+            fix2.numLeapSeconds * _microsecondsPerSecond -
+            _taiUtcOffsetSeconds * _microsecondsPerSecond,
+        isUtc: true,
+      );
+    default:
+      // UNKNOWN (and any unsupported standard, e.g. GLONASS): no UTC time.
+      return null;
+  }
+}
+
+/// Publishes a DroneCAN [Fix2] into telemetry as the authoritative GPS source.
+///
+/// Invalid fixes (see [Fix2.hasValidFix]) are ignored: publishing them would
+/// mark DroneCAN GPS as active and suppress the phone's own GPS stream,
+/// freezing the map on a stale/zero coordinate. The 5 s DroneCAN timeout in
+/// [TelemetryNotifier] never fires because every (even invalid) broadcast
+/// re-arms it. Returns `true` when the fix was actually published.
+@visibleForTesting
+bool publishDroneCanFix(Fix2 fix2, TelemetryNotifier telemetry) {
+  if (!fix2.hasValidFix) {
+    debugPrint(
+      '[DroneCAN] Ignoring Fix2 with invalid fix '
+      '(status=${fix2.status}, sats=${fix2.satellites}, '
+      'lat=${fix2.latitude.toStringAsFixed(6)}, '
+      'lon=${fix2.longitude.toStringAsFixed(6)})',
+    );
+    return false;
+  }
+
+  final DateTime? timestamp = gnssTimestampToUtc(fix2);
+
+  telemetry.updateGPS(
+    latitude: fix2.latitude,
+    longitude: fix2.longitude,
+    heading: fix2.heading,
+    groundSpeed: fix2.groundSpeed,
+    gpsSatelliteCount: fix2.satellites,
+    gpsHorizontalAccuracy: fix2.horizontalAccuracy,
+    gpsVerticalAccuracy: fix2.verticalAccuracy,
+    gpsAltitude: fix2.altitude,
+    gpsTimestamp: timestamp,
+    isDroneCan: true,
+  );
+  return true;
+}
+
 @Riverpod(keepAlive: true)
 class CannelloniService extends _$CannelloniService {
   static const _disconnectGracePeriod = Duration(milliseconds: 3000);
@@ -567,24 +659,10 @@ class CannelloniService extends _$CannelloniService {
   }
 
   void _updateTelemetryGPS(Fix2 fix2) {
-    final DateTime? timestamp = fix2.gnssTimestamp > 0
-        ? DateTime.fromMicrosecondsSinceEpoch(fix2.gnssTimestamp, isUtc: true)
-        : null;
-
-    ref
-        .read(telemetryProvider.notifier)
-        .updateGPS(
-          latitude: fix2.latitude,
-          longitude: fix2.longitude,
-          heading: fix2.heading,
-          groundSpeed: fix2.groundSpeed,
-          gpsSatelliteCount: fix2.satellites,
-          gpsHorizontalAccuracy: fix2.horizontalAccuracy,
-          gpsVerticalAccuracy: fix2.verticalAccuracy,
-          gpsAltitude: fix2.altitude,
-          gpsTimestamp: timestamp,
-          isDroneCan: true,
-        );
+    // Only a real 2D/3D fix is usable as the own position. Invalid fixes are
+    // dropped in [publishDroneCanFix] so they can never mark DroneCAN GPS as
+    // active and suppress the phone GPS stream.
+    publishDroneCanFix(fix2, ref.read(telemetryProvider.notifier));
   }
 
   void _updateTelemetryIceStatus(IceStatus msg) {

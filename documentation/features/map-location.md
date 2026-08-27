@@ -12,8 +12,16 @@ The system uses a tiered approach to location fetching to ensure a smooth user e
 
 ### Providers
 - [currentLocationProvider](../../lib/core/services/location_provider.dart): A one-time fetch used for initial map setup.
-- [positionStreamProvider](../../lib/core/services/location_provider.dart): A continuous `StreamProvider` that listens for GPS updates. 
-    - **Optimization**: It remains idle in `init` mode to prevent unnecessary permission prompts or background battery drain.
+- [geolocatorStreamProvider](../../lib/core/services/location_provider.dart): A single, persistent `Stream<Position>` from the OS, owned by a keepAlive notifier. Started explicitly via `GeolocatorStream.start()` when the map first needs a fix (permission granted / user enables tracking); never torn down afterwards. `gpsListener` (in `telemetry_provider.dart`) subscribes to it directly and feeds positions into the telemetry. Its state also carries a `GeolocatorStreamStatus` (`GeolocatorStreamOk` / `GeolocatorStreamFailed`), so OS stream failures are observable instead of silently swallowed.
+
+### Failure Handling
+- **OS stream failures are exposed**: when the native geolocator stream reports an error, `GeolocatorStream` sets `GeolocatorStreamFailed` (with the error and stack trace) in its state — any UI can watch it to present a "GPS lost" indicator.
+- **`gpsListener` handling**: it reads the stable stream once (so status changes never duplicate the subscription) and `ref.listen`s to the status to detect and log failures.
+- **Automatic recovery**: after an error the notifier re-subscribes to the OS stream after 5 s; the first delivered position clears the failure status back to `GeolocatorStreamOk`.
+
+### Battery Optimizations
+- **No GPS in `init` mode**: The native stream is only started once GPS is actually enabled (explicit `GeolocatorStream.start()` from the GPS toggle / auto-start), so no location permission prompt or background battery drain happens before that.
+- **Low-power mode while DroneCAN GPS is active**: `GeolocatorStream.setDroneCanActive(true)` downgrades the phone stream to `lowest` accuracy / 100 km distance filter / 10 s interval (MSL off) whenever a DroneCAN GPS is the active source — its emissions are ignored anyway, so this only saves battery. The high-accuracy mode (`bestForNavigation` / 1 s) is restored automatically 5 s after the last valid DroneCAN fix. Switching restarts are serialised and the old subscription is awaited before re-creating, so the OS stream is never left dead.
 
 ## 2. Map View States ([MapViewState](../../lib/features/telemetry/domain/models/map_view_state.dart))
 

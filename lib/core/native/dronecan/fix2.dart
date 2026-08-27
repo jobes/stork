@@ -175,6 +175,17 @@ class Fix2 implements DroneCanMessage {
     );
   }
 
+  /// Whether this Fix2 carries a usable GNSS position fix.
+  ///
+  /// Only a real 2D/3D fix (status >= 2) with at least one tracked satellite
+  /// and a non-zero position is usable as the own aircraft position. Fixes
+  /// with status 0 (no fix) / 1 (time only) or zero coordinates must not be
+  /// fed into telemetry: doing so would mark DroneCAN GPS as active and
+  /// suppress the phone's own GPS stream, freezing the map on a stale/zero
+  /// coordinate.
+  bool get hasValidFix =>
+      status >= 2 && satellites > 0 && !(latitude == 0.0 && longitude == 0.0);
+
   @override
   String toString() {
     return 'Fix2(lat: ${latitude.toStringAsFixed(6)}, lon: ${longitude.toStringAsFixed(6)}, alt: ${altitude.toStringAsFixed(2)}m, sats: $satellites, gSpeed: ${groundSpeed?.toStringAsFixed(1)} m/s, heading: ${heading?.toStringAsFixed(0)}°, hAcc: ${horizontalAccuracy?.toStringAsFixed(2)}m, vAcc: ${verticalAccuracy?.toStringAsFixed(2)}m, mode: $mode, subMode: $subMode)';

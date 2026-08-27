@@ -48,129 +48,144 @@ final class CurrentLocationProvider
 
 String _$currentLocationHash() => r'cb79119672f4cb95e04b9d102ca104793b740642';
 
-/// Stream of user positions. The returned [altitude] is in Mean Sea Level (MSL) datum
-/// (configured via AndroidSettings.useMSLAltitude on Android).
+/// A single, persistent stream of raw OS positions.
+///
+/// The native OS subscription is started explicitly (see [start]) the first
+/// time the map needs a fix, and then kept alive for the whole app session.
+/// It is intentionally never torn down when other state changes: re-creating
+/// the geolocator stream on every rebuild cancels the OS location subscription
+/// and re-subscribes, which on Android can silently leave the app subscribed
+/// to a dead stream — the phone GPS then stops delivering positions (frozen
+/// aircraft, no ground speed, no GPS accuracy) even though the map works.
+///
+/// The state is a two-field record (instead of a bare `Stream`) purely so the
+/// code generator emits a plain [NotifierProvider] rather than a
+/// `StreamNotifier` (whose watched value would be an `AsyncValue`, hiding the
+/// raw stream that [gpsListener] subscribes to directly). The second field
+/// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
+/// instead of being silently swallowed.
 
-@ProviderFor(positionStream)
-final positionStreamProvider = PositionStreamProvider._();
+@ProviderFor(GeolocatorStream)
+final geolocatorStreamProvider = GeolocatorStreamProvider._();
 
-/// Stream of user positions. The returned [altitude] is in Mean Sea Level (MSL) datum
-/// (configured via AndroidSettings.useMSLAltitude on Android).
-
-final class PositionStreamProvider
+/// A single, persistent stream of raw OS positions.
+///
+/// The native OS subscription is started explicitly (see [start]) the first
+/// time the map needs a fix, and then kept alive for the whole app session.
+/// It is intentionally never torn down when other state changes: re-creating
+/// the geolocator stream on every rebuild cancels the OS location subscription
+/// and re-subscribes, which on Android can silently leave the app subscribed
+/// to a dead stream — the phone GPS then stops delivering positions (frozen
+/// aircraft, no ground speed, no GPS accuracy) even though the map works.
+///
+/// The state is a two-field record (instead of a bare `Stream`) purely so the
+/// code generator emits a plain [NotifierProvider] rather than a
+/// `StreamNotifier` (whose watched value would be an `AsyncValue`, hiding the
+/// raw stream that [gpsListener] subscribes to directly). The second field
+/// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
+/// instead of being silently swallowed.
+final class GeolocatorStreamProvider
     extends
-        $FunctionalProvider<
-          AsyncValue<
-            ({
-              double altitude,
-              double groundSpeed,
-              double heading,
-              double horizontalAccuracy,
-              double lat,
-              double lon,
-              DateTime? timestamp,
-              double verticalAccuracy,
-            })
-          >,
-          ({
-            double altitude,
-            double groundSpeed,
-            double heading,
-            double horizontalAccuracy,
-            double lat,
-            double lon,
-            DateTime? timestamp,
-            double verticalAccuracy,
-          }),
-          Stream<
-            ({
-              double altitude,
-              double groundSpeed,
-              double heading,
-              double horizontalAccuracy,
-              double lat,
-              double lon,
-              DateTime? timestamp,
-              double verticalAccuracy,
-            })
-          >
-        >
-    with
-        $FutureModifier<
-          ({
-            double altitude,
-            double groundSpeed,
-            double heading,
-            double horizontalAccuracy,
-            double lat,
-            double lon,
-            DateTime? timestamp,
-            double verticalAccuracy,
-          })
-        >,
-        $StreamProvider<
-          ({
-            double altitude,
-            double groundSpeed,
-            double heading,
-            double horizontalAccuracy,
-            double lat,
-            double lon,
-            DateTime? timestamp,
-            double verticalAccuracy,
-          })
+        $NotifierProvider<
+          GeolocatorStream,
+          ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
         > {
-  /// Stream of user positions. The returned [altitude] is in Mean Sea Level (MSL) datum
-  /// (configured via AndroidSettings.useMSLAltitude on Android).
-  PositionStreamProvider._()
+  /// A single, persistent stream of raw OS positions.
+  ///
+  /// The native OS subscription is started explicitly (see [start]) the first
+  /// time the map needs a fix, and then kept alive for the whole app session.
+  /// It is intentionally never torn down when other state changes: re-creating
+  /// the geolocator stream on every rebuild cancels the OS location subscription
+  /// and re-subscribes, which on Android can silently leave the app subscribed
+  /// to a dead stream — the phone GPS then stops delivering positions (frozen
+  /// aircraft, no ground speed, no GPS accuracy) even though the map works.
+  ///
+  /// The state is a two-field record (instead of a bare `Stream`) purely so the
+  /// code generator emits a plain [NotifierProvider] rather than a
+  /// `StreamNotifier` (whose watched value would be an `AsyncValue`, hiding the
+  /// raw stream that [gpsListener] subscribes to directly). The second field
+  /// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
+  /// instead of being silently swallowed.
+  GeolocatorStreamProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'positionStreamProvider',
-        isAutoDispose: true,
+        name: r'geolocatorStreamProvider',
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$positionStreamHash();
+  String debugGetCreateSourceHash() => _$geolocatorStreamHash();
 
   @$internal
   @override
-  $StreamProviderElement<
-    ({
-      double altitude,
-      double groundSpeed,
-      double heading,
-      double horizontalAccuracy,
-      double lat,
-      double lon,
-      DateTime? timestamp,
-      double verticalAccuracy,
-    })
-  >
-  $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
+  GeolocatorStream create() => GeolocatorStream();
 
-  @override
-  Stream<
-    ({
-      double altitude,
-      double groundSpeed,
-      double heading,
-      double horizontalAccuracy,
-      double lat,
-      double lon,
-      DateTime? timestamp,
-      double verticalAccuracy,
-    })
-  >
-  create(Ref ref) {
-    return positionStream(ref);
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(
+    ({GeolocatorStreamStatus status, Stream<geo.Position> stream}) value,
+  ) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride:
+          $SyncValueProvider<
+            ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
+          >(value),
+    );
   }
 }
 
-String _$positionStreamHash() => r'2611525349d8ee2601c7a5f4bebca30d0fa1aeb2';
+String _$geolocatorStreamHash() => r'3ac58a2b96b0502b68889c9f00084d60a43dfb12';
+
+/// A single, persistent stream of raw OS positions.
+///
+/// The native OS subscription is started explicitly (see [start]) the first
+/// time the map needs a fix, and then kept alive for the whole app session.
+/// It is intentionally never torn down when other state changes: re-creating
+/// the geolocator stream on every rebuild cancels the OS location subscription
+/// and re-subscribes, which on Android can silently leave the app subscribed
+/// to a dead stream — the phone GPS then stops delivering positions (frozen
+/// aircraft, no ground speed, no GPS accuracy) even though the map works.
+///
+/// The state is a two-field record (instead of a bare `Stream`) purely so the
+/// code generator emits a plain [NotifierProvider] rather than a
+/// `StreamNotifier` (whose watched value would be an `AsyncValue`, hiding the
+/// raw stream that [gpsListener] subscribes to directly). The second field
+/// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
+/// instead of being silently swallowed.
+
+abstract class _$GeolocatorStream
+    extends
+        $Notifier<
+          ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
+        > {
+  ({GeolocatorStreamStatus status, Stream<geo.Position> stream}) build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref =
+        this.ref
+            as $Ref<
+              ({GeolocatorStreamStatus status, Stream<geo.Position> stream}),
+              ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
+            >;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                ({GeolocatorStreamStatus status, Stream<geo.Position> stream}),
+                ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
+              >,
+              ({GeolocatorStreamStatus status, Stream<geo.Position> stream}),
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
 
 /// Provider for the display orientation offset applied to the compass heading.
 /// Sensors report in the device's natural coordinate system, but when the
