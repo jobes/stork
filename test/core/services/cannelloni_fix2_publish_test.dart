@@ -109,8 +109,6 @@ void main() {
   });
 
   group('gpsTimestamp conversion from Fix2.gnssTimeStandard', () {
-    const gpsEpochMicros =
-        315964800000000; // 1980-01-06T00:00:00Z in UNIX micros
     const microsPerSecond = 1000000;
     // Microseconds since the standard's own epoch (same value for all cases).
     const gnssTs = 123456789000000;
@@ -136,28 +134,34 @@ void main() {
 
     test('UTC standard publishes the timestamp directly', () {
       expect(
-        publishedTimestamp(gnssTimeStandard: 4, numLeapSeconds: 18),
+        publishedTimestamp(gnssTimeStandard: 2, numLeapSeconds: 18),
         DateTime.fromMicrosecondsSinceEpoch(gnssTs, isUtc: true),
       );
     });
 
-    test('GPS standard converts using numLeapSeconds and the GPS epoch', () {
+    test('GPS standard converts using numLeapSeconds and the 9 s offset', () {
       const leap = 18;
+      const gpsUtcOffsetSeconds = 9;
       expect(
-        publishedTimestamp(gnssTimeStandard: 2, numLeapSeconds: leap),
+        publishedTimestamp(gnssTimeStandard: 3, numLeapSeconds: leap),
         DateTime.fromMicrosecondsSinceEpoch(
-          gpsEpochMicros + gnssTs - leap * microsPerSecond,
+          gnssTs -
+              leap * microsPerSecond +
+              gpsUtcOffsetSeconds * microsPerSecond,
           isUtc: true,
         ),
       );
     });
 
-    test('TAI standard converts using numLeapSeconds', () {
+    test('TAI standard converts using numLeapSeconds and the 10 s offset', () {
       const leap = 37;
+      const taiUtcOffsetSeconds = 10;
       expect(
         publishedTimestamp(gnssTimeStandard: 1, numLeapSeconds: leap),
         DateTime.fromMicrosecondsSinceEpoch(
-          gnssTs - leap * microsPerSecond,
+          gnssTs -
+              leap * microsPerSecond -
+              taiUtcOffsetSeconds * microsPerSecond,
           isUtc: true,
         ),
       );

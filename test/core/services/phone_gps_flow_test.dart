@@ -96,4 +96,40 @@ void main() {
       expect(fakePlatform.getPositionStreamCallCount, 1);
     },
   );
+
+  test('gpsListener keeps feeding telemetry after an OS stream failure is '
+      'exposed and the stream is restarted', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    container.read(gpsListenerProvider);
+    await Future<void>.delayed(Duration.zero);
+
+    container.read(geolocatorStreamProvider.notifier).start();
+    container
+        .read(telemetryProvider.notifier)
+        .setMapViewState(MapViewState.follow);
+    await Future<void>.delayed(Duration.zero);
+
+    controller.add(makePosition(lat: 48.0, lon: 17.0));
+    await Future<void>.delayed(Duration.zero);
+    expect(container.read(telemetryProvider).latitude, 48.0);
+
+    // The OS stream dies; the failure is exposed through the provider.
+    controller.addError(Exception('location lost'), StackTrace.current);
+    await Future<void>.delayed(Duration.zero);
+    expect(
+      container.read(geolocatorStreamProvider).status,
+      isA<GeolocatorStreamFailed>(),
+    );
+
+    // A restart re-subscribes and positions keep flowing into telemetry.
+    await container
+        .read(geolocatorStreamProvider.notifier)
+        .setDroneCanActive(true);
+    controller.add(makePosition(lat: 48.01, lon: 17.01));
+    await Future<void>.delayed(Duration.zero);
+    expect(container.read(telemetryProvider).latitude, 48.01);
+    expect(container.read(telemetryProvider).longitude, 17.01);
+  });
 }

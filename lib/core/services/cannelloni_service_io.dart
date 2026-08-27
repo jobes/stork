@@ -38,22 +38,29 @@ CannelloniService? _activeInstance;
 /// Microseconds in one second (1e6), used for leap-second conversion.
 const int _microsecondsPerSecond = 1000000;
 
-/// UNIX-epoch microseconds of the GPS epoch (1980-01-06T00:00:00Z).
-const int _gpsEpochMicroseconds = 315964800 * _microsecondsPerSecond;
+/// Seconds between TAI and UTC that are independent of leap seconds
+/// (UTC = TAI - 10, before the leap-second correction).
+const int _taiUtcOffsetSeconds = 10;
+
+/// Seconds between GPS time and UTC that are independent of leap seconds
+/// (UTC = GPS + 9, before the leap-second correction).
+const int _gpsUtcOffsetSeconds = 9;
 
 /// DroneCAN [Fix2.gnssTimeStandard] values (uavcan.equipment.gnss.Fix2).
 const int _gnssTimeStandardTai = 1;
-const int _gnssTimeStandardGps = 2;
-const int _gnssTimeStandardUtc = 4;
+const int _gnssTimeStandardUtc = 2;
+const int _gnssTimeStandardGps = 3;
 
 /// Converts a DroneCAN [Fix2] GNSS timestamp to a UTC [DateTime], or `null`
 /// when no UTC time can be derived.
 ///
 /// [Fix2.gnssTimestamp] is microseconds since the epoch of
-/// [Fix2.gnssTimeStandard]. Per the DroneCAN spec:
+/// [Fix2.gnssTimeStandard]. Per the DroneCAN spec, all three standards are
+/// measured from the corresponding time scale at UTC 1970-01-01 (there is no
+/// 1980 GPS epoch offset), and convert to UTC as follows:
 /// - UTC: already in the UNIX epoch — returned unchanged.
-/// - GPS/TAI: converted to the UNIX epoch by subtracting
-///   [Fix2.numLeapSeconds] (GPS is additionally offset by its 1980 epoch).
+/// - GPS: UTC = GPS - [Fix2.numLeapSeconds] + 9 seconds.
+/// - TAI: UTC = TAI - [Fix2.numLeapSeconds] - 10 seconds.
 /// - UNKNOWN or any unsupported standard: no UTC time — returns `null`.
 @visibleForTesting
 DateTime? gnssTimestampToUtc(Fix2 fix2) {
@@ -66,14 +73,16 @@ DateTime? gnssTimestampToUtc(Fix2 fix2) {
       );
     case _gnssTimeStandardGps:
       return DateTime.fromMicrosecondsSinceEpoch(
-        fix2.gnssTimestamp +
-            _gpsEpochMicroseconds -
-            fix2.numLeapSeconds * _microsecondsPerSecond,
+        fix2.gnssTimestamp -
+            fix2.numLeapSeconds * _microsecondsPerSecond +
+            _gpsUtcOffsetSeconds * _microsecondsPerSecond,
         isUtc: true,
       );
     case _gnssTimeStandardTai:
       return DateTime.fromMicrosecondsSinceEpoch(
-        fix2.gnssTimestamp - fix2.numLeapSeconds * _microsecondsPerSecond,
+        fix2.gnssTimestamp -
+            fix2.numLeapSeconds * _microsecondsPerSecond -
+            _taiUtcOffsetSeconds * _microsecondsPerSecond,
         isUtc: true,
       );
     default:

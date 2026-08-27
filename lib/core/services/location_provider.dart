@@ -69,6 +69,26 @@ geo.LocationSettings _locationSettings({required bool droneCan}) {
   }
 }
 
+/// Lifecycle status of the OS location stream, exposed through the provider
+/// state so consumers ([gpsListener], UI) can detect failures instead of only
+/// seeing positions silently stop.
+sealed class GeolocatorStreamStatus {
+  const GeolocatorStreamStatus();
+}
+
+/// The OS stream is running (or not started yet) without any error.
+class GeolocatorStreamOk extends GeolocatorStreamStatus {
+  const GeolocatorStreamOk();
+}
+
+/// The OS stream reported an error; a retry is scheduled automatically.
+class GeolocatorStreamFailed extends GeolocatorStreamStatus {
+  const GeolocatorStreamFailed(this.error, this.stackTrace);
+
+  final Object error;
+  final StackTrace stackTrace;
+}
+
 /// A single, persistent stream of raw OS positions.
 ///
 /// The native OS subscription is started explicitly (see [start]) the first
@@ -79,22 +99,31 @@ geo.LocationSettings _locationSettings({required bool droneCan}) {
 /// to a dead stream — the phone GPS then stops delivering positions (frozen
 /// aircraft, no ground speed, no GPS accuracy) even though the map works.
 ///
-/// The state is a single-field record (instead of a bare `Stream`) purely so
-/// the code generator emits a plain [NotifierProvider] rather than a
+/// The state is a two-field record (instead of a bare `Stream`) purely so the
+/// code generator emits a plain [NotifierProvider] rather than a
 /// `StreamNotifier` (whose watched value would be an `AsyncValue`, hiding the
-/// raw stream that [gpsListener] subscribes to directly).
+/// raw stream that [gpsListener] subscribes to directly). The second field
+/// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
+/// instead of being silently swallowed.
 @Riverpod(keepAlive: true)
 class GeolocatorStream extends _$GeolocatorStream {
+  /// Delay before re-subscribing after an OS stream error, so the phone GPS
+  /// recovers on its own (e.g. after location permission/services return).
+  static const Duration _retryDelay = Duration(seconds: 5);
+
   StreamController<geo.Position>? _controller;
   StreamSubscription<geo.Position>? _subscription;
+  Timer? _retryTimer;
   bool _started = false;
   bool _droneCanMode = false;
   Future<void>? _restartInFlight;
 
   @override
-  ({Stream<geo.Position> stream}) build() {
+  ({Stream<geo.Position> stream, GeolocatorStreamStatus status}) build() {
     _controller ??= StreamController<geo.Position>.broadcast();
     ref.onDispose(() {
+      _retryTimer?.cancel();
+      _retryTimer = null;
       _subscription?.cancel();
       _subscription = null;
       _controller?.close();
@@ -103,7 +132,7 @@ class GeolocatorStream extends _$GeolocatorStream {
       _started = false;
       _droneCanMode = false;
     });
-    return (stream: _controller!.stream);
+    return (stream: _controller!.stream, status: const GeolocatorStreamOk());
   }
 
   /// Starts the native OS location stream (idempotent). Called once the map
@@ -113,15 +142,7 @@ class GeolocatorStream extends _$GeolocatorStream {
   void start() {
     if (_started) return;
     _started = true;
-    _subscription =
-        geo.Geolocator.getPositionStream(
-          locationSettings: _locationSettings(droneCan: _droneCanMode),
-        ).listen(
-          (pos) => _controller?.add(pos),
-          onError: (Object e, StackTrace st) {
-            debugPrint('[GeolocatorStream] OS position stream error: $e');
-          },
-        );
+    _subscribe();
   }
 
   /// Switches the OS location stream between high-accuracy phone mode and
@@ -139,21 +160,62 @@ class GeolocatorStream extends _$GeolocatorStream {
   }
 
   void _startWithMode() {
+    // A mode switch re-subscribes anyway; drop any pending retry.
+    _retryTimer?.cancel();
+    _retryTimer = null;
     _restartInFlight = (_restartInFlight ?? Future.value()).then((_) async {
       if (!_started) return;
       final old = _subscription;
       _subscription = null;
       await old?.cancel();
       if (!_started) return;
-      _subscription =
-          geo.Geolocator.getPositionStream(
-            locationSettings: _locationSettings(droneCan: _droneCanMode),
-          ).listen(
-            (pos) => _controller?.add(pos),
-            onError: (Object e, StackTrace st) {
-              debugPrint('[GeolocatorStream] OS position stream error: $e');
-            },
-          );
+      _subscribe();
+    });
+  }
+
+  /// Opens a new OS location subscription with the current mode. Any previous
+  /// subscription must already be cancelled by the caller.
+  void _subscribe() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    try {
+      _subscription = geo.Geolocator.getPositionStream(
+        locationSettings: _locationSettings(droneCan: _droneCanMode),
+      ).listen(_onPosition, onError: _onStreamError);
+    } catch (error, stackTrace) {
+      // Some platforms surface OS location errors synchronously when the
+      // location service is unavailable; treat them like an async error.
+      _onStreamError(error, stackTrace);
+    }
+  }
+
+  void _onPosition(geo.Position pos) {
+    // A delivered position proves the OS stream is healthy again.
+    if (state.status is GeolocatorStreamFailed) {
+      state = (stream: _controller!.stream, status: const GeolocatorStreamOk());
+    }
+    _controller?.add(pos);
+  }
+
+  void _onStreamError(Object error, StackTrace stackTrace) {
+    debugPrint('[GeolocatorStream] OS position stream error: $error');
+    _subscription?.cancel();
+    _subscription = null;
+    state = (
+      stream: _controller!.stream,
+      status: GeolocatorStreamFailed(error, stackTrace),
+    );
+    _scheduleRetry();
+  }
+
+  /// Re-subscribes after [_retryDelay] so the stream recovers on its own
+  /// (e.g. once the user re-enables location permission or services).
+  void _scheduleRetry() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer(_retryDelay, () {
+      if (_started && _subscription == null) {
+        _subscribe();
+      }
     });
   }
 }

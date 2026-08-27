@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/telemetry_state.dart';
 import '../../domain/models/map_view_state.dart';
@@ -611,8 +612,11 @@ void gpsListener(Ref ref) {
   // subscribed, so the phone GPS stream never delivered positions to the
   // telemetry (frozen aircraft, no ground speed / GPS accuracy). A plain
   // StreamSubscription on the keepAlive notifier's broadcast stream is
-  // deterministic and always active.
-  final stream = ref.watch(geolocatorStreamProvider).stream;
+  // deterministic and always active. The stream instance never changes for
+  // the notifier's lifetime, so it is read once here; status changes are
+  // observed via ref.listen below and never re-run this provider (which
+  // would duplicate the subscription).
+  final stream = ref.read(geolocatorStreamProvider).stream;
   final subscription = stream.listen((pos) {
     final telemetry = ref.read(telemetryProvider);
     // Apply phone GPS only when the map actually wants tracking and no
@@ -637,6 +641,19 @@ void gpsListener(Ref ref) {
     }
   });
   ref.onDispose(subscription.cancel);
+
+  // Surface OS stream failures so the failure state is observable instead of
+  // the stream dying silently. The notifier re-subscribes automatically after
+  // a short delay; any UI can watch the status to present a "GPS lost" state.
+  ref.listen(geolocatorStreamProvider, (previous, next) {
+    final status = next.status;
+    if (status is GeolocatorStreamFailed) {
+      debugPrint(
+        '[gpsListener] Phone GPS stream failed (${status.error}); '
+        'retry scheduled.',
+      );
+    }
+  });
 }
 
 @Riverpod(keepAlive: true)

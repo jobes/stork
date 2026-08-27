@@ -58,10 +58,12 @@ String _$currentLocationHash() => r'cb79119672f4cb95e04b9d102ca104793b740642';
 /// to a dead stream — the phone GPS then stops delivering positions (frozen
 /// aircraft, no ground speed, no GPS accuracy) even though the map works.
 ///
-/// The state is a single-field record (instead of a bare `Stream`) purely so
-/// the code generator emits a plain [NotifierProvider] rather than a
+/// The state is a two-field record (instead of a bare `Stream`) purely so the
+/// code generator emits a plain [NotifierProvider] rather than a
 /// `StreamNotifier` (whose watched value would be an `AsyncValue`, hiding the
-/// raw stream that [gpsListener] subscribes to directly).
+/// raw stream that [gpsListener] subscribes to directly). The second field
+/// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
+/// instead of being silently swallowed.
 
 @ProviderFor(GeolocatorStream)
 final geolocatorStreamProvider = GeolocatorStreamProvider._();
@@ -76,13 +78,18 @@ final geolocatorStreamProvider = GeolocatorStreamProvider._();
 /// to a dead stream — the phone GPS then stops delivering positions (frozen
 /// aircraft, no ground speed, no GPS accuracy) even though the map works.
 ///
-/// The state is a single-field record (instead of a bare `Stream`) purely so
-/// the code generator emits a plain [NotifierProvider] rather than a
+/// The state is a two-field record (instead of a bare `Stream`) purely so the
+/// code generator emits a plain [NotifierProvider] rather than a
 /// `StreamNotifier` (whose watched value would be an `AsyncValue`, hiding the
-/// raw stream that [gpsListener] subscribes to directly).
+/// raw stream that [gpsListener] subscribes to directly). The second field
+/// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
+/// instead of being silently swallowed.
 final class GeolocatorStreamProvider
     extends
-        $NotifierProvider<GeolocatorStream, ({Stream<geo.Position> stream})> {
+        $NotifierProvider<
+          GeolocatorStream,
+          ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
+        > {
   /// A single, persistent stream of raw OS positions.
   ///
   /// The native OS subscription is started explicitly (see [start]) the first
@@ -93,10 +100,12 @@ final class GeolocatorStreamProvider
   /// to a dead stream — the phone GPS then stops delivering positions (frozen
   /// aircraft, no ground speed, no GPS accuracy) even though the map works.
   ///
-  /// The state is a single-field record (instead of a bare `Stream`) purely so
-  /// the code generator emits a plain [NotifierProvider] rather than a
+  /// The state is a two-field record (instead of a bare `Stream`) purely so the
+  /// code generator emits a plain [NotifierProvider] rather than a
   /// `StreamNotifier` (whose watched value would be an `AsyncValue`, hiding the
-  /// raw stream that [gpsListener] subscribes to directly).
+  /// raw stream that [gpsListener] subscribes to directly). The second field
+  /// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
+  /// instead of being silently swallowed.
   GeolocatorStreamProvider._()
     : super(
         from: null,
@@ -116,17 +125,20 @@ final class GeolocatorStreamProvider
   GeolocatorStream create() => GeolocatorStream();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(({Stream<geo.Position> stream}) value) {
+  Override overrideWithValue(
+    ({GeolocatorStreamStatus status, Stream<geo.Position> stream}) value,
+  ) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<({Stream<geo.Position> stream})>(
-        value,
-      ),
+      providerOverride:
+          $SyncValueProvider<
+            ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
+          >(value),
     );
   }
 }
 
-String _$geolocatorStreamHash() => r'9b6e319e7578150f72f9d076da14c5f123efb79a';
+String _$geolocatorStreamHash() => r'3ac58a2b96b0502b68889c9f00084d60a43dfb12';
 
 /// A single, persistent stream of raw OS positions.
 ///
@@ -138,31 +150,36 @@ String _$geolocatorStreamHash() => r'9b6e319e7578150f72f9d076da14c5f123efb79a';
 /// to a dead stream — the phone GPS then stops delivering positions (frozen
 /// aircraft, no ground speed, no GPS accuracy) even though the map works.
 ///
-/// The state is a single-field record (instead of a bare `Stream`) purely so
-/// the code generator emits a plain [NotifierProvider] rather than a
+/// The state is a two-field record (instead of a bare `Stream`) purely so the
+/// code generator emits a plain [NotifierProvider] rather than a
 /// `StreamNotifier` (whose watched value would be an `AsyncValue`, hiding the
-/// raw stream that [gpsListener] subscribes to directly).
+/// raw stream that [gpsListener] subscribes to directly). The second field
+/// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
+/// instead of being silently swallowed.
 
 abstract class _$GeolocatorStream
-    extends $Notifier<({Stream<geo.Position> stream})> {
-  ({Stream<geo.Position> stream}) build();
+    extends
+        $Notifier<
+          ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
+        > {
+  ({GeolocatorStreamStatus status, Stream<geo.Position> stream}) build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<
-              ({Stream<geo.Position> stream}),
-              ({Stream<geo.Position> stream})
+              ({GeolocatorStreamStatus status, Stream<geo.Position> stream}),
+              ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
             >;
     final element =
         ref.element
             as $ClassProviderElement<
               AnyNotifier<
-                ({Stream<geo.Position> stream}),
-                ({Stream<geo.Position> stream})
+                ({GeolocatorStreamStatus status, Stream<geo.Position> stream}),
+                ({GeolocatorStreamStatus status, Stream<geo.Position> stream})
               >,
-              ({Stream<geo.Position> stream}),
+              ({GeolocatorStreamStatus status, Stream<geo.Position> stream}),
               Object?,
               Object?
             >;

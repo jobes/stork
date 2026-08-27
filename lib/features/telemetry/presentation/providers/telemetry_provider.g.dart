@@ -99,7 +99,7 @@ final class GpsListenerProvider extends $FunctionalProvider<void, void, void>
   }
 }
 
-String _$gpsListenerHash() => r'a3c226ee264bd192c730c789c1a13c219e687f74';
+String _$gpsListenerHash() => r'083ef79ff53a2866d6719c45756609300a9e6f57';
 
 @ProviderFor(DisableTelemetryAnimations)
 final disableTelemetryAnimationsProvider =

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -113,5 +114,85 @@ void main() {
       fakePlatform.settingsLog.last!.accuracy,
       LocationAccuracy.bestForNavigation,
     );
+  });
+
+  test('an OS stream failure is exposed through the provider and a restart '
+      'clears it', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final notifier = container.read(geolocatorStreamProvider.notifier);
+
+    notifier.start();
+    expect(fakePlatform.getPositionStreamCallCount, 1);
+    expect(
+      container.read(geolocatorStreamProvider).status,
+      isA<GeolocatorStreamOk>(),
+    );
+
+    // The OS stream dies: the failure must be exposed through the contract.
+    controller.addError(Exception('location service lost'), StackTrace.current);
+    await Future<void>.delayed(Duration.zero);
+    final failed = container.read(geolocatorStreamProvider).status;
+    expect(failed, isA<GeolocatorStreamFailed>());
+    expect((failed as GeolocatorStreamFailed).error, isA<Exception>());
+
+    // A restart (e.g. a GPS mode switch) re-subscribes; a fresh position
+    // proves the stream delivers again and the healthy status is restored.
+    await notifier.setDroneCanActive(true);
+    expect(fakePlatform.getPositionStreamCallCount, 2);
+
+    final received = <Position>[];
+    final sub = container
+        .read(geolocatorStreamProvider)
+        .stream
+        .listen(received.add);
+    addTearDown(sub.cancel);
+    controller.add(makePosition(lat: 48.0, lon: 17.0));
+    await Future<void>.delayed(Duration.zero);
+    expect(
+      container.read(geolocatorStreamProvider).status,
+      isA<GeolocatorStreamOk>(),
+    );
+    expect(received, hasLength(1));
+    expect(received.single.latitude, 48.0);
+  });
+
+  test('an OS stream error auto-retries after 5 s and recovers', () {
+    fakeAsync((async) {
+      // Controller and platform are created inside the fake zone so event
+      // delivery and the retry timer are controlled by fakeAsync.
+      final ctrl = StreamController<Position>.broadcast();
+      addTearDown(ctrl.close);
+      final platform = FakeGeolocatorPlatform(ctrl);
+      GeolocatorPlatform.instance = platform;
+
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(geolocatorStreamProvider.notifier);
+
+      notifier.start();
+      expect(platform.getPositionStreamCallCount, 1);
+
+      // The OS stream dies: the failure is exposed and a retry is scheduled.
+      ctrl.addError(Exception('location lost'), StackTrace.current);
+      async.flushMicrotasks();
+      expect(
+        container.read(geolocatorStreamProvider).status,
+        isA<GeolocatorStreamFailed>(),
+      );
+
+      // After the 5 s delay the notifier re-subscribes on its own.
+      async.elapse(const Duration(seconds: 5));
+      async.flushMicrotasks();
+      expect(platform.getPositionStreamCallCount, 2);
+
+      // A fresh position restores the healthy status.
+      ctrl.add(makePosition(lat: 48.0, lon: 17.0));
+      async.flushMicrotasks();
+      expect(
+        container.read(geolocatorStreamProvider).status,
+        isA<GeolocatorStreamOk>(),
+      );
+    });
   });
 }
