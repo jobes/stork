@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'l10n/app_localizations.dart';
 
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -19,13 +20,36 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_provid
 
 Future<void> main() async {
   appStopwatch.start();
-  WidgetsFlutterBinding.ensureInitialized();
+  SentryWidgetsFlutterBinding.ensureInitialized();
   await FirUtils.initialize();
   await dotenv.load(fileName: ".env");
   if (!kIsWeb) {
     await MapAssetsServer.start();
   }
-  runApp(const ProviderScope(child: StorkApp()));
+
+  final sentryDsn = dotenv.env['SENTRY_DSN']?.trim();
+  if (sentryDsn == null || sentryDsn.isEmpty) {
+    runApp(const ProviderScope(child: StorkApp()));
+  } else {
+    try {
+      await SentryFlutter.init(
+        (options) {
+          options.dsn = sentryDsn;
+          options.environment = kReleaseMode ? 'release' : 'debug';
+          options.tracesSampleRate = 1.0;
+          options.replay.onErrorSampleRate = 1.0;
+        },
+        appRunner: () =>
+            runApp(SentryWidget(child: const ProviderScope(child: StorkApp()))),
+      );
+    } catch (error) {
+      debugPrint(
+        'Sentry init failed (DSN set but unusable); running without Sentry: '
+        '$error',
+      );
+      runApp(const ProviderScope(child: StorkApp()));
+    }
+  }
 }
 
 class StorkApp extends ConsumerStatefulWidget {
@@ -41,16 +65,17 @@ class _StorkAppState extends ConsumerState<StorkApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Initial enable of the wakelock
     WakelockPlus.enable();
-    // Warm up the Cannelloni service at startup so it runs in the background
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: 'app session started',
+        category: 'app',
+        level: SentryLevel.info,
+      ),
+    );
     ref.read(cannelloniServiceProvider);
-    // Warm up the Black Box service at startup so it records flights in the background
     ref.read(blackBoxServiceProvider);
-    // Warm up the GPS Listener to ensure background location updates run continuously
     ref.read(gpsListenerProvider);
-    // Warm up the airspace activity (AUP/UUP) pre-fetcher so it monitors the
-    // aircraft position from app start.
     ref.read(airspaceActivityProvider);
   }
 
@@ -63,7 +88,6 @@ class _StorkAppState extends ConsumerState<StorkApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Re-enable wakelock when returning to the app to ensure it's active
       WakelockPlus.enable();
     }
   }

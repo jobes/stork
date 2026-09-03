@@ -175,7 +175,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     },
   );
 
-  // Radio fields
   late final DecayableField<int> _radioActiveFrequency = DecayableField<int>(
     timeout: const Duration(seconds: 30),
     onChanged: (val) {
@@ -281,9 +280,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
   @override
   TelemetryState build() {
-    // Listen to device compass for low-speed heading.
-    // Must be in build() (not a void provider) so ref.listen properly
-    // subscribes to the StreamProvider.
     ref.listen(compassStreamProvider, (previous, next) {
       next.whenData((heading) {
         if (heading == null) return;
@@ -313,8 +309,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _exhaustGasTemperatures.cancel();
       _fuelLevelPercent.cancel();
       _fuelVolumeLiters.cancel();
-
-      // Cancel radio timers
       _radioActiveFrequency.cancel();
       _radioStandbyFrequency.cancel();
       _radioActiveStationName.cancel();
@@ -346,8 +340,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   }) {
     if (isDroneCan) {
       _lastDroneCanFixTime = DateTime.now();
-      // Downgrade the phone GPS stream to save battery while DroneCAN GPS is
-      // the active source (its positions are ignored anyway).
       unawaited(
         ref.read(geolocatorStreamProvider.notifier).setDroneCanActive(true),
       );
@@ -355,8 +347,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       _droneCanGpsTimeoutTimer = Timer(const Duration(seconds: 5), () {
         _lastDroneCanFixTime = null;
         state = state.copyWith(isGpsDroneCan: false);
-        // Restore the high-accuracy phone GPS now that DroneCAN is no longer
-        // providing a fix.
         unawaited(
           ref.read(geolocatorStreamProvider.notifier).setDroneCanActive(false),
         );
@@ -364,7 +354,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     } else if (_lastDroneCanFixTime != null &&
         DateTime.now().difference(_lastDroneCanFixTime!) <=
             const Duration(seconds: 5)) {
-      // Discard/ignore phone's GPS data to avoid conflict with active DroneCAN Fix2 data
       return;
     }
 
@@ -414,7 +403,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
           : TelemetryValue(gpsTimestamp as DateTime?),
     );
 
-    // Auto-transition to overview if GPS is filled and we are in init/waiting state
     if ((oldState.mapViewState == MapViewState.init ||
             oldState.mapViewState == MapViewState.waitingForGps) &&
         newState.latitude != null &&
@@ -573,8 +561,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _exhaustGasTemperatures.sync(newState.exhaustGasTemperatures);
     _fuelLevelPercent.sync(newState.fuelLevelPercent);
     _fuelVolumeLiters.sync(newState.fuelVolumeLiters);
-
-    // Sync radio fields
     _radioActiveFrequency.sync(newState.radioActiveFrequency);
     _radioStandbyFrequency.sync(newState.radioStandbyFrequency);
     _radioActiveStationName.sync(newState.radioActiveStationName);
@@ -606,21 +592,16 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
 @Riverpod(keepAlive: true)
 void gpsListener(Ref ref) {
-  // Subscribe directly to the persistent OS position stream. We deliberately
-  // do NOT go through a Riverpod StreamProvider here: in Riverpod 3 a
-  // provider-to-provider watch/listen does not reliably keep a StreamProvider
-  // subscribed, so the phone GPS stream never delivered positions to the
-  // telemetry (frozen aircraft, no ground speed / GPS accuracy). A plain
-  // StreamSubscription on the keepAlive notifier's broadcast stream is
-  // deterministic and always active. The stream instance never changes for
-  // the notifier's lifetime, so it is read once here; status changes are
-  // observed via ref.listen below and never re-run this provider (which
-  // would duplicate the subscription).
+  // Deliberately subscribe to the notifier's raw broadcast stream instead of
+  // a Riverpod StreamProvider: in Riverpod 3 a provider-to-provider watch does
+  // not reliably keep a StreamProvider subscribed, which froze the aircraft
+  // (no positions delivered). The stream instance never changes for the
+  // notifier's lifetime, so it is read once here; status changes are observed
+  // via ref.listen below without re-running this provider (which would
+  // duplicate the subscription).
   final stream = ref.read(geolocatorStreamProvider).stream;
   final subscription = stream.listen((pos) {
     final telemetry = ref.read(telemetryProvider);
-    // Apply phone GPS only when the map actually wants tracking and no
-    // DroneCAN GPS is the active source.
     if (telemetry.mapViewState != MapViewState.init &&
         !telemetry.isGpsDroneCan) {
       ref
@@ -642,9 +623,6 @@ void gpsListener(Ref ref) {
   });
   ref.onDispose(subscription.cancel);
 
-  // Surface OS stream failures so the failure state is observable instead of
-  // the stream dying silently. The notifier re-subscribes automatically after
-  // a short delay; any UI can watch the status to present a "GPS lost" state.
   ref.listen(geolocatorStreamProvider, (previous, next) {
     final status = next.status;
     if (status is GeolocatorStreamFailed) {
@@ -690,7 +668,6 @@ class DisableTelemetryAnimations extends _$DisableTelemetryAnimations {
           _lastUpdateTimes[field] = now;
           if (lastUpdate != null) {
             final diff = now.difference(lastUpdate);
-            // More than 4x per second means interval < 250 milliseconds
             final highFreq = diff.inMilliseconds < 250;
             if (_disableAnimations[field] != highFreq) {
               _disableAnimations[field] = highFreq;

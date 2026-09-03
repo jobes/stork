@@ -39,7 +39,6 @@ const double kTrafficBaseIconSizePx = 64.0;
 
 @riverpod
 class MapCamera extends _$MapCamera {
-  // Helper to access ref from part-files without protected member warnings
   dynamic get refAccess => ref;
 
   MapController? _mapController;
@@ -52,13 +51,9 @@ class MapCamera extends _$MapCamera {
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
 
-  // Last applied airspace activity id lists, used to skip redundant map style
-  // updates (removeLayer + addLayer) when nothing changed.
   List<String>? _lastActiveAirspaceIds;
   List<String>? _lastInactiveAirspaceIds;
 
-  // In-flight airspace highlight application, used to serialize concurrent
-  // updateAirspacesOnMap() executions so layer mutations cannot interleave.
   Future<void>? _airspaceHighlightInFlight;
 
   Ticker? _interpolationTicker;
@@ -72,7 +67,6 @@ class MapCamera extends _$MapCamera {
 
   @override
   void build() {
-    // Listen to telemetry updates to move camera
     ref.listen(
       telemetryProvider.select(
         (s) => (
@@ -88,13 +82,11 @@ class MapCamera extends _$MapCamera {
       (previous, next) {
         if (_mapController == null) return;
 
-        // Update navigation route on map if position changed
         if (next.latitude != previous?.latitude ||
             next.longitude != previous?.longitude) {
           _updateNavigationRouteOnMap();
         }
 
-        // Update aircraft symbol if initialized
         if (_isAircraftSymbolInitialized &&
             _mapController?.style != null &&
             _interpolationTicker == null) {
@@ -132,7 +124,6 @@ class MapCamera extends _$MapCamera {
           lat: next.latitude ?? 0.0,
         );
 
-        // Handle mode transitions and continuous updates
         if (next.mapViewState == MapViewState.follow) {
           if (next.latitude != null &&
               next.longitude != null &&
@@ -143,7 +134,6 @@ class MapCamera extends _$MapCamera {
             final isContinuousFollow =
                 previous?.mapViewState == MapViewState.follow;
 
-            // Only interpolate if coordinates or heading actually changed
             final coordsChanged =
                 previous?.latitude != next.latitude ||
                 previous?.longitude != next.longitude ||
@@ -218,7 +208,6 @@ class MapCamera extends _$MapCamera {
       },
     );
 
-    // Listen to settings updates to update course line
     ref.listen(appSettingsProvider, (previous, next) {
       if (_mapController == null ||
           !_isAircraftSymbolInitialized ||
@@ -236,7 +225,6 @@ class MapCamera extends _$MapCamera {
       updateTrafficOnMap();
     });
 
-    // Listen to system location for initial positioning
     ref.listen(currentLocationProvider, (previous, next) {
       next.whenData((location) {
         if (location != null) {
@@ -255,36 +243,30 @@ class MapCamera extends _$MapCamera {
       });
     });
 
-    // Listen to navigation updates to redraw route on map
     ref.listen(navigationProvider, (previous, next) {
       _updateNavigationRouteOnMap(force: true);
     });
 
-    // Listen to NOTAMs updates to redraw NOTAMs on map
     ref.listen(notamsProvider, (previous, next) {
       if (next.hasValue) {
         updateNotamsOnMap();
       }
     });
 
-    // Listen to favourites updates to redraw favourite points on map
     ref.listen(favoritesProvider, (previous, next) {
       if (next.hasValue) {
         updateFavoritesOnMap();
       }
     });
 
-    // Listen to airspace activity (AUP/UUP) updates to redraw airspaces on map
     ref.listen(airspaceActivityProvider, (previous, next) {
       unawaited(updateAirspacesOnMap());
     });
 
-    // Listen to traffic updates to redraw traffic on map
     ref.listen(filteredTrafficProvider, (previous, next) {
       updateTrafficOnMap(next);
     });
 
-    // Periodic timer to recalculate possible location cone as time elapses
     final trafficTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (_mapController != null && _isAircraftSymbolInitialized) {
         final currentTraffic = ref.read(filteredTrafficProvider);
@@ -294,7 +276,6 @@ class MapCamera extends _$MapCamera {
       }
     });
 
-    // Clean up timer on dispose
     ref.onDispose(() {
       trafficTimer.cancel();
       _moveThrottleTimer?.cancel();
@@ -309,7 +290,6 @@ class MapCamera extends _$MapCamera {
       _controllerCompleter.complete(controller);
     }
 
-    // Initial move if telemetry is already valid
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
     if (telemetry.latitude != null &&
@@ -339,10 +319,10 @@ class MapCamera extends _$MapCamera {
     }
   }
 
-  /// Moves the camera. By default a lat/lon of exactly 0.0 is treated as an
-  /// invalid telemetry coordinate and the move is skipped. Pass
-  /// [allowZeroCoordinate] when the target is an explicit point (e.g. a
-  /// favourite) so valid Equator / Prime Meridian locations are honoured.
+  /// Moves the camera. A lat/lon of exactly 0.0 is treated as an invalid
+  /// telemetry coordinate and the move is skipped unless [allowZeroCoordinate]
+  /// is set (used for explicit points, e.g. a favourite on the Equator /
+  /// Prime Meridian).
   Future<void> moveCamera({
     required Geographic center,
     required double zoom,
@@ -392,11 +372,8 @@ class MapCamera extends _$MapCamera {
   }
 
   /// Moves the camera to the given point and switches to the north-up overview
-  /// state so the map acts as a static "preview" (it stops following the
-  /// aircraft). Used e.g. when showing a favourite point from its list page.
-  ///
-  /// Waits for the map controller when the map page is not mounted yet (e.g.
-  /// when navigating to the map from another page).
+  /// state (static "preview", stops following the aircraft). Waits for the map
+  /// controller when the map page is not mounted yet.
   Future<void> focusOnPoint({
     required double latitude,
     required double longitude,
@@ -405,7 +382,6 @@ class MapCamera extends _$MapCamera {
     _followResumeTimer?.cancel();
     _isFollowPaused = false;
 
-    // Leave follow mode so the camera no longer tracks the aircraft.
     ref.read(telemetryProvider.notifier).setMapViewState(MapViewState.overview);
 
     if (_mapController == null) {
@@ -419,15 +395,11 @@ class MapCamera extends _$MapCamera {
       pitch: 0,
       bearing: 0,
       animate: true,
-      // The coordinates are an explicit point, so lat/lon of 0.0 (Equator /
-      // Prime Meridian) are valid and must not be rejected by the telemetry
-      // invalid-coordinate guard.
       allowZeroCoordinate: true,
     );
   }
 
   void handleUserInteraction({bool isExplicitInteraction = true}) {
-    // Only proceed if it's not a programmatical movement
     if (!isExplicitInteraction && isMovingProgrammatically) {
       return;
     }
@@ -447,7 +419,6 @@ class MapCamera extends _$MapCamera {
 
       _isFollowPaused = false;
 
-      // Immediate snap back if still in follow mode
       final currentTelemetry = ref.read(telemetryProvider);
       if (currentTelemetry.mapViewState == MapViewState.follow) {
         snapBackToAircraft();
@@ -491,8 +462,6 @@ class MapCamera extends _$MapCamera {
       );
       final hasPermission = await LocationService.hasPermission();
 
-      // Start the continuous phone GPS stream whenever permission is granted,
-      // so positions keep flowing after this initial one-shot fix.
       if (hasPermission) {
         ref.read(geolocatorStreamProvider.notifier).start();
       }
@@ -502,7 +471,6 @@ class MapCamera extends _$MapCamera {
             .read(telemetryProvider.notifier)
             .updateGPS(latitude: location.lat, longitude: location.lon);
       } else if (!hasPermission) {
-        // If GPS is denied, return to init state
         ref.read(telemetryProvider.notifier).setMapViewState(MapViewState.init);
       }
     } else {
@@ -524,7 +492,6 @@ class MapCamera extends _$MapCamera {
       );
       if (!ref.mounted) return;
 
-      // Wait for controller to be ready
       if (_mapController == null) {
         await _controllerCompleter.future;
         if (!ref.mounted) return;
@@ -548,7 +515,6 @@ class MapCamera extends _$MapCamera {
             .read(telemetryProvider.notifier)
             .setMapViewState(MapViewState.waitingForGps);
 
-        // Start the continuous phone GPS stream.
         ref.read(geolocatorStreamProvider.notifier).start();
 
         final realLocation = await LocationService.getGpsLocationOnly(
@@ -625,8 +591,6 @@ class MapCamera extends _$MapCamera {
     final features = traffic.map((ac) {
       final acType = AircraftType.fromOgnCode(ac.aircraftType);
       final isFlying = ac.groundSpeed > 1.0;
-      // Single SDF sprite icon; the colour state is applied per layer via the
-      // `icon-color` expression on `traffic-layer`.
       final iconId = acType.trafficMapIconId;
 
       double possiblePositionRatio = 0.0;
@@ -997,14 +961,11 @@ class MapCamera extends _$MapCamera {
     final List<Map<String, dynamic>> features = [];
 
     for (final notam in notams) {
-      // Generate circle polygon coordinates
       final List<List<double>> ring = [];
       const int segments = 32;
       final latRad = notam.latitude * math.pi / 180.0;
       final lonRad = notam.longitude * math.pi / 180.0;
-      final dRad =
-          notam.radius /
-          6371000.0; // Radius in meters divided by Earth's radius
+      final dRad = notam.radius / 6371000.0;
 
       for (int i = 0; i <= segments; i++) {
         final double angle = i * 2.0 * math.pi / segments;
