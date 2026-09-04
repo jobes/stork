@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:maplibre/maplibre.dart';
 import 'location_service.dart';
 import '../../l10n/app_localizations.dart';
@@ -105,17 +106,62 @@ class GeolocatorStreamFailed extends GeolocatorStreamStatus {
 /// raw stream that [gpsListener] subscribes to directly). The second field
 /// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
 /// instead of being silently swallowed.
+///
+/// A stall watchdog additionally re-creates the native subscription when the
+/// stream goes completely silent *without* an error event (the common Android
+/// failure mode where positions simply stop arriving). On its own that would
+/// freeze the aircraft until an external GPS client (e.g. Google Maps) wakes
+/// the location stack; the watchdog recovers automatically instead — and
+/// keeps re-creating the subscription with a growing backoff until the OS
+/// delivers again, so a single failed recovery cannot leave the aircraft
+/// frozen.
 @Riverpod(keepAlive: true)
 class GeolocatorStream extends _$GeolocatorStream {
   /// Delay before re-subscribing after an OS stream error, so the phone GPS
   /// recovers on its own (e.g. after location permission/services return).
   static const Duration _retryDelay = Duration(seconds: 5);
 
+  /// How long the phone stream may stay silent (while a ~1 Hz fix is expected
+  /// in high-accuracy mode) before it is considered stalled and re-created.
+  ///
+  /// Android can silently stop delivering positions without ever emitting an
+  /// error (the "dead stream" case). Without this watchdog nothing recovers
+  /// the fix until an external GPS client (e.g. Google Maps) wakes the
+  /// location stack — which is exactly what the pilot observed in flight.
+  ///
+  /// A plain static (not `const`) so tests can shrink it and exercise the
+  /// recovery without waiting ten real seconds.
+  @visibleForTesting
+  static Duration stallTimeout = const Duration(seconds: 10);
+
+  /// Ceiling of the stall-recovery backoff (see [_stallProbeDelay]): even a
+  /// persistently dead OS stream is only re-subscribed to at most this often,
+  /// so the watchdog never hammers the native location service.
+  static const Duration _stallRecoveryCap = Duration(minutes: 5);
+
   StreamController<geo.Position>? _controller;
   StreamSubscription<geo.Position>? _subscription;
   Timer? _retryTimer;
+  Timer? _stallTimer;
   bool _started = false;
   bool _droneCanMode = false;
+
+  /// Whether the OS stream has ever delivered a position, kept across
+  /// re-subscribes.
+  ///
+  /// The stall watchdog only acts once a position has been delivered: before
+  /// the first fix there is no way to tell a dead stream from a device that
+  /// simply has no satellite lock yet (re-subscribing would only waste battery
+  /// without helping). Keeping it across re-subscribes lets a re-created
+  /// stream that stays silently dead be detected and probed again.
+  bool _hasProvenFix = false;
+
+  /// Consecutive stall recoveries since the last delivered position. Grows the
+  /// watchdog timeout (backoff, see [_stallProbeDelay]) so a genuinely dead
+  /// stream is not hammered, while still being probed again and again until
+  /// the OS delivers — instead of freezing the aircraft after a single failed
+  /// recovery attempt. Reset to zero on the next delivered position.
+  int _stallRecoveries = 0;
   Future<void>? _restartInFlight;
 
   @override
@@ -124,6 +170,8 @@ class GeolocatorStream extends _$GeolocatorStream {
     ref.onDispose(() {
       _retryTimer?.cancel();
       _retryTimer = null;
+      _stallTimer?.cancel();
+      _stallTimer = null;
       _subscription?.cancel();
       _subscription = null;
       _controller?.close();
@@ -131,6 +179,8 @@ class GeolocatorStream extends _$GeolocatorStream {
       _restartInFlight = null;
       _started = false;
       _droneCanMode = false;
+      _hasProvenFix = false;
+      _stallRecoveries = 0;
     });
     return (stream: _controller!.stream, status: const GeolocatorStreamOk());
   }
@@ -142,6 +192,15 @@ class GeolocatorStream extends _$GeolocatorStream {
   void start() {
     if (_started) return;
     _started = true;
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        message:
+            'geolocator: stream started '
+            '(${_droneCanMode ? 'dronecan low-power' : 'high-accuracy'})',
+        category: 'gps',
+        level: SentryLevel.info,
+      ),
+    );
     _subscribe();
   }
 
@@ -154,15 +213,25 @@ class GeolocatorStream extends _$GeolocatorStream {
   Future<void> setDroneCanActive(bool active) {
     if (_droneCanMode == active) return Future.value();
     _droneCanMode = active;
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        message:
+            'geolocator: mode switch -> '
+            '${active ? 'dronecan low-power' : 'high-accuracy'}',
+        category: 'gps',
+        level: SentryLevel.info,
+      ),
+    );
     if (!_started) return Future.value();
     _startWithMode();
     return _restartInFlight ?? Future.value();
   }
 
   void _startWithMode() {
-    // A mode switch re-subscribes anyway; drop any pending retry.
+    // A mode switch re-subscribes anyway; drop any pending retry/stall timer.
     _retryTimer?.cancel();
     _retryTimer = null;
+    _disarmStallWatchdog();
     _restartInFlight = (_restartInFlight ?? Future.value()).then((_) async {
       if (!_started) return;
       final old = _subscription;
@@ -178,6 +247,12 @@ class GeolocatorStream extends _$GeolocatorStream {
   void _subscribe() {
     _retryTimer?.cancel();
     _retryTimer = null;
+    _stallTimer?.cancel();
+    _stallTimer = null;
+    // A brand-new subscription has no proof of life yet: the stall watchdog
+    // is armed from the first delivered position (see [_onPosition]). If this
+    // is a re-subscribe after a proven fix (_hasProvenFix) the watchdog is
+    // re-armed below so a stream that stays silently dead is detected again.
     try {
       _subscription = geo.Geolocator.getPositionStream(
         locationSettings: _locationSettings(droneCan: _droneCanMode),
@@ -186,21 +261,48 @@ class GeolocatorStream extends _$GeolocatorStream {
       // Some platforms surface OS location errors synchronously when the
       // location service is unavailable; treat them like an async error.
       _onStreamError(error, stackTrace);
+      return;
     }
+    // Re-arm after every (re)subscribe that follows a proven fix, so a stream
+    // that dies silently again is recovered — not just once. No-op before the
+    // first fix or while a DroneCAN GPS is the active source (see
+    // [_armStallWatchdog]).
+    _armStallWatchdog();
   }
 
   void _onPosition(geo.Position pos) {
     // A delivered position proves the OS stream is healthy again.
     if (state.status is GeolocatorStreamFailed) {
       state = (stream: _controller!.stream, status: const GeolocatorStreamOk());
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'geolocator: stream recovered (position back)',
+          category: 'gps',
+          level: SentryLevel.info,
+        ),
+      );
     }
+    _hasProvenFix = true;
+    // A delivered position proves the stream is live again: reset the stall
+    // recovery backoff and re-arm the watchdog so the next stall is measured
+    // from this fix, not from subscription time.
+    _stallRecoveries = 0;
+    _armStallWatchdog();
     _controller?.add(pos);
   }
 
   void _onStreamError(Object error, StackTrace stackTrace) {
     debugPrint('[GeolocatorStream] OS position stream error: $error');
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: 'geolocator: OS stream error: $error',
+        category: 'gps',
+        level: SentryLevel.error,
+      ),
+    );
     _subscription?.cancel();
     _subscription = null;
+    _disarmStallWatchdog();
     state = (
       stream: _controller!.stream,
       status: GeolocatorStreamFailed(error, stackTrace),
@@ -217,6 +319,91 @@ class GeolocatorStream extends _$GeolocatorStream {
         _subscribe();
       }
     });
+  }
+
+  /// (Re)starts the stall watchdog. It is only armed while the native stream
+  /// is live in high-accuracy phone mode, where a ~1 Hz fix is expected, and
+  /// only once the stream has proven it can deliver a position
+  /// (_hasProvenFix) — before the first fix silence just means "no lock yet".
+  ///
+  /// It is deliberately NOT armed while a DroneCAN GPS is the active source:
+  /// there the phone request is downgraded to a passive/low-power request that
+  /// can legitimately stay silent for long stretches (its positions are
+  /// ignored anyway), so silence must not be mistaken for a stall.
+  ///
+  /// The delay grows with [_stallRecoveries] (see [_stallProbeDelay]) so a
+  /// stream that keeps dying is not hammered, yet keeps being probed until the
+  /// OS delivers again — even if that is minutes later.
+  void _armStallWatchdog() {
+    _stallTimer?.cancel();
+    _stallTimer = null;
+    if (!_started || _droneCanMode || _subscription == null) return;
+    if (!_hasProvenFix) return;
+    _stallTimer = Timer(_stallProbeDelay(), _onStallDetected);
+  }
+
+  /// Delay after which the next stall is detected, given how many silent
+  /// recoveries already happened ([_stallRecoveries]).
+  ///
+  /// With no recoveries yet this is [stallTimeout] after the last delivered
+  /// fix. Every silent recovery that still yields no fix doubles the wait —
+  /// capped at [_stallRecoveryCap] — so a genuinely dead OS stream is probed
+  /// at most every [_stallRecoveryCap] in the worst case, while a stream that
+  /// comes back (even much later) is picked up as soon as it delivers again.
+  Duration _stallProbeDelay() {
+    // Bounded exponent keeps the shift well inside 64-bit range even if a
+    // stream stays dead for an entire (very long) session.
+    final steps = _stallRecoveries > 8 ? 8 : _stallRecoveries;
+    final delay = stallTimeout * (1 << steps);
+    return delay > _stallRecoveryCap ? _stallRecoveryCap : delay;
+  }
+
+  void _disarmStallWatchdog() {
+    _stallTimer?.cancel();
+    _stallTimer = null;
+  }
+
+  /// Human-readable form of [duration] for logs/diagnostics. A duration below
+  /// one second prints as ms, where `inSeconds` would misleadingly print "0 s".
+  static String _durationLabel(Duration duration) {
+    if (duration.inSeconds < 1) {
+      return '${duration.inMilliseconds} ms';
+    }
+    return '${duration.inSeconds} s';
+  }
+
+  /// Fired by the stall watchdog when no position has arrived for the current
+  /// probe delay even though the stream was delivering before. The OS stream
+  /// has gone silently dead (no error event), so force a clean restart of the
+  /// native subscription — exactly like a mode switch — to recover the fix
+  /// without the pilot having to touch another GPS app.
+  void _onStallDetected() {
+    if (!_started || _droneCanMode) return;
+    if (!_hasProvenFix) return;
+    // The watchdog waited the full backed-off probe delay before firing;
+    // capture it (before incrementing) so diagnostics report the true silent
+    // period instead of the base stall timeout.
+    final delay = _durationLabel(_stallProbeDelay());
+    _stallRecoveries++;
+    debugPrint(
+      '[GeolocatorStream] No position for $delay while '
+      'a fix is expected; re-subscribing to recover a stalled stream '
+      '(recovery #$_stallRecoveries).',
+    );
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        message:
+            'geolocator: STALL - no position for $delay '
+            'while a fix is expected; re-subscribing to recover '
+            '(recovery #$_stallRecoveries)',
+        category: 'gps',
+        level: SentryLevel.warning,
+      ),
+    );
+    // Re-subscribing re-arms the watchdog (see [_subscribe]): if the OS
+    // stream is still dead after this recovery, another probe follows with a
+    // longer delay — the aircraft does not freeze after a single attempt.
+    _startWithMode();
   }
 }
 

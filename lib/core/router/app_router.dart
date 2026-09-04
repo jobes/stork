@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import '../../features/map/presentation/pages/map_page.dart';
 import '../../features/offline_maps/presentation/pages/offline_maps_page_web.dart'
     if (dart.library.io) '../../features/offline_maps/presentation/pages/offline_maps_page.dart';
@@ -11,6 +12,7 @@ import '../../features/favorites/presentation/pages/favorites_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
+  observers: [SentryNavigatorObserver()],
   routes: [
     GoRoute(path: '/', builder: (context, state) => const MapPage()),
     if (!kIsWeb)
