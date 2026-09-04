@@ -12,10 +12,6 @@ import '../../features/favorites/presentation/pages/favorites_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
-  // Each screen becomes a Sentry performance transaction. The observer is
-  // always installed: when Sentry is not configured it internally no-ops. The
-  // map screen (initial '/') stays open for the whole session, so slow/frozen
-  // frame metrics and child spans during the flight land on it.
   observers: [SentryNavigatorObserver()],
   routes: [
     GoRoute(path: '/', builder: (context, state) => const MapPage()),

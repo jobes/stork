@@ -21,14 +21,18 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_provid
 Future<void> main() async {
   appStopwatch.start();
   SentryWidgetsFlutterBinding.ensureInitialized();
-  await FirUtils.initialize();
   await dotenv.load(fileName: ".env");
-  if (!kIsWeb) {
-    await MapAssetsServer.start();
+
+  Future<void> runStartup() async {
+    await FirUtils.initialize();
+    if (!kIsWeb) {
+      await MapAssetsServer.start();
+    }
   }
 
   final sentryDsn = dotenv.env['SENTRY_DSN']?.trim();
   if (sentryDsn == null || sentryDsn.isEmpty) {
+    await runStartup();
     runApp(const ProviderScope(child: StorkApp()));
   } else {
     try {
@@ -39,14 +43,17 @@ Future<void> main() async {
           options.tracesSampleRate = 1.0;
           options.replay.onErrorSampleRate = 1.0;
         },
-        appRunner: () =>
-            runApp(SentryWidget(child: const ProviderScope(child: StorkApp()))),
+        appRunner: () async {
+          await runStartup();
+          runApp(SentryWidget(child: const ProviderScope(child: StorkApp())));
+        },
       );
     } catch (error) {
       debugPrint(
         'Sentry init failed (DSN set but unusable); running without Sentry: '
         '$error',
       );
+      await runStartup();
       runApp(const ProviderScope(child: StorkApp()));
     }
   }

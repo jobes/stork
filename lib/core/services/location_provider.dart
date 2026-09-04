@@ -363,14 +363,13 @@ class GeolocatorStream extends _$GeolocatorStream {
     _stallTimer = null;
   }
 
-  /// Human-readable form of [stallTimeout] for logs/diagnostics. The default
-  /// prints as "10 s"; tests shrink it below one second, where `inSeconds`
-  /// would misleadingly print "0 s".
-  String get _stallTimeoutLabel {
-    if (stallTimeout.inSeconds < 1) {
-      return '${stallTimeout.inMilliseconds} ms';
+  /// Human-readable form of [duration] for logs/diagnostics. A duration below
+  /// one second prints as ms, where `inSeconds` would misleadingly print "0 s".
+  static String _durationLabel(Duration duration) {
+    if (duration.inSeconds < 1) {
+      return '${duration.inMilliseconds} ms';
     }
-    return '${stallTimeout.inSeconds} s';
+    return '${duration.inSeconds} s';
   }
 
   /// Fired by the stall watchdog when no position has arrived for the current
@@ -381,16 +380,20 @@ class GeolocatorStream extends _$GeolocatorStream {
   void _onStallDetected() {
     if (!_started || _droneCanMode) return;
     if (!_hasProvenFix) return;
+    // The watchdog waited the full backed-off probe delay before firing;
+    // capture it (before incrementing) so diagnostics report the true silent
+    // period instead of the base stall timeout.
+    final delay = _durationLabel(_stallProbeDelay());
     _stallRecoveries++;
     debugPrint(
-      '[GeolocatorStream] No position for $_stallTimeoutLabel while '
+      '[GeolocatorStream] No position for $delay while '
       'a fix is expected; re-subscribing to recover a stalled stream '
       '(recovery #$_stallRecoveries).',
     );
     Sentry.addBreadcrumb(
       Breadcrumb(
         message:
-            'geolocator: STALL - no position for $_stallTimeoutLabel '
+            'geolocator: STALL - no position for $delay '
             'while a fix is expected; re-subscribing to recover '
             '(recovery #$_stallRecoveries)',
         category: 'gps',
