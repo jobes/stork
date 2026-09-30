@@ -652,6 +652,166 @@ void main() {
         });
       },
     );
+
+    test(
+      'A GPS dropout shorter than the grace period keeps the same flight',
+      () {
+        fakeAsync((async) {
+          final container = ProviderContainer(
+            overrides: [
+              blackBoxDatabaseProvider.overrideWithValue(blackBoxDb),
+              appSettingsProvider.overrideWith(
+                () => MockAppSettingsNotifier(
+                  const AppSettings(
+                    pilotId: 'test-pilot',
+                    airplaneId: 'test-plane',
+                  ),
+                ),
+              ),
+            ],
+          );
+          addTearDown(container.dispose);
+
+          final serviceSub = container.listen(
+            blackBoxServiceProvider,
+            (prev, next) {},
+          );
+          final telemetryNotifier = container.read(telemetryProvider.notifier);
+
+          void fly(int seconds) {
+            for (var i = 0; i < seconds; i++) {
+              async.elapse(const Duration(seconds: 1));
+              telemetryNotifier.updateGPS(
+                latitude: 48.0 + i * 0.001,
+                longitude: 17.0 + i * 0.001,
+                groundSpeed: 10.0,
+              );
+            }
+          }
+
+          fly(5);
+          async.elapse(const Duration(milliseconds: 1100));
+
+          final firstUuid = container
+              .read(blackBoxServiceProvider.notifier)
+              .activeFlightUuid;
+          expect(firstUuid, isNotNull);
+
+          // GPS signal is lost for 20 s, well inside the grace period: the
+          // flight must not end and the last fix keeps being reported.
+          async.elapse(const Duration(seconds: 20));
+          expect(container.read(telemetryProvider).isFlying, isTrue);
+          expect(container.read(telemetryProvider).groundSpeed, equals(10.0));
+          expect(
+            container.read(blackBoxServiceProvider.notifier).activeFlightUuid,
+            equals(firstUuid),
+          );
+          expect(
+            db.select('SELECT COUNT(*) as count FROM flights').first['count'],
+            equals(1),
+          );
+
+          // Signal is back: the very same flight continues.
+          fly(3);
+          async.elapse(const Duration(milliseconds: 1100));
+
+          expect(container.read(telemetryProvider).isFlying, isTrue);
+          expect(
+            container.read(blackBoxServiceProvider.notifier).activeFlightUuid,
+            equals(firstUuid),
+          );
+          expect(
+            db.select('SELECT COUNT(*) as count FROM flights').first['count'],
+            equals(1),
+          );
+
+          serviceSub.close();
+        });
+      },
+    );
+
+    test(
+      'A GPS dropout longer than the grace period ends the flight and a new one starts on signal return',
+      () {
+        fakeAsync((async) {
+          final container = ProviderContainer(
+            overrides: [
+              blackBoxDatabaseProvider.overrideWithValue(blackBoxDb),
+              appSettingsProvider.overrideWith(
+                () => MockAppSettingsNotifier(
+                  const AppSettings(
+                    pilotId: 'test-pilot',
+                    airplaneId: 'test-plane',
+                  ),
+                ),
+              ),
+            ],
+          );
+          addTearDown(container.dispose);
+
+          final serviceSub = container.listen(
+            blackBoxServiceProvider,
+            (prev, next) {},
+          );
+          final telemetryNotifier = container.read(telemetryProvider.notifier);
+
+          void fly(int seconds) {
+            for (var i = 0; i < seconds; i++) {
+              async.elapse(const Duration(seconds: 1));
+              telemetryNotifier.updateGPS(
+                latitude: 48.0 + i * 0.001,
+                longitude: 17.0 + i * 0.001,
+                groundSpeed: 10.0,
+              );
+            }
+          }
+
+          fly(5);
+          async.elapse(const Duration(milliseconds: 1100));
+
+          final firstUuid = container
+              .read(blackBoxServiceProvider.notifier)
+              .activeFlightUuid;
+          expect(firstUuid, isNotNull);
+
+          // GPS signal is lost for longer than the grace period.
+          async.elapse(const Duration(seconds: 30));
+          expect(container.read(telemetryProvider).isFlying, isFalse);
+          expect(
+            container.read(blackBoxServiceProvider.notifier).activeFlightUuid,
+            isNull,
+          );
+          async.elapse(const Duration(milliseconds: 1100));
+
+          final endedFlight = db.select(
+            'SELECT * FROM flights WHERE uuid = ?',
+            [firstUuid],
+          );
+          expect(endedFlight, hasLength(1));
+          expect(endedFlight.first['end_time'], isNotNull);
+
+          // GPS is back: a new flight is started.
+          telemetryNotifier.updateGPS(
+            latitude: 48.5,
+            longitude: 17.5,
+            groundSpeed: 10.0,
+          );
+          async.elapse(const Duration(milliseconds: 1100));
+
+          final newUuid = container
+              .read(blackBoxServiceProvider.notifier)
+              .activeFlightUuid;
+          expect(newUuid, isNotNull);
+          expect(newUuid, isNot(equals(firstUuid)));
+          expect(
+            db.select('SELECT COUNT(*) as count FROM flights').first['count'],
+            equals(2),
+          );
+
+          serviceSub.close();
+        });
+      },
+    );
   });
 }
 
