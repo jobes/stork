@@ -175,11 +175,12 @@ late final DecayableField<double> _heading = DecayableField<double>(
 
 ### GPS Loss During Flight (30-second Grace Period)
 
-Because the GPS fields decay after 2 seconds, a GPS dropout while airborne used to end the flight almost immediately and start a new one as soon as the fix returned. [TelemetryNotifier](../../lib/features/telemetry/presentation/providers/telemetry_provider.dart) now holds the last known GPS data for `gpsLossGracePeriod` (**30 seconds**), measured from the last valid fix (`_lastGpsFixTime`, refreshed by every `updateGPS` call that carries a latitude):
+Because the GPS fields decay after 2 seconds, a GPS dropout while airborne used to end the flight almost immediately and start a new one as soon as the fix returned. [TelemetryNotifier](../../lib/features/telemetry/presentation/providers/telemetry_provider.dart) now keeps the flight state (`isFlying`) for `gpsLossGracePeriod` (**30 seconds**), measured from the last valid fix (`_lastGpsFixTime`, refreshed by every `updateGPS` call that carries a latitude):
 
-- While `isFlying` is `true` and the last fix is younger than the grace period, the timed-out fields (`heading`, `groundSpeed`, `gpsAltitude`, `gpsSatelliteCount`, `gpsHorizontalAccuracy`, `gpsVerticalAccuracy`) are **not** cleared. They keep reporting the last values, so the map, navigation, QNH, AGL and flight recording all behave as if the fix were still valid.
-- A new fix cancels `_gpsLossGraceTimer` and immediately drops the hold.
-- When the signal stays away longer than the grace period, `_releaseHeldGpsData` clears the held fields, `isFlying` becomes `false` and the flight ends. Since `latitude` / `longitude` never decay, the flight ends at the last known GPS point.
+- The timed-out fields (`heading`, `groundSpeed`, `gpsAltitude`, `gpsSatelliteCount`, `gpsHorizontalAccuracy`, `gpsVerticalAccuracy`) are cleared as usual, so the UI shows the missing data instead of stale values.
+- Losing `groundSpeed` normally ends the flight, so `_updateIsFlying` consults `_holdGpsDataOnSignalLoss` first: while the aircraft is still flying on an older fix inside the grace period, the flight state is preserved and the release is scheduled.
+- A new fix cancels `_gpsLossGraceTimer` and restores the normal decay behaviour immediately.
+- When the signal stays away longer than the grace period, `_releaseHeldGpsData` clears whatever is left, recalculates the flight state and lets the flight end. If `indicatedAirSpeed` is still available the flight stays active, because the airspeed keeps deciding `isFlying`. Since `latitude` / `longitude` never decay, the flight ends at the last known GPS point.
 
 ### Timeout Thresholds
 

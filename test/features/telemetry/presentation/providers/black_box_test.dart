@@ -698,10 +698,10 @@ void main() {
           expect(firstUuid, isNotNull);
 
           // GPS signal is lost for 20 s, well inside the grace period: the
-          // flight must not end and the last fix keeps being reported.
+          // stale values are cleared, but the flight must not end.
           async.elapse(const Duration(seconds: 20));
           expect(container.read(telemetryProvider).isFlying, isTrue);
-          expect(container.read(telemetryProvider).groundSpeed, equals(10.0));
+          expect(container.read(telemetryProvider).groundSpeed, isNull);
           expect(
             container.read(blackBoxServiceProvider.notifier).activeFlightUuid,
             equals(firstUuid),

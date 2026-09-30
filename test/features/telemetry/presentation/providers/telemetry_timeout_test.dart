@@ -130,8 +130,65 @@ void main() {
       });
     });
 
+    test('GPS signal loss keeps the flight alive for the grace period', () {
+      fakeAsync((async) {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final notifier = container.read(telemetryProvider.notifier);
+
+        notifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 20.0, // Above default flight threshold (2.77)
+          gpsAltitude: 1200.0,
+          gpsSatelliteCount: 9,
+        );
+        notifier.setMapViewState(MapViewState.follow);
+
+        var state = container.read(telemetryProvider);
+        expect(state.groundSpeed, equals(20.0));
+        expect(state.isFlying, isTrue);
+        expect(state.mapViewState, equals(MapViewState.follow));
+
+        // The signal is lost and the fields time out after 2 seconds: the
+        // stale values are cleared, but the flight is kept for the grace
+        // period instead of ending and starting a new one.
+        async.elapse(const Duration(seconds: 3));
+
+        state = container.read(telemetryProvider);
+        expect(state.heading, isNull);
+        expect(state.groundSpeed, isNull);
+        expect(state.gpsAltitude, isNull);
+        expect(state.gpsSatelliteCount, isNull);
+        expect(state.isFlying, isTrue); // flight not ended
+        expect(state.latitude, equals(48.0)); // last known point kept
+        expect(
+          state.mapViewState,
+          equals(MapViewState.follow),
+        ); // maintained (excluded from timeout)
+
+        // Just before the grace period is over the flight is still alive.
+        async.elapse(const Duration(seconds: 26));
+        state = container.read(telemetryProvider);
+        expect(state.isFlying, isTrue);
+
+        // Once the signal is gone for longer than the grace period the flight
+        // ends at the last known point.
+        async.elapse(const Duration(seconds: 2));
+        state = container.read(telemetryProvider);
+        expect(state.groundSpeed, isNull);
+        expect(state.gpsAltitude, isNull);
+        expect(state.gpsSatelliteCount, isNull);
+        expect(state.isFlying, isFalse);
+        expect(state.latitude, equals(48.0));
+        expect(state.longitude, equals(17.0));
+        expect(state.mapViewState, equals(MapViewState.follow));
+      });
+    });
+
     test(
-      'GPS signal loss keeps the flight and last fix alive for the grace period',
+      'GPS signal returning within the grace period cancels the release',
       () {
         fakeAsync((async) {
           final container = ProviderContainer();
@@ -142,85 +199,38 @@ void main() {
           notifier.updateGPS(
             latitude: 48.0,
             longitude: 17.0,
-            groundSpeed: 20.0, // Above default flight threshold (2.77)
-            gpsAltitude: 1200.0,
-            gpsSatelliteCount: 9,
+            groundSpeed: 20.0,
           );
-          notifier.setMapViewState(MapViewState.follow);
+          async.elapse(const Duration(seconds: 10));
+          expect(container.read(telemetryProvider).isFlying, isTrue);
+
+          // A new fix arrives well inside the grace period.
+          notifier.updateGPS(
+            latitude: 48.1,
+            longitude: 17.1,
+            groundSpeed: 25.0,
+          );
+          async.elapse(const Duration(seconds: 1));
 
           var state = container.read(telemetryProvider);
-          expect(state.groundSpeed, equals(20.0));
-          expect(state.isFlying, isTrue);
-          expect(state.mapViewState, equals(MapViewState.follow));
-
-          // The signal is lost and the fields time out after 2 seconds, but the
-          // last known values keep being reported for the grace period.
-          async.elapse(const Duration(seconds: 3));
-
-          state = container.read(telemetryProvider);
-          expect(state.groundSpeed, equals(20.0)); // held
-          expect(state.gpsAltitude, equals(1200.0)); // held
-          expect(state.gpsSatelliteCount, equals(9)); // held
-          expect(state.isFlying, isTrue); // flight not ended
-          expect(
-            state.mapViewState,
-            equals(MapViewState.follow),
-          ); // maintained (excluded from timeout)
-
-          // Just before the grace period is over the data is still held.
-          async.elapse(const Duration(seconds: 26));
-          state = container.read(telemetryProvider);
-          expect(state.groundSpeed, equals(20.0));
+          expect(state.latitude, equals(48.1));
+          expect(state.groundSpeed, equals(25.0));
           expect(state.isFlying, isTrue);
 
-          // Once the signal is gone for longer than the grace period the stale
-          // data is dropped and the flight ends at the last known point.
-          async.elapse(const Duration(seconds: 2));
+          // The release must not fire on the deadline of the first fix.
+          async.elapse(const Duration(seconds: 25));
+          state = container.read(telemetryProvider);
+          expect(state.groundSpeed, isNull); // cleared 2 s after the latest fix
+          expect(state.isFlying, isTrue);
+
+          // It fires on the deadline of the latest fix.
+          async.elapse(const Duration(seconds: 5));
           state = container.read(telemetryProvider);
           expect(state.groundSpeed, isNull);
-          expect(state.gpsAltitude, isNull);
-          expect(state.gpsSatelliteCount, isNull);
           expect(state.isFlying, isFalse);
-          expect(state.latitude, equals(48.0));
-          expect(state.longitude, equals(17.0));
-          expect(state.mapViewState, equals(MapViewState.follow));
         });
       },
     );
-
-    test('GPS signal returning within the grace period ends the hold', () {
-      fakeAsync((async) {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
-
-        final notifier = container.read(telemetryProvider.notifier);
-
-        notifier.updateGPS(latitude: 48.0, longitude: 17.0, groundSpeed: 20.0);
-        async.elapse(const Duration(seconds: 10));
-        expect(container.read(telemetryProvider).isFlying, isTrue);
-
-        // A new fix arrives well inside the grace period.
-        notifier.updateGPS(latitude: 48.1, longitude: 17.1, groundSpeed: 25.0);
-        async.elapse(const Duration(seconds: 1));
-
-        var state = container.read(telemetryProvider);
-        expect(state.latitude, equals(48.1));
-        expect(state.groundSpeed, equals(25.0));
-        expect(state.isFlying, isTrue);
-
-        // The hold must not release on the deadline of the first fix.
-        async.elapse(const Duration(seconds: 25));
-        state = container.read(telemetryProvider);
-        expect(state.groundSpeed, equals(25.0));
-        expect(state.isFlying, isTrue);
-
-        // It releases on the deadline of the latest fix.
-        async.elapse(const Duration(seconds: 5));
-        state = container.read(telemetryProvider);
-        expect(state.groundSpeed, isNull);
-        expect(state.isFlying, isFalse);
-      });
-    });
 
     test('DecayableField does not start timer if timeout is 0 or less', () {
       fakeAsync((async) {

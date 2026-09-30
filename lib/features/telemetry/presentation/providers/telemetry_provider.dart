@@ -37,7 +37,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   late final DecayableField<double> _heading = DecayableField<double>(
     timeout: const Duration(seconds: 2),
     onChanged: (val) {
-      if (val == null && _holdGpsDataOnSignalLoss()) return;
       state = val == null
           ? state.resetField(TelemetryField.heading)
           : state.copyWith(heading: TelemetryValue(val));
@@ -46,7 +45,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   late final DecayableField<double> _groundSpeed = DecayableField<double>(
     timeout: const Duration(seconds: 2),
     onChanged: (val) {
-      if (val == null && _holdGpsDataOnSignalLoss()) return;
       state = val == null
           ? state.resetField(TelemetryField.groundSpeed)
           : state.copyWith(groundSpeed: TelemetryValue(val));
@@ -81,7 +79,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   late final DecayableField<double> _gpsAltitude = DecayableField<double>(
     timeout: const Duration(seconds: 2),
     onChanged: (val) {
-      if (val == null && _holdGpsDataOnSignalLoss()) return;
       state = val == null
           ? state.resetField(TelemetryField.gpsAltitude)
           : state.copyWith(gpsAltitude: TelemetryValue(val));
@@ -91,7 +88,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   late final DecayableField<int> _gpsSatelliteCount = DecayableField<int>(
     timeout: const Duration(seconds: 2),
     onChanged: (val) {
-      if (val == null && _holdGpsDataOnSignalLoss()) return;
       state = val == null
           ? state.resetField(TelemetryField.gpsSatelliteCount)
           : state.copyWith(gpsSatelliteCount: TelemetryValue(val));
@@ -101,7 +97,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       DecayableField<double>(
         timeout: const Duration(seconds: 2),
         onChanged: (val) {
-          if (val == null && _holdGpsDataOnSignalLoss()) return;
           state = val == null
               ? state.resetField(TelemetryField.gpsHorizontalAccuracy)
               : state.copyWith(gpsHorizontalAccuracy: TelemetryValue(val));
@@ -111,7 +106,6 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       DecayableField<double>(
         timeout: const Duration(seconds: 2),
         onChanged: (val) {
-          if (val == null && _holdGpsDataOnSignalLoss()) return;
           state = val == null
               ? state.resetField(TelemetryField.gpsVerticalAccuracy)
               : state.copyWith(gpsVerticalAccuracy: TelemetryValue(val));
@@ -282,9 +276,9 @@ class TelemetryNotifier extends _$TelemetryNotifier {
         },
       );
 
-  /// How long the last known GPS data keeps being reported after the signal is
-  /// lost while flying. A shorter dropout (e.g. in a turn) must not end the
-  /// flight and start a new one; a longer one ends the flight at that point.
+  /// How long the flight state survives a GPS signal loss while flying. A
+  /// shorter dropout (e.g. in a turn) must not end the flight and start a new
+  /// one; a longer one ends the flight at that point.
   static const Duration gpsLossGracePeriod = Duration(seconds: 30);
 
   DateTime? _lastDroneCanFixTime;
@@ -598,10 +592,10 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _updateIsFlying();
   }
 
-  /// True while the last known GPS data must keep being reported even though
-  /// the GPS fields timed out: the signal was lost in flight and the gap is
-  /// still shorter than [gpsLossGracePeriod]. Schedules the release once the
-  /// grace period is over so the flight can end on stale-free data.
+  /// True while a GPS dropout may not end the flight yet: the signal was lost
+  /// in flight and the gap is still shorter than [gpsLossGracePeriod]. The GPS
+  /// fields themselves are cleared as usual; only the flight state is kept.
+  /// Schedules the release once the grace period is over.
   bool _holdGpsDataOnSignalLoss() {
     if (!state.isFlying) return false;
     final lastFix = _lastGpsFixTime;
@@ -615,8 +609,9 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     return true;
   }
 
-  /// Drops the GPS data held during a signal loss, so the flight ends at the
-  /// last known GPS point instead of running on stale values.
+  /// Ends the grace period kept after a GPS signal loss: the GPS fields are
+  /// cleared and the flight state is recalculated, so the flight ends at the
+  /// last known GPS point unless another speed source keeps it active.
   void _releaseHeldGpsData() {
     _gpsLossGraceTimer = null;
     state = state
@@ -630,10 +625,14 @@ class TelemetryNotifier extends _$TelemetryNotifier {
   }
 
   void _updateIsFlying() {
+    final currentSpeedMS = state.indicatedAirSpeed ?? state.groundSpeed;
+
+    // Speed data gone (GPS dropout): keep the flight alive for the grace period
+    // so a short signal loss does not split it in two.
+    if (currentSpeedMS == null && _holdGpsDataOnSignalLoss()) return;
+
     final settings = ref.read(appSettingsProvider).value;
     final threshold = settings?.flightSpeedThresholds.inactiveMax ?? 2.77;
-
-    final currentSpeedMS = state.indicatedAirSpeed ?? state.groundSpeed;
     final isFlying = currentSpeedMS != null && currentSpeedMS > threshold;
 
     if (state.isFlying != isFlying) {
