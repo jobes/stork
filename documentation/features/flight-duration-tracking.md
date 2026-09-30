@@ -53,6 +53,8 @@ When `TelemetryState.isFlying` transitions from `true` to `false`:
 3.  The final `FlightSummary` is emitted and retained in the provider state (it is not discarded) to reflect the complete flight data.
 4.  Internal tracking variables (`_flightStartTime`, `_lastLatitude`, `_lastLongitude`) are reset to `null`.
 
+A short GPS dropout in flight does **not** end the flight: the telemetry layer keeps the flight state (`isFlying`) for a 30-second grace period measured from the last valid fix (the GPS-derived values themselves still decay after 2 seconds) — see [Telemetry State & Decay Safety](../architecture/telemetry-architecture.md#gps-loss-during-flight-30-second-grace-period). Only once the signal has been gone longer than that does `isFlying` flip to `false` and the flight end, at the last known position. This prevents a GPS hiccup from splitting one flight into several records.
+
 ---
 
 ## 3. Geographic Distance Accumulation

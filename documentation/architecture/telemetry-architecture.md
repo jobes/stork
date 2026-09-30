@@ -173,6 +173,15 @@ late final DecayableField<double> _heading = DecayableField<double>(
   4. The UI immediately reflects the missing data (e.g. showing offline indicators or warning states).
 - **Persistent Support State**: Flags indicating sensor presence (e.g., `isEngineRpmSupported`, `isFuelSupported`) **persist as `true`** even after data decays. This ensures widgets stay visible and show error/timeout states rather than vanishing completely.
 
+### GPS Loss During Flight (30-second Grace Period)
+
+Because the GPS fields decay after 2 seconds, a GPS dropout while airborne used to end the flight almost immediately and start a new one as soon as the fix returned. [TelemetryNotifier](../../lib/features/telemetry/presentation/providers/telemetry_provider.dart) now keeps the flight state (`isFlying`) for `gpsLossGracePeriod` (**30 seconds**), measured from the last valid fix (`_lastGpsFixTime`, refreshed by every `updateGPS` call that carries a latitude):
+
+- The timed-out fields (`heading`, `groundSpeed`, `gpsAltitude`, `gpsSatelliteCount`, `gpsHorizontalAccuracy`, `gpsVerticalAccuracy`) are cleared as usual, so the UI shows the missing data instead of stale values.
+- Losing `groundSpeed` normally ends the flight, so `_updateIsFlying` consults `_holdGpsDataOnSignalLoss` first: while the aircraft is still flying on an older fix inside the grace period, the flight state is preserved and the release is scheduled.
+- A new fix cancels `_gpsLossGraceTimer` and restores the normal decay behaviour immediately.
+- When the signal stays away longer than the grace period, `_releaseHeldGpsData` clears whatever is left, recalculates the flight state and lets the flight end. If `indicatedAirSpeed` is still available the flight stays active, because the airspeed keeps deciding `isFlying`. Since `latitude` / `longitude` never decay, the flight ends at the last known GPS point.
+
 ### Timeout Thresholds
 
 | Telemetry Parameter | Timeout | Safety Rationale |

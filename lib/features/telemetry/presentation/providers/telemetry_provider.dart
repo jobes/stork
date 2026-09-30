@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/telemetry_state.dart';
@@ -275,8 +276,15 @@ class TelemetryNotifier extends _$TelemetryNotifier {
         },
       );
 
+  /// How long the flight state survives a GPS signal loss while flying. A
+  /// shorter dropout (e.g. in a turn) must not end the flight and start a new
+  /// one; a longer one ends the flight at that point.
+  static const Duration gpsLossGracePeriod = Duration(seconds: 30);
+
   DateTime? _lastDroneCanFixTime;
   Timer? _droneCanGpsTimeoutTimer;
+  DateTime? _lastGpsFixTime;
+  Timer? _gpsLossGraceTimer;
 
   @override
   TelemetryState build() {
@@ -291,6 +299,7 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
     ref.onDispose(() {
       _droneCanGpsTimeoutTimer?.cancel();
+      _gpsLossGraceTimer?.cancel();
       _latitude.cancel();
       _longitude.cancel();
       _heading.cancel();
@@ -355,6 +364,12 @@ class TelemetryNotifier extends _$TelemetryNotifier {
         DateTime.now().difference(_lastDroneCanFixTime!) <=
             const Duration(seconds: 5)) {
       return;
+    }
+
+    if (latitude != _sentinel && latitude != null) {
+      _lastGpsFixTime = clock.now();
+      _gpsLossGraceTimer?.cancel();
+      _gpsLossGraceTimer = null;
     }
 
     final oldState = state;
@@ -577,11 +592,47 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     _updateIsFlying();
   }
 
+  /// True while a GPS dropout may not end the flight yet: the signal was lost
+  /// in flight and the gap is still shorter than [gpsLossGracePeriod]. The GPS
+  /// fields themselves are cleared as usual; only the flight state is kept.
+  /// Schedules the release once the grace period is over.
+  bool _holdGpsDataOnSignalLoss() {
+    if (!state.isFlying) return false;
+    final lastFix = _lastGpsFixTime;
+    if (lastFix == null) return false;
+    final elapsed = clock.now().difference(lastFix);
+    if (elapsed >= gpsLossGracePeriod) return false;
+    _gpsLossGraceTimer ??= Timer(
+      gpsLossGracePeriod - elapsed,
+      _releaseHeldGpsData,
+    );
+    return true;
+  }
+
+  /// Ends the grace period kept after a GPS signal loss: the GPS fields are
+  /// cleared and the flight state is recalculated, so the flight ends at the
+  /// last known GPS point unless another speed source keeps it active.
+  void _releaseHeldGpsData() {
+    _gpsLossGraceTimer = null;
+    state = state
+        .resetField(TelemetryField.heading)
+        .resetField(TelemetryField.groundSpeed)
+        .resetField(TelemetryField.gpsAltitude)
+        .resetField(TelemetryField.gpsSatelliteCount)
+        .resetField(TelemetryField.gpsHorizontalAccuracy)
+        .resetField(TelemetryField.gpsVerticalAccuracy);
+    _updateIsFlying();
+  }
+
   void _updateIsFlying() {
+    final currentSpeedMS = state.indicatedAirSpeed ?? state.groundSpeed;
+
+    // Speed data gone (GPS dropout): keep the flight alive for the grace period
+    // so a short signal loss does not split it in two.
+    if (currentSpeedMS == null && _holdGpsDataOnSignalLoss()) return;
+
     final settings = ref.read(appSettingsProvider).value;
     final threshold = settings?.flightSpeedThresholds.inactiveMax ?? 2.77;
-
-    final currentSpeedMS = state.indicatedAirSpeed ?? state.groundSpeed;
     final isFlying = currentSpeedMS != null && currentSpeedMS > threshold;
 
     if (state.isFlying != isFlying) {
