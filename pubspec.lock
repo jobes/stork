@@ -1318,10 +1318,10 @@ packages:
     dependency: "direct main"
     description:
       name: textf
-      sha256: e05807e5d5ec8ac0c72c99de3d132cae71e95540e2c3ad6287d0582b7b8b15d8
+      sha256: "8a42e6cf68a465879c7dda2884a4b3ca51705adbdc540c68f725b08b331cd4c0"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.4"
+    version: "2.0.1"
   typed_data:
     dependency: transitive
     description:
