@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../../../../l10n/app_localizations.dart';
+import '../../../../../core/services/cannelloni_service.dart';
 import '../../../../telemetry/presentation/widgets/stat_item.dart';
 import '../../../../settings/presentation/providers/settings_provider.dart';
 import '../../../../settings/presentation/providers/pilot_provider.dart';
@@ -25,6 +26,12 @@ class MapDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final settingsAsync = ref.watch(appSettingsProvider);
+    final isDroneCanConnected = ref.watch(cannelloniServiceProvider);
+    // A selected gateway means the app is connected/connecting to it. The
+    // socket state can briefly drop (e.g. while mDNS rediscovers the gateway),
+    // so it is not used as the only signal.
+    final hasSelectedGateway =
+        settingsAsync.asData?.value.selectedDevice != null;
 
     return Drawer(
       child: PointerInterceptor(
@@ -186,6 +193,15 @@ class MapDrawer extends ConsumerWidget {
                 context.push('/flight-records');
               },
             ),
+            if (isDroneCanConnected || hasSelectedGateway)
+              ListTile(
+                leading: const Icon(Icons.developer_board_outlined),
+                title: Text(l10n.dronecanInstruments),
+                onTap: () {
+                  context.pop();
+                  context.push('/dronecan-instruments');
+                },
+              ),
             const Spacer(),
             if (!kIsWeb)
               ListTile(

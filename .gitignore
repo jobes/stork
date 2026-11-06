@@ -38,6 +38,9 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Sentry Native SDK runtime database (created in CWD on desktop)
+.sentry-native/
+
 # Symbolication related
 app.*.symbols
 

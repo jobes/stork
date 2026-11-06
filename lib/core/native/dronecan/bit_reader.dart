@@ -9,6 +9,15 @@ class BitReader {
 
   int get bitOffset => _bitOffset;
 
+  void skip(int bitCount) {
+    if (_bitOffset + bitCount > bytes.length * 8) {
+      throw RangeError(
+        'Skipping past end of payload (requested $bitCount bits at $_bitOffset, total bits: ${bytes.length * 8})',
+      );
+    }
+    _bitOffset += bitCount;
+  }
+
   /// Reads [bitCount] bits from the payload and returns them as a signed or unsigned integer.
   int readBits(int bitCount, {bool signed = false}) {
     if (_bitOffset + bitCount > bytes.length * 8) {

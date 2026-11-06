@@ -57,6 +57,8 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Documents the DroneCAN IndicatedAirspeed message (ID 1021), half-precision float16 DSDL parsing, telemetry decay safety with 1500ms timeout, is-flying detection integration, and speed unit conversion.*
 *   [VHF Radio Control and Monitoring](features/vhf-radio.md)
     *   *Describes the VHF radio DroneCAN protocol (FastStatus, FullStatus, Control service), the interactive radio control dialog with quick/advanced modes, the map overlay telemetry widget, nearby frequency discovery, and persistent favorite frequencies management.*
+*   [DroneCAN Instruments (Node Status)](features/dronecan-instruments.md)
+    *   *Documents the live DroneCAN node table (NodeStatus heartbeats, GetNodeInfo discovery), the node details, parameter configuration, transport statistics and in-memory firmware update dialogs, and the wire-format details of the implemented DSDL messages.*
 *   [Variometer (Vertical Speed Indicator)](features/vario.md)
     *   *Documents the barometric and GPS-based vertical speed estimation pipeline with linear regression smoothing, EMA output filtering, and the fallback logic between pressure and GPS sources. Covers noise rejection strategy, display formatting, and all tunable parameters.*
 *   [Multi-Source Traffic Monitoring and Live Beaconing](features/traffic.md)

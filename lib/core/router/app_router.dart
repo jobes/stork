@@ -9,6 +9,7 @@ import '../../features/navigation/presentation/pages/navigation_page.dart';
 import '../../features/telemetry/presentation/pages/flight_records_page.dart';
 import '../../features/settings/presentation/pages/profile_page.dart';
 import '../../features/favorites/presentation/pages/favorites_page.dart';
+import '../../features/dronecan_devices/presentation/pages/dronecan_instruments_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -35,6 +36,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/flight-records',
       builder: (context, state) => const FlightRecordsPage(),
+    ),
+    GoRoute(
+      path: '/dronecan-instruments',
+      builder: (context, state) => const DroneCanInstrumentsPage(),
     ),
     GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
   ],
