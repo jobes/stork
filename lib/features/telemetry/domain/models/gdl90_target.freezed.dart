@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'gdl90_target.dart';
@@ -9,6 +9,7 @@ part of 'gdl90_target.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $Gdl90TargetCopyWith<Gdl90Target> get copyWith => _$Gdl90TargetCopyWithImpl<Gdl9
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Gdl90Target&&(identical(other.id, id) || other.id == id)&&(identical(other.callsign, callsign) || other.callsign == callsign)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.altitudeFeet, altitudeFeet) || other.altitudeFeet == altitudeFeet)&&(identical(other.altitudeValid, altitudeValid) || other.altitudeValid == altitudeValid)&&(identical(other.trackDegrees, trackDegrees) || other.trackDegrees == trackDegrees)&&(identical(other.speedKnots, speedKnots) || other.speedKnots == speedKnots)&&(identical(other.speedValid, speedValid) || other.speedValid == speedValid)&&(identical(other.verticalSpeedFpm, verticalSpeedFpm) || other.verticalSpeedFpm == verticalSpeedFpm)&&(identical(other.verticalSpeedValid, verticalSpeedValid) || other.verticalSpeedValid == verticalSpeedValid)&&(identical(other.lastUpdated, lastUpdated) || other.lastUpdated == lastUpdated)&&(identical(other.emitterCategory, emitterCategory) || other.emitterCategory == emitterCategory));
+  final _this = this as Gdl90Target;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Gdl90Target&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.callsign, _this.callsign) || other.callsign == _this.callsign)&&(identical(other.latitude, _this.latitude) || other.latitude == _this.latitude)&&(identical(other.longitude, _this.longitude) || other.longitude == _this.longitude)&&(identical(other.altitudeFeet, _this.altitudeFeet) || other.altitudeFeet == _this.altitudeFeet)&&(identical(other.altitudeValid, _this.altitudeValid) || other.altitudeValid == _this.altitudeValid)&&(identical(other.trackDegrees, _this.trackDegrees) || other.trackDegrees == _this.trackDegrees)&&(identical(other.speedKnots, _this.speedKnots) || other.speedKnots == _this.speedKnots)&&(identical(other.speedValid, _this.speedValid) || other.speedValid == _this.speedValid)&&(identical(other.verticalSpeedFpm, _this.verticalSpeedFpm) || other.verticalSpeedFpm == _this.verticalSpeedFpm)&&(identical(other.verticalSpeedValid, _this.verticalSpeedValid) || other.verticalSpeedValid == _this.verticalSpeedValid)&&(identical(other.lastUpdated, _this.lastUpdated) || other.lastUpdated == _this.lastUpdated)&&(identical(other.emitterCategory, _this.emitterCategory) || other.emitterCategory == _this.emitterCategory));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,callsign,latitude,longitude,altitudeFeet,altitudeValid,trackDegrees,speedKnots,speedValid,verticalSpeedFpm,verticalSpeedValid,lastUpdated,emitterCategory);
+int get hashCode {
+  final _this = this as Gdl90Target;
+  return Object.hash(runtimeType,_this.id,_this.callsign,_this.latitude,_this.longitude,_this.altitudeFeet,_this.altitudeValid,_this.trackDegrees,_this.speedKnots,_this.speedValid,_this.verticalSpeedFpm,_this.verticalSpeedValid,_this.lastUpdated,_this.emitterCategory);
+}
 
 @override
 String toString() {
-  return 'Gdl90Target(id: $id, callsign: $callsign, latitude: $latitude, longitude: $longitude, altitudeFeet: $altitudeFeet, altitudeValid: $altitudeValid, trackDegrees: $trackDegrees, speedKnots: $speedKnots, speedValid: $speedValid, verticalSpeedFpm: $verticalSpeedFpm, verticalSpeedValid: $verticalSpeedValid, lastUpdated: $lastUpdated, emitterCategory: $emitterCategory)';
+  final _this = this as Gdl90Target;
+  return 'Gdl90Target(id: ${_this.id}, callsign: ${_this.callsign}, latitude: ${_this.latitude}, longitude: ${_this.longitude}, altitudeFeet: ${_this.altitudeFeet}, altitudeValid: ${_this.altitudeValid}, trackDegrees: ${_this.trackDegrees}, speedKnots: ${_this.speedKnots}, speedValid: ${_this.speedValid}, verticalSpeedFpm: ${_this.verticalSpeedFpm}, verticalSpeedValid: ${_this.verticalSpeedValid}, lastUpdated: ${_this.lastUpdated}, emitterCategory: ${_this.emitterCategory})';
 }
 
 
@@ -63,7 +69,7 @@ class _$Gdl90TargetCopyWithImpl<$Res>
 /// Create a copy of Gdl90Target
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? callsign = freezed,Object? latitude = null,Object? longitude = null,Object? altitudeFeet = null,Object? altitudeValid = null,Object? trackDegrees = null,Object? speedKnots = null,Object? speedValid = null,Object? verticalSpeedFpm = null,Object? verticalSpeedValid = null,Object? lastUpdated = null,Object? emitterCategory = null,}) {
-  return _then(_self.copyWith(
+  return _then(Gdl90Target(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,callsign: freezed == callsign ? _self.callsign : callsign // ignore: cast_nullable_to_non_nullable
 as String?,latitude: null == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
@@ -245,16 +251,18 @@ _$Gdl90TargetCopyWith<_Gdl90Target> get copyWith => __$Gdl90TargetCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Gdl90Target&&(identical(other.id, id) || other.id == id)&&(identical(other.callsign, callsign) || other.callsign == callsign)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.altitudeFeet, altitudeFeet) || other.altitudeFeet == altitudeFeet)&&(identical(other.altitudeValid, altitudeValid) || other.altitudeValid == altitudeValid)&&(identical(other.trackDegrees, trackDegrees) || other.trackDegrees == trackDegrees)&&(identical(other.speedKnots, speedKnots) || other.speedKnots == speedKnots)&&(identical(other.speedValid, speedValid) || other.speedValid == speedValid)&&(identical(other.verticalSpeedFpm, verticalSpeedFpm) || other.verticalSpeedFpm == verticalSpeedFpm)&&(identical(other.verticalSpeedValid, verticalSpeedValid) || other.verticalSpeedValid == verticalSpeedValid)&&(identical(other.lastUpdated, lastUpdated) || other.lastUpdated == lastUpdated)&&(identical(other.emitterCategory, emitterCategory) || other.emitterCategory == emitterCategory));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Gdl90Target&&(identical(other.id, id) || other.id == id)&&(identical(other.callsign, callsign) || other.callsign == callsign)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.altitudeFeet, altitudeFeet) || other.altitudeFeet == altitudeFeet)&&(identical(other.altitudeValid, altitudeValid) || other.altitudeValid == altitudeValid)&&(identical(other.trackDegrees, trackDegrees) || other.trackDegrees == trackDegrees)&&(identical(other.speedKnots, speedKnots) || other.speedKnots == speedKnots)&&(identical(other.speedValid, speedValid) || other.speedValid == speedValid)&&(identical(other.verticalSpeedFpm, verticalSpeedFpm) || other.verticalSpeedFpm == verticalSpeedFpm)&&(identical(other.verticalSpeedValid, verticalSpeedValid) || other.verticalSpeedValid == verticalSpeedValid)&&(identical(other.lastUpdated, lastUpdated) || other.lastUpdated == lastUpdated)&&(identical(other.emitterCategory, emitterCategory) || other.emitterCategory == emitterCategory));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,callsign,latitude,longitude,altitudeFeet,altitudeValid,trackDegrees,speedKnots,speedValid,verticalSpeedFpm,verticalSpeedValid,lastUpdated,emitterCategory);
+int get hashCode {
+    return Object.hash(runtimeType,id,callsign,latitude,longitude,altitudeFeet,altitudeValid,trackDegrees,speedKnots,speedValid,verticalSpeedFpm,verticalSpeedValid,lastUpdated,emitterCategory);
+}
 
 @override
 String toString() {
-  return 'Gdl90Target(id: $id, callsign: $callsign, latitude: $latitude, longitude: $longitude, altitudeFeet: $altitudeFeet, altitudeValid: $altitudeValid, trackDegrees: $trackDegrees, speedKnots: $speedKnots, speedValid: $speedValid, verticalSpeedFpm: $verticalSpeedFpm, verticalSpeedValid: $verticalSpeedValid, lastUpdated: $lastUpdated, emitterCategory: $emitterCategory)';
+    return 'Gdl90Target(id: $id, callsign: $callsign, latitude: $latitude, longitude: $longitude, altitudeFeet: $altitudeFeet, altitudeValid: $altitudeValid, trackDegrees: $trackDegrees, speedKnots: $speedKnots, speedValid: $speedValid, verticalSpeedFpm: $verticalSpeedFpm, verticalSpeedValid: $verticalSpeedValid, lastUpdated: $lastUpdated, emitterCategory: $emitterCategory)';
 }
 
 

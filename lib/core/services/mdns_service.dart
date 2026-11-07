@@ -1,10 +1,31 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:multicast_dns/multicast_dns.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/settings/domain/models/cannelloni_device.dart';
+import '../utils/socket_utils.dart';
 
 part 'mdns_service.g.dart';
+
+/// `MDnsClient` always requests `reusePort`, which the Dart VM rejects with a
+/// logged socket error on Android and Windows. The injected factory drops the
+/// flag on those platforms.
+Future<RawDatagramSocket> _bindDatagramSocket(
+  dynamic host,
+  int port, {
+  bool reuseAddress = true,
+  bool reusePort = true,
+  int ttl = 1,
+}) {
+  return RawDatagramSocket.bind(
+    host,
+    port,
+    reuseAddress: reuseAddress,
+    reusePort: reusePort && reusePortSupported,
+    ttl: ttl,
+  );
+}
 
 @riverpod
 Stream<List<CannelloniDevice>> discoveredDevices(Ref ref) async* {
@@ -24,7 +45,9 @@ class MDnsService {
   static Future<List<CannelloniDevice>> findCannelloni() async {
     const String serviceType = '_cannelloni._udp.local';
     const String filterPrefix = 'avionics-dronecan.';
-    final MDnsClient client = MDnsClient();
+    final MDnsClient client = MDnsClient(
+      rawDatagramSocketFactory: _bindDatagramSocket,
+    );
     final List<CannelloniDevice> results = [];
 
     try {

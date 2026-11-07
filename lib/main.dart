@@ -41,7 +41,11 @@ Future<void> main() async {
           options.dsn = sentryDsn;
           options.environment = kReleaseMode ? 'release' : 'debug';
           options.tracesSampleRate = 1.0;
-          options.replay.onErrorSampleRate = 1.0;
+          // Session Replay is meant for real user sessions: recording in debug
+          // captures dev interactions and makes the Sentry Android SDK log
+          // harmless replay-teardown errors (BufferCaptureStrategy.stop ->
+          // ReplayCache.persistSegmentValues: "No such file or directory").
+          options.replay.onErrorSampleRate = kReleaseMode ? 1.0 : 0.0;
         },
         appRunner: () async {
           await runStartup();

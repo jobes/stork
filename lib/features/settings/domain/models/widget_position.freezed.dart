@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'widget_position.dart';
@@ -9,6 +9,7 @@ part of 'widget_position.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $WidgetPositionCopyWith<WidgetPosition> get copyWith => _$WidgetPositionCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WidgetPosition&&(identical(other.top, top) || other.top == top)&&(identical(other.left, left) || other.left == left));
+  final _this = this as WidgetPosition;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WidgetPosition&&(identical(other.top, _this.top) || other.top == _this.top)&&(identical(other.left, _this.left) || other.left == _this.left));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,top,left);
+int get hashCode {
+  final _this = this as WidgetPosition;
+  return Object.hash(runtimeType,_this.top,_this.left);
+}
 
 @override
 String toString() {
-  return 'WidgetPosition(top: $top, left: $left)';
+  final _this = this as WidgetPosition;
+  return 'WidgetPosition(top: ${_this.top}, left: ${_this.left})';
 }
 
 
@@ -66,7 +72,7 @@ class _$WidgetPositionCopyWithImpl<$Res>
 /// Create a copy of WidgetPosition
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? top = null,Object? left = null,}) {
-  return _then(_self.copyWith(
+  return _then(WidgetPosition(
 top: null == top ? _self.top : top // ignore: cast_nullable_to_non_nullable
 as double,left: null == left ? _self.left : left // ignore: cast_nullable_to_non_nullable
 as double,
@@ -229,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WidgetPosition&&(identical(other.top, top) || other.top == top)&&(identical(other.left, left) || other.left == left));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WidgetPosition&&(identical(other.top, top) || other.top == top)&&(identical(other.left, left) || other.left == left));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,top,left);
+int get hashCode {
+    return Object.hash(runtimeType,top,left);
+}
 
 @override
 String toString() {
-  return 'WidgetPosition(top: $top, left: $left)';
+    return 'WidgetPosition(top: $top, left: $left)';
 }
 
 

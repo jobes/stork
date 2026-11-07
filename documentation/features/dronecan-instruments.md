@@ -8,9 +8,10 @@ flight instruments (DroneCAN nodes) currently visible on the CAN bus.
 ## 1. Overview
 
 The page is available from the map drawer as **DroneCAN instruments** and lives
-at `/dronecan-instruments`. The menu item is shown while a Cannelloni gateway is
-selected (connected), since the list is purely live DroneCAN data. It shows one
-row per discovered node with:
+at `/dronecan-instruments`. The menu item is shown only while the DroneCAN link
+is up or the selected Cannelloni gateway is currently discovered on the network;
+a persisted selection alone does not show it, since the list is purely live
+DroneCAN data. It shows one row per discovered node with:
 
 | Column | Source |
 | :--- | :--- |
