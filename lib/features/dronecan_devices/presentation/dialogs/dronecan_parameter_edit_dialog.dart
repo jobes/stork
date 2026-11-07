@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -193,7 +194,9 @@ class _ParameterEditDialogState extends State<_ParameterEditDialog> {
         return DroneCanParamValue.integer(parsed);
       case DroneCanParamValueType.real:
         final parsed = double.tryParse(text.replaceAll(',', '.'));
-        if (parsed == null) {
+        if (parsed == null ||
+            !parsed.isFinite ||
+            !Float32List.fromList([parsed]).single.isFinite) {
           setState(() => _error = l10n.dronecanParameterInvalidNumber);
           return null;
         }
