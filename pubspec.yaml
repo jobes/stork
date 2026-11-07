@@ -67,6 +67,7 @@ dependencies:
   flutter_secure_storage: ^11.2.0
   textf: ^1.2.4
   sentry_flutter: 10.0.0-alpha.4
+  file_selector: ^1.1.0
 
 dev_dependencies:
   flutter_test:

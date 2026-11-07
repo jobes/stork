@@ -12,6 +12,11 @@ class BaseDetailsDialog extends StatelessWidget {
   final double maxWidth;
   final double? maxHeight;
 
+  /// Whether the default close button is shown when [actions] is `null`.
+  ///
+  /// Set to `false` for dialogs that require an explicit decision.
+  final bool showCloseButton;
+
   const BaseDetailsDialog({
     super.key,
     this.title,
@@ -22,6 +27,7 @@ class BaseDetailsDialog extends StatelessWidget {
     required this.child,
     this.maxWidth = 450,
     this.maxHeight,
+    this.showCloseButton = true,
   });
 
   @override
@@ -107,7 +113,7 @@ class BaseDetailsDialog extends StatelessWidget {
                         ),
                         if (actions != null)
                           ...actions!
-                        else
+                        else if (showCloseButton)
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Navigator.of(context).pop(),

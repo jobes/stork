@@ -469,6 +469,233 @@
   "durationMinutesSuffix": "m",
   "durationSecondsSuffix": "s",
   "flightRecordsLoadError": "Nepodarilo sa načítať záznamy letov",
+  "dronecanInstruments": "DroneCAN prístroje",
+  "dronecanRefresh": "Obnoviť informácie o uzloch",
+  "dronecanRefreshNoNodes": "Nie je čo obnoviť, na zbernici nie je žiadny DroneCAN uzol",
+  "dronecanRefreshSuccess": "Informácie o uzloch obnovené pre {count, plural, =1{1 uzol} few{{count} uzly} other{{count} uzlov}}",
+  "@dronecanRefreshSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dronecanRefreshPartial": "Odpovedalo len {answered} z {requested} uzlov",
+  "@dronecanRefreshPartial": {
+    "placeholders": {
+      "answered": {
+        "type": "int"
+      },
+      "requested": {
+        "type": "int"
+      }
+    }
+  },
+  "dronecanRefreshFailed": "Nepodarilo sa obnoviť informácie o uzloch",
+  "dronecanInstrumentsEmpty": "Nenašli sa žiadne DroneCAN zariadenia",
+  "dronecanInstrumentsDisconnected": "Nie ste pripojení k DroneCAN bráne",
+  "dronecanInstrumentsLoadError": "Nepodarilo sa načítať DroneCAN zariadenia",
+  "dronecanNodeId": "ID uzla",
+  "dronecanNodeName": "Názov",
+  "dronecanUniqueId": "Jedinečné ID",
+  "dronecanHealth": "Stav",
+  "dronecanMode": "Režim",
+  "dronecanUptime": "Doba behu",
+  "dronecanLastSeen": "Naposledy videný",
+  "dronecanHealthOk": "OK",
+  "dronecanHealthWarning": "Varovanie",
+  "dronecanHealthError": "Chyba",
+  "dronecanHealthCritical": "Kritický",
+  "dronecanModeOperational": "Prevádzkový",
+  "dronecanModeInitialization": "Inicializácia",
+  "dronecanModeMaintenance": "Údržba",
+  "dronecanModeSoftwareUpdate": "Aktualizácia softvéru",
+  "dronecanModeOffline": "Offline",
+  "dronecanNodeDetailsTitle": "DroneCAN uzol",
+  "dronecanSoftwareVersion": "Verzia softvéru",
+  "dronecanVcsCommit": "VCS commit",
+  "dronecanImageCrc": "CRC obrazu",
+  "dronecanHardwareVersion": "Verzia hardvéru",
+  "dronecanCertificateOfAuthenticity": "Certifikát autenticity",
+  "dronecanDetailsUnavailable": "Podrobnosti zatiaľ nie sú dostupné.",
+  "dronecanVendorStatusCode": "Kód stavu výrobcu",
+  "dronecanActionRestart": "Reštart",
+  "dronecanActionTransportStats": "Štatistiky prenosu",
+  "dronecanActionUpdateFirmware": "Aktualizovať firmware",
+  "dronecanActionConfiguration": "Konfigurácia",
+  "dronecanRestartConfirmTitle": "Reštart uzla",
+  "dronecanRestartConfirmMessage": "Uzol \"{name}\" (ID {id}) sa okamžite reštartuje.",
+  "@dronecanRestartConfirmMessage": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "id": { "type": "int" }
+    }
+  },
+  "dronecanRestartConfirmAction": "Napriek tomu reštartovať",
+  "dronecanRestartRiskUnavailable": "Uzol na niekoľko sekúnd prestane vysielať dáta a všetko, čo poskytuje, bude nedostupné.",
+  "dronecanRestartRiskUnsavedConfig": "Neuložená konfigurácia uzla sa stratí.",
+  "dronecanRestartRiskInFlight": "Nikdy nereštartujte uzol počas letu. Môžete prísť o prístroje, na ktoré sa spoliehate.",
+  "dronecanRestartRiskOffline": "Ak reštart zlyhá, uzol môže zostať offline až do vypnutia a zapnutia CAN zbernice.",
+  "dronecanRestartSuccess": "Príkaz na reštart bol prijatý",
+  "dronecanRestartRejected": "Uzol reštart odmietol",
+  "dronecanRequestFailed": "Požiadavka zlyhala. Skontrolujte DroneCAN spojenie.",
+  "dronecanTransportStatsTitle": "Štatistiky prenosu · {nodeId}",
+  "@dronecanTransportStatsTitle": {
+    "placeholders": {
+      "nodeId": { "type": "int" }
+    }
+  },
+  "dronecanStatsAutoRefreshHint": "Aktualizuje sa každú sekundu; hodnota v zátvorke je zmena od predchádzajúceho merania.",
+  "dronecanTransfersTx": "Prenosy TX",
+  "dronecanTransfersRx": "Prenosy RX",
+  "dronecanTransferErrors": "Chyby prenosu",
+  "dronecanCanInterfaces": "CAN rozhrania",
+  "dronecanFramesTx": "Rámce TX",
+  "dronecanFramesRx": "Rámce RX",
+  "dronecanErrors": "Chyby",
+  "dronecanNoInterfaceStats": "Uzol neposkytol štatistiky CAN rozhraní.",
+  "dronecanCanInterfaceLabel": "Rozhranie {index}",
+  "@dronecanCanInterfaceLabel": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "dronecanFirmwareUpdateTitle": "Aktualizácia firmvéru",
+  "dronecanFirmwareUpdateHint": "Vyberte obraz firmvéru pre DroneCAN (.bin). Uzol si ho stiahne po CAN zbernici.",
+  "dronecanFirmwareUpdateChooseFile": "Vybrať súbor",
+  "dronecanFirmwareUpdateChangeFile": "Zmeniť súbor",
+  "dronecanFirmwareUpdateNoFile": "Nie je vybraný žiadny súbor firmvéru",
+  "dronecanFirmwareUpdateUpload": "Nahrať firmvér",
+  "dronecanFirmwareUpdatePreparing": "Čakám, kým uzol vyžiada obraz…",
+  "dronecanFirmwareUpdateUploading": "Nahrávam firmvér…",
+  "dronecanFirmwareUpdateProgress": "{percent} % ({transferred} z {total})",
+  "@dronecanFirmwareUpdateProgress": {
+    "placeholders": {
+      "percent": { "type": "int" },
+      "transferred": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "dronecanFirmwareUpdateCompleted": "Firmvér bol nahraný. Uzol overí obraz a reštartuje sa s novou verziou.",
+  "dronecanFirmwareUpdateFailed": "Aktualizácia firmvéru zlyhala.",
+  "dronecanFirmwareUpdateRejected": "Uzol aktualizáciu odmietol (chyba {code}).",
+  "@dronecanFirmwareUpdateRejected": {
+    "placeholders": {
+      "code": { "type": "int" }
+    }
+  },
+  "dronecanFirmwareUpdateRejectedWithMessage": "Uzol aktualizáciu odmietol: {message}",
+  "@dronecanFirmwareUpdateRejectedWithMessage": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "dronecanFirmwareUpdateTimeout": "Uzol prestal žiadať dáta firmvéru.",
+  "dronecanFirmwareUpdateEmptyFile": "Vybraný súbor je prázdny.",
+  "dronecanFirmwareUpdateReadFailed": "Vybraný súbor sa nepodarilo prečítať.",
+  "dronecanFirmwareUpdateNotSupported": "Aktualizácia firmvéru nie je na tejto platforme podporovaná.",
+  "dronecanFirmwareUpdateRiskInFlight": "Nikdy neaktualizujte firmvér počas letu. Uzol je počas aktualizácie nedostupný.",
+  "dronecanFirmwareUpdateRiskPower": "Neprerušujte napájanie ani CAN spojenie počas nahrávania, uzol by mohol zostať bez funkčného firmvéru.",
+  "dronecanFirmwareUpdateRiskRestart": "Uzol sa reštartuje do bootloadera a následne sa vráti s novým firmvérom.",
+  "dronecanFirmwareUpdateKeepOpen": "Nechajte tento dialóg otvorený, kým sa nahrávanie nedokončí.",
+  "dronecanNodeIdBadge": "ID {id}",
+  "@dronecanNodeIdBadge": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "dronecanConfigurationTitle": "Konfigurácia",
+  "dronecanConfigurationRefresh": "Obnoviť",
+  "dronecanConfigurationStoreAll": "Uložiť všetko",
+  "dronecanConfigurationEraseAll": "Vymazať všetko",
+  "dronecanConfigurationLoading": "Načítavam parametre…",
+  "dronecanConfigurationModifiedHint": "Hodnoty odlišné od predvolenej sú zvýraznené.",
+  "dronecanConfigurationParameterCount": "Parametre: {count}",
+  "@dronecanConfigurationParameterCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dronecanConfigurationEmpty": "Uzol neohlásil žiadne parametre.",
+  "dronecanConfigurationLoadFailed": "Načítanie parametrov zlyhalo.",
+  "dronecanParameterColumnId": "ID",
+  "dronecanParameterColumnName": "Názov",
+  "dronecanParameterColumnType": "Typ",
+  "dronecanParameterColumnValue": "Hodnota",
+  "dronecanParameterEditTooltip": "Upraviť hodnotu",
+  "dronecanParameterTypeInteger": "Celé číslo",
+  "dronecanParameterTypeReal": "Reálne číslo",
+  "dronecanParameterTypeBoolean": "Boolean",
+  "dronecanParameterTypeString": "Reťazec",
+  "dronecanParameterTypeEmpty": "Prázdne",
+  "dronecanParameterValueTrue": "áno",
+  "dronecanParameterValueFalse": "nie",
+  "dronecanParameterDefaultValue": "predvolené {value}",
+  "@dronecanParameterDefaultValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "dronecanParameterEditTitle": "Upraviť parameter",
+  "dronecanParameterTypeLabel": "Typ",
+  "dronecanParameterValueLabel": "Hodnota",
+  "dronecanParameterMinLabel": "Min",
+  "dronecanParameterMaxLabel": "Max",
+  "dronecanParameterDefaultLabel": "Predvolené",
+  "dronecanParameterInvalidInteger": "Zadajte celé číslo.",
+  "dronecanParameterInvalidNumber": "Zadajte platné číslo.",
+  "dronecanParameterOutOfRange": "Hodnota musí byť medzi {min} a {max}.",
+  "@dronecanParameterOutOfRange": {
+    "placeholders": {
+      "min": { "type": "String" },
+      "max": { "type": "String" }
+    }
+  },
+  "dronecanParameterBelowMin": "Hodnota musí byť aspoň {min}.",
+  "@dronecanParameterBelowMin": {
+    "placeholders": {
+      "min": { "type": "String" }
+    }
+  },
+  "dronecanParameterAboveMax": "Hodnota musí byť najviac {max}.",
+  "@dronecanParameterAboveMax": {
+    "placeholders": {
+      "max": { "type": "String" }
+    }
+  },
+  "dronecanParameterStringTooLong": "Text je príliš dlhý (max {max} znakov).",
+  "@dronecanParameterStringTooLong": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "dronecanParameterSetSuccess": "Parameter {name} bol aktualizovaný",
+  "@dronecanParameterSetSuccess": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dronecanParameterSetFailed": "Parameter {name} sa nepodarilo aktualizovať",
+  "@dronecanParameterSetFailed": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dronecanConfigurationStoreSuccess": "Konfigurácia bola uložená do uzla",
+  "dronecanConfigurationStoreFailed": "Uloženie konfigurácie zlyhalo",
+  "dronecanConfigurationEraseConfirmTitle": "Vymazať konfiguráciu",
+  "dronecanConfigurationEraseConfirmMessage": "Všetky parametre uzla \"{name}\" (ID {id}) sa vrátia na predvolené hodnoty. Neuložené zmeny sa stratia a uzol môže vyžadovať reštart.",
+  "@dronecanConfigurationEraseConfirmMessage": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "id": { "type": "int" }
+    }
+  },
+  "dronecanConfigurationEraseConfirmAction": "Vymazať",
+  "dronecanConfigurationEraseSuccess": "Konfigurácia bola vymazaná",
+  "dronecanConfigurationEraseFailed": "Vymazanie konfigurácie zlyhalo",
   "takeoffsCount": "{count, plural, =1{1 vzlet} few{{count} vzlety} other{{count} vzletov}}",
   "@takeoffsCount": {
     "description": "Number of takeoffs/flights",

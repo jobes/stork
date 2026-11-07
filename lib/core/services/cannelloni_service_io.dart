@@ -11,6 +11,8 @@ import 'package:stork/core/native/dronecan_types.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/core/utils/time_utils.dart';
 import 'package:stork/core/services/dna_allocation_service.dart';
+import 'package:stork/core/services/dronecan_node_transport.dart';
+import 'package:stork/core/services/dronecan_transfer_signature.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/core/native/dronecan/dronecan_transfer_ids.dart';
 import 'package:stork/core/services/mdns_service.dart';
@@ -128,7 +130,8 @@ bool publishDroneCanFix(Fix2 fix2, TelemetryNotifier telemetry) {
 }
 
 @Riverpod(keepAlive: true)
-class CannelloniService extends _$CannelloniService {
+class CannelloniService extends _$CannelloniService
+    implements DroneCanNodeTransport {
   static const _disconnectGracePeriod = Duration(milliseconds: 3000);
   static const _receiveWatchdogPeriod = Duration(seconds: 5);
 
@@ -137,7 +140,19 @@ class CannelloniService extends _$CannelloniService {
   int? _lastPort;
   Timer? _heartbeatTimer;
   CanardBindings? _canard;
+
+  /// Buffer for a received Cannelloni packet; the native parser reads from it
+  /// while it iterates the frames, so nothing else may write into it.
   Pointer<Uint8>? _packetDataBuffer;
+
+  /// Separate buffer for outgoing Cannelloni packets.
+  ///
+  /// TX packets can be generated from inside the native transfer callback
+  /// (e.g. while answering a `file.Read`), which runs while [_packetDataBuffer]
+  /// is still being parsed.
+  Pointer<Uint8>? _txDataBuffer;
+
+  static const int _packetBufferSize = 4096;
 
   int? _nodeId;
   DnaAllocationHandler? _dnaHandler;
@@ -150,9 +165,21 @@ class CannelloniService extends _$CannelloniService {
   Timer? _receiveWatchdogTimer;
 
   final Map<String, PendingRequest> _pendingRequests = {};
+  StreamController<NodeStatusEvent> _nodeStatusController =
+      StreamController<NodeStatusEvent>.broadcast();
+
+  /// Stream of DroneCAN node status heartbeats and registry resets.
+  @override
+  Stream<NodeStatusEvent> get nodeStatusEvents => _nodeStatusController.stream;
 
   @override
   bool build() {
+    // The controller is closed with the previous lifecycle, so a rebuild would
+    // silently stop node discovery; existing subscribers keep the same stream.
+    if (_nodeStatusController.isClosed) {
+      _nodeStatusController = StreamController<NodeStatusEvent>.broadcast();
+    }
+
     _activeInstance = this;
 
     debugPrint('CannelloniService: Initializing CanardBindings...');
@@ -184,9 +211,9 @@ class CannelloniService extends _$CannelloniService {
     _canard?.storkCanardInit(0); // Anonymous node ID initially
     debugPrint('CannelloniService: storkCanardInit executed successfully.');
 
-    _packetDataBuffer = malloc.allocate<Uint8>(
-      4096,
-    ); // Preallocated buffer for Cannelloni packets
+    // Preallocated buffers for Cannelloni packets
+    _packetDataBuffer = malloc.allocate<Uint8>(_packetBufferSize);
+    _txDataBuffer = malloc.allocate<Uint8>(_packetBufferSize);
 
     ref.listen(appSettingsProvider, (previous, next) {
       final prevDevice = previous?.asData?.value.selectedDevice;
@@ -210,7 +237,11 @@ class CannelloniService extends _$CannelloniService {
       if (_packetDataBuffer != null) {
         malloc.free(_packetDataBuffer!);
       }
+      if (_txDataBuffer != null) {
+        malloc.free(_txDataBuffer!);
+      }
       disposeAllTransferIds();
+      _nodeStatusController.close();
     });
 
     return false;
@@ -301,6 +332,10 @@ class CannelloniService extends _$CannelloniService {
     // Clear DroneCAN and remove Node ID (0 is anonymous)
     _canard?.storkCanardInit(0);
     state = false;
+
+    if (!_nodeStatusController.isClosed) {
+      _nodeStatusController.add(const NodeStatusRegistryClearedEvent());
+    }
   }
 
   void _startDisconnectTimer(Duration duration, String contextMessage) {
@@ -368,10 +403,12 @@ class CannelloniService extends _$CannelloniService {
 
             final data = datagram.data;
             final len = data.length;
-            final copyLen = len > 4096 ? 4096 : len;
+            final copyLen = len > _packetBufferSize ? _packetBufferSize : len;
 
             // Copy data into the native buffer efficiently
-            final bufferList = _packetDataBuffer!.asTypedList(4096);
+            final bufferList = _packetDataBuffer!.asTypedList(
+              _packetBufferSize,
+            );
             bufferList.setRange(0, copyLen, data);
 
             final timestamp = DateTime.now().microsecondsSinceEpoch;
@@ -463,26 +500,35 @@ class CannelloniService extends _$CannelloniService {
 
   void _startTxProcessing() {
     _txTimer?.cancel();
-    _txTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (_socket == null ||
-          _canard == null ||
-          _lastIp == null ||
-          _lastPort == null) {
-        return;
-      }
+    _txTimer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (_) => _pumpTxQueue(),
+    );
+  }
 
-      final pointer = _packetDataBuffer!;
-      final len = _canard!.storkCanardGenerateTxPacket(pointer, 4096);
-      if (len > 0) {
-        final data = pointer.asTypedList(len);
-        final packet = Uint8List.fromList(data);
-        try {
-          _socket!.send(packet, InternetAddress(_lastIp!), _lastPort!);
-        } catch (e) {
-          debugPrint('CannelloniService: Failed to send TX packet: $e');
-        }
-      }
-    });
+  /// Sends everything libcanard has queued as one Cannelloni packet.
+  void _pumpTxQueue() {
+    if (_socket == null ||
+        _canard == null ||
+        _lastIp == null ||
+        _lastPort == null ||
+        _txDataBuffer == null) {
+      return;
+    }
+
+    final pointer = _txDataBuffer!;
+    final len = _canard!.storkCanardGenerateTxPacket(
+      pointer,
+      _packetBufferSize,
+    );
+    if (len <= 0) return;
+
+    final packet = Uint8List.fromList(pointer.asTypedList(len));
+    try {
+      _socket!.send(packet, InternetAddress(_lastIp!), _lastPort!);
+    } catch (e) {
+      debugPrint('CannelloniService: Failed to send TX packet: $e');
+    }
   }
 
   void _startDnaAllocation(Uint8List uniqueId) {
@@ -560,19 +606,23 @@ class CannelloniService extends _$CannelloniService {
   }
 
   /// Sends a DroneCAN service request, tracking its completion and timeout.
+  ///
+  /// [transferIdKey] identifies the transfer-ID counter used for the request;
+  /// each request data type must use its own counter.
   Future<Uint8List> sendRequest({
     required int destinationNodeId,
     required int dataTypeId,
     required int dataTypeSignature,
     required Uint8List payload,
     Duration timeout = const Duration(seconds: 1),
+    required Type transferIdKey,
   }) async {
     if (_canard == null || _socket == null || !state) {
       throw StateError('DroneCAN service is not connected.');
     }
 
     final completer = Completer<Uint8List>();
-    final tidPtr = getTransferIdFor(VhfRadioControlRequest);
+    final tidPtr = getTransferIdFor(transferIdKey);
     final tid = tidPtr.value;
 
     final key = "$destinationNodeId-$dataTypeId-$tid";
@@ -739,6 +789,198 @@ class CannelloniService extends _$CannelloniService {
         );
   }
 
+  void _handleNodeStatus(int sourceNodeId, Uint8List payload) {
+    // Do not list this app's own DroneCAN node as a flight instrument.
+    if (_nodeId != null && sourceNodeId == _nodeId) return;
+    try {
+      final status = NodeStatus.fromPayload(payload);
+      if (!_nodeStatusController.isClosed) {
+        _nodeStatusController.add(
+          NodeStatusReceivedEvent(
+            nodeId: sourceNodeId,
+            status: status,
+            receivedAt: DateTime.now(),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint(
+        'CannelloniService: Failed to parse NodeStatus from node '
+        '$sourceNodeId: $e',
+      );
+    }
+  }
+
+  /// Requests `uavcan.protocol.GetNodeInfo` from [nodeId].
+  ///
+  /// Throws [StateError] when not connected and [TimeoutException] when the
+  /// node does not respond within [timeout].
+  @override
+  Future<GetNodeInfoResponse> getNodeInfo(
+    int nodeId, {
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    final payload = await sendRequest(
+      destinationNodeId: nodeId,
+      dataTypeId: GetNodeInfoResponse.messageId,
+      dataTypeSignature: GetNodeInfoResponse.messageSignature,
+      payload: Uint8List(0),
+      timeout: timeout,
+      transferIdKey: GetNodeInfoResponse,
+    );
+    return GetNodeInfoResponse.fromPayload(payload);
+  }
+
+  /// Requests `uavcan.protocol.RestartNode` from [nodeId].
+  ///
+  /// Returns `true` when the node accepted the restart. Throws [StateError]
+  /// when not connected and [TimeoutException] when the node does not respond.
+  @override
+  Future<bool> restartNode(
+    int nodeId, {
+    Duration timeout = const Duration(seconds: 2),
+  }) async {
+    final payload = await sendRequest(
+      destinationNodeId: nodeId,
+      dataTypeId: RestartNode.messageId,
+      dataTypeSignature: RestartNode.messageSignature,
+      payload: RestartNode().toPayload(),
+      timeout: timeout,
+      transferIdKey: RestartNode,
+    );
+    return RestartNodeResponse.fromPayload(payload).ok;
+  }
+
+  /// Requests `uavcan.protocol.GetTransportStats` from [nodeId].
+  @override
+  Future<GetTransportStatsResponse> getTransportStats(
+    int nodeId, {
+    Duration timeout = const Duration(seconds: 2),
+  }) async {
+    final payload = await sendRequest(
+      destinationNodeId: nodeId,
+      dataTypeId: GetTransportStats.messageId,
+      dataTypeSignature: GetTransportStats.messageSignature,
+      payload: GetTransportStats().toPayload(),
+      timeout: timeout,
+      transferIdKey: GetTransportStats,
+    );
+    return GetTransportStatsResponse.fromPayload(payload);
+  }
+
+  /// Requests `uavcan.protocol.param.GetSet` from [nodeId].
+  @override
+  Future<GetSetResponse> getSetParameter(
+    int nodeId,
+    GetSetRequest request, {
+    Duration timeout = const Duration(seconds: 1),
+  }) async {
+    final payload = await sendRequest(
+      destinationNodeId: nodeId,
+      dataTypeId: GetSetRequest.messageId,
+      dataTypeSignature: GetSetRequest.messageSignature,
+      payload: request.toPayload(),
+      timeout: timeout,
+      transferIdKey: GetSetRequest,
+    );
+    return GetSetResponse.fromPayload(payload);
+  }
+
+  /// Requests `uavcan.protocol.param.ExecuteOpcode` from [nodeId].
+  @override
+  Future<bool> executeParameterOpcode(
+    int nodeId,
+    int opcode, {
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    final payload = await sendRequest(
+      destinationNodeId: nodeId,
+      dataTypeId: ExecuteOpcodeRequest.messageId,
+      dataTypeSignature: ExecuteOpcodeRequest.messageSignature,
+      payload: ExecuteOpcodeRequest(opcode).toPayload(),
+      timeout: timeout,
+      transferIdKey: ExecuteOpcodeRequest,
+    );
+    return ExecuteOpcodeResponse.fromPayload(payload).ok;
+  }
+
+  /// Requests `uavcan.protocol.file.BeginFirmwareUpdate` from [nodeId].
+  ///
+  /// The node then pulls the image through `file.Read` requests; answers come
+  /// from [fileReadHandler].
+  @override
+  Future<BeginFirmwareUpdateResponse> beginFirmwareUpdate(
+    int nodeId,
+    String path, {
+    Duration timeout = const Duration(seconds: 2),
+  }) async {
+    final payload = await sendRequest(
+      destinationNodeId: nodeId,
+      dataTypeId: BeginFirmwareUpdateRequest.messageId,
+      dataTypeSignature: BeginFirmwareUpdateRequest.messageSignature,
+      payload: BeginFirmwareUpdateRequest(
+        imageFileRemotePath: path,
+      ).toPayload(),
+      timeout: timeout,
+      transferIdKey: BeginFirmwareUpdateRequest,
+    );
+    return BeginFirmwareUpdateResponse.fromPayload(payload);
+  }
+
+  DroneCanFileReadHandler? _fileReadHandler;
+
+  @override
+  set fileReadHandler(DroneCanFileReadHandler? handler) {
+    _fileReadHandler = handler;
+  }
+
+  /// Answers a `file.Read` request of a node that is being updated.
+  void _handleFileReadRequest({
+    required int transferId,
+    required int sourceNodeId,
+    required int priority,
+    required Uint8List payload,
+  }) {
+    final FileReadRequest request;
+    try {
+      request = FileReadRequest.fromPayload(payload);
+    } catch (e) {
+      debugPrint('CannelloniService: Invalid file.Read request: $e');
+      return;
+    }
+
+    List<int>? data;
+    try {
+      data = _fileReadHandler?.call(
+        sourceNodeId,
+        request.path,
+        request.offset,
+        fileReadChunkSize,
+      );
+    } catch (e) {
+      debugPrint(
+        'CannelloniService: Failed to read file "${request.path}" at '
+        '${request.offset}: $e',
+      );
+    }
+
+    respond(
+      transferId: transferId,
+      sourceNodeId: sourceNodeId,
+      priority: priority,
+      response: data == null
+          ? const FileReadResponse(error: FileReadResponse.errorNotFound)
+          : FileReadResponse(data: data),
+    );
+
+    // A node that reads the image chunk by chunk waits for this response before
+    // it asks for the next one, so the queued frames must not wait up to 100 ms
+    // for the periodic pump — that would cap the upload at a few kB/s.
+    // The pump writes into its own buffer, because the receive buffer is still
+    // being parsed by the native transfer loop that invoked this callback.
+    _pumpTxQueue();
+  }
+
   void _handleGetNodeInfoRequest({
     required int transferId,
     required int sourceNodeId,
@@ -827,9 +1069,9 @@ void _storkCanardTransferCallback(
         type == CanardTransferType.broadcast) {
       final allocation = DynamicNodeIdAllocation.fromPayload(payloadBytes);
       _activeInstance!._dnaHandler?.handleAllocationMessage(allocation);
-    } else if (dataTypeId == NodeStatus.messageId) {
-      // final nodeStatus = NodeStatus.fromPayload(payloadBytes);
-      // debugPrint('[DroneCAN] NodeStatus from Node $sourceNodeId: $nodeStatus');
+    } else if (dataTypeId == NodeStatus.messageId &&
+        type == CanardTransferType.broadcast) {
+      _activeInstance!._handleNodeStatus(sourceNodeId, payloadBytes);
     } else if (dataTypeId == StaticPressure.messageId) {
       final staticPressureMsg = StaticPressure.fromPayload(payloadBytes);
       _activeInstance!._updateTelemetryPressure(
@@ -841,6 +1083,14 @@ void _storkCanardTransferCallback(
         transferId: transferId,
         sourceNodeId: sourceNodeId,
         priority: priority,
+      );
+    } else if (dataTypeId == FileReadRequest.messageId &&
+        type == CanardTransferType.request) {
+      _activeInstance!._handleFileReadRequest(
+        transferId: transferId,
+        sourceNodeId: sourceNodeId,
+        priority: priority,
+        payload: payloadBytes,
       );
     } else if (dataTypeId == Fix2.messageId) {
       final fix2Msg = Fix2.fromPayload(payloadBytes);
@@ -883,64 +1133,14 @@ int _storkCanardShouldAcceptCallback(
   Pointer<Uint64> outDataTypeSignature,
 ) {
   try {
-    final type = CanardTransferType.fromInt(transferType);
-    final bool isSvc = type != CanardTransferType.broadcast;
+    final signature = droneCanSignatureForTransfer(
+      dataTypeId,
+      CanardTransferType.fromInt(transferType),
+    );
+    if (signature == null) return 0; // Reject transfers not relevant to us
 
-    if (!isSvc) {
-      // Broadcast messages
-      if (dataTypeId == DynamicNodeIdAllocation.messageId) {
-        outDataTypeSignature.value = DynamicNodeIdAllocation.messageSignature;
-        return 1;
-      }
-      if (dataTypeId == StaticPressure.messageId) {
-        outDataTypeSignature.value = StaticPressure.messageSignature;
-        return 1;
-      }
-      if (dataTypeId == Fix2.messageId) {
-        outDataTypeSignature.value = Fix2.messageSignature;
-        return 1;
-      }
-      if (dataTypeId == IceStatus.messageId) {
-        outDataTypeSignature.value = IceStatus.messageSignature;
-        return 1;
-      }
-      if (dataTypeId == FuelTankStatus.messageId) {
-        outDataTypeSignature.value = FuelTankStatus.messageSignature;
-        return 1;
-      }
-      if (dataTypeId == StorkEngineRpm.messageId) {
-        outDataTypeSignature.value = StorkEngineRpm.messageSignature;
-        return 1;
-      }
-      if (dataTypeId == IndicatedAirspeed.messageId) {
-        outDataTypeSignature.value = IndicatedAirspeed.messageSignature;
-        return 1;
-      }
-      if (dataTypeId == VhfRadioFullStatus.messageId) {
-        outDataTypeSignature.value = VhfRadioFullStatus.messageSignature;
-        return 1;
-      }
-      if (dataTypeId == VhfRadioFastStatus.messageId) {
-        outDataTypeSignature.value = VhfRadioFastStatus.messageSignature;
-        return 1;
-      }
-    } else {
-      // Service messages
-      if (dataTypeId == GetNodeInfoResponse.messageId) {
-        // We only accept request transfers for GET_NODE_INFO
-        if (type == CanardTransferType.request) {
-          outDataTypeSignature.value = GetNodeInfoResponse.messageSignature;
-          return 1;
-        }
-      }
-      if (dataTypeId == VhfRadioControlResponse.messageId) {
-        if (type == CanardTransferType.response) {
-          outDataTypeSignature.value = VhfRadioControlResponse.messageSignature;
-          return 1;
-        }
-      }
-    }
-    return 0; // Reject all other transfers
+    outDataTypeSignature.value = signature;
+    return 1;
   } catch (e) {
     debugPrint('Error in native should accept callback: $e');
     return 0; // Reject on error

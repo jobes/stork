@@ -42,7 +42,7 @@ final class VhfRadioControllerProvider
 }
 
 String _$vhfRadioControllerHash() =>
-    r'104743f643600f0cadaef0ec18714ba7a7fd3987';
+    r'e941a175e98f695e87578238d54ad888274a1e7b';
 
 abstract class _$VhfRadioController extends $Notifier<void> {
   void build();

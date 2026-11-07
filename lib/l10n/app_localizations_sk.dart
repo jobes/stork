@@ -1138,6 +1138,450 @@ class AppLocalizationsSk extends AppLocalizations {
   String get flightRecordsLoadError => 'Nepodarilo sa načítať záznamy letov';
 
   @override
+  String get dronecanInstruments => 'DroneCAN prístroje';
+
+  @override
+  String get dronecanRefresh => 'Obnoviť informácie o uzloch';
+
+  @override
+  String get dronecanRefreshNoNodes =>
+      'Nie je čo obnoviť, na zbernici nie je žiadny DroneCAN uzol';
+
+  @override
+  String dronecanRefreshSuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count uzlov',
+      few: '$count uzly',
+      one: '1 uzol',
+    );
+    return 'Informácie o uzloch obnovené pre $_temp0';
+  }
+
+  @override
+  String dronecanRefreshPartial(int answered, int requested) {
+    return 'Odpovedalo len $answered z $requested uzlov';
+  }
+
+  @override
+  String get dronecanRefreshFailed =>
+      'Nepodarilo sa obnoviť informácie o uzloch';
+
+  @override
+  String get dronecanInstrumentsEmpty =>
+      'Nenašli sa žiadne DroneCAN zariadenia';
+
+  @override
+  String get dronecanInstrumentsDisconnected =>
+      'Nie ste pripojení k DroneCAN bráne';
+
+  @override
+  String get dronecanInstrumentsLoadError =>
+      'Nepodarilo sa načítať DroneCAN zariadenia';
+
+  @override
+  String get dronecanNodeId => 'ID uzla';
+
+  @override
+  String get dronecanNodeName => 'Názov';
+
+  @override
+  String get dronecanUniqueId => 'Jedinečné ID';
+
+  @override
+  String get dronecanHealth => 'Stav';
+
+  @override
+  String get dronecanMode => 'Režim';
+
+  @override
+  String get dronecanUptime => 'Doba behu';
+
+  @override
+  String get dronecanLastSeen => 'Naposledy videný';
+
+  @override
+  String get dronecanHealthOk => 'OK';
+
+  @override
+  String get dronecanHealthWarning => 'Varovanie';
+
+  @override
+  String get dronecanHealthError => 'Chyba';
+
+  @override
+  String get dronecanHealthCritical => 'Kritický';
+
+  @override
+  String get dronecanModeOperational => 'Prevádzkový';
+
+  @override
+  String get dronecanModeInitialization => 'Inicializácia';
+
+  @override
+  String get dronecanModeMaintenance => 'Údržba';
+
+  @override
+  String get dronecanModeSoftwareUpdate => 'Aktualizácia softvéru';
+
+  @override
+  String get dronecanModeOffline => 'Offline';
+
+  @override
+  String get dronecanNodeDetailsTitle => 'DroneCAN uzol';
+
+  @override
+  String get dronecanSoftwareVersion => 'Verzia softvéru';
+
+  @override
+  String get dronecanVcsCommit => 'VCS commit';
+
+  @override
+  String get dronecanImageCrc => 'CRC obrazu';
+
+  @override
+  String get dronecanHardwareVersion => 'Verzia hardvéru';
+
+  @override
+  String get dronecanCertificateOfAuthenticity => 'Certifikát autenticity';
+
+  @override
+  String get dronecanDetailsUnavailable =>
+      'Podrobnosti zatiaľ nie sú dostupné.';
+
+  @override
+  String get dronecanVendorStatusCode => 'Kód stavu výrobcu';
+
+  @override
+  String get dronecanActionRestart => 'Reštart';
+
+  @override
+  String get dronecanActionTransportStats => 'Štatistiky prenosu';
+
+  @override
+  String get dronecanActionUpdateFirmware => 'Aktualizovať firmware';
+
+  @override
+  String get dronecanActionConfiguration => 'Konfigurácia';
+
+  @override
+  String get dronecanRestartConfirmTitle => 'Reštart uzla';
+
+  @override
+  String dronecanRestartConfirmMessage(String name, int id) {
+    return 'Uzol \"$name\" (ID $id) sa okamžite reštartuje.';
+  }
+
+  @override
+  String get dronecanRestartConfirmAction => 'Napriek tomu reštartovať';
+
+  @override
+  String get dronecanRestartRiskUnavailable =>
+      'Uzol na niekoľko sekúnd prestane vysielať dáta a všetko, čo poskytuje, bude nedostupné.';
+
+  @override
+  String get dronecanRestartRiskUnsavedConfig =>
+      'Neuložená konfigurácia uzla sa stratí.';
+
+  @override
+  String get dronecanRestartRiskInFlight =>
+      'Nikdy nereštartujte uzol počas letu. Môžete prísť o prístroje, na ktoré sa spoliehate.';
+
+  @override
+  String get dronecanRestartRiskOffline =>
+      'Ak reštart zlyhá, uzol môže zostať offline až do vypnutia a zapnutia CAN zbernice.';
+
+  @override
+  String get dronecanRestartSuccess => 'Príkaz na reštart bol prijatý';
+
+  @override
+  String get dronecanRestartRejected => 'Uzol reštart odmietol';
+
+  @override
+  String get dronecanRequestFailed =>
+      'Požiadavka zlyhala. Skontrolujte DroneCAN spojenie.';
+
+  @override
+  String dronecanTransportStatsTitle(int nodeId) {
+    return 'Štatistiky prenosu · $nodeId';
+  }
+
+  @override
+  String get dronecanStatsAutoRefreshHint =>
+      'Aktualizuje sa každú sekundu; hodnota v zátvorke je zmena od predchádzajúceho merania.';
+
+  @override
+  String get dronecanTransfersTx => 'Prenosy TX';
+
+  @override
+  String get dronecanTransfersRx => 'Prenosy RX';
+
+  @override
+  String get dronecanTransferErrors => 'Chyby prenosu';
+
+  @override
+  String get dronecanCanInterfaces => 'CAN rozhrania';
+
+  @override
+  String get dronecanFramesTx => 'Rámce TX';
+
+  @override
+  String get dronecanFramesRx => 'Rámce RX';
+
+  @override
+  String get dronecanErrors => 'Chyby';
+
+  @override
+  String get dronecanNoInterfaceStats =>
+      'Uzol neposkytol štatistiky CAN rozhraní.';
+
+  @override
+  String dronecanCanInterfaceLabel(int index) {
+    return 'Rozhranie $index';
+  }
+
+  @override
+  String get dronecanFirmwareUpdateTitle => 'Aktualizácia firmvéru';
+
+  @override
+  String get dronecanFirmwareUpdateHint =>
+      'Vyberte obraz firmvéru pre DroneCAN (.bin). Uzol si ho stiahne po CAN zbernici.';
+
+  @override
+  String get dronecanFirmwareUpdateChooseFile => 'Vybrať súbor';
+
+  @override
+  String get dronecanFirmwareUpdateChangeFile => 'Zmeniť súbor';
+
+  @override
+  String get dronecanFirmwareUpdateNoFile =>
+      'Nie je vybraný žiadny súbor firmvéru';
+
+  @override
+  String get dronecanFirmwareUpdateUpload => 'Nahrať firmvér';
+
+  @override
+  String get dronecanFirmwareUpdatePreparing =>
+      'Čakám, kým uzol vyžiada obraz…';
+
+  @override
+  String get dronecanFirmwareUpdateUploading => 'Nahrávam firmvér…';
+
+  @override
+  String dronecanFirmwareUpdateProgress(
+    int percent,
+    String transferred,
+    String total,
+  ) {
+    return '$percent % ($transferred z $total)';
+  }
+
+  @override
+  String get dronecanFirmwareUpdateCompleted =>
+      'Firmvér bol nahraný. Uzol overí obraz a reštartuje sa s novou verziou.';
+
+  @override
+  String get dronecanFirmwareUpdateFailed => 'Aktualizácia firmvéru zlyhala.';
+
+  @override
+  String dronecanFirmwareUpdateRejected(int code) {
+    return 'Uzol aktualizáciu odmietol (chyba $code).';
+  }
+
+  @override
+  String dronecanFirmwareUpdateRejectedWithMessage(String message) {
+    return 'Uzol aktualizáciu odmietol: $message';
+  }
+
+  @override
+  String get dronecanFirmwareUpdateTimeout =>
+      'Uzol prestal žiadať dáta firmvéru.';
+
+  @override
+  String get dronecanFirmwareUpdateEmptyFile => 'Vybraný súbor je prázdny.';
+
+  @override
+  String get dronecanFirmwareUpdateReadFailed =>
+      'Vybraný súbor sa nepodarilo prečítať.';
+
+  @override
+  String get dronecanFirmwareUpdateNotSupported =>
+      'Aktualizácia firmvéru nie je na tejto platforme podporovaná.';
+
+  @override
+  String get dronecanFirmwareUpdateRiskInFlight =>
+      'Nikdy neaktualizujte firmvér počas letu. Uzol je počas aktualizácie nedostupný.';
+
+  @override
+  String get dronecanFirmwareUpdateRiskPower =>
+      'Neprerušujte napájanie ani CAN spojenie počas nahrávania, uzol by mohol zostať bez funkčného firmvéru.';
+
+  @override
+  String get dronecanFirmwareUpdateRiskRestart =>
+      'Uzol sa reštartuje do bootloadera a následne sa vráti s novým firmvérom.';
+
+  @override
+  String get dronecanFirmwareUpdateKeepOpen =>
+      'Nechajte tento dialóg otvorený, kým sa nahrávanie nedokončí.';
+
+  @override
+  String dronecanNodeIdBadge(int id) {
+    return 'ID $id';
+  }
+
+  @override
+  String get dronecanConfigurationTitle => 'Konfigurácia';
+
+  @override
+  String get dronecanConfigurationRefresh => 'Obnoviť';
+
+  @override
+  String get dronecanConfigurationStoreAll => 'Uložiť všetko';
+
+  @override
+  String get dronecanConfigurationEraseAll => 'Vymazať všetko';
+
+  @override
+  String get dronecanConfigurationLoading => 'Načítavam parametre…';
+
+  @override
+  String get dronecanConfigurationModifiedHint =>
+      'Hodnoty odlišné od predvolenej sú zvýraznené.';
+
+  @override
+  String dronecanConfigurationParameterCount(int count) {
+    return 'Parametre: $count';
+  }
+
+  @override
+  String get dronecanConfigurationEmpty => 'Uzol neohlásil žiadne parametre.';
+
+  @override
+  String get dronecanConfigurationLoadFailed => 'Načítanie parametrov zlyhalo.';
+
+  @override
+  String get dronecanParameterColumnId => 'ID';
+
+  @override
+  String get dronecanParameterColumnName => 'Názov';
+
+  @override
+  String get dronecanParameterColumnType => 'Typ';
+
+  @override
+  String get dronecanParameterColumnValue => 'Hodnota';
+
+  @override
+  String get dronecanParameterEditTooltip => 'Upraviť hodnotu';
+
+  @override
+  String get dronecanParameterTypeInteger => 'Celé číslo';
+
+  @override
+  String get dronecanParameterTypeReal => 'Reálne číslo';
+
+  @override
+  String get dronecanParameterTypeBoolean => 'Boolean';
+
+  @override
+  String get dronecanParameterTypeString => 'Reťazec';
+
+  @override
+  String get dronecanParameterTypeEmpty => 'Prázdne';
+
+  @override
+  String get dronecanParameterValueTrue => 'áno';
+
+  @override
+  String get dronecanParameterValueFalse => 'nie';
+
+  @override
+  String dronecanParameterDefaultValue(String value) {
+    return 'predvolené $value';
+  }
+
+  @override
+  String get dronecanParameterEditTitle => 'Upraviť parameter';
+
+  @override
+  String get dronecanParameterTypeLabel => 'Typ';
+
+  @override
+  String get dronecanParameterValueLabel => 'Hodnota';
+
+  @override
+  String get dronecanParameterMinLabel => 'Min';
+
+  @override
+  String get dronecanParameterMaxLabel => 'Max';
+
+  @override
+  String get dronecanParameterDefaultLabel => 'Predvolené';
+
+  @override
+  String get dronecanParameterInvalidInteger => 'Zadajte celé číslo.';
+
+  @override
+  String get dronecanParameterInvalidNumber => 'Zadajte platné číslo.';
+
+  @override
+  String dronecanParameterOutOfRange(String min, String max) {
+    return 'Hodnota musí byť medzi $min a $max.';
+  }
+
+  @override
+  String dronecanParameterBelowMin(String min) {
+    return 'Hodnota musí byť aspoň $min.';
+  }
+
+  @override
+  String dronecanParameterAboveMax(String max) {
+    return 'Hodnota musí byť najviac $max.';
+  }
+
+  @override
+  String dronecanParameterStringTooLong(int max) {
+    return 'Text je príliš dlhý (max $max znakov).';
+  }
+
+  @override
+  String dronecanParameterSetSuccess(String name) {
+    return 'Parameter $name bol aktualizovaný';
+  }
+
+  @override
+  String dronecanParameterSetFailed(String name) {
+    return 'Parameter $name sa nepodarilo aktualizovať';
+  }
+
+  @override
+  String get dronecanConfigurationStoreSuccess =>
+      'Konfigurácia bola uložená do uzla';
+
+  @override
+  String get dronecanConfigurationStoreFailed =>
+      'Uloženie konfigurácie zlyhalo';
+
+  @override
+  String get dronecanConfigurationEraseConfirmTitle => 'Vymazať konfiguráciu';
+
+  @override
+  String dronecanConfigurationEraseConfirmMessage(String name, int id) {
+    return 'Všetky parametre uzla \"$name\" (ID $id) sa vrátia na predvolené hodnoty. Neuložené zmeny sa stratia a uzol môže vyžadovať reštart.';
+  }
+
+  @override
+  String get dronecanConfigurationEraseConfirmAction => 'Vymazať';
+
+  @override
+  String get dronecanConfigurationEraseSuccess => 'Konfigurácia bola vymazaná';
+
+  @override
+  String get dronecanConfigurationEraseFailed =>
+      'Vymazanie konfigurácie zlyhalo';
+
+  @override
   String takeoffsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

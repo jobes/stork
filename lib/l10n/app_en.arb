@@ -557,6 +557,233 @@
   "durationMinutesSuffix": "m",
   "durationSecondsSuffix": "s",
   "flightRecordsLoadError": "Failed to load flight records",
+  "dronecanInstruments": "DroneCAN instruments",
+  "dronecanRefresh": "Refresh node information",
+  "dronecanRefreshNoNodes": "No DroneCAN node to refresh",
+  "dronecanRefreshSuccess": "Node information refreshed for {count, plural, =1{1 node} other{{count} nodes}}",
+  "@dronecanRefreshSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dronecanRefreshPartial": "Only {answered} of {requested} nodes answered",
+  "@dronecanRefreshPartial": {
+    "placeholders": {
+      "answered": {
+        "type": "int"
+      },
+      "requested": {
+        "type": "int"
+      }
+    }
+  },
+  "dronecanRefreshFailed": "Failed to refresh node information",
+  "dronecanInstrumentsEmpty": "No DroneCAN devices detected",
+  "dronecanInstrumentsDisconnected": "Not connected to a DroneCAN gateway",
+  "dronecanInstrumentsLoadError": "Failed to load DroneCAN devices",
+  "dronecanNodeId": "Node ID",
+  "dronecanNodeName": "Name",
+  "dronecanUniqueId": "Unique ID",
+  "dronecanHealth": "Health",
+  "dronecanMode": "Mode",
+  "dronecanUptime": "Uptime",
+  "dronecanLastSeen": "Last seen",
+  "dronecanHealthOk": "OK",
+  "dronecanHealthWarning": "Warning",
+  "dronecanHealthError": "Error",
+  "dronecanHealthCritical": "Critical",
+  "dronecanModeOperational": "Operational",
+  "dronecanModeInitialization": "Initialization",
+  "dronecanModeMaintenance": "Maintenance",
+  "dronecanModeSoftwareUpdate": "Software update",
+  "dronecanModeOffline": "Offline",
+  "dronecanNodeDetailsTitle": "DroneCAN node",
+  "dronecanSoftwareVersion": "Software version",
+  "dronecanVcsCommit": "VCS commit",
+  "dronecanImageCrc": "Image CRC",
+  "dronecanHardwareVersion": "Hardware version",
+  "dronecanCertificateOfAuthenticity": "Certificate of authenticity",
+  "dronecanDetailsUnavailable": "Details are not available yet.",
+  "dronecanVendorStatusCode": "Vendor status code",
+  "dronecanActionRestart": "Restart",
+  "dronecanActionTransportStats": "Transport stats",
+  "dronecanActionUpdateFirmware": "Update firmware",
+  "dronecanActionConfiguration": "Configuration",
+  "dronecanRestartConfirmTitle": "Restart node",
+  "dronecanRestartConfirmMessage": "Node \"{name}\" (ID {id}) will restart immediately.",
+  "@dronecanRestartConfirmMessage": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "id": { "type": "int" }
+    }
+  },
+  "dronecanRestartConfirmAction": "Restart anyway",
+  "dronecanRestartRiskUnavailable": "The node stops sending data for several seconds and everything it provides is unavailable meanwhile.",
+  "dronecanRestartRiskUnsavedConfig": "Any unsaved node configuration will be lost.",
+  "dronecanRestartRiskInFlight": "Never restart a node in flight. It can take away instruments you rely on.",
+  "dronecanRestartRiskOffline": "If the restart fails, the node may stay offline until the CAN bus is power-cycled.",
+  "dronecanRestartSuccess": "Restart command accepted",
+  "dronecanRestartRejected": "Node rejected the restart",
+  "dronecanRequestFailed": "Request failed. Check the DroneCAN connection.",
+  "dronecanTransportStatsTitle": "Transport statistics · {nodeId}",
+  "@dronecanTransportStatsTitle": {
+    "placeholders": {
+      "nodeId": { "type": "int" }
+    }
+  },
+  "dronecanStatsAutoRefreshHint": "Updates every second; the value in brackets is the change since the previous reading.",
+  "dronecanTransfersTx": "Transfers TX",
+  "dronecanTransfersRx": "Transfers RX",
+  "dronecanTransferErrors": "Transfer errors",
+  "dronecanCanInterfaces": "CAN interfaces",
+  "dronecanFramesTx": "Frames TX",
+  "dronecanFramesRx": "Frames RX",
+  "dronecanErrors": "Errors",
+  "dronecanNoInterfaceStats": "No CAN interface statistics reported.",
+  "dronecanCanInterfaceLabel": "Interface {index}",
+  "@dronecanCanInterfaceLabel": {
+    "placeholders": {
+      "index": { "type": "int" }
+    }
+  },
+  "dronecanFirmwareUpdateTitle": "Firmware update",
+  "dronecanFirmwareUpdateHint": "Select a DroneCAN firmware image (.bin). The node pulls it over the CAN bus.",
+  "dronecanFirmwareUpdateChooseFile": "Choose file",
+  "dronecanFirmwareUpdateChangeFile": "Change file",
+  "dronecanFirmwareUpdateNoFile": "No firmware file selected",
+  "dronecanFirmwareUpdateUpload": "Upload firmware",
+  "dronecanFirmwareUpdatePreparing": "Waiting for the node to request the image…",
+  "dronecanFirmwareUpdateUploading": "Uploading firmware…",
+  "dronecanFirmwareUpdateProgress": "{percent} % ({transferred} of {total})",
+  "@dronecanFirmwareUpdateProgress": {
+    "placeholders": {
+      "percent": { "type": "int" },
+      "transferred": { "type": "String" },
+      "total": { "type": "String" }
+    }
+  },
+  "dronecanFirmwareUpdateCompleted": "Firmware uploaded. The node verifies the image and restarts with the new version.",
+  "dronecanFirmwareUpdateFailed": "The firmware update failed.",
+  "dronecanFirmwareUpdateRejected": "The node refused the update (error {code}).",
+  "@dronecanFirmwareUpdateRejected": {
+    "placeholders": {
+      "code": { "type": "int" }
+    }
+  },
+  "dronecanFirmwareUpdateRejectedWithMessage": "The node refused the update: {message}",
+  "@dronecanFirmwareUpdateRejectedWithMessage": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "dronecanFirmwareUpdateTimeout": "The node stopped requesting firmware data.",
+  "dronecanFirmwareUpdateEmptyFile": "The selected file is empty.",
+  "dronecanFirmwareUpdateReadFailed": "The selected file could not be read.",
+  "dronecanFirmwareUpdateNotSupported": "Firmware update is not supported on this platform.",
+  "dronecanFirmwareUpdateRiskInFlight": "Never update firmware in flight. The node is unavailable while it updates.",
+  "dronecanFirmwareUpdateRiskPower": "Do not disconnect power or the CAN connection during the upload, the node could be left without usable firmware.",
+  "dronecanFirmwareUpdateRiskRestart": "The node restarts into its bootloader, then comes back with the new firmware.",
+  "dronecanFirmwareUpdateKeepOpen": "Keep this dialog open until the upload finishes.",
+  "dronecanNodeIdBadge": "ID {id}",
+  "@dronecanNodeIdBadge": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  },
+  "dronecanConfigurationTitle": "Configuration",
+  "dronecanConfigurationRefresh": "Refresh",
+  "dronecanConfigurationStoreAll": "Store all",
+  "dronecanConfigurationEraseAll": "Erase all",
+  "dronecanConfigurationLoading": "Reading parameters…",
+  "dronecanConfigurationModifiedHint": "Values that differ from the default are highlighted.",
+  "dronecanConfigurationParameterCount": "Parameters: {count}",
+  "@dronecanConfigurationParameterCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dronecanConfigurationEmpty": "The node reported no parameters.",
+  "dronecanConfigurationLoadFailed": "Reading the parameters failed.",
+  "dronecanParameterColumnId": "ID",
+  "dronecanParameterColumnName": "Name",
+  "dronecanParameterColumnType": "Type",
+  "dronecanParameterColumnValue": "Value",
+  "dronecanParameterEditTooltip": "Edit value",
+  "dronecanParameterTypeInteger": "Integer",
+  "dronecanParameterTypeReal": "Real",
+  "dronecanParameterTypeBoolean": "Boolean",
+  "dronecanParameterTypeString": "String",
+  "dronecanParameterTypeEmpty": "Empty",
+  "dronecanParameterValueTrue": "true",
+  "dronecanParameterValueFalse": "false",
+  "dronecanParameterDefaultValue": "default {value}",
+  "@dronecanParameterDefaultValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "dronecanParameterEditTitle": "Edit parameter",
+  "dronecanParameterTypeLabel": "Type",
+  "dronecanParameterValueLabel": "Value",
+  "dronecanParameterMinLabel": "Min",
+  "dronecanParameterMaxLabel": "Max",
+  "dronecanParameterDefaultLabel": "Default",
+  "dronecanParameterInvalidInteger": "Enter a whole number.",
+  "dronecanParameterInvalidNumber": "Enter a valid number.",
+  "dronecanParameterOutOfRange": "Value must be between {min} and {max}.",
+  "@dronecanParameterOutOfRange": {
+    "placeholders": {
+      "min": { "type": "String" },
+      "max": { "type": "String" }
+    }
+  },
+  "dronecanParameterBelowMin": "Value must be at least {min}.",
+  "@dronecanParameterBelowMin": {
+    "placeholders": {
+      "min": { "type": "String" }
+    }
+  },
+  "dronecanParameterAboveMax": "Value must be at most {max}.",
+  "@dronecanParameterAboveMax": {
+    "placeholders": {
+      "max": { "type": "String" }
+    }
+  },
+  "dronecanParameterStringTooLong": "The text is too long (max {max} characters).",
+  "@dronecanParameterStringTooLong": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "dronecanParameterSetSuccess": "Parameter {name} updated",
+  "@dronecanParameterSetSuccess": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dronecanParameterSetFailed": "Parameter {name} could not be updated",
+  "@dronecanParameterSetFailed": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dronecanConfigurationStoreSuccess": "Configuration stored to the node",
+  "dronecanConfigurationStoreFailed": "Storing the configuration failed",
+  "dronecanConfigurationEraseConfirmTitle": "Erase configuration",
+  "dronecanConfigurationEraseConfirmMessage": "All parameters of \"{name}\" (ID {id}) return to their defaults. Unsaved changes are lost and the node may need a restart.",
+  "@dronecanConfigurationEraseConfirmMessage": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "id": { "type": "int" }
+    }
+  },
+  "dronecanConfigurationEraseConfirmAction": "Erase",
+  "dronecanConfigurationEraseSuccess": "Configuration erased",
+  "dronecanConfigurationEraseFailed": "Erasing the configuration failed",
   "takeoffsCount": "{count, plural, =1{1 takeoff} other{{count} takeoffs}}",
   "@takeoffsCount": {
     "description": "Number of takeoffs/flights",

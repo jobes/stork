@@ -2258,6 +2258,748 @@ abstract class AppLocalizations {
   /// **'Failed to load flight records'**
   String get flightRecordsLoadError;
 
+  /// No description provided for @dronecanInstruments.
+  ///
+  /// In en, this message translates to:
+  /// **'DroneCAN instruments'**
+  String get dronecanInstruments;
+
+  /// No description provided for @dronecanRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh node information'**
+  String get dronecanRefresh;
+
+  /// No description provided for @dronecanRefreshNoNodes.
+  ///
+  /// In en, this message translates to:
+  /// **'No DroneCAN node to refresh'**
+  String get dronecanRefreshNoNodes;
+
+  /// No description provided for @dronecanRefreshSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Node information refreshed for {count, plural, =1{1 node} other{{count} nodes}}'**
+  String dronecanRefreshSuccess(int count);
+
+  /// No description provided for @dronecanRefreshPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {answered} of {requested} nodes answered'**
+  String dronecanRefreshPartial(int answered, int requested);
+
+  /// No description provided for @dronecanRefreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to refresh node information'**
+  String get dronecanRefreshFailed;
+
+  /// No description provided for @dronecanInstrumentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No DroneCAN devices detected'**
+  String get dronecanInstrumentsEmpty;
+
+  /// No description provided for @dronecanInstrumentsDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected to a DroneCAN gateway'**
+  String get dronecanInstrumentsDisconnected;
+
+  /// No description provided for @dronecanInstrumentsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load DroneCAN devices'**
+  String get dronecanInstrumentsLoadError;
+
+  /// No description provided for @dronecanNodeId.
+  ///
+  /// In en, this message translates to:
+  /// **'Node ID'**
+  String get dronecanNodeId;
+
+  /// No description provided for @dronecanNodeName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get dronecanNodeName;
+
+  /// No description provided for @dronecanUniqueId.
+  ///
+  /// In en, this message translates to:
+  /// **'Unique ID'**
+  String get dronecanUniqueId;
+
+  /// No description provided for @dronecanHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get dronecanHealth;
+
+  /// No description provided for @dronecanMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get dronecanMode;
+
+  /// No description provided for @dronecanUptime.
+  ///
+  /// In en, this message translates to:
+  /// **'Uptime'**
+  String get dronecanUptime;
+
+  /// No description provided for @dronecanLastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen'**
+  String get dronecanLastSeen;
+
+  /// No description provided for @dronecanHealthOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get dronecanHealthOk;
+
+  /// No description provided for @dronecanHealthWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get dronecanHealthWarning;
+
+  /// No description provided for @dronecanHealthError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get dronecanHealthError;
+
+  /// No description provided for @dronecanHealthCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get dronecanHealthCritical;
+
+  /// No description provided for @dronecanModeOperational.
+  ///
+  /// In en, this message translates to:
+  /// **'Operational'**
+  String get dronecanModeOperational;
+
+  /// No description provided for @dronecanModeInitialization.
+  ///
+  /// In en, this message translates to:
+  /// **'Initialization'**
+  String get dronecanModeInitialization;
+
+  /// No description provided for @dronecanModeMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get dronecanModeMaintenance;
+
+  /// No description provided for @dronecanModeSoftwareUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Software update'**
+  String get dronecanModeSoftwareUpdate;
+
+  /// No description provided for @dronecanModeOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get dronecanModeOffline;
+
+  /// No description provided for @dronecanNodeDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'DroneCAN node'**
+  String get dronecanNodeDetailsTitle;
+
+  /// No description provided for @dronecanSoftwareVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Software version'**
+  String get dronecanSoftwareVersion;
+
+  /// No description provided for @dronecanVcsCommit.
+  ///
+  /// In en, this message translates to:
+  /// **'VCS commit'**
+  String get dronecanVcsCommit;
+
+  /// No description provided for @dronecanImageCrc.
+  ///
+  /// In en, this message translates to:
+  /// **'Image CRC'**
+  String get dronecanImageCrc;
+
+  /// No description provided for @dronecanHardwareVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Hardware version'**
+  String get dronecanHardwareVersion;
+
+  /// No description provided for @dronecanCertificateOfAuthenticity.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate of authenticity'**
+  String get dronecanCertificateOfAuthenticity;
+
+  /// No description provided for @dronecanDetailsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Details are not available yet.'**
+  String get dronecanDetailsUnavailable;
+
+  /// No description provided for @dronecanVendorStatusCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Vendor status code'**
+  String get dronecanVendorStatusCode;
+
+  /// No description provided for @dronecanActionRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart'**
+  String get dronecanActionRestart;
+
+  /// No description provided for @dronecanActionTransportStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport stats'**
+  String get dronecanActionTransportStats;
+
+  /// No description provided for @dronecanActionUpdateFirmware.
+  ///
+  /// In en, this message translates to:
+  /// **'Update firmware'**
+  String get dronecanActionUpdateFirmware;
+
+  /// No description provided for @dronecanActionConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration'**
+  String get dronecanActionConfiguration;
+
+  /// No description provided for @dronecanRestartConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart node'**
+  String get dronecanRestartConfirmTitle;
+
+  /// No description provided for @dronecanRestartConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Node \"{name}\" (ID {id}) will restart immediately.'**
+  String dronecanRestartConfirmMessage(String name, int id);
+
+  /// No description provided for @dronecanRestartConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart anyway'**
+  String get dronecanRestartConfirmAction;
+
+  /// No description provided for @dronecanRestartRiskUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The node stops sending data for several seconds and everything it provides is unavailable meanwhile.'**
+  String get dronecanRestartRiskUnavailable;
+
+  /// No description provided for @dronecanRestartRiskUnsavedConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Any unsaved node configuration will be lost.'**
+  String get dronecanRestartRiskUnsavedConfig;
+
+  /// No description provided for @dronecanRestartRiskInFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Never restart a node in flight. It can take away instruments you rely on.'**
+  String get dronecanRestartRiskInFlight;
+
+  /// No description provided for @dronecanRestartRiskOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'If the restart fails, the node may stay offline until the CAN bus is power-cycled.'**
+  String get dronecanRestartRiskOffline;
+
+  /// No description provided for @dronecanRestartSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart command accepted'**
+  String get dronecanRestartSuccess;
+
+  /// No description provided for @dronecanRestartRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Node rejected the restart'**
+  String get dronecanRestartRejected;
+
+  /// No description provided for @dronecanRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Request failed. Check the DroneCAN connection.'**
+  String get dronecanRequestFailed;
+
+  /// No description provided for @dronecanTransportStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport statistics · {nodeId}'**
+  String dronecanTransportStatsTitle(int nodeId);
+
+  /// No description provided for @dronecanStatsAutoRefreshHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates every second; the value in brackets is the change since the previous reading.'**
+  String get dronecanStatsAutoRefreshHint;
+
+  /// No description provided for @dronecanTransfersTx.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers TX'**
+  String get dronecanTransfersTx;
+
+  /// No description provided for @dronecanTransfersRx.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers RX'**
+  String get dronecanTransfersRx;
+
+  /// No description provided for @dronecanTransferErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer errors'**
+  String get dronecanTransferErrors;
+
+  /// No description provided for @dronecanCanInterfaces.
+  ///
+  /// In en, this message translates to:
+  /// **'CAN interfaces'**
+  String get dronecanCanInterfaces;
+
+  /// No description provided for @dronecanFramesTx.
+  ///
+  /// In en, this message translates to:
+  /// **'Frames TX'**
+  String get dronecanFramesTx;
+
+  /// No description provided for @dronecanFramesRx.
+  ///
+  /// In en, this message translates to:
+  /// **'Frames RX'**
+  String get dronecanFramesRx;
+
+  /// No description provided for @dronecanErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Errors'**
+  String get dronecanErrors;
+
+  /// No description provided for @dronecanNoInterfaceStats.
+  ///
+  /// In en, this message translates to:
+  /// **'No CAN interface statistics reported.'**
+  String get dronecanNoInterfaceStats;
+
+  /// No description provided for @dronecanCanInterfaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Interface {index}'**
+  String dronecanCanInterfaceLabel(int index);
+
+  /// No description provided for @dronecanFirmwareUpdateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware update'**
+  String get dronecanFirmwareUpdateTitle;
+
+  /// No description provided for @dronecanFirmwareUpdateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a DroneCAN firmware image (.bin). The node pulls it over the CAN bus.'**
+  String get dronecanFirmwareUpdateHint;
+
+  /// No description provided for @dronecanFirmwareUpdateChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get dronecanFirmwareUpdateChooseFile;
+
+  /// No description provided for @dronecanFirmwareUpdateChangeFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Change file'**
+  String get dronecanFirmwareUpdateChangeFile;
+
+  /// No description provided for @dronecanFirmwareUpdateNoFile.
+  ///
+  /// In en, this message translates to:
+  /// **'No firmware file selected'**
+  String get dronecanFirmwareUpdateNoFile;
+
+  /// No description provided for @dronecanFirmwareUpdateUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload firmware'**
+  String get dronecanFirmwareUpdateUpload;
+
+  /// No description provided for @dronecanFirmwareUpdatePreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the node to request the image…'**
+  String get dronecanFirmwareUpdatePreparing;
+
+  /// No description provided for @dronecanFirmwareUpdateUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading firmware…'**
+  String get dronecanFirmwareUpdateUploading;
+
+  /// No description provided for @dronecanFirmwareUpdateProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent} % ({transferred} of {total})'**
+  String dronecanFirmwareUpdateProgress(
+    int percent,
+    String transferred,
+    String total,
+  );
+
+  /// No description provided for @dronecanFirmwareUpdateCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware uploaded. The node verifies the image and restarts with the new version.'**
+  String get dronecanFirmwareUpdateCompleted;
+
+  /// No description provided for @dronecanFirmwareUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The firmware update failed.'**
+  String get dronecanFirmwareUpdateFailed;
+
+  /// No description provided for @dronecanFirmwareUpdateRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The node refused the update (error {code}).'**
+  String dronecanFirmwareUpdateRejected(int code);
+
+  /// No description provided for @dronecanFirmwareUpdateRejectedWithMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The node refused the update: {message}'**
+  String dronecanFirmwareUpdateRejectedWithMessage(String message);
+
+  /// No description provided for @dronecanFirmwareUpdateTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The node stopped requesting firmware data.'**
+  String get dronecanFirmwareUpdateTimeout;
+
+  /// No description provided for @dronecanFirmwareUpdateEmptyFile.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected file is empty.'**
+  String get dronecanFirmwareUpdateEmptyFile;
+
+  /// No description provided for @dronecanFirmwareUpdateReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected file could not be read.'**
+  String get dronecanFirmwareUpdateReadFailed;
+
+  /// No description provided for @dronecanFirmwareUpdateNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware update is not supported on this platform.'**
+  String get dronecanFirmwareUpdateNotSupported;
+
+  /// No description provided for @dronecanFirmwareUpdateRiskInFlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Never update firmware in flight. The node is unavailable while it updates.'**
+  String get dronecanFirmwareUpdateRiskInFlight;
+
+  /// No description provided for @dronecanFirmwareUpdateRiskPower.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not disconnect power or the CAN connection during the upload, the node could be left without usable firmware.'**
+  String get dronecanFirmwareUpdateRiskPower;
+
+  /// No description provided for @dronecanFirmwareUpdateRiskRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'The node restarts into its bootloader, then comes back with the new firmware.'**
+  String get dronecanFirmwareUpdateRiskRestart;
+
+  /// No description provided for @dronecanFirmwareUpdateKeepOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this dialog open until the upload finishes.'**
+  String get dronecanFirmwareUpdateKeepOpen;
+
+  /// No description provided for @dronecanNodeIdBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'ID {id}'**
+  String dronecanNodeIdBadge(int id);
+
+  /// No description provided for @dronecanConfigurationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration'**
+  String get dronecanConfigurationTitle;
+
+  /// No description provided for @dronecanConfigurationRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get dronecanConfigurationRefresh;
+
+  /// No description provided for @dronecanConfigurationStoreAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Store all'**
+  String get dronecanConfigurationStoreAll;
+
+  /// No description provided for @dronecanConfigurationEraseAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase all'**
+  String get dronecanConfigurationEraseAll;
+
+  /// No description provided for @dronecanConfigurationLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading parameters…'**
+  String get dronecanConfigurationLoading;
+
+  /// No description provided for @dronecanConfigurationModifiedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Values that differ from the default are highlighted.'**
+  String get dronecanConfigurationModifiedHint;
+
+  /// No description provided for @dronecanConfigurationParameterCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameters: {count}'**
+  String dronecanConfigurationParameterCount(int count);
+
+  /// No description provided for @dronecanConfigurationEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The node reported no parameters.'**
+  String get dronecanConfigurationEmpty;
+
+  /// No description provided for @dronecanConfigurationLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the parameters failed.'**
+  String get dronecanConfigurationLoadFailed;
+
+  /// No description provided for @dronecanParameterColumnId.
+  ///
+  /// In en, this message translates to:
+  /// **'ID'**
+  String get dronecanParameterColumnId;
+
+  /// No description provided for @dronecanParameterColumnName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get dronecanParameterColumnName;
+
+  /// No description provided for @dronecanParameterColumnType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get dronecanParameterColumnType;
+
+  /// No description provided for @dronecanParameterColumnValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get dronecanParameterColumnValue;
+
+  /// No description provided for @dronecanParameterEditTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit value'**
+  String get dronecanParameterEditTooltip;
+
+  /// No description provided for @dronecanParameterTypeInteger.
+  ///
+  /// In en, this message translates to:
+  /// **'Integer'**
+  String get dronecanParameterTypeInteger;
+
+  /// No description provided for @dronecanParameterTypeReal.
+  ///
+  /// In en, this message translates to:
+  /// **'Real'**
+  String get dronecanParameterTypeReal;
+
+  /// No description provided for @dronecanParameterTypeBoolean.
+  ///
+  /// In en, this message translates to:
+  /// **'Boolean'**
+  String get dronecanParameterTypeBoolean;
+
+  /// No description provided for @dronecanParameterTypeString.
+  ///
+  /// In en, this message translates to:
+  /// **'String'**
+  String get dronecanParameterTypeString;
+
+  /// No description provided for @dronecanParameterTypeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get dronecanParameterTypeEmpty;
+
+  /// No description provided for @dronecanParameterValueTrue.
+  ///
+  /// In en, this message translates to:
+  /// **'true'**
+  String get dronecanParameterValueTrue;
+
+  /// No description provided for @dronecanParameterValueFalse.
+  ///
+  /// In en, this message translates to:
+  /// **'false'**
+  String get dronecanParameterValueFalse;
+
+  /// No description provided for @dronecanParameterDefaultValue.
+  ///
+  /// In en, this message translates to:
+  /// **'default {value}'**
+  String dronecanParameterDefaultValue(String value);
+
+  /// No description provided for @dronecanParameterEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit parameter'**
+  String get dronecanParameterEditTitle;
+
+  /// No description provided for @dronecanParameterTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get dronecanParameterTypeLabel;
+
+  /// No description provided for @dronecanParameterValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get dronecanParameterValueLabel;
+
+  /// No description provided for @dronecanParameterMinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Min'**
+  String get dronecanParameterMinLabel;
+
+  /// No description provided for @dronecanParameterMaxLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get dronecanParameterMaxLabel;
+
+  /// No description provided for @dronecanParameterDefaultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get dronecanParameterDefaultLabel;
+
+  /// No description provided for @dronecanParameterInvalidInteger.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number.'**
+  String get dronecanParameterInvalidInteger;
+
+  /// No description provided for @dronecanParameterInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number.'**
+  String get dronecanParameterInvalidNumber;
+
+  /// No description provided for @dronecanParameterOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Value must be between {min} and {max}.'**
+  String dronecanParameterOutOfRange(String min, String max);
+
+  /// No description provided for @dronecanParameterBelowMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Value must be at least {min}.'**
+  String dronecanParameterBelowMin(String min);
+
+  /// No description provided for @dronecanParameterAboveMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Value must be at most {max}.'**
+  String dronecanParameterAboveMax(String max);
+
+  /// No description provided for @dronecanParameterStringTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The text is too long (max {max} characters).'**
+  String dronecanParameterStringTooLong(int max);
+
+  /// No description provided for @dronecanParameterSetSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameter {name} updated'**
+  String dronecanParameterSetSuccess(String name);
+
+  /// No description provided for @dronecanParameterSetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameter {name} could not be updated'**
+  String dronecanParameterSetFailed(String name);
+
+  /// No description provided for @dronecanConfigurationStoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration stored to the node'**
+  String get dronecanConfigurationStoreSuccess;
+
+  /// No description provided for @dronecanConfigurationStoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Storing the configuration failed'**
+  String get dronecanConfigurationStoreFailed;
+
+  /// No description provided for @dronecanConfigurationEraseConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase configuration'**
+  String get dronecanConfigurationEraseConfirmTitle;
+
+  /// No description provided for @dronecanConfigurationEraseConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'All parameters of \"{name}\" (ID {id}) return to their defaults. Unsaved changes are lost and the node may need a restart.'**
+  String dronecanConfigurationEraseConfirmMessage(String name, int id);
+
+  /// No description provided for @dronecanConfigurationEraseConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase'**
+  String get dronecanConfigurationEraseConfirmAction;
+
+  /// No description provided for @dronecanConfigurationEraseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration erased'**
+  String get dronecanConfigurationEraseSuccess;
+
+  /// No description provided for @dronecanConfigurationEraseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Erasing the configuration failed'**
+  String get dronecanConfigurationEraseFailed;
+
   /// Number of takeoffs/flights
   ///
   /// In en, this message translates to:

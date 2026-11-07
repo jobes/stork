@@ -36,6 +36,7 @@ class VhfRadioController extends _$VhfRadioController {
       dataTypeId: VhfRadioControlRequest.messageId,
       dataTypeSignature: VhfRadioControlRequest.messageSignature,
       payload: req.toPayload(),
+      transferIdKey: VhfRadioControlRequest,
     );
 
     final response = VhfRadioControlResponse.fromPayload(res);

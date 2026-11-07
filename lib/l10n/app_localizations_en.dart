@@ -1138,6 +1138,444 @@ class AppLocalizationsEn extends AppLocalizations {
   String get flightRecordsLoadError => 'Failed to load flight records';
 
   @override
+  String get dronecanInstruments => 'DroneCAN instruments';
+
+  @override
+  String get dronecanRefresh => 'Refresh node information';
+
+  @override
+  String get dronecanRefreshNoNodes => 'No DroneCAN node to refresh';
+
+  @override
+  String dronecanRefreshSuccess(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nodes',
+      one: '1 node',
+    );
+    return 'Node information refreshed for $_temp0';
+  }
+
+  @override
+  String dronecanRefreshPartial(int answered, int requested) {
+    return 'Only $answered of $requested nodes answered';
+  }
+
+  @override
+  String get dronecanRefreshFailed => 'Failed to refresh node information';
+
+  @override
+  String get dronecanInstrumentsEmpty => 'No DroneCAN devices detected';
+
+  @override
+  String get dronecanInstrumentsDisconnected =>
+      'Not connected to a DroneCAN gateway';
+
+  @override
+  String get dronecanInstrumentsLoadError => 'Failed to load DroneCAN devices';
+
+  @override
+  String get dronecanNodeId => 'Node ID';
+
+  @override
+  String get dronecanNodeName => 'Name';
+
+  @override
+  String get dronecanUniqueId => 'Unique ID';
+
+  @override
+  String get dronecanHealth => 'Health';
+
+  @override
+  String get dronecanMode => 'Mode';
+
+  @override
+  String get dronecanUptime => 'Uptime';
+
+  @override
+  String get dronecanLastSeen => 'Last seen';
+
+  @override
+  String get dronecanHealthOk => 'OK';
+
+  @override
+  String get dronecanHealthWarning => 'Warning';
+
+  @override
+  String get dronecanHealthError => 'Error';
+
+  @override
+  String get dronecanHealthCritical => 'Critical';
+
+  @override
+  String get dronecanModeOperational => 'Operational';
+
+  @override
+  String get dronecanModeInitialization => 'Initialization';
+
+  @override
+  String get dronecanModeMaintenance => 'Maintenance';
+
+  @override
+  String get dronecanModeSoftwareUpdate => 'Software update';
+
+  @override
+  String get dronecanModeOffline => 'Offline';
+
+  @override
+  String get dronecanNodeDetailsTitle => 'DroneCAN node';
+
+  @override
+  String get dronecanSoftwareVersion => 'Software version';
+
+  @override
+  String get dronecanVcsCommit => 'VCS commit';
+
+  @override
+  String get dronecanImageCrc => 'Image CRC';
+
+  @override
+  String get dronecanHardwareVersion => 'Hardware version';
+
+  @override
+  String get dronecanCertificateOfAuthenticity => 'Certificate of authenticity';
+
+  @override
+  String get dronecanDetailsUnavailable => 'Details are not available yet.';
+
+  @override
+  String get dronecanVendorStatusCode => 'Vendor status code';
+
+  @override
+  String get dronecanActionRestart => 'Restart';
+
+  @override
+  String get dronecanActionTransportStats => 'Transport stats';
+
+  @override
+  String get dronecanActionUpdateFirmware => 'Update firmware';
+
+  @override
+  String get dronecanActionConfiguration => 'Configuration';
+
+  @override
+  String get dronecanRestartConfirmTitle => 'Restart node';
+
+  @override
+  String dronecanRestartConfirmMessage(String name, int id) {
+    return 'Node \"$name\" (ID $id) will restart immediately.';
+  }
+
+  @override
+  String get dronecanRestartConfirmAction => 'Restart anyway';
+
+  @override
+  String get dronecanRestartRiskUnavailable =>
+      'The node stops sending data for several seconds and everything it provides is unavailable meanwhile.';
+
+  @override
+  String get dronecanRestartRiskUnsavedConfig =>
+      'Any unsaved node configuration will be lost.';
+
+  @override
+  String get dronecanRestartRiskInFlight =>
+      'Never restart a node in flight. It can take away instruments you rely on.';
+
+  @override
+  String get dronecanRestartRiskOffline =>
+      'If the restart fails, the node may stay offline until the CAN bus is power-cycled.';
+
+  @override
+  String get dronecanRestartSuccess => 'Restart command accepted';
+
+  @override
+  String get dronecanRestartRejected => 'Node rejected the restart';
+
+  @override
+  String get dronecanRequestFailed =>
+      'Request failed. Check the DroneCAN connection.';
+
+  @override
+  String dronecanTransportStatsTitle(int nodeId) {
+    return 'Transport statistics · $nodeId';
+  }
+
+  @override
+  String get dronecanStatsAutoRefreshHint =>
+      'Updates every second; the value in brackets is the change since the previous reading.';
+
+  @override
+  String get dronecanTransfersTx => 'Transfers TX';
+
+  @override
+  String get dronecanTransfersRx => 'Transfers RX';
+
+  @override
+  String get dronecanTransferErrors => 'Transfer errors';
+
+  @override
+  String get dronecanCanInterfaces => 'CAN interfaces';
+
+  @override
+  String get dronecanFramesTx => 'Frames TX';
+
+  @override
+  String get dronecanFramesRx => 'Frames RX';
+
+  @override
+  String get dronecanErrors => 'Errors';
+
+  @override
+  String get dronecanNoInterfaceStats =>
+      'No CAN interface statistics reported.';
+
+  @override
+  String dronecanCanInterfaceLabel(int index) {
+    return 'Interface $index';
+  }
+
+  @override
+  String get dronecanFirmwareUpdateTitle => 'Firmware update';
+
+  @override
+  String get dronecanFirmwareUpdateHint =>
+      'Select a DroneCAN firmware image (.bin). The node pulls it over the CAN bus.';
+
+  @override
+  String get dronecanFirmwareUpdateChooseFile => 'Choose file';
+
+  @override
+  String get dronecanFirmwareUpdateChangeFile => 'Change file';
+
+  @override
+  String get dronecanFirmwareUpdateNoFile => 'No firmware file selected';
+
+  @override
+  String get dronecanFirmwareUpdateUpload => 'Upload firmware';
+
+  @override
+  String get dronecanFirmwareUpdatePreparing =>
+      'Waiting for the node to request the image…';
+
+  @override
+  String get dronecanFirmwareUpdateUploading => 'Uploading firmware…';
+
+  @override
+  String dronecanFirmwareUpdateProgress(
+    int percent,
+    String transferred,
+    String total,
+  ) {
+    return '$percent % ($transferred of $total)';
+  }
+
+  @override
+  String get dronecanFirmwareUpdateCompleted =>
+      'Firmware uploaded. The node verifies the image and restarts with the new version.';
+
+  @override
+  String get dronecanFirmwareUpdateFailed => 'The firmware update failed.';
+
+  @override
+  String dronecanFirmwareUpdateRejected(int code) {
+    return 'The node refused the update (error $code).';
+  }
+
+  @override
+  String dronecanFirmwareUpdateRejectedWithMessage(String message) {
+    return 'The node refused the update: $message';
+  }
+
+  @override
+  String get dronecanFirmwareUpdateTimeout =>
+      'The node stopped requesting firmware data.';
+
+  @override
+  String get dronecanFirmwareUpdateEmptyFile => 'The selected file is empty.';
+
+  @override
+  String get dronecanFirmwareUpdateReadFailed =>
+      'The selected file could not be read.';
+
+  @override
+  String get dronecanFirmwareUpdateNotSupported =>
+      'Firmware update is not supported on this platform.';
+
+  @override
+  String get dronecanFirmwareUpdateRiskInFlight =>
+      'Never update firmware in flight. The node is unavailable while it updates.';
+
+  @override
+  String get dronecanFirmwareUpdateRiskPower =>
+      'Do not disconnect power or the CAN connection during the upload, the node could be left without usable firmware.';
+
+  @override
+  String get dronecanFirmwareUpdateRiskRestart =>
+      'The node restarts into its bootloader, then comes back with the new firmware.';
+
+  @override
+  String get dronecanFirmwareUpdateKeepOpen =>
+      'Keep this dialog open until the upload finishes.';
+
+  @override
+  String dronecanNodeIdBadge(int id) {
+    return 'ID $id';
+  }
+
+  @override
+  String get dronecanConfigurationTitle => 'Configuration';
+
+  @override
+  String get dronecanConfigurationRefresh => 'Refresh';
+
+  @override
+  String get dronecanConfigurationStoreAll => 'Store all';
+
+  @override
+  String get dronecanConfigurationEraseAll => 'Erase all';
+
+  @override
+  String get dronecanConfigurationLoading => 'Reading parameters…';
+
+  @override
+  String get dronecanConfigurationModifiedHint =>
+      'Values that differ from the default are highlighted.';
+
+  @override
+  String dronecanConfigurationParameterCount(int count) {
+    return 'Parameters: $count';
+  }
+
+  @override
+  String get dronecanConfigurationEmpty => 'The node reported no parameters.';
+
+  @override
+  String get dronecanConfigurationLoadFailed =>
+      'Reading the parameters failed.';
+
+  @override
+  String get dronecanParameterColumnId => 'ID';
+
+  @override
+  String get dronecanParameterColumnName => 'Name';
+
+  @override
+  String get dronecanParameterColumnType => 'Type';
+
+  @override
+  String get dronecanParameterColumnValue => 'Value';
+
+  @override
+  String get dronecanParameterEditTooltip => 'Edit value';
+
+  @override
+  String get dronecanParameterTypeInteger => 'Integer';
+
+  @override
+  String get dronecanParameterTypeReal => 'Real';
+
+  @override
+  String get dronecanParameterTypeBoolean => 'Boolean';
+
+  @override
+  String get dronecanParameterTypeString => 'String';
+
+  @override
+  String get dronecanParameterTypeEmpty => 'Empty';
+
+  @override
+  String get dronecanParameterValueTrue => 'true';
+
+  @override
+  String get dronecanParameterValueFalse => 'false';
+
+  @override
+  String dronecanParameterDefaultValue(String value) {
+    return 'default $value';
+  }
+
+  @override
+  String get dronecanParameterEditTitle => 'Edit parameter';
+
+  @override
+  String get dronecanParameterTypeLabel => 'Type';
+
+  @override
+  String get dronecanParameterValueLabel => 'Value';
+
+  @override
+  String get dronecanParameterMinLabel => 'Min';
+
+  @override
+  String get dronecanParameterMaxLabel => 'Max';
+
+  @override
+  String get dronecanParameterDefaultLabel => 'Default';
+
+  @override
+  String get dronecanParameterInvalidInteger => 'Enter a whole number.';
+
+  @override
+  String get dronecanParameterInvalidNumber => 'Enter a valid number.';
+
+  @override
+  String dronecanParameterOutOfRange(String min, String max) {
+    return 'Value must be between $min and $max.';
+  }
+
+  @override
+  String dronecanParameterBelowMin(String min) {
+    return 'Value must be at least $min.';
+  }
+
+  @override
+  String dronecanParameterAboveMax(String max) {
+    return 'Value must be at most $max.';
+  }
+
+  @override
+  String dronecanParameterStringTooLong(int max) {
+    return 'The text is too long (max $max characters).';
+  }
+
+  @override
+  String dronecanParameterSetSuccess(String name) {
+    return 'Parameter $name updated';
+  }
+
+  @override
+  String dronecanParameterSetFailed(String name) {
+    return 'Parameter $name could not be updated';
+  }
+
+  @override
+  String get dronecanConfigurationStoreSuccess =>
+      'Configuration stored to the node';
+
+  @override
+  String get dronecanConfigurationStoreFailed =>
+      'Storing the configuration failed';
+
+  @override
+  String get dronecanConfigurationEraseConfirmTitle => 'Erase configuration';
+
+  @override
+  String dronecanConfigurationEraseConfirmMessage(String name, int id) {
+    return 'All parameters of \"$name\" (ID $id) return to their defaults. Unsaved changes are lost and the node may need a restart.';
+  }
+
+  @override
+  String get dronecanConfigurationEraseConfirmAction => 'Erase';
+
+  @override
+  String get dronecanConfigurationEraseSuccess => 'Configuration erased';
+
+  @override
+  String get dronecanConfigurationEraseFailed =>
+      'Erasing the configuration failed';
+
+  @override
   String takeoffsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
