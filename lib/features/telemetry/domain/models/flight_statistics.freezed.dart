@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'flight_statistics.dart';
@@ -9,6 +9,7 @@ part of 'flight_statistics.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $FlightStatisticsCopyWith<FlightStatistics> get copyWith => _$FlightStatisticsCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FlightStatistics&&(identical(other.maxAltitude, maxAltitude) || other.maxAltitude == maxAltitude)&&(identical(other.totalAscent, totalAscent) || other.totalAscent == totalAscent)&&(identical(other.totalDescent, totalDescent) || other.totalDescent == totalDescent)&&(identical(other.avgAltitude, avgAltitude) || other.avgAltitude == avgAltitude)&&(identical(other.maxGroundSpeed, maxGroundSpeed) || other.maxGroundSpeed == maxGroundSpeed)&&(identical(other.maxIndicatedAirSpeed, maxIndicatedAirSpeed) || other.maxIndicatedAirSpeed == maxIndicatedAirSpeed)&&(identical(other.avgGroundSpeed, avgGroundSpeed) || other.avgGroundSpeed == avgGroundSpeed)&&(identical(other.avgIndicatedAirSpeed, avgIndicatedAirSpeed) || other.avgIndicatedAirSpeed == avgIndicatedAirSpeed)&&(identical(other.totalDistance, totalDistance) || other.totalDistance == totalDistance)&&(identical(other.maxDistanceFromTakeoff, maxDistanceFromTakeoff) || other.maxDistanceFromTakeoff == maxDistanceFromTakeoff)&&(identical(other.avgEngineRPM, avgEngineRPM) || other.avgEngineRPM == avgEngineRPM));
+  final _this = this as FlightStatistics;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FlightStatistics&&(identical(other.maxAltitude, _this.maxAltitude) || other.maxAltitude == _this.maxAltitude)&&(identical(other.totalAscent, _this.totalAscent) || other.totalAscent == _this.totalAscent)&&(identical(other.totalDescent, _this.totalDescent) || other.totalDescent == _this.totalDescent)&&(identical(other.avgAltitude, _this.avgAltitude) || other.avgAltitude == _this.avgAltitude)&&(identical(other.maxGroundSpeed, _this.maxGroundSpeed) || other.maxGroundSpeed == _this.maxGroundSpeed)&&(identical(other.maxIndicatedAirSpeed, _this.maxIndicatedAirSpeed) || other.maxIndicatedAirSpeed == _this.maxIndicatedAirSpeed)&&(identical(other.avgGroundSpeed, _this.avgGroundSpeed) || other.avgGroundSpeed == _this.avgGroundSpeed)&&(identical(other.avgIndicatedAirSpeed, _this.avgIndicatedAirSpeed) || other.avgIndicatedAirSpeed == _this.avgIndicatedAirSpeed)&&(identical(other.totalDistance, _this.totalDistance) || other.totalDistance == _this.totalDistance)&&(identical(other.maxDistanceFromTakeoff, _this.maxDistanceFromTakeoff) || other.maxDistanceFromTakeoff == _this.maxDistanceFromTakeoff)&&(identical(other.avgEngineRPM, _this.avgEngineRPM) || other.avgEngineRPM == _this.avgEngineRPM));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,maxAltitude,totalAscent,totalDescent,avgAltitude,maxGroundSpeed,maxIndicatedAirSpeed,avgGroundSpeed,avgIndicatedAirSpeed,totalDistance,maxDistanceFromTakeoff,avgEngineRPM);
+int get hashCode {
+  final _this = this as FlightStatistics;
+  return Object.hash(runtimeType,_this.maxAltitude,_this.totalAscent,_this.totalDescent,_this.avgAltitude,_this.maxGroundSpeed,_this.maxIndicatedAirSpeed,_this.avgGroundSpeed,_this.avgIndicatedAirSpeed,_this.totalDistance,_this.maxDistanceFromTakeoff,_this.avgEngineRPM);
+}
 
 @override
 String toString() {
-  return 'FlightStatistics(maxAltitude: $maxAltitude, totalAscent: $totalAscent, totalDescent: $totalDescent, avgAltitude: $avgAltitude, maxGroundSpeed: $maxGroundSpeed, maxIndicatedAirSpeed: $maxIndicatedAirSpeed, avgGroundSpeed: $avgGroundSpeed, avgIndicatedAirSpeed: $avgIndicatedAirSpeed, totalDistance: $totalDistance, maxDistanceFromTakeoff: $maxDistanceFromTakeoff, avgEngineRPM: $avgEngineRPM)';
+  final _this = this as FlightStatistics;
+  return 'FlightStatistics(maxAltitude: ${_this.maxAltitude}, totalAscent: ${_this.totalAscent}, totalDescent: ${_this.totalDescent}, avgAltitude: ${_this.avgAltitude}, maxGroundSpeed: ${_this.maxGroundSpeed}, maxIndicatedAirSpeed: ${_this.maxIndicatedAirSpeed}, avgGroundSpeed: ${_this.avgGroundSpeed}, avgIndicatedAirSpeed: ${_this.avgIndicatedAirSpeed}, totalDistance: ${_this.totalDistance}, maxDistanceFromTakeoff: ${_this.maxDistanceFromTakeoff}, avgEngineRPM: ${_this.avgEngineRPM})';
 }
 
 
@@ -66,7 +72,7 @@ class _$FlightStatisticsCopyWithImpl<$Res>
 /// Create a copy of FlightStatistics
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? maxAltitude = freezed,Object? totalAscent = freezed,Object? totalDescent = freezed,Object? avgAltitude = freezed,Object? maxGroundSpeed = freezed,Object? maxIndicatedAirSpeed = freezed,Object? avgGroundSpeed = freezed,Object? avgIndicatedAirSpeed = freezed,Object? totalDistance = freezed,Object? maxDistanceFromTakeoff = freezed,Object? avgEngineRPM = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(FlightStatistics(
 maxAltitude: freezed == maxAltitude ? _self.maxAltitude : maxAltitude // ignore: cast_nullable_to_non_nullable
 as double?,totalAscent: freezed == totalAscent ? _self.totalAscent : totalAscent // ignore: cast_nullable_to_non_nullable
 as double?,totalDescent: freezed == totalDescent ? _self.totalDescent : totalDescent // ignore: cast_nullable_to_non_nullable
@@ -247,16 +253,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FlightStatistics&&(identical(other.maxAltitude, maxAltitude) || other.maxAltitude == maxAltitude)&&(identical(other.totalAscent, totalAscent) || other.totalAscent == totalAscent)&&(identical(other.totalDescent, totalDescent) || other.totalDescent == totalDescent)&&(identical(other.avgAltitude, avgAltitude) || other.avgAltitude == avgAltitude)&&(identical(other.maxGroundSpeed, maxGroundSpeed) || other.maxGroundSpeed == maxGroundSpeed)&&(identical(other.maxIndicatedAirSpeed, maxIndicatedAirSpeed) || other.maxIndicatedAirSpeed == maxIndicatedAirSpeed)&&(identical(other.avgGroundSpeed, avgGroundSpeed) || other.avgGroundSpeed == avgGroundSpeed)&&(identical(other.avgIndicatedAirSpeed, avgIndicatedAirSpeed) || other.avgIndicatedAirSpeed == avgIndicatedAirSpeed)&&(identical(other.totalDistance, totalDistance) || other.totalDistance == totalDistance)&&(identical(other.maxDistanceFromTakeoff, maxDistanceFromTakeoff) || other.maxDistanceFromTakeoff == maxDistanceFromTakeoff)&&(identical(other.avgEngineRPM, avgEngineRPM) || other.avgEngineRPM == avgEngineRPM));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FlightStatistics&&(identical(other.maxAltitude, maxAltitude) || other.maxAltitude == maxAltitude)&&(identical(other.totalAscent, totalAscent) || other.totalAscent == totalAscent)&&(identical(other.totalDescent, totalDescent) || other.totalDescent == totalDescent)&&(identical(other.avgAltitude, avgAltitude) || other.avgAltitude == avgAltitude)&&(identical(other.maxGroundSpeed, maxGroundSpeed) || other.maxGroundSpeed == maxGroundSpeed)&&(identical(other.maxIndicatedAirSpeed, maxIndicatedAirSpeed) || other.maxIndicatedAirSpeed == maxIndicatedAirSpeed)&&(identical(other.avgGroundSpeed, avgGroundSpeed) || other.avgGroundSpeed == avgGroundSpeed)&&(identical(other.avgIndicatedAirSpeed, avgIndicatedAirSpeed) || other.avgIndicatedAirSpeed == avgIndicatedAirSpeed)&&(identical(other.totalDistance, totalDistance) || other.totalDistance == totalDistance)&&(identical(other.maxDistanceFromTakeoff, maxDistanceFromTakeoff) || other.maxDistanceFromTakeoff == maxDistanceFromTakeoff)&&(identical(other.avgEngineRPM, avgEngineRPM) || other.avgEngineRPM == avgEngineRPM));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,maxAltitude,totalAscent,totalDescent,avgAltitude,maxGroundSpeed,maxIndicatedAirSpeed,avgGroundSpeed,avgIndicatedAirSpeed,totalDistance,maxDistanceFromTakeoff,avgEngineRPM);
+int get hashCode {
+    return Object.hash(runtimeType,maxAltitude,totalAscent,totalDescent,avgAltitude,maxGroundSpeed,maxIndicatedAirSpeed,avgGroundSpeed,avgIndicatedAirSpeed,totalDistance,maxDistanceFromTakeoff,avgEngineRPM);
+}
 
 @override
 String toString() {
-  return 'FlightStatistics(maxAltitude: $maxAltitude, totalAscent: $totalAscent, totalDescent: $totalDescent, avgAltitude: $avgAltitude, maxGroundSpeed: $maxGroundSpeed, maxIndicatedAirSpeed: $maxIndicatedAirSpeed, avgGroundSpeed: $avgGroundSpeed, avgIndicatedAirSpeed: $avgIndicatedAirSpeed, totalDistance: $totalDistance, maxDistanceFromTakeoff: $maxDistanceFromTakeoff, avgEngineRPM: $avgEngineRPM)';
+    return 'FlightStatistics(maxAltitude: $maxAltitude, totalAscent: $totalAscent, totalDescent: $totalDescent, avgAltitude: $avgAltitude, maxGroundSpeed: $maxGroundSpeed, maxIndicatedAirSpeed: $maxIndicatedAirSpeed, avgGroundSpeed: $avgGroundSpeed, avgIndicatedAirSpeed: $avgIndicatedAirSpeed, totalDistance: $totalDistance, maxDistanceFromTakeoff: $maxDistanceFromTakeoff, avgEngineRPM: $avgEngineRPM)';
 }
 
 

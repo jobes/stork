@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stork/core/utils/socket_utils.dart';
 import 'package:stork/features/telemetry/data/gdl90_decoder.dart';
 import 'package:stork/features/telemetry/data/gdl90_service.dart';
 import 'package:stork/features/telemetry/domain/models/gdl90_target.dart';
@@ -218,6 +220,49 @@ void main() {
       expect(emitted.last, isEmpty);
 
       await sub.cancel();
+    });
+  });
+
+  group('Gdl90Service - Socket binding', () {
+    test('reusePortSupported follows the platforms implemented by the VM', () {
+      // The Dart VM sets SO_REUSEPORT only on Linux and Apple platforms. On
+      // Android/Windows it ignores the flag and logs a runtime error, so the
+      // option must not be requested there.
+      expect(
+        reusePortSupported,
+        Platform.isLinux || Platform.isMacOS || Platform.isIOS,
+      );
+    });
+
+    test('start() binds a UDP socket on loopback', () async {
+      final service = Gdl90Service();
+      addTearDown(service.dispose);
+
+      await service.start(enabled: true, host: '127.0.0.1', port: 0);
+
+      expect(service.isListening, isTrue);
+    });
+
+    test('two instances can share the same UDP port where supported', () async {
+      if (!reusePortSupported) return;
+
+      final probe = await RawDatagramSocket.bind(
+        InternetAddress.loopbackIPv4,
+        0,
+      );
+      final port = probe.port;
+      probe.close();
+
+      final first = Gdl90Service();
+      final second = Gdl90Service();
+      addTearDown(first.dispose);
+      addTearDown(second.dispose);
+
+      await first.start(enabled: true, host: '127.0.0.1', port: port);
+      await second.start(enabled: true, host: '127.0.0.1', port: port);
+
+      expect(first.isListening, isTrue);
+      expect(second.isListening, isTrue);
     });
   });
 }

@@ -5,12 +5,14 @@ import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../../core/services/cannelloni_service.dart';
+import '../../../../../core/services/mdns_service.dart';
 import '../../../../telemetry/presentation/widgets/stat_item.dart';
 import '../../../../settings/presentation/providers/settings_provider.dart';
 import '../../../../settings/presentation/providers/pilot_provider.dart';
 import '../../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../../settings/domain/models/pilot.dart';
 import '../../../../settings/domain/models/aircraft.dart';
+import '../../../../settings/domain/models/cannelloni_device.dart';
 
 class MapDrawer extends ConsumerWidget {
   const MapDrawer({super.key});
@@ -27,11 +29,16 @@ class MapDrawer extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final settingsAsync = ref.watch(appSettingsProvider);
     final isDroneCanConnected = ref.watch(cannelloniServiceProvider);
-    // A selected gateway means the app is connected/connecting to it. The
-    // socket state can briefly drop (e.g. while mDNS rediscovers the gateway),
-    // so it is not used as the only signal.
+    // A persisted selection outlives the gateway itself, so the selection
+    // alone is not enough: the gateway has to be present on the network.
+    // The socket state can briefly drop (e.g. while mDNS rediscovers the
+    // gateway), so it is not used as the only signal either.
+    final discoveredDevices =
+        ref.watch(discoveredDevicesProvider).asData?.value ??
+        const <CannelloniDevice>[];
+    final selectedDevice = settingsAsync.asData?.value.selectedDevice;
     final hasSelectedGateway =
-        settingsAsync.asData?.value.selectedDevice != null;
+        selectedDevice != null && discoveredDevices.contains(selectedDevice);
 
     return Drawer(
       child: PointerInterceptor(

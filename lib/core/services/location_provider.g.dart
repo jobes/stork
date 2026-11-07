@@ -64,6 +64,15 @@ String _$currentLocationHash() => r'cb79119672f4cb95e04b9d102ca104793b740642';
 /// raw stream that [gpsListener] subscribes to directly). The second field
 /// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
 /// instead of being silently swallowed.
+///
+/// A stall watchdog additionally re-creates the native subscription when the
+/// stream goes completely silent *without* an error event (the common Android
+/// failure mode where positions simply stop arriving). On its own that would
+/// freeze the aircraft until an external GPS client (e.g. Google Maps) wakes
+/// the location stack; the watchdog recovers automatically instead — and
+/// keeps re-creating the subscription with a growing backoff until the OS
+/// delivers again, so a single failed recovery cannot leave the aircraft
+/// frozen.
 
 @ProviderFor(GeolocatorStream)
 final geolocatorStreamProvider = GeolocatorStreamProvider._();
@@ -84,6 +93,15 @@ final geolocatorStreamProvider = GeolocatorStreamProvider._();
 /// raw stream that [gpsListener] subscribes to directly). The second field
 /// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
 /// instead of being silently swallowed.
+///
+/// A stall watchdog additionally re-creates the native subscription when the
+/// stream goes completely silent *without* an error event (the common Android
+/// failure mode where positions simply stop arriving). On its own that would
+/// freeze the aircraft until an external GPS client (e.g. Google Maps) wakes
+/// the location stack; the watchdog recovers automatically instead — and
+/// keeps re-creating the subscription with a growing backoff until the OS
+/// delivers again, so a single failed recovery cannot leave the aircraft
+/// frozen.
 final class GeolocatorStreamProvider
     extends
         $NotifierProvider<
@@ -106,6 +124,15 @@ final class GeolocatorStreamProvider
   /// raw stream that [gpsListener] subscribes to directly). The second field
   /// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
   /// instead of being silently swallowed.
+  ///
+  /// A stall watchdog additionally re-creates the native subscription when the
+  /// stream goes completely silent *without* an error event (the common Android
+  /// failure mode where positions simply stop arriving). On its own that would
+  /// freeze the aircraft until an external GPS client (e.g. Google Maps) wakes
+  /// the location stack; the watchdog recovers automatically instead — and
+  /// keeps re-creating the subscription with a growing backoff until the OS
+  /// delivers again, so a single failed recovery cannot leave the aircraft
+  /// frozen.
   GeolocatorStreamProvider._()
     : super(
         from: null,
@@ -138,7 +165,7 @@ final class GeolocatorStreamProvider
   }
 }
 
-String _$geolocatorStreamHash() => r'3ac58a2b96b0502b68889c9f00084d60a43dfb12';
+String _$geolocatorStreamHash() => r'ae440629d1e6e79c8a8aeb815b59dd33246f6c61';
 
 /// A single, persistent stream of raw OS positions.
 ///
@@ -156,6 +183,15 @@ String _$geolocatorStreamHash() => r'3ac58a2b96b0502b68889c9f00084d60a43dfb12';
 /// raw stream that [gpsListener] subscribes to directly). The second field
 /// carries the [GeolocatorStreamStatus] so OS stream failures stay observable
 /// instead of being silently swallowed.
+///
+/// A stall watchdog additionally re-creates the native subscription when the
+/// stream goes completely silent *without* an error event (the common Android
+/// failure mode where positions simply stop arriving). On its own that would
+/// freeze the aircraft until an external GPS client (e.g. Google Maps) wakes
+/// the location stack; the watchdog recovers automatically instead — and
+/// keeps re-creating the subscription with a growing backoff until the OS
+/// delivers again, so a single failed recovery cannot leave the aircraft
+/// frozen.
 
 abstract class _$GeolocatorStream
     extends

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'range_thresholds.dart';
@@ -9,6 +9,7 @@ part of 'range_thresholds.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $RangeThresholdsCopyWith<RangeThresholds> get copyWith => _$RangeThresholdsCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RangeThresholds&&(identical(other.inactiveMax, inactiveMax) || other.inactiveMax == inactiveMax)&&(identical(other.minError, minError) || other.minError == minError)&&(identical(other.minWarning, minWarning) || other.minWarning == minWarning)&&(identical(other.maxWarning, maxWarning) || other.maxWarning == maxWarning)&&(identical(other.maxError, maxError) || other.maxError == maxError));
+  final _this = this as RangeThresholds;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RangeThresholds&&(identical(other.inactiveMax, _this.inactiveMax) || other.inactiveMax == _this.inactiveMax)&&(identical(other.minError, _this.minError) || other.minError == _this.minError)&&(identical(other.minWarning, _this.minWarning) || other.minWarning == _this.minWarning)&&(identical(other.maxWarning, _this.maxWarning) || other.maxWarning == _this.maxWarning)&&(identical(other.maxError, _this.maxError) || other.maxError == _this.maxError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,inactiveMax,minError,minWarning,maxWarning,maxError);
+int get hashCode {
+  final _this = this as RangeThresholds;
+  return Object.hash(runtimeType,_this.inactiveMax,_this.minError,_this.minWarning,_this.maxWarning,_this.maxError);
+}
 
 @override
 String toString() {
-  return 'RangeThresholds(inactiveMax: $inactiveMax, minError: $minError, minWarning: $minWarning, maxWarning: $maxWarning, maxError: $maxError)';
+  final _this = this as RangeThresholds;
+  return 'RangeThresholds(inactiveMax: ${_this.inactiveMax}, minError: ${_this.minError}, minWarning: ${_this.minWarning}, maxWarning: ${_this.maxWarning}, maxError: ${_this.maxError})';
 }
 
 
@@ -63,7 +69,7 @@ class _$RangeThresholdsCopyWithImpl<$Res>
 /// Create a copy of RangeThresholds
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? inactiveMax = freezed,Object? minError = freezed,Object? minWarning = freezed,Object? maxWarning = freezed,Object? maxError = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(RangeThresholds(
 inactiveMax: freezed == inactiveMax ? _self.inactiveMax : inactiveMax // ignore: cast_nullable_to_non_nullable
 as double?,minError: freezed == minError ? _self.minError : minError // ignore: cast_nullable_to_non_nullable
 as double?,minWarning: freezed == minWarning ? _self.minWarning : minWarning // ignore: cast_nullable_to_non_nullable
@@ -229,16 +235,18 @@ _$RangeThresholdsCopyWith<_RangeThresholds> get copyWith => __$RangeThresholdsCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RangeThresholds&&(identical(other.inactiveMax, inactiveMax) || other.inactiveMax == inactiveMax)&&(identical(other.minError, minError) || other.minError == minError)&&(identical(other.minWarning, minWarning) || other.minWarning == minWarning)&&(identical(other.maxWarning, maxWarning) || other.maxWarning == maxWarning)&&(identical(other.maxError, maxError) || other.maxError == maxError));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RangeThresholds&&(identical(other.inactiveMax, inactiveMax) || other.inactiveMax == inactiveMax)&&(identical(other.minError, minError) || other.minError == minError)&&(identical(other.minWarning, minWarning) || other.minWarning == minWarning)&&(identical(other.maxWarning, maxWarning) || other.maxWarning == maxWarning)&&(identical(other.maxError, maxError) || other.maxError == maxError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,inactiveMax,minError,minWarning,maxWarning,maxError);
+int get hashCode {
+    return Object.hash(runtimeType,inactiveMax,minError,minWarning,maxWarning,maxError);
+}
 
 @override
 String toString() {
-  return 'RangeThresholds.raw(inactiveMax: $inactiveMax, minError: $minError, minWarning: $minWarning, maxWarning: $maxWarning, maxError: $maxError)';
+    return 'RangeThresholds.raw(inactiveMax: $inactiveMax, minError: $minError, minWarning: $minWarning, maxWarning: $maxWarning, maxError: $maxError)';
 }
 
 

@@ -164,7 +164,7 @@ final class DroneCanNodesActionsProvider
 }
 
 String _$droneCanNodesActionsHash() =>
-    r'1efa4708570f1123cf3b311b135d5968ea3f1272';
+    r'3c986a10f43f751665149ee53eeaccb3fa96908b';
 
 /// Actions that concern all known nodes.
 

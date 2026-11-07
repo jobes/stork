@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart'
     show kIsWeb, debugPrint, visibleForTesting;
 import '../domain/models/gdl90_target.dart';
+import '../../../core/utils/socket_utils.dart';
 import 'gdl90_decoder.dart';
 
 /// UDP Network Listener & Service for GDL90 Traffic Broadcasts
@@ -204,7 +205,7 @@ class Gdl90Service {
         address,
         _bindPort,
         reuseAddress: true,
-        reusePort: true,
+        reusePort: reusePortSupported,
       );
 
       _boundHost = _bindHost;

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
+import 'package:stork/core/services/mdns_service.dart';
 import 'package:stork/features/map/presentation/components/controls/map_drawer.dart';
 import 'package:stork/features/settings/domain/models/aircraft.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
@@ -73,6 +74,7 @@ Future<void> _pumpDrawer(
   WidgetTester tester, {
   required bool connected,
   CannelloniDevice? selectedDevice,
+  List<CannelloniDevice> discoveredDevices = const [],
 }) {
   return _ignoreOverflow(() async {
     await tester.pumpWidget(
@@ -90,6 +92,9 @@ Future<void> _pumpDrawer(
                 ? _ConnectedCannelloniService()
                 : _DisconnectedCannelloniService(),
           ),
+          discoveredDevicesProvider.overrideWith(
+            (ref) => Stream.value(discoveredDevices),
+          ),
         ],
         child: const MaterialApp(
           locale: Locale('en'),
@@ -106,6 +111,13 @@ Future<void> _pumpDrawer(
 }
 
 void main() {
+  const gateway = CannelloniDevice(
+    name: 'avionics-dronecan._cannelloni._udp.local',
+    hostname: 'gateway.local',
+    ip: '192.168.1.10',
+    port: 47998,
+  );
+
   testWidgets('shows the DroneCAN instruments entry when connected', (
     tester,
   ) async {
@@ -114,21 +126,26 @@ void main() {
     expect(find.text('DroneCAN instruments'), findsOneWidget);
   });
 
-  testWidgets('shows the DroneCAN instruments entry with a selected gateway', (
+  testWidgets(
+    'shows the DroneCAN instruments entry with a discovered gateway',
+    (tester) async {
+      await _pumpDrawer(
+        tester,
+        connected: false,
+        selectedDevice: gateway,
+        discoveredDevices: const [gateway],
+      );
+
+      expect(find.text('DroneCAN instruments'), findsOneWidget);
+    },
+  );
+
+  testWidgets('hides the entry when the selected gateway is not discovered', (
     tester,
   ) async {
-    await _pumpDrawer(
-      tester,
-      connected: false,
-      selectedDevice: const CannelloniDevice(
-        name: 'avionics-dronecan._cannelloni._udp.local',
-        hostname: 'gateway.local',
-        ip: '192.168.1.10',
-        port: 47998,
-      ),
-    );
+    await _pumpDrawer(tester, connected: false, selectedDevice: gateway);
 
-    expect(find.text('DroneCAN instruments'), findsOneWidget);
+    expect(find.text('DroneCAN instruments'), findsNothing);
   });
 
   testWidgets('hides the DroneCAN instruments entry when disconnected', (
@@ -152,6 +169,9 @@ void main() {
         aircraftStateProvider.overrideWith(_FakeAircraftState.new),
         cannelloniServiceProvider.overrideWith(
           _DisconnectedCannelloniService.new,
+        ),
+        discoveredDevicesProvider.overrideWith(
+          (ref) => Stream.value(const <CannelloniDevice>[]),
         ),
       ],
     );

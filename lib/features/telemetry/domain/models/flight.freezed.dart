@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'flight.dart';
@@ -9,6 +9,7 @@ part of 'flight.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $FlightCopyWith<Flight> get copyWith => _$FlightCopyWithImpl<Flight>(this as Fli
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Flight&&(identical(other.uuid, uuid) || other.uuid == uuid)&&(identical(other.name, name) || other.name == name)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.pilotId, pilotId) || other.pilotId == pilotId)&&(identical(other.airplaneId, airplaneId) || other.airplaneId == airplaneId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.statistics, statistics) || other.statistics == statistics));
+  final _this = this as Flight;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Flight&&(identical(other.uuid, _this.uuid) || other.uuid == _this.uuid)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.startTime, _this.startTime) || other.startTime == _this.startTime)&&(identical(other.endTime, _this.endTime) || other.endTime == _this.endTime)&&(identical(other.pilotId, _this.pilotId) || other.pilotId == _this.pilotId)&&(identical(other.airplaneId, _this.airplaneId) || other.airplaneId == _this.airplaneId)&&(identical(other.notes, _this.notes) || other.notes == _this.notes)&&(identical(other.statistics, _this.statistics) || other.statistics == _this.statistics));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uuid,name,startTime,endTime,pilotId,airplaneId,notes,statistics);
+int get hashCode {
+  final _this = this as Flight;
+  return Object.hash(runtimeType,_this.uuid,_this.name,_this.startTime,_this.endTime,_this.pilotId,_this.airplaneId,_this.notes,_this.statistics);
+}
 
 @override
 String toString() {
-  return 'Flight(uuid: $uuid, name: $name, startTime: $startTime, endTime: $endTime, pilotId: $pilotId, airplaneId: $airplaneId, notes: $notes, statistics: $statistics)';
+  final _this = this as Flight;
+  return 'Flight(uuid: ${_this.uuid}, name: ${_this.name}, startTime: ${_this.startTime}, endTime: ${_this.endTime}, pilotId: ${_this.pilotId}, airplaneId: ${_this.airplaneId}, notes: ${_this.notes}, statistics: ${_this.statistics})';
 }
 
 
@@ -66,7 +72,7 @@ class _$FlightCopyWithImpl<$Res>
 /// Create a copy of Flight
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? uuid = null,Object? name = null,Object? startTime = null,Object? endTime = freezed,Object? pilotId = freezed,Object? airplaneId = freezed,Object? notes = freezed,Object? statistics = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(Flight(
 uuid: null == uuid ? _self.uuid : uuid // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,startTime: null == startTime ? _self.startTime : startTime // ignore: cast_nullable_to_non_nullable
@@ -253,16 +259,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Flight&&(identical(other.uuid, uuid) || other.uuid == uuid)&&(identical(other.name, name) || other.name == name)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.pilotId, pilotId) || other.pilotId == pilotId)&&(identical(other.airplaneId, airplaneId) || other.airplaneId == airplaneId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.statistics, statistics) || other.statistics == statistics));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Flight&&(identical(other.uuid, uuid) || other.uuid == uuid)&&(identical(other.name, name) || other.name == name)&&(identical(other.startTime, startTime) || other.startTime == startTime)&&(identical(other.endTime, endTime) || other.endTime == endTime)&&(identical(other.pilotId, pilotId) || other.pilotId == pilotId)&&(identical(other.airplaneId, airplaneId) || other.airplaneId == airplaneId)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.statistics, statistics) || other.statistics == statistics));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uuid,name,startTime,endTime,pilotId,airplaneId,notes,statistics);
+int get hashCode {
+    return Object.hash(runtimeType,uuid,name,startTime,endTime,pilotId,airplaneId,notes,statistics);
+}
 
 @override
 String toString() {
-  return 'Flight(uuid: $uuid, name: $name, startTime: $startTime, endTime: $endTime, pilotId: $pilotId, airplaneId: $airplaneId, notes: $notes, statistics: $statistics)';
+    return 'Flight(uuid: $uuid, name: $name, startTime: $startTime, endTime: $endTime, pilotId: $pilotId, airplaneId: $airplaneId, notes: $notes, statistics: $statistics)';
 }
 
 
