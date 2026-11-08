@@ -7,6 +7,7 @@ import '../../../settings/domain/models/altitude_unit.dart';
 import '../providers/agl_provider.dart';
 import '../dialogs/altitude_details_dialog.dart';
 import 'telemetry_card.dart';
+import 'map_telemetry_palette.dart';
 
 class AltitudeTelemetryWidget extends ConsumerWidget {
   const AltitudeTelemetryWidget({super.key});
@@ -78,12 +79,9 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
       ),
     );
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTextColor = isDark
-        ? Colors.grey.shade300
-        : Colors.grey.shade700;
-
-    final altitudeValueColor = isDark ? Colors.white : Colors.black;
+    final palette = MapTelemetryPalette.of(context);
+    final defaultTextColor = palette.label;
+    final altitudeValueColor = palette.value;
 
     final List<Widget> columnChildren = [];
 
@@ -144,10 +142,7 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
       );
     }
 
-    // Constant operational style coordinates with SpeedTelemetryWidget for consistent premium feel
-    final borderColor = isDark
-        ? Colors.white.withAlpha(76)
-        : Colors.black.withAlpha(51);
+    // The shared TelemetryCard resolves its neutral border from the theme.
 
     return TelemetryCard(
       onTap: () {
@@ -156,7 +151,6 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
           builder: (context) => const AltitudeDetailsDialog(),
         );
       },
-      borderColor: borderColor,
       padding: EdgeInsets.symmetric(
         horizontal: 12 * fontScale,
         vertical: 8 * fontScale,

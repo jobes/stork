@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/mdns_service.dart';
 import '../../data/repositories/settings_repository.dart';
@@ -52,6 +53,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   static const double _maxRpmLimit = 10000.0;
 
   Future<void> _persistenceQueue = Future.value();
+  int _pendingProfileUpdates = 0;
 
   @override
   FutureOr<AppSettings> build() async {
@@ -95,6 +97,9 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<SettingsUpdateResult> _updateSettings(
     AppSettings Function(AppSettings) updater,
   ) async {
+    if (_pendingProfileUpdates > 0) {
+      return _queueSettingsChange((settings, _) => updater(settings));
+    }
     final currentState = state.hasValue ? state.value : state.asData?.value;
     if (currentState == null) {
       return SettingsUpdateFailure(
@@ -337,13 +342,66 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     );
   }
 
-  Future<SettingsUpdateResult> updatePilotId(String? pilotId) {
-    return _updateSettings((s) => s.copyWith(pilotId: pilotId));
+  /// Reserve the persistence queue before reading a profile. Edits made while
+  /// a switch is pending join the same queue, in invocation order, so they can
+  /// never be saved under the previous pilot or aircraft. Publish only after
+  /// the write succeeds; a failed switch leaves the active profile untouched.
+  Future<SettingsUpdateResult> _queueSettingsChange(
+    FutureOr<AppSettings> Function(AppSettings, SettingsRepository) updater,
+  ) async {
+    final previous = _persistenceQueue;
+    final completer = Completer<void>();
+    _persistenceQueue = completer.future;
+    _pendingProfileUpdates++;
+    try {
+      await previous;
+      if (!ref.mounted) throw StateError('Settings provider was disposed.');
+      final repository = await ref.read(settingsRepositoryProvider.future);
+      if (!ref.mounted) throw StateError('Settings provider was disposed.');
+      final current = state.hasValue ? state.value : state.asData?.value;
+      if (current == null) {
+        throw StateError('Cannot switch profiles before settings are loaded.');
+      }
+      final next = await updater(current, repository);
+      if (!ref.mounted) throw StateError('Settings provider was disposed.');
+      if (next != current) {
+        await repository.saveSettings(next);
+        if (ref.mounted) state = AsyncData(next);
+      }
+      return const SettingsUpdateSuccess();
+    } catch (error, stackTrace) {
+      return SettingsUpdateFailure(error, stackTrace);
+    } finally {
+      _pendingProfileUpdates--;
+      completer.complete();
+    }
   }
 
-  Future<SettingsUpdateResult> updateAirplaneId(String? airplaneId) {
-    return _updateSettings((s) => s.copyWith(airplaneId: airplaneId));
-  }
+  // Generated toJson() leaves nested Freezed values as objects. Round-trip
+  // through JSON to normalize thresholds, positions and the selected device
+  // before passing the merged profile to the generated fromJson().
+  static AppSettings _withProfile(
+    AppSettings settings,
+    Map<String, dynamic> profile,
+  ) => AppSettings.fromJson(
+    json.decode(json.encode({...settings.toJson(), ...profile})),
+  );
+
+  /// Widget positions belong to the pilot; the edit-mode lock stays global.
+  Future<SettingsUpdateResult> updatePilotId(String? pilotId) =>
+      _queueSettingsChange((settings, repository) async {
+        if (settings.pilotId == pilotId) return settings;
+        final layout = await repository.getWidgetLayoutForPilot(pilotId);
+        return _withProfile(settings, {'pilotId': pilotId, ...layout});
+      });
+
+  /// Restore aircraft limits in canonical units, or defaults for a new one.
+  Future<SettingsUpdateResult> updateAirplaneId(String? airplaneId) =>
+      _queueSettingsChange((settings, repository) async {
+        if (settings.airplaneId == airplaneId) return settings;
+        final limits = await repository.getAircraftLimitsFor(airplaneId);
+        return _withProfile(settings, {'airplaneId': airplaneId, ...limits});
+      });
 
   Future<SettingsUpdateResult> updateTemperatureUnit(
     TemperatureUnit temperatureUnit,

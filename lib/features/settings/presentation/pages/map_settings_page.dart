@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../providers/settings_provider.dart';
+import '../providers/pilot_provider.dart';
 import '../widgets/settings_widgets.dart';
+import '../widgets/stork_settings_section.dart';
 
 class MapSettingsPage extends ConsumerWidget {
   const MapSettingsPage({super.key});
@@ -11,72 +14,142 @@ class MapSettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(appSettingsProvider);
     final l10n = AppLocalizations.of(context)!;
+    final pilotNames = {
+      for (final pilot in ref.watch(pilotStateProvider).value ?? [])
+        pilot.id: pilot.name,
+    };
+
+    Future<void> confirmReset() async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => BaseDetailsDialog(
+          titleText: l10n.resetWidgetLayout,
+          icon: Icons.restore,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l10n.settingsResetLayoutConfirm),
+              const SizedBox(height: 20),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(l10n.cancel),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text(l10n.resetWidgetLayout),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+      if (confirmed == true && context.mounted) {
+        await ref.read(appSettingsProvider.notifier).resetWidgetPositions();
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.mapSettings)),
       body: settingsAsync.when(
-        data: (settings) => ListView(
+        data: (settings) => StorkSettingsPageContent(
           children: [
-            SliderSetting(
-              label: l10n.mapFontSize,
-              value: settings.mapFontSize,
-              min: 0.5,
-              max: 3.0,
-              divisions: 25,
-              onChanged: (val) {
-                ref.read(appSettingsProvider.notifier).updateFontSize(val);
-              },
-            ),
-            SliderSetting(
-              label: l10n.mapDefaultZoom,
-              value: settings.mapDefaultZoom,
-              min: 0.0,
-              max: 14.0,
-              divisions: 14,
-              onChanged: (val) {
-                ref.read(appSettingsProvider.notifier).updateDefaultZoom(val);
-              },
-            ),
-            SliderSetting(
-              label: l10n.mapOverviewZoom,
-              value: settings.mapOverviewZoom,
-              min: 0.0,
-              max: 14.0,
-              divisions: 14,
-              onChanged: (val) {
-                ref.read(appSettingsProvider.notifier).updateOverviewZoom(val);
-              },
-            ),
-            SliderSetting(
-              label: l10n.mapFollowZoom,
-              value: settings.mapFollowZoom,
-              min: 0.0,
-              max: 18.0,
-              divisions: 18,
-              onChanged: (val) {
-                ref.read(appSettingsProvider.notifier).updateFollowZoom(val);
-              },
-            ),
-            SwitchListTile(
-              title: Text(l10n.moveWidgets),
-              value: settings.areWidgetsDraggable,
-              onChanged: (val) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .updateAreWidgetsDraggable(val);
-              },
-            ),
-            if (settings.widgetPositions.isNotEmpty)
-              ListTile(
-                title: Text(
-                  l10n.resetWidgetLayout,
-                  style: const TextStyle(color: Colors.redAccent),
+            StorkSettingsSection(
+              title: l10n.settingsMapAppearance,
+              children: [
+                SliderSetting(
+                  label: l10n.mapFontSize,
+                  value: settings.mapFontSize,
+                  min: 0.5,
+                  max: 3.0,
+                  divisions: 25,
+                  onChanged: (val) {
+                    ref.read(appSettingsProvider.notifier).updateFontSize(val);
+                  },
                 ),
-                leading: const Icon(Icons.restore, color: Colors.redAccent),
-                onTap: () {
-                  ref.read(appSettingsProvider.notifier).resetWidgetPositions();
-                },
-              ),
+              ],
+            ),
+            StorkSettingsSection(
+              title: l10n.settingsMapZoom,
+              children: [
+                SliderSetting(
+                  label: l10n.mapDefaultZoom,
+                  value: settings.mapDefaultZoom,
+                  min: 0.0,
+                  max: 14.0,
+                  divisions: 14,
+                  onChanged: (val) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateDefaultZoom(val);
+                  },
+                ),
+                const Divider(indent: 16, endIndent: 16),
+                SliderSetting(
+                  label: l10n.mapOverviewZoom,
+                  value: settings.mapOverviewZoom,
+                  min: 0.0,
+                  max: 14.0,
+                  divisions: 14,
+                  onChanged: (val) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateOverviewZoom(val);
+                  },
+                ),
+                const Divider(indent: 16, endIndent: 16),
+                SliderSetting(
+                  label: l10n.mapFollowZoom,
+                  value: settings.mapFollowZoom,
+                  min: 0.0,
+                  max: 18.0,
+                  divisions: 18,
+                  onChanged: (val) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateFollowZoom(val);
+                  },
+                ),
+              ],
+            ),
+            StorkSettingsSection(
+              title: pilotNames[settings.pilotId] == null
+                  ? l10n.settingsWidgetLayout
+                  : '${l10n.settingsWidgetLayout} · ${pilotNames[settings.pilotId]}',
+              children: [
+                SwitchListTile(
+                  title: Text(l10n.moveWidgets),
+                  value: settings.areWidgetsDraggable,
+                  onChanged: (val) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateAreWidgetsDraggable(val);
+                  },
+                ),
+                if (settings.widgetPositions.isNotEmpty) ...[
+                  const Divider(indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: Icon(
+                      Icons.restore,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: Text(
+                      l10n.resetWidgetLayout,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    onTap: confirmReset,
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),

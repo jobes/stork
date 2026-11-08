@@ -6,6 +6,7 @@ import '../../domain/models/app_settings.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/puretrack_settings_card.dart';
 import '../widgets/gdl90_settings_card.dart';
+import '../widgets/stork_settings_section.dart';
 
 class TrafficSettingsPage extends ConsumerWidget {
   const TrafficSettingsPage({super.key});
@@ -44,276 +45,315 @@ class TrafficSettingsPage extends ConsumerWidget {
               break;
           }
 
-          return ListView(
+          return StorkSettingsPageContent(
             children: [
-              SwitchListTile(
-                title: Text(
-                  l10n.enableHorizontalDistanceFilter,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                value: settings.trafficFilterMaxHorizontalDistanceEnabled,
-                onChanged: (val) {
-                  ref
-                      .read(appSettingsProvider.notifier)
-                      .updateTrafficFilterMaxHorizontalDistanceEnabled(val);
-                },
+              StorkSettingsSection(
+                title: l10n.settingsTrafficFilters,
+                children: [
+                  SwitchListTile(
+                    title: Text(
+                      l10n.enableHorizontalDistanceFilter,
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    value: settings.trafficFilterMaxHorizontalDistanceEnabled,
+                    onChanged: (val) {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateTrafficFilterMaxHorizontalDistanceEnabled(val);
+                    },
+                  ),
+                  if (settings.trafficFilterMaxHorizontalDistanceEnabled)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.trafficMaxHorizontalDistance,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                l10n.trafficMaxHorizontalDistanceSummary(
+                                  horizontalDistKm.toStringAsFixed(0),
+                                ),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Slider(
+                            value: horizontalDistKm
+                                .clamp(5.0, 200.0)
+                                .toDouble(),
+                            min: 5.0,
+                            max: 200.0,
+                            divisions: 39, // steps of 5 km
+                            onChanged: (val) {
+                              final meters = val * 1000.0;
+                              ref
+                                  .read(appSettingsProvider.notifier)
+                                  .updateTrafficMaxHorizontalDistance(meters);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  const Divider(height: 1),
+                  SwitchListTile(
+                    title: Text(
+                      l10n.enableVerticalDistanceFilter,
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    value: settings.trafficFilterMaxVerticalDistanceEnabled,
+                    onChanged: (val) {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateTrafficFilterMaxVerticalDistanceEnabled(val);
+                    },
+                  ),
+                  if (settings.trafficFilterMaxVerticalDistanceEnabled)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.trafficMaxVerticalDistance,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '${verticalDistUnitVal.toStringAsFixed(0)} ${heightUnit.getLabel(l10n)}',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Slider(
+                            value: verticalDistUnitVal
+                                .clamp(verticalMinVal, verticalMaxVal)
+                                .toDouble(),
+                            min: verticalMinVal,
+                            max: verticalMaxVal,
+                            divisions: verticalDivisions,
+                            onChanged: (val) {
+                              final meters = heightUnit.convertToMeters(val);
+                              ref
+                                  .read(appSettingsProvider.notifier)
+                                  .updateTrafficMaxVerticalDistance(meters);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
-              if (settings.trafficFilterMaxHorizontalDistanceEnabled)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
+              StorkSettingsSection(
+                title: l10n.settingsCollisionAvoidance,
+                children: [
+                  SwitchListTile(
+                    title: Text(
+                      l10n.enableCas,
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    subtitle: Text(l10n.casEnabledDesc),
+                    value: settings.casEnabled,
+                    onChanged: (val) {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateCasEnabled(val);
+                    },
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  if (settings.casEnabled) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            l10n.trafficMaxHorizontalDistance,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.casLookaheadTime,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '${settings.casLookaheadTime.round()} s',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            l10n.trafficMaxHorizontalDistanceSummary(
-                              horizontalDistKm.toStringAsFixed(0),
-                            ),
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Slider(
+                            value: settings.casLookaheadTime
+                                .clamp(10.0, 120.0)
+                                .toDouble(),
+                            min: 10.0,
+                            max: 120.0,
+                            divisions: 22, // 5 sec steps
+                            onChanged: (val) {
+                              ref
+                                  .read(appSettingsProvider.notifier)
+                                  .updateCasLookaheadTime(val);
+                            },
                           ),
                         ],
                       ),
-                      Slider(
-                        value: horizontalDistKm.clamp(5.0, 200.0).toDouble(),
-                        min: 5.0,
-                        max: 200.0,
-                        divisions: 39, // steps of 5 km
-                        onChanged: (val) {
-                          final meters = val * 1000.0;
-                          ref
-                              .read(appSettingsProvider.notifier)
-                              .updateTrafficMaxHorizontalDistance(meters);
-                        },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
                       ),
-                    ],
-                  ),
-                ),
-              const Divider(height: 1),
-              SwitchListTile(
-                title: Text(
-                  l10n.enableVerticalDistanceFilter,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                value: settings.trafficFilterMaxVerticalDistanceEnabled,
-                onChanged: (val) {
-                  ref
-                      .read(appSettingsProvider.notifier)
-                      .updateTrafficFilterMaxVerticalDistanceEnabled(val);
-                },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.casHorizontalThreshold,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '${settings.casHorizontalThreshold.round()} m',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Slider(
+                            value: settings.casHorizontalThreshold
+                                .clamp(50.0, 1000.0)
+                                .toDouble(),
+                            min: 50.0,
+                            max: 1000.0,
+                            divisions: 19, // 50m steps
+                            onChanged: (val) {
+                              ref
+                                  .read(appSettingsProvider.notifier)
+                                  .updateCasHorizontalThreshold(val);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.casVerticalThreshold,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '${heightUnit.convertFromMeters(settings.casVerticalThreshold).round()} ${heightUnit.getLabel(l10n)}',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Slider(
+                            value: heightUnit
+                                .convertFromMeters(
+                                  settings.casVerticalThreshold,
+                                )
+                                .clamp(
+                                  heightUnit == AltitudeUnit.meters
+                                      ? 20.0
+                                      : 50.0,
+                                  heightUnit == AltitudeUnit.meters
+                                      ? 300.0
+                                      : 1000.0,
+                                )
+                                .toDouble(),
+                            min: heightUnit == AltitudeUnit.meters
+                                ? 20.0
+                                : 50.0,
+                            max: heightUnit == AltitudeUnit.meters
+                                ? 300.0
+                                : 1000.0,
+                            divisions: 19,
+                            onChanged: (val) {
+                              final meters = heightUnit.convertToMeters(val);
+                              ref
+                                  .read(appSettingsProvider.notifier)
+                                  .updateCasVerticalThreshold(meters);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              if (settings.trafficFilterMaxVerticalDistanceEnabled)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
+              StorkSettingsSection(
+                title: l10n.settingsTrafficSources,
+                children: [
+                  SwitchListTile(
+                    title: Text(
+                      l10n.ognEnableTitle,
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    subtitle: Text(l10n.ognEnableDesc),
+                    value: settings.ognEnabled,
+                    onChanged: (val) {
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateOgnEnabled(val);
+                    },
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.trafficMaxVerticalDistance,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          Text(
-                            '${verticalDistUnitVal.toStringAsFixed(0)} ${heightUnit.getLabel(l10n)}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Slider(
-                        value: verticalDistUnitVal
-                            .clamp(verticalMinVal, verticalMaxVal)
-                            .toDouble(),
-                        min: verticalMinVal,
-                        max: verticalMaxVal,
-                        divisions: verticalDivisions,
-                        onChanged: (val) {
-                          final meters = heightUnit.convertToMeters(val);
-                          ref
-                              .read(appSettingsProvider.notifier)
-                              .updateTrafficMaxVerticalDistance(meters);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              const Divider(height: 1),
-              SwitchListTile(
-                title: Text(
-                  l10n.enableCas,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                subtitle: Text(l10n.casEnabledDesc),
-                value: settings.casEnabled,
-                onChanged: (val) {
-                  ref.read(appSettingsProvider.notifier).updateCasEnabled(val);
-                },
+                  const Divider(height: 1),
+                  const Gdl90SettingsCard(),
+                  const Divider(height: 1),
+                  const PureTrackSettingsCard(),
+                ],
               ),
-              if (settings.casEnabled) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.casLookaheadTime,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          Text(
-                            '${settings.casLookaheadTime.round()} s',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Slider(
-                        value: settings.casLookaheadTime
-                            .clamp(10.0, 120.0)
-                            .toDouble(),
-                        min: 10.0,
-                        max: 120.0,
-                        divisions: 22, // 5 sec steps
-                        onChanged: (val) {
-                          ref
-                              .read(appSettingsProvider.notifier)
-                              .updateCasLookaheadTime(val);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.casHorizontalThreshold,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          Text(
-                            '${settings.casHorizontalThreshold.round()} m',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Slider(
-                        value: settings.casHorizontalThreshold
-                            .clamp(50.0, 1000.0)
-                            .toDouble(),
-                        min: 50.0,
-                        max: 1000.0,
-                        divisions: 19, // 50m steps
-                        onChanged: (val) {
-                          ref
-                              .read(appSettingsProvider.notifier)
-                              .updateCasHorizontalThreshold(val);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.casVerticalThreshold,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          Text(
-                            '${heightUnit.convertFromMeters(settings.casVerticalThreshold).round()} ${heightUnit.getLabel(l10n)}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Slider(
-                        value: heightUnit
-                            .convertFromMeters(settings.casVerticalThreshold)
-                            .clamp(
-                              heightUnit == AltitudeUnit.meters ? 20.0 : 50.0,
-                              heightUnit == AltitudeUnit.meters
-                                  ? 300.0
-                                  : 1000.0,
-                            )
-                            .toDouble(),
-                        min: heightUnit == AltitudeUnit.meters ? 20.0 : 50.0,
-                        max: heightUnit == AltitudeUnit.meters ? 300.0 : 1000.0,
-                        divisions: 19,
-                        onChanged: (val) {
-                          final meters = heightUnit.convertToMeters(val);
-                          ref
-                              .read(appSettingsProvider.notifier)
-                              .updateCasVerticalThreshold(meters);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const Divider(height: 1),
-              SwitchListTile(
-                title: Text(
-                  l10n.ognEnableTitle,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                subtitle: Text(l10n.ognEnableDesc),
-                value: settings.ognEnabled,
-                onChanged: (val) {
-                  ref.read(appSettingsProvider.notifier).updateOgnEnabled(val);
-                },
+              Card(
+                margin: EdgeInsets.zero,
+                child: _buildHiddenAircraftSection(context, ref, settings),
               ),
-              const Divider(height: 1),
-              const Gdl90SettingsCard(),
-              const Divider(height: 1),
-              const PureTrackSettingsCard(),
-              const Divider(height: 1),
-              _buildHiddenAircraftSection(context, ref, settings),
             ],
           );
         },

@@ -145,23 +145,17 @@ class FavoritesPage extends ConsumerWidget {
     FavoritePoint point,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final scheme = Theme.of(context).colorScheme;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      elevation: 0,
-      color: isDark
-          ? scheme.surfaceContainerHighest.withAlpha(150)
-          : scheme.surfaceContainerHighest.withAlpha(90),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         onTap: () => showFavoriteDetailsDialog(context, point),
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: scheme.primary.withAlpha(28),
-            borderRadius: BorderRadius.circular(12),
+            color: scheme.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
           ),
           child: SpriteIcon(
             frameId: point.icon.mapIconId,
@@ -177,6 +171,9 @@ class FavoritesPage extends ConsumerWidget {
         subtitle: Text(
           '${point.latitude.toStringAsFixed(4)}, '
           '${point.longitude.toStringAsFixed(4)}',
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -281,7 +278,7 @@ class FavoritesPage extends ConsumerWidget {
     final favoritesAsync = ref.watch(favoritesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.favoritesTitle), centerTitle: true),
+      appBar: AppBar(title: Text(l10n.favoritesTitle)),
       body: favoritesAsync.when(
         data: (points) => points.isEmpty
             ? _buildEmptyState(context)

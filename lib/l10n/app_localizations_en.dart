@@ -2410,4 +2410,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearAllHiddenAircraft => 'Clear all hidden';
+
+  @override
+  String get settingsMapAppearance => 'Map appearance';
+
+  @override
+  String get settingsMapZoom => 'Map zoom levels';
+
+  @override
+  String get settingsWidgetLayout => 'Widget layout';
+
+  @override
+  String get settingsResetLayoutConfirm =>
+      'Reset the saved widget positions for the current layout? This cannot be undone.';
+
+  @override
+  String get settingsConnection => 'Gateway connection';
+
+  @override
+  String get settingsFlightMeasurements => 'Units and measurements';
+
+  @override
+  String get settingsFlightLimits => 'Flight and engine limits';
+
+  @override
+  String get settingsTrafficFilters => 'Traffic filters';
+
+  @override
+  String get settingsCollisionAvoidance => 'Collision avoidance';
+
+  @override
+  String get settingsTrafficSources => 'Traffic data sources';
 }

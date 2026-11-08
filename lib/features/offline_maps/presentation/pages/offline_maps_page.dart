@@ -481,14 +481,12 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              offset: const Offset(0, -5),
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
             ),
-          ],
+          ),
         ),
         child: SafeArea(
           top: false,
@@ -544,8 +542,8 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
           label: Text(l10n.cancelDownload),
           onPressed: () => notifier.cancelDownload(),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
+            backgroundColor: Theme.of(context).colorScheme.error,
+            foregroundColor: Theme.of(context).colorScheme.onError,
           ),
         ),
       );
@@ -567,7 +565,9 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
       padding: const EdgeInsets.only(top: 8.0),
       child: Text(
         l10n.noAreasSelected,
-        style: const TextStyle(color: Colors.grey, fontSize: 12),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }

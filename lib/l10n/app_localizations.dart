@@ -4529,6 +4529,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear all hidden'**
   String get clearAllHiddenAircraft;
+
+  /// No description provided for @settingsMapAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Map appearance'**
+  String get settingsMapAppearance;
+
+  /// No description provided for @settingsMapZoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Map zoom levels'**
+  String get settingsMapZoom;
+
+  /// No description provided for @settingsWidgetLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Widget layout'**
+  String get settingsWidgetLayout;
+
+  /// No description provided for @settingsResetLayoutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the saved widget positions for the current layout? This cannot be undone.'**
+  String get settingsResetLayoutConfirm;
+
+  /// No description provided for @settingsConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Gateway connection'**
+  String get settingsConnection;
+
+  /// No description provided for @settingsFlightMeasurements.
+  ///
+  /// In en, this message translates to:
+  /// **'Units and measurements'**
+  String get settingsFlightMeasurements;
+
+  /// No description provided for @settingsFlightLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight and engine limits'**
+  String get settingsFlightLimits;
+
+  /// No description provided for @settingsTrafficFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic filters'**
+  String get settingsTrafficFilters;
+
+  /// No description provided for @settingsCollisionAvoidance.
+  ///
+  /// In en, this message translates to:
+  /// **'Collision avoidance'**
+  String get settingsCollisionAvoidance;
+
+  /// No description provided for @settingsTrafficSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic data sources'**
+  String get settingsTrafficSources;
 }
 
 class _AppLocalizationsDelegate

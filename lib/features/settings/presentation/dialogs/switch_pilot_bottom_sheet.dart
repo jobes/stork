@@ -22,10 +22,8 @@ void showSwitchPilotBottomSheet(
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: theme.colorScheme.surface,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
+    useSafeArea: true,
+    // Appearance comes from the shared BottomSheetThemeData.
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setSheetState) {
@@ -133,21 +131,18 @@ void showSwitchPilotBottomSheet(
                             final isActive = pilot.id == activePilotId;
 
                             return Card(
-                              elevation: isActive ? 2 : 1,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                side: isActive
-                                    ? BorderSide(
-                                        color: theme.colorScheme.primary,
-                                        width: 2,
-                                      )
-                                    : BorderSide.none,
+                                borderRadius: BorderRadius.circular(14),
+                                side: BorderSide(
+                                  color: isActive
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.outlineVariant,
+                                  width: isActive ? 2 : 1,
+                                ),
                               ),
                               color: isActive
                                   ? theme.colorScheme.primaryContainer
-                                        .withValues(alpha: 0.15)
-                                  : theme.colorScheme.surfaceContainerHighest
-                                        .withValues(alpha: 0.3),
+                                  : theme.colorScheme.surfaceContainerLow,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () async {
@@ -183,8 +178,10 @@ void showSwitchPilotBottomSheet(
                                         child: Icon(
                                           Icons.person,
                                           color: isActive
-                                              ? Colors.white
-                                              : Colors.grey[700],
+                                              ? theme.colorScheme.onPrimary
+                                              : theme
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
                                           size: 20,
                                         ),
                                       ),

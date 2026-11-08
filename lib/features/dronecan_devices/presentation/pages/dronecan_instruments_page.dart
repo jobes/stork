@@ -97,75 +97,81 @@ class _NodeTable extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          columnSpacing: 28,
-          headingTextStyle: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columnSpacing: 28,
+            headingRowColor: WidgetStatePropertyAll(
+              theme.colorScheme.surfaceContainer,
+            ),
+            headingTextStyle: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+            columns: [
+              DataColumn(label: Text(l10n.dronecanNodeId)),
+              DataColumn(label: Text(l10n.dronecanNodeName)),
+              DataColumn(label: Text(l10n.dronecanUniqueId)),
+              DataColumn(label: Text(l10n.dronecanHealth)),
+              DataColumn(label: Text(l10n.dronecanMode)),
+              DataColumn(label: Text(l10n.dronecanUptime)),
+              DataColumn(label: Text(l10n.dronecanLastSeen)),
+            ],
+            rows: [
+              for (final node in nodes)
+                DataRow(
+                  cells: [
+                    DataCell(
+                      Text(
+                        node.nodeId.toString(),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        node.name ?? l10n.placeholderDash,
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          decorationColor: theme.colorScheme.primary,
+                        ),
+                      ),
+                      onTap: () => showDroneCanNodeDetailsDialog(context, node),
+                    ),
+                    DataCell(
+                      Text(
+                        node.uniqueId ?? l10n.placeholderDash,
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      _HealthIndicator(
+                        health: node.health,
+                        label: droneCanHealthLabel(node.health, l10n),
+                      ),
+                    ),
+                    DataCell(Text(droneCanModeLabel(node.mode, l10n))),
+                    DataCell(
+                      Text(
+                        formatDroneCanUptime(
+                          Duration(seconds: node.uptimeSec),
+                          l10n,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(formatDroneCanLastSeen(node.lastSeenAgo(), l10n)),
+                    ),
+                  ],
+                ),
+            ],
           ),
-          columns: [
-            DataColumn(label: Text(l10n.dronecanNodeId)),
-            DataColumn(label: Text(l10n.dronecanNodeName)),
-            DataColumn(label: Text(l10n.dronecanUniqueId)),
-            DataColumn(label: Text(l10n.dronecanHealth)),
-            DataColumn(label: Text(l10n.dronecanMode)),
-            DataColumn(label: Text(l10n.dronecanUptime)),
-            DataColumn(label: Text(l10n.dronecanLastSeen)),
-          ],
-          rows: [
-            for (final node in nodes)
-              DataRow(
-                cells: [
-                  DataCell(
-                    Text(
-                      node.nodeId.toString(),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      node.name ?? l10n.placeholderDash,
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                        decorationColor: theme.colorScheme.primary,
-                      ),
-                    ),
-                    onTap: () => showDroneCanNodeDetailsDialog(context, node),
-                  ),
-                  DataCell(
-                    Text(
-                      node.uniqueId ?? l10n.placeholderDash,
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    _HealthIndicator(
-                      health: node.health,
-                      label: droneCanHealthLabel(node.health, l10n),
-                    ),
-                  ),
-                  DataCell(Text(droneCanModeLabel(node.mode, l10n))),
-                  DataCell(
-                    Text(
-                      formatDroneCanUptime(
-                        Duration(seconds: node.uptimeSec),
-                        l10n,
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    Text(formatDroneCanLastSeen(node.lastSeenAgo(), l10n)),
-                  ),
-                ],
-              ),
-          ],
         ),
       ),
     );

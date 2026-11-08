@@ -50,6 +50,13 @@ The settings are saved using the `shared_preferences` package, abstracted behind
 - **Serialization**: The entire `AppSettings` object is converted to a JSON map using the generated `.toJson()` method.
 - **Deserialization**: On application startup, the repository reads the JSON string and reconstructs the object via `AppSettings.fromJson()`. If no preferences exist, it yields the default settings template.
 
+### 3.1. Aircraft limits and pilot layouts
+
+Limits and ranges are stored separately for each aircraft. Map widget positions
+are stored separately for each pilot. Display units, map zoom and the edit lock
+remain global preferences. See [scoped settings](scoped-settings.md) for
+migration, persistence and serialized profile switching.
+
 ## 4. UI Implementation
 
 To prevent a single cluttered screen, the configuration is split into modular pages accessed via the main [SettingsPage](../../lib/features/settings/presentation/settings_page.dart):

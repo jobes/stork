@@ -37,7 +37,7 @@ class NavigationPage extends ConsumerWidget {
 
     if (!currentPositionKnown) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.navigation), centerTitle: true),
+        appBar: AppBar(title: Text(l10n.navigation)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32.0),
@@ -77,7 +77,6 @@ class NavigationPage extends ConsumerWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.navigation),
-            centerTitle: true,
             actions: [
               if (points.isNotEmpty) ...[
                 IconButton(
@@ -197,40 +196,15 @@ class NavigationPage extends ConsumerWidget {
                           child: Container(
                             padding: const EdgeInsets.all(20.0),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: isDark
-                                    ? [
-                                        Theme.of(context)
-                                            .colorScheme
-                                            .primaryContainer
-                                            .withAlpha(200),
-                                        Theme.of(context)
-                                            .colorScheme
-                                            .surfaceContainerHighest
-                                            .withAlpha(150),
-                                      ]
-                                    : [
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.primaryContainer,
-                                        Theme.of(context)
-                                            .colorScheme
-                                            .primaryContainer
-                                            .withAlpha(180),
-                                      ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.outlineVariant,
                               ),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withAlpha(
-                                    isDark ? 50 : 20,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
                             ),
                             child: Column(
                               children: [

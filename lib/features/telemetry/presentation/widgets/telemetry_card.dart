@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import 'map_telemetry_palette.dart';
 
-/// A reusable glassmorphic container for telemetry widgets on the map.
+/// A map-overlay instrument surface with theme-aware neutral colors.
 ///
-/// It handles consistent styling (glassmorphism blur, background colors, border, shadow)
-/// and wraps the widget in a [GestureDetector] with a hand cursor for clickability
-/// when the widgets are not in drag-and-drop edit mode (`areWidgetsDraggable == false`).
+/// Warning and critical borders/glows retain their original aviation severity
+/// mapping. Drag/lock behavior, tap handling and telemetry sizing are unchanged.
 class TelemetryCard extends ConsumerWidget {
   final Widget child;
   final VoidCallback? onTap;
@@ -34,7 +34,8 @@ class TelemetryCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider).value;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = MapTelemetryPalette.of(context);
+    final isDark = palette.isDark;
     final areWidgetsDraggable = settings?.areWidgetsDraggable ?? false;
 
     final isError =
@@ -53,9 +54,7 @@ class TelemetryCard extends ConsumerWidget {
           ? Colors.orangeAccent
           : Colors.orange.shade700;
     } else {
-      defaultBorderColor = isDark
-          ? Colors.white.withAlpha(76)
-          : Colors.black.withAlpha(51);
+      defaultBorderColor = palette.neutralBorder;
     }
     final resolvedBorderColor = borderColor ?? defaultBorderColor;
 
@@ -76,8 +75,8 @@ class TelemetryCard extends ConsumerWidget {
     } else {
       defaultBoxShadow = [
         BoxShadow(
-          color: Colors.black.withAlpha(20),
-          blurRadius: 8,
+          color: Colors.black.withAlpha(isDark ? 42 : 20),
+          blurRadius: 6,
           spreadRadius: 0,
         ),
       ];
@@ -114,12 +113,7 @@ class TelemetryCard extends ConsumerWidget {
       resolvedGradient = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: isDark
-            ? [Colors.black.withAlpha(210), Colors.grey.shade900.withAlpha(235)]
-            : [
-                Colors.white.withAlpha(235),
-                Colors.grey.shade100.withAlpha(210),
-              ],
+        colors: palette.neutralGradient,
       );
     }
 
@@ -142,11 +136,14 @@ class TelemetryCard extends ConsumerWidget {
     );
 
     if (!areWidgetsDraggable && onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: widgetContent,
+      return Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: widgetContent,
+          ),
         ),
       );
     }

@@ -6,6 +6,7 @@ import '../../../../core/services/cannelloni_service_io.dart'
     if (dart.library.html) '../../../../core/services/cannelloni_service_stub.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/settings_widgets.dart';
+import '../widgets/stork_settings_section.dart';
 
 class GatewaySettingsPage extends ConsumerWidget {
   const GatewaySettingsPage({super.key});
@@ -20,28 +21,34 @@ class GatewaySettingsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.cannelloniGateway)),
       body: settingsAsync.when(
-        data: (settings) => ListView(
+        data: (settings) => StorkSettingsPageContent(
           children: [
-            CheckboxSetting(
-              label: l10n.autoSelectDevice,
-              value: settings.autoSelectDevice,
-              onChanged: (val) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .updateAutoSelectDevice(val);
-              },
-            ),
-            DeviceDropdownSetting(
-              label: l10n.selectedDevice,
-              selectedDevice: settings.selectedDevice,
-              devices: devicesAsync.asData?.value ?? [],
-              enabled: !settings.autoSelectDevice,
-              isConnected: isConnected,
-              onChanged: (device) {
-                ref
-                    .read(appSettingsProvider.notifier)
-                    .updateSelectedDevice(device);
-              },
+            StorkSettingsSection(
+              title: l10n.settingsConnection,
+              children: [
+                CheckboxSetting(
+                  label: l10n.autoSelectDevice,
+                  value: settings.autoSelectDevice,
+                  onChanged: (val) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateAutoSelectDevice(val);
+                  },
+                ),
+                const Divider(indent: 16, endIndent: 16),
+                DeviceDropdownSetting(
+                  label: l10n.selectedDevice,
+                  selectedDevice: settings.selectedDevice,
+                  devices: devicesAsync.asData?.value ?? [],
+                  enabled: !settings.autoSelectDevice,
+                  isConnected: isConnected,
+                  onChanged: (device) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateSelectedDevice(device);
+                  },
+                ),
+              ],
             ),
           ],
         ),

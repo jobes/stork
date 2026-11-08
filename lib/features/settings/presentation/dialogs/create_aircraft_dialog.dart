@@ -28,9 +28,6 @@ void showCreateAircraftDialog(BuildContext context, WidgetRef ref) {
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: l10n.aircraftNameLabel,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                   prefixIcon: const Icon(Icons.flight),
                 ),
                 validator: (value) {
@@ -49,7 +46,7 @@ void showCreateAircraftDialog(BuildContext context, WidgetRef ref) {
                     child: Text(l10n.cancel),
                   ),
                   const SizedBox(width: 8),
-                  ElevatedButton(
+                  FilledButton(
                     onPressed: () async {
                       if (formKey.currentState!.validate()) {
                         final name = nameController.text.trim();
@@ -81,11 +78,6 @@ void showCreateAircraftDialog(BuildContext context, WidgetRef ref) {
                         }
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
                     child: Text(l10n.create),
                   ),
                 ],

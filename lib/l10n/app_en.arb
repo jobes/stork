@@ -1164,6 +1164,16 @@
     }
   },
   "unhideAircraft": "Unhide",
-  "clearAllHiddenAircraft": "Clear all hidden"
+  "clearAllHiddenAircraft": "Clear all hidden",
+  "settingsMapAppearance": "Map appearance",
+  "settingsMapZoom": "Map zoom levels",
+  "settingsWidgetLayout": "Widget layout",
+  "settingsResetLayoutConfirm": "Reset the saved widget positions for the current layout? This cannot be undone.",
+  "settingsConnection": "Gateway connection",
+  "settingsFlightMeasurements": "Units and measurements",
+  "settingsFlightLimits": "Flight and engine limits",
+  "settingsTrafficFilters": "Traffic filters",
+  "settingsCollisionAvoidance": "Collision avoidance",
+  "settingsTrafficSources": "Traffic data sources"
 }
 

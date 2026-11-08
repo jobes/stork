@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/number_formatter.dart';
+import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/resolved_altitude.dart';
@@ -87,7 +88,8 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
     final resolved = aglState.resolvedAltitude;
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = scheme.brightness == Brightness.dark;
 
     final autoQnh = settings?.autoQnh ?? true;
     final currentQnh = settings?.qnh ?? 1013.25;
@@ -117,7 +119,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
         break;
       case AltitudeSource.gpsDroneCan:
         activeSourceText = l10n.altitudeSourceGpsReceiver;
-        sourceColor = Colors.blueAccent;
+        sourceColor = scheme.primary;
         sourceIcon = Icons.satellite_alt;
         break;
       case AltitudeSource.gpsPhone:
@@ -142,21 +144,11 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white70 : Colors.black54,
+              color: scheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withAlpha(15)
-                  : Colors.black.withAlpha(10),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark ? Colors.white12 : Colors.black12,
-              ),
-            ),
+          StorkDetailSurface(
             child: Row(
               children: [
                 Icon(sourceIcon, color: sourceColor, size: 24),
@@ -167,7 +159,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: scheme.onSurface,
                     ),
                   ),
                 ),
@@ -182,21 +174,11 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white70 : Colors.black54,
+              color: scheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withAlpha(15)
-                  : Colors.black.withAlpha(10),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark ? Colors.white12 : Colors.black12,
-              ),
-            ),
+          StorkDetailSurface(
             child: Row(
               children: [
                 Icon(
@@ -212,7 +194,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                     l10n.terrainUnderPosition,
                     style: TextStyle(
                       fontSize: 16,
-                      color: isDark ? Colors.white70 : Colors.black87,
+                      color: scheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -225,7 +207,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',
                     color: aglState.terrainElevation != null
-                        ? (isDark ? Colors.white : Colors.black)
+                        ? scheme.onSurface
                         : Colors.grey,
                   ),
                 ),
@@ -244,7 +226,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white70 : Colors.black54,
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
                 // Auto-QNH Help Tooltip
@@ -254,11 +236,9 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+                    color: scheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isDark ? Colors.white24 : Colors.black12,
-                    ),
+                    border: Border.all(color: scheme.outlineVariant),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withAlpha(50),
@@ -266,30 +246,18 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                       ),
                     ],
                   ),
-                  textStyle: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
+                  textStyle: TextStyle(fontSize: 13, color: scheme.onSurface),
                   child: Icon(
                     Icons.help_outline,
                     size: 20,
-                    color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+                    color: scheme.primary,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Container(
+            StorkDetailSurface(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withAlpha(15)
-                    : Colors.black.withAlpha(10),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDark ? Colors.white12 : Colors.black12,
-                ),
-              ),
               child: Column(
                 children: [
                   // Toggle row
@@ -301,7 +269,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                           l10n.autoQnhLabel,
                           style: TextStyle(
                             fontSize: 15,
-                            color: isDark ? Colors.white : Colors.black87,
+                            color: scheme.onSurface,
                           ),
                         ),
                       ),
@@ -312,7 +280,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                               .read(appSettingsProvider.notifier)
                               .updateAutoQnh(value);
                         },
-                        activeThumbColor: Colors.blueAccent,
+                        activeThumbColor: scheme.primary,
                       ),
                     ],
                   ),
@@ -328,7 +296,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                           l10n.currentQnhLabel,
                           style: TextStyle(
                             fontSize: 14,
-                            color: isDark ? Colors.white60 : Colors.black54,
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
                         Container(
@@ -337,18 +305,18 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blueAccent.withAlpha(40),
+                            color: scheme.primaryContainer,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: Colors.blueAccent.withAlpha(100),
+                              color: scheme.primary.withValues(alpha: 0.4),
                             ),
                           ),
                           child: Text(
                             '${context.formatNumber(currentQnh, 2)} hPa',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blueAccent,
+                              color: scheme.onPrimaryContainer,
                               fontFamily: 'monospace',
                             ),
                           ),
@@ -363,9 +331,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                           children: [
                             // Decrement button
                             Material(
-                              color: isDark
-                                  ? Colors.white.withAlpha(20)
-                                  : Colors.black.withAlpha(12),
+                              color: scheme.surfaceContainerHigh,
                               borderRadius: BorderRadius.circular(12),
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(12),
@@ -407,15 +373,13 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'monospace',
-                                    color: isDark ? Colors.white : Colors.black,
+                                    color: scheme.onSurface,
                                   ),
                                   decoration: InputDecoration(
                                     suffixText: 'hPa',
                                     suffixStyle: TextStyle(
                                       fontSize: 12,
-                                      color: isDark
-                                          ? Colors.white54
-                                          : Colors.black54,
+                                      color: scheme.onSurfaceVariant,
                                     ),
                                     errorText: _errorMessage,
                                     contentPadding: const EdgeInsets.symmetric(
@@ -427,8 +391,8 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: const BorderSide(
-                                        color: Colors.blueAccent,
+                                      borderSide: BorderSide(
+                                        color: scheme.primary,
                                         width: 2,
                                       ),
                                     ),
@@ -451,9 +415,7 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
 
                             // Increment button
                             Material(
-                              color: isDark
-                                  ? Colors.white.withAlpha(20)
-                                  : Colors.black.withAlpha(12),
+                              color: scheme.surfaceContainerHigh,
                               borderRadius: BorderRadius.circular(12),
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(12),

@@ -2424,4 +2424,35 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get clearAllHiddenAircraft => 'Vymazať všetky skryté';
+
+  @override
+  String get settingsMapAppearance => 'Vzhľad mapy';
+
+  @override
+  String get settingsMapZoom => 'Úrovne priblíženia mapy';
+
+  @override
+  String get settingsWidgetLayout => 'Rozloženie widgetov';
+
+  @override
+  String get settingsResetLayoutConfirm =>
+      'Obnoviť uložené pozície widgetov v aktuálnom rozložení? Táto zmena sa nedá vrátiť.';
+
+  @override
+  String get settingsConnection => 'Pripojenie brány';
+
+  @override
+  String get settingsFlightMeasurements => 'Jednotky a merania';
+
+  @override
+  String get settingsFlightLimits => 'Letové a motorové limity';
+
+  @override
+  String get settingsTrafficFilters => 'Filtre premávky';
+
+  @override
+  String get settingsCollisionAvoidance => 'Prevencia kolízií';
+
+  @override
+  String get settingsTrafficSources => 'Zdroje údajov o premávke';
 }

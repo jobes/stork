@@ -1058,5 +1058,15 @@
     }
   },
   "unhideAircraft": "Zobraziť znova",
-  "clearAllHiddenAircraft": "Vymazať všetky skryté"
+  "clearAllHiddenAircraft": "Vymazať všetky skryté",
+  "settingsMapAppearance": "Vzhľad mapy",
+  "settingsMapZoom": "Úrovne priblíženia mapy",
+  "settingsWidgetLayout": "Rozloženie widgetov",
+  "settingsResetLayoutConfirm": "Obnoviť uložené pozície widgetov v aktuálnom rozložení? Táto zmena sa nedá vrátiť.",
+  "settingsConnection": "Pripojenie brány",
+  "settingsFlightMeasurements": "Jednotky a merania",
+  "settingsFlightLimits": "Letové a motorové limity",
+  "settingsTrafficFilters": "Filtre premávky",
+  "settingsCollisionAvoidance": "Prevencia kolízií",
+  "settingsTrafficSources": "Zdroje údajov o premávke"
 }

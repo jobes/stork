@@ -32,7 +32,9 @@ class BaseDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     final Widget? leadingWidget =
         leading ??
@@ -40,10 +42,10 @@ class BaseDetailsDialog extends StatelessWidget {
             ? Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withAlpha(40),
+                  color: colors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: Colors.blueAccent, size: 24),
+                child: Icon(icon, color: colors.primary, size: 24),
               )
             : null);
 
@@ -51,11 +53,7 @@ class BaseDetailsDialog extends StatelessWidget {
         title ??
         Text(
           titleText ?? '',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
+          style: theme.textTheme.titleLarge?.copyWith(color: colors.onSurface),
         );
 
     return Dialog(
@@ -64,9 +62,9 @@ class BaseDetailsDialog extends StatelessWidget {
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: DraggableOverlay(
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(16),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               constraints: BoxConstraints(
                 maxWidth: maxWidth,
@@ -74,19 +72,16 @@ class BaseDetailsDialog extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.black.withAlpha(190)
-                    : Colors.white.withAlpha(225),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: isDark ? Colors.white24 : Colors.black12,
-                  width: 1,
+                color: colors.surfaceContainerLow.withValues(
+                  alpha: isDark ? 0.95 : 0.98,
                 ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colors.outlineVariant, width: 1),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha(80),
-                    blurRadius: 24,
-                    spreadRadius: 4,
+                    color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.12),
+                    blurRadius: 20,
+                    spreadRadius: 1,
                   ),
                 ],
               ),
@@ -117,7 +112,7 @@ class BaseDetailsDialog extends StatelessWidget {
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Navigator.of(context).pop(),
-                            color: isDark ? Colors.white70 : Colors.black54,
+                            color: colors.onSurfaceVariant,
                           ),
                       ],
                     ),

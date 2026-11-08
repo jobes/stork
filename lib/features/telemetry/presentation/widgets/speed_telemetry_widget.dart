@@ -10,6 +10,7 @@ import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../dialogs/speed_details_dialog.dart';
 import 'telemetry_card.dart';
+import 'map_telemetry_palette.dart';
 
 class SpeedTelemetryWidget extends ConsumerWidget {
   const SpeedTelemetryWidget({super.key});
@@ -58,12 +59,9 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTextColor = isDark
-        ? Colors.grey.shade300
-        : Colors.grey.shade700;
-
-    final speedValueColor = isDark ? Colors.white : Colors.black;
+    final palette = MapTelemetryPalette.of(context);
+    final defaultTextColor = palette.label;
+    final speedValueColor = palette.value;
 
     final speedUnit = settings?.speedUnit ?? SpeedUnit.kmh;
     final double? ias = indicatedAirSpeed != null
