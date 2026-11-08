@@ -50,6 +50,7 @@ class MapCamera extends _$MapCamera {
   int _programmaticMoveCount = 0;
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
+  ({StyleController style, String data})? _lastCourseLineUpdate;
 
   List<String>? _lastActiveAirspaceIds;
   List<String>? _lastInactiveAirspaceIds;
@@ -111,9 +112,10 @@ class MapCamera extends _$MapCamera {
               next.isFlying != previous?.isFlying) {
             final settings = ref.read(appSettingsProvider).value;
             final telemetry = ref.read(telemetryProvider);
-            _mapController!.style!.updateGeoJsonSource(
-              id: 'course-line-source',
-              data: GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
+            unawaited(
+              _updateCourseLineOnMap(
+                GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
+              ),
             );
           }
         }
@@ -218,9 +220,10 @@ class MapCamera extends _$MapCamera {
       final telemetry = ref.read(telemetryProvider);
       final settings = next.value;
 
-      _mapController!.style!.updateGeoJsonSource(
-        id: 'course-line-source',
-        data: GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
+      unawaited(
+        _updateCourseLineOnMap(
+          GeoJsonBuilder.buildCourseLineGeoJson(telemetry, settings),
+        ),
       );
       updateTrafficOnMap();
     });
@@ -535,6 +538,7 @@ class MapCamera extends _$MapCamera {
   }
 
   Timer? _moveThrottleTimer;
+  bool _refreshTrafficAfterCameraMove = false;
 
   bool get isAircraftSymbolInitialized => _isAircraftSymbolInitialized;
   MapController? get mapController => _mapController;
@@ -545,14 +549,20 @@ class MapCamera extends _$MapCamera {
   }) {
     if (event is MapEventMoveCamera) {
       handleUserInteraction(isExplicitInteraction: false);
-      if (_moveThrottleTimer == null || !_moveThrottleTimer!.isActive) {
-        _moveThrottleTimer = Timer(const Duration(milliseconds: 500), () {
-          _updateTrafficFilter();
-        });
-      }
+      _scheduleTrafficViewportUpdate();
     }
     if (event is MapEventCameraIdle) {
+      // Frame-by-frame follow can emit idle events between programmatic moves.
+      // Share the existing viewport timer instead of rebuilding traffic per tick.
+      if (!_isFollowPaused &&
+          isMovingProgrammatically &&
+          ref.read(telemetryProvider).mapViewState == MapViewState.follow) {
+        _refreshTrafficAfterCameraMove = true;
+        _scheduleTrafficViewportUpdate();
+        return;
+      }
       _moveThrottleTimer?.cancel();
+      _refreshTrafficAfterCameraMove = false;
       _updateTrafficFilter();
       updateTrafficOnMap();
     }
@@ -562,6 +572,16 @@ class MapCamera extends _$MapCamera {
         _handleMapClick(event, onFeaturesTapped);
       }
     }
+  }
+
+  void _scheduleTrafficViewportUpdate() {
+    if (_moveThrottleTimer?.isActive ?? false) return;
+    _moveThrottleTimer = Timer(const Duration(milliseconds: 500), () {
+      final refreshTraffic = _refreshTrafficAfterCameraMove;
+      _refreshTrafficAfterCameraMove = false;
+      _updateTrafficFilter();
+      if (refreshTraffic) updateTrafficOnMap();
+    });
   }
 
   void updateTrafficOnMap([List<TrafficAircraft>? trafficList]) {

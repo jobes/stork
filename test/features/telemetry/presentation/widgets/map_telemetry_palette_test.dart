@@ -13,8 +13,8 @@ void main() {
       expect(palette.label, theme.colorScheme.onSurfaceVariant);
       expect(palette.neutralBorder, theme.colorScheme.outlineVariant);
       expect(palette.neutralGradient, [
-        theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.96),
-        theme.colorScheme.surface.withValues(alpha: 0.96),
+        theme.colorScheme.surfaceContainerLow,
+        theme.colorScheme.surface,
       ]);
     }
   });

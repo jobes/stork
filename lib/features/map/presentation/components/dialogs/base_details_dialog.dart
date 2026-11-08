@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../controls/draggable_overlay.dart';
 
@@ -34,7 +33,6 @@ class BaseDetailsDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     final Widget? leadingWidget =
         leading ??
@@ -61,65 +59,51 @@ class BaseDetailsDialog extends StatelessWidget {
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: DraggableOverlay(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: maxWidth,
-                maxHeight: maxHeight ?? double.infinity,
-              ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: maxWidth,
+            maxHeight: maxHeight ?? double.infinity,
+          ),
+          child: Material(
+            color: colors.surfaceContainerLow,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: colors.outlineVariant),
+            ),
+            child: Padding(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: colors.surfaceContainerLow.withValues(
-                  alpha: isDark ? 0.95 : 0.98,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: colors.outlineVariant, width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.12),
-                    blurRadius: 20,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DraggableOverlayGestureDetector(
-                            child: Row(
-                              children: [
-                                if (leadingWidget != null) ...[
-                                  leadingWidget,
-                                  const SizedBox(width: 12),
-                                ],
-                                Expanded(child: titleWidget),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DraggableOverlayGestureDetector(
+                          child: Row(
+                            children: [
+                              if (leadingWidget != null) ...[
+                                leadingWidget,
+                                const SizedBox(width: 12),
                               ],
-                            ),
+                              Expanded(child: titleWidget),
+                            ],
                           ),
                         ),
-                        if (actions != null)
-                          ...actions!
-                        else if (showCloseButton)
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.of(context).pop(),
-                            color: colors.onSurfaceVariant,
-                          ),
-                      ],
-                    ),
-                    const Divider(height: 24),
-                    Flexible(child: SingleChildScrollView(child: child)),
-                  ],
-                ),
+                      ),
+                      if (actions != null)
+                        ...actions!
+                      else if (showCloseButton)
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(context).pop(),
+                          color: colors.onSurfaceVariant,
+                        ),
+                    ],
+                  ),
+                  const Divider(height: 24),
+                  Flexible(child: SingleChildScrollView(child: child)),
+                ],
               ),
             ),
           ),

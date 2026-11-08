@@ -70,10 +70,8 @@ void main() {
     expect(d.border!.top.color, AppTheme.darkTheme.colorScheme.outlineVariant);
     expect(d.border!.top.width, 2);
     expect((d.gradient! as LinearGradient).colors, [
-      AppTheme.darkTheme.colorScheme.surfaceContainerLow.withValues(
-        alpha: 0.96,
-      ),
-      AppTheme.darkTheme.colorScheme.surface.withValues(alpha: 0.96),
+      AppTheme.darkTheme.colorScheme.surfaceContainerLow,
+      AppTheme.darkTheme.colorScheme.surface,
     ]);
   });
 
@@ -86,12 +84,20 @@ void main() {
       state: ThresholdState.maxError,
     );
     expect(_decoration(tester).border!.top.color, Colors.redAccent.shade400);
+    expect(
+      (_decoration(tester).gradient! as LinearGradient).colors.map((c) => c.a),
+      everyElement(1.0),
+    );
     await _pumpCard(
       tester,
       theme: AppTheme.darkTheme,
       state: ThresholdState.maxWarning,
     );
     expect(_decoration(tester).border!.top.color, Colors.orangeAccent);
+    expect(
+      (_decoration(tester).gradient! as LinearGradient).colors.map((c) => c.a),
+      everyElement(1.0),
+    );
   });
 
   testWidgets('card tap is suppressed in layout edit mode', (tester) async {

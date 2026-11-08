@@ -119,11 +119,9 @@ extension MapCameraInterpolation on MapCamera {
       heading: TelemetryValue(courseBearing),
     );
 
-    _mapController!.style!.updateGeoJsonSource(
-      id: 'course-line-source',
-      data: GeoJsonBuilder.buildCourseLineGeoJson(
-        interpolatedTelemetry,
-        settings,
+    unawaited(
+      _updateCourseLineOnMap(
+        GeoJsonBuilder.buildCourseLineGeoJson(interpolatedTelemetry, settings),
       ),
     );
   }

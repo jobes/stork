@@ -24,10 +24,10 @@ class MapTelemetryPalette {
 
   Color get neutralBorder => colors.outlineVariant;
 
-  /// Near-opaque surfaces ensure labels stay legible over busy map tiles.
+  /// Opaque surfaces keep labels legible over busy map tiles.
   /// Error/warning backgrounds are deliberately NOT defined here.
   List<Color> get neutralGradient => [
-    colors.surfaceContainerLow.withValues(alpha: 0.96),
-    colors.surface.withValues(alpha: 0.96),
+    colors.surfaceContainerLow,
+    colors.surface,
   ];
 }

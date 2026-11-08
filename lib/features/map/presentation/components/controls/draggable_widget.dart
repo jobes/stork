@@ -268,12 +268,7 @@ class _DraggableWidgetState extends State<DraggableWidget>
           scale: _isDragging ? 1.05 : 1.0,
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOutCubic,
-          child: AnimatedOpacity(
-            opacity: _isDragging ? 0.85 : 1.0,
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOutCubic,
-            child: content,
-          ),
+          child: content,
         ),
       ),
     );

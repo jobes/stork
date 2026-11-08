@@ -89,11 +89,14 @@ class TelemetryCard extends ConsumerWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: isDark
-            ? [Colors.red.shade800.withAlpha(180), Colors.black.withAlpha(240)]
-            : [
-                Colors.red.shade100.withAlpha(240),
-                Colors.red.shade50.withAlpha(200),
-              ],
+            ? [
+                Color.alphaBlend(
+                  Colors.red.shade800.withAlpha(180),
+                  palette.colors.surfaceContainerLow,
+                ),
+                palette.colors.surface,
+              ]
+            : [Colors.red.shade100, Colors.red.shade50],
       );
     } else if (isWarning) {
       resolvedGradient = LinearGradient(
@@ -101,13 +104,13 @@ class TelemetryCard extends ConsumerWidget {
         end: Alignment.bottomRight,
         colors: isDark
             ? [
-                Colors.orange.shade900.withAlpha(100),
-                Colors.black.withAlpha(235),
+                Color.alphaBlend(
+                  Colors.orange.shade900.withAlpha(100),
+                  palette.colors.surfaceContainerLow,
+                ),
+                palette.colors.surface,
               ]
-            : [
-                Colors.orange.shade50.withAlpha(220),
-                Colors.white.withAlpha(220),
-              ],
+            : [Colors.orange.shade50, Colors.white],
       );
     } else {
       resolvedGradient = LinearGradient(
