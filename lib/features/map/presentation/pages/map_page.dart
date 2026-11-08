@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -76,6 +77,12 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
     ref.read(compassOrientationOffsetProvider.notifier).onMetricsChanged();
   }
 
+  void _finishEditing() {
+    unawaited(
+      ref.read(appSettingsProvider.notifier).updateAreWidgetsDraggable(false),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final styleAsync = ref.watch(mapStyleProvider);
@@ -110,6 +117,9 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
       ),
     );
     final compassBarHeight = 40.0 * fontScale;
+    final isEditingWidgets = ref.watch(
+      appSettingsProvider.select((s) => s.value?.areWidgetsDraggable ?? false),
+    );
 
     final double screenWidth = MediaQuery.sizeOf(context).width;
     double currentX = 16.0;
@@ -135,7 +145,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
       );
     }
 
-    return Scaffold(
+    final mapScaffold = Scaffold(
       onDrawerChanged: (isOpen) {
         if (isOpen) {
           setState(() {
@@ -153,6 +163,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
         }
       },
       drawer: const MapDrawer(),
+      drawerScrimColor: Colors.black45,
       body: AbsorbPointer(
         absorbing: _isDrawerOpen,
         child: Stack(
@@ -205,7 +216,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
               right: 0,
               child: AbsorbPointer(child: const CompassBar()),
             ),
-            if (mapViewState != MapViewState.init) ...[
+            if (mapViewState != MapViewState.init || isEditingWidgets) ...[
               buildWidget('speed_widget', 150.0, const SpeedTelemetryWidget()),
               buildWidget(
                 'altitude_widget',
@@ -271,10 +282,13 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 mapViewState: mapViewState,
                 onMenuPressed: () => Scaffold.of(context).openDrawer(),
                 onGpsPressed: cameraController.handleGpsToggle,
+                onFinishEditing: isEditingWidgets ? _finishEditing : null,
               ),
             ),
             Positioned(
-              top: compassBarHeight,
+              top: isEditingWidgets
+                  ? math.max(compassBarHeight, 80.0)
+                  : compassBarHeight,
               left: 0,
               right: 0,
               child: const CollisionWarningBanner(),
@@ -282,6 +296,16 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
           ],
         ),
       ),
+    );
+
+    return PopScope<void>(
+      canPop: !isEditingWidgets || _isDrawerOpen,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && isEditingWidgets && !_isDrawerOpen) {
+          _finishEditing();
+        }
+      },
+      child: mapScaffold,
     );
   }
 }

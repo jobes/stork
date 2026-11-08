@@ -42,6 +42,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     final metadataSize = await DatabaseService.getMetadataSize();
     final lastDate = await DatabaseService.getLastDownloadDate();
 
+    if (!ref.mounted) return;
     _updateStateFromCounts(regions, counts, metadataSize, lastDate);
   }
 
@@ -71,12 +72,16 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
   String addRegion(Geographic nw, Geographic se) {
     final id = const Uuid().v4();
     final region = OfflineMapArea(id: id, northwest: nw, southeast: se);
-    state = state.copyWith(regions: [...state.regions, region]);
+    state = state.copyWith(
+      regions: [...state.regions, region],
+      isDownloaded: false,
+    );
     return id;
   }
 
   void updateRegion(String id, {Geographic? nw, Geographic? se}) {
     state = state.copyWith(
+      isDownloaded: false,
       regions: state.regions.map((r) {
         if (r.id == id) {
           return r.copyWith(northwest: nw, southeast: se);
@@ -89,6 +94,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
   void removeRegion(String id) {
     state = state.copyWith(
       regions: state.regions.where((r) => r.id != id).toList(),
+      isDownloaded: false,
     );
   }
 
@@ -100,7 +106,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
   }
 
   Future<void> startDownload() async {
-    if (kIsWeb || state.regions.isEmpty) return;
+    if (kIsWeb || state.regions.isEmpty || state.isDownloading) return;
 
     state = state.copyWith(
       isDownloading: true,
@@ -192,11 +198,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
       await DatabaseService.updateLastDownloadDate();
       await loadFromDatabase();
 
-      state = state.copyWith(
-        isDownloading: false,
-        isDownloaded: true,
-        downloadDate: DateTime.now(),
-      );
+      state = state.copyWith(isDownloading: false, isDownloaded: true);
       _progressTimer?.cancel();
     } catch (e) {
       debugPrint('OfflineMapsNotifier: Download error: $e');

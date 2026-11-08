@@ -10,7 +10,8 @@ class StorkColors {
   static const Color lightPrimary = Color(0xFF12647B);
   static const Color darkPrimary = Color(0xFF80CEE4);
   static const Color lightSurface = Color(0xFFF6F9FB);
-  static const Color darkSurface = Color(0xFF111C25);
+  static const Color darkSurface = Color(0xFF000000);
+  static const Color darkSurfaceContainer = Color(0xFF121212);
 
   static ColorScheme scheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
@@ -21,24 +22,25 @@ class StorkColors {
       primary: seed,
       onPrimary: isDark ? const Color(0xFF073444) : Colors.white,
       surface: isDark ? darkSurface : lightSurface,
-      onSurface: isDark ? const Color(0xFFEAF2F7) : const Color(0xFF182934),
+      onSurface: isDark ? Colors.white : const Color(0xFF182934),
       onSurfaceVariant: isDark
-          ? const Color(0xFFABBFCB)
+          ? const Color(0xFFD1D5DB)
           : const Color(0xFF526976),
-      surfaceContainerLowest: isDark ? const Color(0xFF0C161D) : Colors.white,
-      surfaceContainerLow: isDark ? const Color(0xFF1A2934) : Colors.white,
-      surfaceContainer: isDark
-          ? const Color(0xFF22333F)
-          : const Color(0xFFEDF3F6),
+      // Dark uses black backgrounds and a single neutral surface tone.
+      surfaceDim: isDark ? darkSurface : base.surfaceDim,
+      surfaceBright: isDark ? darkSurfaceContainer : base.surfaceBright,
+      surfaceContainerLowest: isDark ? darkSurface : Colors.white,
+      surfaceContainerLow: isDark ? darkSurfaceContainer : Colors.white,
+      surfaceContainer: isDark ? darkSurfaceContainer : const Color(0xFFEDF3F6),
       surfaceContainerHigh: isDark
-          ? const Color(0xFF2B3D49)
+          ? darkSurfaceContainer
           : const Color(0xFFE6EFF3),
       surfaceContainerHighest: isDark
-          ? const Color(0xFF344956)
+          ? darkSurfaceContainer
           : const Color(0xFFDCE8ED),
-      outline: isDark ? const Color(0xFF8DA2AE) : const Color(0xFF879DAA),
+      outline: isDark ? const Color(0xFF737373) : const Color(0xFF879DAA),
       outlineVariant: isDark
-          ? const Color(0xFF394D59)
+          ? const Color(0xFF737373)
           : const Color(0xFFD4E0E5),
     );
   }

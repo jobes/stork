@@ -7,12 +7,14 @@ class MapControls extends StatelessWidget {
   final MapViewState mapViewState;
   final VoidCallback onMenuPressed;
   final VoidCallback onGpsPressed;
+  final VoidCallback? onFinishEditing;
 
   const MapControls({
     super.key,
     required this.mapViewState,
     required this.onMenuPressed,
     required this.onGpsPressed,
+    this.onFinishEditing,
   });
 
   @override
@@ -44,6 +46,16 @@ class MapControls extends StatelessWidget {
                 onPressed: onMenuPressed,
               ),
             ),
+            if (onFinishEditing != null)
+              Flexible(
+                child: PointerInterceptor(
+                  child: FilledButton.icon(
+                    icon: const Icon(Icons.check),
+                    label: Text(l10n.menuDone),
+                    onPressed: onFinishEditing,
+                  ),
+                ),
+              ),
             PointerInterceptor(
               child: IconButton.filled(
                 style: IconButton.styleFrom(

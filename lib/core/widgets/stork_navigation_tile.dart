@@ -1,40 +1,55 @@
 import 'package:flutter/material.dart';
 
-/// Consistent destination row, suitable for settings and other simple menus.
+/// A destination with a consistent icon, type and touch target.
 class StorkNavigationTile extends StatelessWidget {
   final String title;
+  final String? subtitle;
   final IconData icon;
   final VoidCallback onTap;
+  final bool highlighted;
 
   const StorkNavigationTile({
     super.key,
     required this.title,
+    this.subtitle,
     required this.icon,
     required this.onTap,
+    this.highlighted = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final foreground = highlighted
+        ? colors.onPrimaryContainer
+        : colors.onSurface;
+    final secondary = highlighted
+        ? colors.onPrimaryContainer
+        : colors.onSurfaceVariant;
+
     return ListTile(
-      minVerticalPadding: 12,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-      leading: Container(
-        width: 44,
-        height: 44,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: colors.primaryContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: colors.onPrimaryContainer, size: 22),
+      minTileHeight: 52,
+      minLeadingWidth: 24,
+      minVerticalPadding: 8,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      tileColor: highlighted ? colors.primaryContainer : null,
+      iconColor: secondary,
+      leading: Icon(icon, size: 22),
+      title: Text(
+        title,
+        style: theme.textTheme.titleMedium?.copyWith(color: foreground),
       ),
-      title: Text(title, style: theme.textTheme.titleMedium),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: colors.onSurfaceVariant,
-      ),
+      subtitle: subtitle == null
+          ? null
+          : Text(
+              subtitle!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+            ),
+      trailing: const Icon(Icons.chevron_right_rounded),
       onTap: onTap,
     );
   }

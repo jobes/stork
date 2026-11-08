@@ -12,19 +12,11 @@ class StorkSettingsPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            children: [
-              for (final child in children) ...[
-                child,
-                const SizedBox(height: 16),
-              ],
-            ],
-          ),
-        ),
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        children: [
+          for (final child in children) ...[child, const SizedBox(height: 16)],
+        ],
       ),
     );
   }

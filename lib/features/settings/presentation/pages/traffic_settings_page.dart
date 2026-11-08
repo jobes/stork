@@ -7,6 +7,7 @@ import '../providers/settings_provider.dart';
 import '../widgets/puretrack_settings_card.dart';
 import '../widgets/gdl90_settings_card.dart';
 import '../widgets/stork_settings_section.dart';
+import '../widgets/settings_widgets.dart';
 
 class TrafficSettingsPage extends ConsumerWidget {
   const TrafficSettingsPage({super.key});
@@ -17,7 +18,7 @@ class TrafficSettingsPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.trafficSettings)),
+      appBar: AppBar(title: Text(l10n.menuTrafficAndAlerts)),
       body: settingsAsync.when(
         data: (settings) {
           final horizontalDistKm =
@@ -91,7 +92,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          Slider(
+                          SettingsSlider(
                             value: horizontalDistKm
                                 .clamp(5.0, 200.0)
                                 .toDouble(),
@@ -148,7 +149,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          Slider(
+                          SettingsSlider(
                             value: verticalDistUnitVal
                                 .clamp(verticalMinVal, verticalMaxVal)
                                 .toDouble(),
@@ -210,7 +211,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          Slider(
+                          SettingsSlider(
                             value: settings.casLookaheadTime
                                 .clamp(10.0, 120.0)
                                 .toDouble(),
@@ -252,7 +253,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          Slider(
+                          SettingsSlider(
                             value: settings.casHorizontalThreshold
                                 .clamp(50.0, 1000.0)
                                 .toDouble(),
@@ -294,7 +295,7 @@ class TrafficSettingsPage extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          Slider(
+                          SettingsSlider(
                             value: heightUnit
                                 .convertFromMeters(
                                   settings.casVerticalThreshold,

@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/range_thresholds.dart';
 import '../utils/threshold_state_extension.dart';
+import 'thresholds_editor_dialog.dart';
 
 class ThresholdsSlider extends StatefulWidget {
   final List<double> values;
@@ -12,6 +15,8 @@ class ThresholdsSlider extends StatefulWidget {
   final ValueChanged<List<double>> onChanged;
   final String unitLabel;
   final int decimalPlaces;
+  final String? settingsTitle;
+  final List<ThresholdState>? thresholdStates;
 
   const ThresholdsSlider({
     super.key,
@@ -22,7 +27,9 @@ class ThresholdsSlider extends StatefulWidget {
     required this.onChanged,
     required this.unitLabel,
     this.decimalPlaces = 0,
-  });
+    this.settingsTitle,
+    this.thresholdStates,
+  }) : assert(thresholdStates == null || settingsTitle != null);
 
   @override
   State<ThresholdsSlider> createState() => _ThresholdsSliderState();
@@ -44,7 +51,8 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
     _currentValues = List.from(widget.values);
   }
 
-  void _handlePanStart(DragStartDetails details, BoxConstraints constraints) {
+  void _handleDragStart(DragStartDetails details, BoxConstraints constraints) {
+    if (_currentValues.isEmpty) return;
     final double fraction;
     final double value;
     if (constraints.maxWidth <= 0 || widget.max <= widget.min) {
@@ -73,7 +81,10 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
     _activeThumbIndex = closestIndex;
   }
 
-  void _handlePanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
+  void _handleDragUpdate(
+    DragUpdateDetails details,
+    BoxConstraints constraints,
+  ) {
     if (_activeThumbIndex == null) return;
 
     final double fraction;
@@ -131,18 +142,44 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
     }
   }
 
+  Future<void> _editThresholds() async {
+    final l10n = AppLocalizations.of(context)!;
+    final values = List<double>.of(_currentValues);
+    final updated = await showDialog<List<double>>(
+      context: context,
+      builder: (context) => ThresholdsEditorDialog(
+        title: widget.settingsTitle!,
+        labels: widget.thresholdStates!
+            .map((state) => state.getLabel(l10n))
+            .toList(),
+        values: values,
+        min: widget.min,
+        max: widget.max,
+        unit: widget.unitLabel,
+        decimalPlaces: widget.decimalPlaces,
+      ),
+    );
+    if (!mounted || updated == null || listEquals(values, updated)) return;
+
+    setState(() => _currentValues = updated);
+    widget.onChanged(List.of(updated));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
+    final slider = LayoutBuilder(
       builder: (context, constraints) {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onPanStart: (details) => _handlePanStart(details, constraints),
-          onPanUpdate: (details) => _handlePanUpdate(details, constraints),
-          onPanEnd: (_) => setState(() {
+          dragStartBehavior: DragStartBehavior.down,
+          onHorizontalDragStart: (details) =>
+              _handleDragStart(details, constraints),
+          onHorizontalDragUpdate: (details) =>
+              _handleDragUpdate(details, constraints),
+          onHorizontalDragEnd: (_) => setState(() {
             _activeThumbIndex = null;
           }),
-          onPanCancel: () => setState(() {
+          onHorizontalDragCancel: () => setState(() {
             _activeThumbIndex = null;
           }),
           child: Padding(
@@ -165,6 +202,22 @@ class _ThresholdsSliderState extends State<ThresholdsSlider> {
           ),
         );
       },
+    );
+    if (widget.thresholdStates == null) return slider;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        slider,
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: TextButton.icon(
+            onPressed: _editThresholds,
+            icon: const Icon(Icons.edit_outlined),
+            label: Text(AppLocalizations.of(context)!.editThresholdValues),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -278,6 +331,7 @@ class _MultiThumbPainter extends CustomPainter {
       final textSpan = TextSpan(
         text: text,
         style: TextStyle(
+          fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
           color: textColor,
           fontSize: 12,
           fontWeight: isThumbActive ? FontWeight.bold : FontWeight.normal,

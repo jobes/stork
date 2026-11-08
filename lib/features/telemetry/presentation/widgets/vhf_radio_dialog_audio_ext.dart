@@ -35,7 +35,12 @@ extension _VhfRadioDialogAudioExt on _VhfRadioDialogState {
                 min: 0,
                 max: 100,
                 divisions: 100,
-                onChanged: isSaving ? null : onChanged,
+                allowedInteraction: SliderInteraction.slideThumb,
+                onChanged: isSaving
+                    ? null
+                    : (next) {
+                        if (next.round() != value.round()) onChanged(next);
+                      },
               ),
             ),
             IconButton(

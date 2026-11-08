@@ -54,6 +54,10 @@
     }
   },
   "noAreasSelected": "No areas to download",
+  "selectOfflineArea": "Select area",
+  "drawOfflineAreaHint": "Drag on the map to draw the area to download.",
+  "offlineMapsReady": "Ready to use offline",
+  "offlineMapsDownloadRequired": "Download required for the selected areas",
   "deleteConfirmationTitle": "Delete All",
   "deleteConfirmationContent": "Are you sure you want to delete all areas and downloaded maps? This action is irreversible and will remove all data from storage.",
   "cancel": "Cancel",
@@ -129,6 +133,10 @@
   "minWarningThreshold": "Dangerously low",
   "maxWarningThreshold": "Dangerously high",
   "maxErrorThreshold": "Critically high",
+  "editThresholdValues": "Precise settings",
+  "thresholdValueInvalid": "Enter a valid number.",
+  "thresholdValueOutOfRange": "Value is outside the slider range.",
+  "thresholdValuesOrder": "Use a value at least as high as the previous threshold.",
   "mapSettings": "Map Settings",
   "operationalThreshold": "Operational (Normal)",
   "flightSpeed": "Flight Speed",
@@ -1122,6 +1130,9 @@
     }
   },
   "collisionWarningLabel": "COLLISION",
+  "collisionMinSeparation": "Min. separation",
+  "collisionTimeToClosest": "Time to closest",
+  "collisionAltitudeDifference": "Altitude diff. now",
   "pureTrackTitle": "PureTrack Account",
   "pureTrackDescription": "Secondary live aircraft tracking data feed",
   "pureTrackUsername": "Username / Email",
@@ -1174,6 +1185,50 @@
   "settingsFlightLimits": "Flight and engine limits",
   "settingsTrafficFilters": "Traffic filters",
   "settingsCollisionAvoidance": "Collision avoidance",
-  "settingsTrafficSources": "Traffic data sources"
+  "settingsTrafficSources": "Traffic data sources",
+  "menuFlightAndMap": "Flight and map",
+  "menuRoute": "Route",
+  "menuNoActiveRoute": "No active route",
+  "menuActiveRoute": "Active · {destination}",
+  "@menuActiveRoute": {
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "menuFavoritePlaces": "Favorite places",
+  "menuDone": "Done",
+  "menuOfflineDownloading": "Downloading maps",
+  "menuOfflineDownloaded": "Downloaded {date}",
+  "@menuOfflineDownloaded": {
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      }
+    }
+  },
+  "menuMap": "Map",
+  "menuMapSummary": "Appearance, zoom and widget layout",
+  "menuUnitsAndLimits": "Units and limits",
+  "menuUnitsSummary": "{speed} · {altitude} · aircraft limits",
+  "@menuUnitsSummary": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      },
+      "altitude": {
+        "type": "String"
+      }
+    }
+  },
+  "menuTrafficAndAlerts": "Traffic and alerts",
+  "menuCollisionAlertsOn": "Collision alerts on",
+  "menuCollisionAlertsOff": "Collision alerts off",
+  "menuInstrumentsAndConnection": "Instruments and connection",
+  "menuGatewayConnected": "Gateway connected",
+  "menuGatewayDisconnected": "Gateway disconnected",
+  "menuSearchingGateways": "Searching for gateways…",
+  "menuFindGateways": "Search again"
 }
-

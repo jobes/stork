@@ -36,6 +36,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(
+          fontFamily: 'Roboto',
           color: colors.onSurface,
           fontSize: 20,
           fontWeight: FontWeight.w600,

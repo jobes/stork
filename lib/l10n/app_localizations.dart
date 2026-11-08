@@ -242,6 +242,30 @@ abstract class AppLocalizations {
   /// **'No areas to download'**
   String get noAreasSelected;
 
+  /// No description provided for @selectOfflineArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Select area'**
+  String get selectOfflineArea;
+
+  /// No description provided for @drawOfflineAreaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag on the map to draw the area to download.'**
+  String get drawOfflineAreaHint;
+
+  /// No description provided for @offlineMapsReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to use offline'**
+  String get offlineMapsReady;
+
+  /// No description provided for @offlineMapsDownloadRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Download required for the selected areas'**
+  String get offlineMapsDownloadRequired;
+
   /// No description provided for @deleteConfirmationTitle.
   ///
   /// In en, this message translates to:
@@ -427,6 +451,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Critically high'**
   String get maxErrorThreshold;
+
+  /// No description provided for @editThresholdValues.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise settings'**
+  String get editThresholdValues;
+
+  /// No description provided for @thresholdValueInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number.'**
+  String get thresholdValueInvalid;
+
+  /// No description provided for @thresholdValueOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Value is outside the slider range.'**
+  String get thresholdValueOutOfRange;
+
+  /// No description provided for @thresholdValuesOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a value at least as high as the previous threshold.'**
+  String get thresholdValuesOrder;
 
   /// No description provided for @mapSettings.
   ///
@@ -4320,6 +4368,24 @@ abstract class AppLocalizations {
   /// **'COLLISION'**
   String get collisionWarningLabel;
 
+  /// No description provided for @collisionMinSeparation.
+  ///
+  /// In en, this message translates to:
+  /// **'Min. separation'**
+  String get collisionMinSeparation;
+
+  /// No description provided for @collisionTimeToClosest.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to closest'**
+  String get collisionTimeToClosest;
+
+  /// No description provided for @collisionAltitudeDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude diff. now'**
+  String get collisionAltitudeDifference;
+
   /// No description provided for @pureTrackTitle.
   ///
   /// In en, this message translates to:
@@ -4589,6 +4655,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Traffic data sources'**
   String get settingsTrafficSources;
+
+  /// No description provided for @menuFlightAndMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight and map'**
+  String get menuFlightAndMap;
+
+  /// No description provided for @menuRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get menuRoute;
+
+  /// No description provided for @menuNoActiveRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'No active route'**
+  String get menuNoActiveRoute;
+
+  /// No description provided for @menuActiveRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Active · {destination}'**
+  String menuActiveRoute(String destination);
+
+  /// No description provided for @menuFavoritePlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite places'**
+  String get menuFavoritePlaces;
+
+  /// No description provided for @menuDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get menuDone;
+
+  /// No description provided for @menuOfflineDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading maps'**
+  String get menuOfflineDownloading;
+
+  /// No description provided for @menuOfflineDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded {date}'**
+  String menuOfflineDownloaded(DateTime date);
+
+  /// No description provided for @menuMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get menuMap;
+
+  /// No description provided for @menuMapSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance, zoom and widget layout'**
+  String get menuMapSummary;
+
+  /// No description provided for @menuUnitsAndLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Units and limits'**
+  String get menuUnitsAndLimits;
+
+  /// No description provided for @menuUnitsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{speed} · {altitude} · aircraft limits'**
+  String menuUnitsSummary(String speed, String altitude);
+
+  /// No description provided for @menuTrafficAndAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic and alerts'**
+  String get menuTrafficAndAlerts;
+
+  /// No description provided for @menuCollisionAlertsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Collision alerts on'**
+  String get menuCollisionAlertsOn;
+
+  /// No description provided for @menuCollisionAlertsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Collision alerts off'**
+  String get menuCollisionAlertsOff;
+
+  /// No description provided for @menuInstrumentsAndConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Instruments and connection'**
+  String get menuInstrumentsAndConnection;
+
+  /// No description provided for @menuGatewayConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Gateway connected'**
+  String get menuGatewayConnected;
+
+  /// No description provided for @menuGatewayDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Gateway disconnected'**
+  String get menuGatewayDisconnected;
+
+  /// No description provided for @menuSearchingGateways.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for gateways…'**
+  String get menuSearchingGateways;
+
+  /// No description provided for @menuFindGateways.
+  ///
+  /// In en, this message translates to:
+  /// **'Search again'**
+  String get menuFindGateways;
 }
 
 class _AppLocalizationsDelegate

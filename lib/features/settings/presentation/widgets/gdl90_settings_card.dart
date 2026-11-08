@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../telemetry/presentation/providers/gdl90_provider.dart';
 import '../providers/settings_provider.dart';
+import 'settings_widgets.dart';
 
 class Gdl90SettingsCard extends ConsumerStatefulWidget {
   const Gdl90SettingsCard({super.key});
@@ -188,7 +189,7 @@ class _Gdl90SettingsCardState extends ConsumerState<Gdl90SettingsCard> {
                         ),
                       ],
                     ),
-                    Slider(
+                    SettingsSlider(
                       value: settings.gdl90TargetExpirySeconds.toDouble().clamp(
                         10.0,
                         300.0,

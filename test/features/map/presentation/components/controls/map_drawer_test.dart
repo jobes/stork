@@ -1,205 +1,369 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:maplibre/maplibre.dart' show Geographic;
 import 'package:stork/core/services/cannelloni_service_io.dart';
 import 'package:stork/core/services/mdns_service.dart';
+import 'package:stork/core/services/style_provider.dart';
+import 'package:stork/core/widgets/stork_navigation_tile.dart';
+import 'package:stork/features/map/presentation/components/controls/draggable_widget.dart';
+import 'package:stork/features/map/presentation/components/controls/map_controls.dart';
 import 'package:stork/features/map/presentation/components/controls/map_drawer.dart';
+import 'package:stork/features/map/presentation/pages/map_page.dart';
+import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
+import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
+import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
 import 'package:stork/features/settings/domain/models/aircraft.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/domain/models/cannelloni_device.dart';
 import 'package:stork/features/settings/domain/models/pilot.dart';
+import 'package:stork/features/settings/presentation/pages/settings_page.dart';
 import 'package:stork/features/settings/presentation/providers/aircraft_provider.dart';
 import 'package:stork/features/settings/presentation/providers/pilot_provider.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
+import 'package:stork/features/telemetry/domain/models/map_view_state.dart';
+import 'package:stork/features/telemetry/domain/models/resolved_altitude.dart';
+import 'package:stork/features/telemetry/presentation/providers/agl_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/traffic_provider.dart';
 import 'package:stork/l10n/app_localizations.dart';
 
-class _FakeSettingsNotifier extends AppSettingsNotifier {
-  _FakeSettingsNotifier(this.settings);
+const _gateway = CannelloniDevice(
+  name: 'Stork gateway',
+  hostname: 'gateway.local',
+  ip: '192.0.2.1',
+  port: 47998,
+);
 
-  final AppSettings settings;
+class _Settings extends AppSettingsNotifier {
+  @override
+  AppSettings build() => const AppSettings(
+    pilotId: 'pilot',
+    airplaneId: 'aircraft',
+    selectedDevice: _gateway,
+  );
 
   @override
-  Future<AppSettings> build() async => settings;
+  Future<SettingsUpdateResult> updateAreWidgetsDraggable(bool enabled) async {
+    state = AsyncData(
+      state.requireValue.copyWith(areWidgetsDraggable: enabled),
+    );
+    return const SettingsUpdateSuccess();
+  }
 }
 
-class _FakePilotState extends PilotState {
+class _Pilots extends PilotState {
   @override
-  FutureOr<List<Pilot>> build() async => const [];
+  List<Pilot> build() => [const Pilot(id: 'pilot', name: 'Alex')];
 }
 
-class _FakeAircraftState extends AircraftState {
+class _Aircraft extends AircraftState {
   @override
-  FutureOr<List<Aircraft>> build() async => const [];
+  List<Aircraft> build() => [const Aircraft(id: 'aircraft', name: 'OM-1234')];
 }
 
-class _ConnectedCannelloniService extends CannelloniService {
+class _Navigation extends NavigationNotifier {
+  _Navigation(this.navigation);
+
+  final NavigationState navigation;
+
   @override
-  bool build() => true;
+  NavigationState build() => navigation;
 }
 
-class _DisconnectedCannelloniService extends CannelloniService {
+class _OfflineMaps extends OfflineMapsNotifier {
+  _OfflineMaps(this.maps);
+
+  final OfflineMapsState maps;
+
+  @override
+  OfflineMapsState build() => maps;
+}
+
+class _DisconnectedGateway extends CannelloniService {
   @override
   bool build() => false;
-
-  void connectForTesting() {
-    state = true;
-  }
 }
 
-/// The drawer header has a fixed height and overflows in the default test
-/// surface; that pre-existing layout issue is unrelated to these tests.
-Future<void> _ignoreOverflow(Future<void> Function() body) async {
-  final reportedErrors = <FlutterErrorDetails>[];
-  final previousOnError = FlutterError.onError;
-  FlutterError.onError = reportedErrors.add;
-  try {
-    await body();
-  } finally {
-    FlutterError.onError = previousOnError;
-  }
+class _MapCamera extends MapCamera {
+  @override
+  void build() {}
 
-  for (final details in reportedErrors) {
-    if (!details.exceptionAsString().contains('overflowed')) {
-      Error.throwWithStackTrace(
-        details.exception,
-        details.stack ?? StackTrace.current,
-      );
-    }
-  }
+  @override
+  Future<void> autoStartGps() async {}
 }
 
-Future<void> _pumpDrawer(
+class _Telemetry extends TelemetryNotifier {
+  @override
+  TelemetryState build() =>
+      const TelemetryState(mapViewState: MapViewState.overview);
+}
+
+class _MapStub extends StatelessWidget {
+  const _MapStub();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(drawer: MapDrawer());
+}
+
+Future<ProviderContainer> _pumpDrawer(
   WidgetTester tester, {
-  required bool connected,
-  CannelloniDevice? selectedDevice,
-  List<CannelloniDevice> discoveredDevices = const [],
-}) {
-  return _ignoreOverflow(() async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          appSettingsProvider.overrideWith(
-            () => _FakeSettingsNotifier(
-              AppSettings(selectedDevice: selectedDevice),
-            ),
+  NavigationState navigation = const NavigationState(),
+  OfflineMapsState? maps,
+  double textScale = 1,
+  Locale locale = const Locale('en'),
+  bool useMapPage = false,
+}) async {
+  final router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (_, _) => useMapPage ? const MapPage() : const _MapStub(),
+      ),
+      GoRoute(path: '/settings', builder: (_, _) => const SettingsPage()),
+    ],
+  );
+  final container = ProviderContainer(
+    retry: (_, _) => null,
+    overrides: [
+      appSettingsProvider.overrideWith(_Settings.new),
+      pilotStateProvider.overrideWith(_Pilots.new),
+      aircraftStateProvider.overrideWith(_Aircraft.new),
+      navigationProvider.overrideWith(() => _Navigation(navigation)),
+      offlineMapsProvider.overrideWith(
+        () => _OfflineMaps(maps ?? OfflineMapsState()),
+      ),
+      cannelloniServiceProvider.overrideWith(_DisconnectedGateway.new),
+      discoveredDevicesProvider.overrideWith((ref) => Stream.value([])),
+      if (useMapPage) ...[
+        mapStyleProvider.overrideWith((ref) => throw StateError('Test map')),
+        mapCameraProvider.overrideWith(_MapCamera.new),
+        telemetryProvider.overrideWith(_Telemetry.new),
+        activeCollisionAlertProvider.overrideWith((ref) => null),
+        aglProvider.overrideWith(
+          (ref) => const AglState(
+            resolvedAltitude: ResolvedAltitude(source: AltitudeSource.none),
           ),
-          pilotStateProvider.overrideWith(_FakePilotState.new),
-          aircraftStateProvider.overrideWith(_FakeAircraftState.new),
-          cannelloniServiceProvider.overrideWith(
-            () => connected
-                ? _ConnectedCannelloniService()
-                : _DisconnectedCannelloniService(),
-          ),
-          discoveredDevicesProvider.overrideWith(
-            (ref) => Stream.value(discoveredDevices),
-          ),
-        ],
-        child: const MaterialApp(
-          locale: Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(drawer: MapDrawer(), body: SizedBox.shrink()),
+        ),
+      ],
+    ],
+  );
+  addTearDown(router.dispose);
+  addTearDown(container.dispose);
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp.router(
+        routerConfig: router,
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
         ),
       ),
-    );
+    ),
+  );
 
-    tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
-    await tester.pumpAndSettle();
-  });
+  tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
+  await tester.pumpAndSettle();
+  return container;
+}
+
+Future<void> _enableEditingInMapSettings(WidgetTester tester) async {
+  await tester.tap(find.text('Settings'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Map'));
+  await tester.pumpAndSettle();
+
+  final moveWidgets = find.widgetWithText(SwitchListTile, 'Move widgets');
+  await tester.scrollUntilVisible(
+    moveWidgets,
+    100,
+    scrollable: find.byType(Scrollable),
+  );
+  await tester.tap(moveWidgets);
+  await tester.pumpAndSettle();
+
+  await tester.pageBack();
+  await tester.pumpAndSettle();
+  await tester.pageBack();
+  await tester.pumpAndSettle();
 }
 
 void main() {
-  const gateway = CannelloniDevice(
-    name: 'avionics-dronecan._cannelloni._udp.local',
-    hostname: 'gateway.local',
-    ip: '192.168.1.10',
-    port: 47998,
+  final area = OfflineMapArea(
+    id: 'area',
+    northwest: const Geographic(lat: 49, lon: 17),
+    southeast: const Geographic(lat: 48, lon: 18),
   );
 
-  testWidgets('shows the DroneCAN instruments entry when connected', (
-    tester,
-  ) async {
-    await _pumpDrawer(tester, connected: true);
-
-    expect(find.text('DroneCAN instruments'), findsOneWidget);
-  });
-
   testWidgets(
-    'shows the DroneCAN instruments entry with a discovered gateway',
+    'shows the active crew, destination and offline map download date',
     (tester) async {
       await _pumpDrawer(
         tester,
-        connected: false,
-        selectedDevice: gateway,
-        discoveredDevices: const [gateway],
+        navigation: const NavigationState(
+          isActive: true,
+          points: [
+            NavigationPoint(latitude: 48.7, longitude: 17.7, name: 'Waypoint'),
+            NavigationPoint(latitude: 48.6, longitude: 17.8, name: 'Piešťany'),
+          ],
+        ),
+        maps: OfflineMapsState(
+          isDownloaded: true,
+          regions: [area],
+          downloadDate: DateTime(2026, 11, 6),
+        ),
       );
 
-      expect(find.text('DroneCAN instruments'), findsOneWidget);
+      expect(find.text('Alex'), findsOneWidget);
+      expect(find.text('OM-1234'), findsOneWidget);
+      expect(find.text('Active · Piešťany'), findsOneWidget);
+      expect(find.text('Downloaded Nov 6, 2026'), findsOneWidget);
+      final tiles = tester.widgetList<StorkNavigationTile>(
+        find.byType(StorkNavigationTile),
+      );
+      expect(tiles.map((tile) => tile.title), [
+        'Route',
+        'Flight Records',
+        'Favorite places',
+        'Offline maps',
+        'Settings',
+      ]);
+      expect(tiles.where((tile) => tile.highlighted).single.title, 'Route');
     },
   );
 
-  testWidgets('hides the entry when the selected gateway is not discovered', (
-    tester,
-  ) async {
-    await _pumpDrawer(tester, connected: false, selectedDevice: gateway);
-
-    expect(find.text('DroneCAN instruments'), findsNothing);
-  });
-
-  testWidgets('hides the DroneCAN instruments entry when disconnected', (
-    tester,
-  ) async {
-    await _pumpDrawer(tester, connected: false);
-
-    expect(find.text('DroneCAN instruments'), findsNothing);
-    expect(find.text('Flight Records'), findsOneWidget);
-  });
-
-  testWidgets('reacts when the DroneCAN connection becomes active', (
-    tester,
-  ) async {
-    final container = ProviderContainer(
-      overrides: [
-        appSettingsProvider.overrideWith(
-          () => _FakeSettingsNotifier(const AppSettings()),
-        ),
-        pilotStateProvider.overrideWith(_FakePilotState.new),
-        aircraftStateProvider.overrideWith(_FakeAircraftState.new),
-        cannelloniServiceProvider.overrideWith(
-          _DisconnectedCannelloniService.new,
-        ),
-        discoveredDevicesProvider.overrideWith(
-          (ref) => Stream.value(const <CannelloniDevice>[]),
-        ),
-      ],
+  testWidgets('formats the download date in Slovak', (tester) async {
+    await _pumpDrawer(
+      tester,
+      locale: const Locale('sk'),
+      maps: OfflineMapsState(
+        regions: [area],
+        isDownloaded: true,
+        downloadDate: DateTime(2026, 11, 6),
+      ),
     );
-    addTearDown(container.dispose);
 
-    await _ignoreOverflow(() async {
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(
-            locale: Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(drawer: MapDrawer(), body: SizedBox.shrink()),
-          ),
-        ),
-      );
-      tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
-      await tester.pumpAndSettle();
-      expect(find.text('DroneCAN instruments'), findsNothing);
+    expect(find.text('Stiahnuté 6. 11. 2026'), findsOneWidget);
+  });
 
-      final service =
-          container.read(cannelloniServiceProvider.notifier)
-              as _DisconnectedCannelloniService;
-      service.connectForTesting();
-      await tester.pumpAndSettle();
+  testWidgets('shows download required instead of a stale download date', (
+    tester,
+  ) async {
+    await _pumpDrawer(
+      tester,
+      maps: OfflineMapsState(
+        regions: [area],
+        downloadDate: DateTime(2026, 11, 6),
+      ),
+    );
 
-      expect(find.text('DroneCAN instruments'), findsOneWidget);
-    });
+    expect(
+      find.text('Download required for the selected areas'),
+      findsOneWidget,
+    );
+    expect(find.text('Downloaded Nov 6, 2026'), findsNothing);
+  });
+
+  testWidgets('finishes widget editing from the map controls', (tester) async {
+    final container = await _pumpDrawer(tester, useMapPage: true);
+
+    await _enableEditingInMapSettings(tester);
+    expect(
+      tester.state<ScaffoldState>(find.byType(Scaffold)).isDrawerOpen,
+      isFalse,
+    );
+    expect(
+      container.read(appSettingsProvider).requireValue.areWidgetsDraggable,
+      isTrue,
+    );
+
+    final done = find.descendant(
+      of: find.byType(MapControls),
+      matching: find.widgetWithText(FilledButton, 'Done'),
+    );
+    expect(done.hitTestable(), findsOneWidget);
+    await tester.tap(done);
+    await tester.pumpAndSettle();
+
+    expect(done, findsNothing);
+    expect(
+      container.read(appSettingsProvider).requireValue.areWidgetsDraggable,
+      isFalse,
+    );
+    final widgets = tester.widgetList<DraggableWidget>(
+      find.byType(DraggableWidget),
+    );
+    expect(widgets, hasLength(4));
+    expect(widgets.every((widget) => !widget.isDraggable), isTrue);
+  });
+
+  testWidgets('system back finishes editing without leaving the map', (
+    tester,
+  ) async {
+    final container = await _pumpDrawer(tester, useMapPage: true);
+    final map = tester.state(find.byType(MapPage));
+    await _enableEditingInMapSettings(tester);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(tester.state(find.byType(MapPage)), same(map));
+    expect(
+      container.read(appSettingsProvider).requireValue.areWidgetsDraggable,
+      isFalse,
+    );
+  });
+
+  testWidgets('reaches disconnected gateway settings and returns to the map', (
+    tester,
+  ) async {
+    await _pumpDrawer(tester);
+    final map = tester.state<ScaffoldState>(find.byType(Scaffold));
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+    expect(map.isDrawerOpen, isFalse);
+
+    await tester.tap(find.text('Instruments and connection'));
+    await tester.pumpAndSettle();
+    expect(find.text('Gateway disconnected'), findsOneWidget);
+    expect(find.text('gateway.local'), findsOneWidget);
+    expect(find.text('DroneCAN instruments'), findsOneWidget);
+    expect(find.text('Search again'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(tester.state<ScaffoldState>(find.byType(Scaffold)), same(map));
+  });
+
+  testWidgets('can scroll to settings in landscape with large text', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(892, 412);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await _pumpDrawer(tester, textScale: 2);
+
+    final settings = find.byIcon(Icons.settings_outlined);
+    await tester.scrollUntilVisible(
+      settings,
+      100,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.pumpAndSettle();
+    expect(settings.hitTestable(), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

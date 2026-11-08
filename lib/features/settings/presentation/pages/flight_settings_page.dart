@@ -15,6 +15,14 @@ import '../widgets/number_input.dart';
 import '../widgets/thresholds_slider.dart';
 import '../widgets/stork_settings_section.dart';
 
+const _flightThresholdStates = [
+  ThresholdState.inactive,
+  ThresholdState.minError,
+  ThresholdState.minWarning,
+  ThresholdState.maxWarning,
+  ThresholdState.maxError,
+];
+
 class FlightSettingsPage extends ConsumerWidget {
   const FlightSettingsPage({super.key});
 
@@ -28,7 +36,7 @@ class FlightSettingsPage extends ConsumerWidget {
     };
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.flightSettings)),
+      appBar: AppBar(title: Text(l10n.menuUnitsAndLimits)),
       body: settingsAsync.when(
         data: (settings) {
           final speedUnit = settings.speedUnit;
@@ -416,6 +424,8 @@ class FlightSettingsPage extends ConsumerWidget {
                         settings.flightSpeedMaxRange,
                       ),
                       evaluate: currentThresholds.evaluate,
+                      settingsTitle: l10n.flightSpeed,
+                      thresholdStates: _flightThresholdStates,
                       unitLabel: settings.speedUnit.getAbbreviation(l10n),
                       values: [
                         currentThresholds.inactiveMax!,
@@ -528,6 +538,8 @@ class FlightSettingsPage extends ConsumerWidget {
                       min: tempUnit.convertFromKelvin(273.15), // 0 °C
                       max: tempUnit.convertFromKelvin(settings.oilTempMaxRange),
                       evaluate: currentOilThresholds.evaluate,
+                      settingsTitle: l10n.oilTemperatureSettings,
+                      thresholdStates: _flightThresholdStates,
                       unitLabel: tempUnit.getAbbreviation(),
                       values: [
                         currentOilThresholds.inactiveMax!,
@@ -611,6 +623,8 @@ class FlightSettingsPage extends ConsumerWidget {
                         settings.oilPressureMaxRange,
                       ),
                       evaluate: currentOilPressureThresholds.evaluate,
+                      settingsTitle: l10n.oilPressureSettings,
+                      thresholdStates: _flightThresholdStates,
                       unitLabel: pressureUnit.getAbbreviation(),
                       decimalPlaces: pressureUnit == PressureUnit.bar ? 1 : 0,
                       values: [
@@ -720,6 +734,11 @@ class FlightSettingsPage extends ConsumerWidget {
                       min: 0.0,
                       max: 100.0,
                       evaluate: settings.fuelThresholds.evaluate,
+                      settingsTitle: l10n.fuelTankStatusSettings,
+                      thresholdStates: const [
+                        ThresholdState.minError,
+                        ThresholdState.minWarning,
+                      ],
                       unitLabel: '%',
                       decimalPlaces: 0,
                       values: [
@@ -757,6 +776,8 @@ class FlightSettingsPage extends ConsumerWidget {
                       min: tempUnit.convertFromKelvin(273.15), // 0 °C
                       max: tempUnit.convertFromKelvin(settings.egtMaxRange),
                       evaluate: currentEgtThresholds.evaluate,
+                      settingsTitle: l10n.egtTemperatureSettings,
+                      thresholdStates: _flightThresholdStates,
                       unitLabel: tempUnit.getAbbreviation(),
                       values: [
                         currentEgtThresholds.inactiveMax!,
@@ -841,6 +862,8 @@ class FlightSettingsPage extends ConsumerWidget {
                       min: tempUnit.convertFromKelvin(273.15), // 0 °C
                       max: tempUnit.convertFromKelvin(settings.chtMaxRange),
                       evaluate: currentChtThresholds.evaluate,
+                      settingsTitle: l10n.chtTemperatureSettings,
+                      thresholdStates: _flightThresholdStates,
                       unitLabel: tempUnit.getAbbreviation(),
                       values: [
                         currentChtThresholds.inactiveMax!,
@@ -925,6 +948,8 @@ class FlightSettingsPage extends ConsumerWidget {
                       min: 0.0,
                       max: settings.rpmMaxRange,
                       evaluate: currentRpmThresholds.evaluate,
+                      settingsTitle: l10n.rpmThresholds,
+                      thresholdStates: _flightThresholdStates,
                       unitLabel: l10n.engineRpmShort,
                       values: [
                         currentRpmThresholds.inactiveMax!,

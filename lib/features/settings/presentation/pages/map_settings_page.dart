@@ -56,7 +56,7 @@ class MapSettingsPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.mapSettings)),
+      appBar: AppBar(title: Text(l10n.menuMap)),
       body: settingsAsync.when(
         data: (settings) => StorkSettingsPageContent(
           children: [
