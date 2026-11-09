@@ -42,6 +42,31 @@ class MapPage extends ConsumerStatefulWidget {
 
 class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   bool _isDrawerOpen = false;
+  final _mapStackKey = GlobalKey();
+  final _compassKey = GlobalKey();
+  final _menuButtonKey = GlobalKey();
+  final _gpsButtonKey = GlobalKey();
+  final _doneButtonKey = GlobalKey();
+  final _widgetKeys = <String, GlobalKey>{};
+
+  Iterable<Rect> _dragObstacles(String widgetId) sync* {
+    final stack = _mapStackKey.currentContext?.findRenderObject();
+    if (stack is! RenderBox) return;
+
+    for (final key in [
+      _compassKey,
+      _menuButtonKey,
+      _gpsButtonKey,
+      _doneButtonKey,
+      for (final entry in _widgetKeys.entries)
+        if (entry.key != widgetId) entry.value,
+    ]) {
+      final box = key.currentContext?.findRenderObject();
+      if (box is RenderBox && box.attached && box.hasSize) {
+        yield box.localToGlobal(Offset.zero, ancestor: stack) & box.size;
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -137,7 +162,8 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
       final double top = currentY;
       currentX += width + itemGap;
       return MapWidgetWrapper(
-        key: ValueKey(id),
+        key: _widgetKeys.putIfAbsent(id, GlobalKey.new),
+        dragObstacles: () => _dragObstacles(id),
         widgetId: id,
         defaultTop: top,
         defaultLeft: left,
@@ -167,6 +193,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
       body: AbsorbPointer(
         absorbing: _isDrawerOpen,
         child: Stack(
+          key: _mapStackKey,
           children: [
             styleAsync.when(
               data: (style) {
@@ -214,7 +241,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
               top: 0,
               left: 0,
               right: 0,
-              child: AbsorbPointer(child: const CompassBar()),
+              child: AbsorbPointer(key: _compassKey, child: const CompassBar()),
             ),
             if (mapViewState != MapViewState.init || isEditingWidgets) ...[
               buildWidget('speed_widget', 150.0, const SpeedTelemetryWidget()),
@@ -270,7 +297,11 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
               if (navigationAsync.value?.isActive == true &&
                   navigationAsync.value?.points.isNotEmpty == true)
                 MapWidgetWrapper(
-                  key: const ValueKey('navigation_widget'),
+                  key: _widgetKeys.putIfAbsent(
+                    'navigation_widget',
+                    GlobalKey.new,
+                  ),
+                  dragObstacles: () => _dragObstacles('navigation_widget'),
                   widgetId: 'navigation_widget',
                   defaultTop: currentY + rowHeight + itemGap,
                   defaultLeft: 16.0,
@@ -280,6 +311,9 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
             Builder(
               builder: (context) => MapControls(
                 mapViewState: mapViewState,
+                menuButtonKey: _menuButtonKey,
+                gpsButtonKey: _gpsButtonKey,
+                doneButtonKey: _doneButtonKey,
                 onMenuPressed: () => Scaffold.of(context).openDrawer(),
                 onGpsPressed: cameraController.handleGpsToggle,
                 onFinishEditing: isEditingWidgets ? _finishEditing : null,

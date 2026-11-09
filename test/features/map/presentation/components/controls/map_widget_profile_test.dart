@@ -72,15 +72,21 @@ void main() {
         expect(tester.getTopLeft(find.byKey(instrument)), const Offset(16, 50));
         await notifier.updateAreWidgetsDraggable(true);
         await tester.pumpAndSettle();
-        await tester.drag(find.byKey(instrument), const Offset(80, 60));
+        expect(tester.getTopLeft(find.byKey(instrument)), const Offset(16, 50));
+        await tester.drag(find.byKey(instrument), const Offset(2000, 2000));
         await tester.pumpAndSettle();
         final moved = container
             .read(appSettingsProvider)
             .value!
             .widgetPositions['instrument']!;
-        expect(moved.left, greaterThan(16));
-        expect(moved.top, greaterThan(50));
+        final viewport = tester.getSize(find.byType(Scaffold));
+        final edgePosition = Offset(viewport.width - 100, viewport.height - 40);
+        expect(Offset(moved.left, moved.top), edgePosition);
+        expect(tester.getTopLeft(find.byKey(instrument)), edgePosition);
+
         await notifier.updateAreWidgetsDraggable(false);
+        await tester.pumpAndSettle();
+        expect(tester.getTopLeft(find.byKey(instrument)), edgePosition);
         await notifier.updatePilotId('a');
         await tester.pumpAndSettle();
         expect(

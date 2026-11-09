@@ -7,9 +7,11 @@ import 'package:stork/core/services/cannelloni_service_io.dart';
 import 'package:stork/core/services/mdns_service.dart';
 import 'package:stork/core/services/style_provider.dart';
 import 'package:stork/core/widgets/stork_navigation_tile.dart';
+import 'package:stork/features/map/presentation/components/controls/compass_bar.dart';
 import 'package:stork/features/map/presentation/components/controls/draggable_widget.dart';
 import 'package:stork/features/map/presentation/components/controls/map_controls.dart';
 import 'package:stork/features/map/presentation/components/controls/map_drawer.dart';
+import 'package:stork/features/map/presentation/components/controls/map_widget_wrapper.dart';
 import 'package:stork/features/map/presentation/pages/map_page.dart';
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
@@ -19,6 +21,7 @@ import 'package:stork/features/settings/domain/models/aircraft.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/domain/models/cannelloni_device.dart';
 import 'package:stork/features/settings/domain/models/pilot.dart';
+import 'package:stork/features/settings/domain/models/widget_position.dart';
 import 'package:stork/features/settings/presentation/pages/settings_page.dart';
 import 'package:stork/features/settings/presentation/providers/aircraft_provider.dart';
 import 'package:stork/features/settings/presentation/providers/pilot_provider.dart';
@@ -38,17 +41,38 @@ const _gateway = CannelloniDevice(
 );
 
 class _Settings extends AppSettingsNotifier {
+  _Settings(this.widgetPositions);
+
+  final Map<String, WidgetPosition> widgetPositions;
   @override
-  AppSettings build() => const AppSettings(
+  AppSettings build() => AppSettings(
     pilotId: 'pilot',
     airplaneId: 'aircraft',
     selectedDevice: _gateway,
+    widgetPositions: widgetPositions,
   );
 
   @override
   Future<SettingsUpdateResult> updateAreWidgetsDraggable(bool enabled) async {
     state = AsyncData(
       state.requireValue.copyWith(areWidgetsDraggable: enabled),
+    );
+    return const SettingsUpdateSuccess();
+  }
+
+  @override
+  Future<SettingsUpdateResult> updateWidgetPosition(
+    String widgetId,
+    double top,
+    double left,
+  ) async {
+    state = AsyncData(
+      state.requireValue.copyWith(
+        widgetPositions: {
+          ...state.requireValue.widgetPositions,
+          widgetId: WidgetPosition(top: top, left: left),
+        },
+      ),
     );
     return const SettingsUpdateSuccess();
   }
@@ -115,6 +139,7 @@ Future<ProviderContainer> _pumpDrawer(
   double textScale = 1,
   Locale locale = const Locale('en'),
   bool useMapPage = false,
+  Map<String, WidgetPosition> widgetPositions = const {},
 }) async {
   final router = GoRouter(
     routes: [
@@ -128,7 +153,7 @@ Future<ProviderContainer> _pumpDrawer(
   final container = ProviderContainer(
     retry: (_, _) => null,
     overrides: [
-      appSettingsProvider.overrideWith(_Settings.new),
+      appSettingsProvider.overrideWith(() => _Settings(widgetPositions)),
       pilotStateProvider.overrideWith(_Pilots.new),
       aircraftStateProvider.overrideWith(_Aircraft.new),
       navigationProvider.overrideWith(() => _Navigation(navigation)),
@@ -187,7 +212,8 @@ Future<void> _enableEditingInMapSettings(WidgetTester tester) async {
     100,
     scrollable: find.byType(Scrollable),
   );
-  await tester.tap(moveWidgets);
+  await tester.pumpAndSettle();
+  await tester.tap(moveWidgets.hitTestable());
   await tester.pumpAndSettle();
 
   await tester.pageBack();
@@ -223,6 +249,7 @@ void main() {
       );
 
       expect(find.text('Alex'), findsOneWidget);
+      expect(find.text('Move widgets'), findsNothing);
       expect(find.text('OM-1234'), findsOneWidget);
       expect(find.text('Active · Piešťany'), findsOneWidget);
       expect(find.text('Downloaded Nov 6, 2026'), findsOneWidget);
@@ -270,6 +297,68 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Downloaded Nov 6, 2026'), findsNothing);
+  });
+
+  testWidgets('dragging stops at instruments, compass and map buttons', (
+    tester,
+  ) async {
+    final container = await _pumpDrawer(
+      tester,
+      useMapPage: true,
+      widgetPositions: const {
+        'speed_widget': WidgetPosition(top: 200, left: 180),
+        'altitude_widget': WidgetPosition(top: 200, left: 400),
+        'vario_widget': WidgetPosition(top: 400, left: 180),
+        'flight_time_widget': WidgetPosition(top: 400, left: 400),
+      },
+    );
+    await _enableEditingInMapSettings(tester);
+
+    Finder instrument(String id) => find.byWidgetPredicate(
+      (widget) => widget is MapWidgetWrapper && widget.widgetId == id,
+    );
+    final speed = instrument('speed_widget');
+
+    Future<void> drag(Offset delta) async {
+      final gesture = await tester.startGesture(tester.getCenter(speed));
+      await gesture.moveBy(Offset(20 * delta.dx.sign, 20 * delta.dy.sign));
+      await gesture.moveBy(delta);
+      await tester.pumpAndSettle();
+      await gesture.up();
+      await tester.pumpAndSettle();
+    }
+
+    final altitude = tester.getRect(instrument('altitude_widget'));
+    await drag(const Offset(500, 0));
+    expect(tester.getRect(speed).right, closeTo(altitude.left, 0.01));
+
+    await drag(const Offset(-100, 0));
+    await drag(const Offset(0, -300));
+    final compass = tester.getRect(find.byType(CompassBar));
+    expect(tester.getRect(speed).top, closeTo(compass.bottom, 0.01));
+
+    final controls = find.byType(MapControls);
+    final buttons = find.descendant(
+      of: controls,
+      matching: find.byType(IconButton),
+    );
+    final menu = tester.getRect(buttons.first);
+    final gps = tester.getRect(buttons.last);
+    await drag(const Offset(0, 140));
+    await drag(const Offset(-500, 0));
+    await drag(const Offset(0, -300));
+    expect(tester.getRect(speed).top, closeTo(menu.bottom, 0.01));
+
+    await drag(const Offset(0, 220));
+    await drag(const Offset(800, 0));
+    await drag(const Offset(0, -300));
+    expect(tester.getRect(speed).top, closeTo(gps.bottom, 0.01));
+
+    final saved = container
+        .read(appSettingsProvider)
+        .requireValue
+        .widgetPositions['speed_widget']!;
+    expect(saved.top, closeTo(gps.bottom, 0.01));
   });
 
   testWidgets('finishes widget editing from the map controls', (tester) async {

@@ -9,6 +9,7 @@ class MapWidgetWrapper extends ConsumerWidget {
   final Widget child;
   final double defaultTop;
   final double defaultLeft;
+  final Iterable<Rect> Function()? dragObstacles;
 
   const MapWidgetWrapper({
     super.key,
@@ -16,6 +17,7 @@ class MapWidgetWrapper extends ConsumerWidget {
     required this.child,
     this.defaultTop = 50.0,
     this.defaultLeft = 16.0,
+    this.dragObstacles,
   });
 
   @override
@@ -32,6 +34,7 @@ class MapWidgetWrapper extends ConsumerWidget {
       initialTop: position?.top ?? defaultTop,
       initialLeft: position?.left ?? defaultLeft,
       isDraggable: isDraggable,
+      dragObstacles: dragObstacles,
       onDragEnd: (top, left) {
         ref
             .read(appSettingsProvider.notifier)

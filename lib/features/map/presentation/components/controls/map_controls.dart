@@ -8,6 +8,9 @@ class MapControls extends StatelessWidget {
   final VoidCallback onMenuPressed;
   final VoidCallback onGpsPressed;
   final VoidCallback? onFinishEditing;
+  final Key? menuButtonKey;
+  final Key? gpsButtonKey;
+  final Key? doneButtonKey;
 
   const MapControls({
     super.key,
@@ -15,6 +18,9 @@ class MapControls extends StatelessWidget {
     required this.onMenuPressed,
     required this.onGpsPressed,
     this.onFinishEditing,
+    this.menuButtonKey,
+    this.gpsButtonKey,
+    this.doneButtonKey,
   });
 
   @override
@@ -37,6 +43,7 @@ class MapControls extends StatelessWidget {
           children: [
             PointerInterceptor(
               child: IconButton.filled(
+                key: menuButtonKey,
                 style: IconButton.styleFrom(
                   elevation: 4,
                   shadowColor: Colors.black.withAlpha(76),
@@ -50,6 +57,7 @@ class MapControls extends StatelessWidget {
               Flexible(
                 child: PointerInterceptor(
                   child: FilledButton.icon(
+                    key: doneButtonKey,
                     icon: const Icon(Icons.check),
                     label: Text(l10n.menuDone),
                     onPressed: onFinishEditing,
@@ -58,6 +66,7 @@ class MapControls extends StatelessWidget {
               ),
             PointerInterceptor(
               child: IconButton.filled(
+                key: gpsButtonKey,
                 style: IconButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.tertiary,
                   foregroundColor: Theme.of(context).colorScheme.onTertiary,
