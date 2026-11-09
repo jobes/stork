@@ -25,10 +25,20 @@ extension MapCameraInterpolation on MapCamera {
 
     final totalMs = duration.inMilliseconds <= 0 ? 1 : duration.inMilliseconds;
 
-    // Vsync-aligned Ticker instead of Timer.periodic: exactly one tick per
-    // rendered frame, so no camera/GeoJSON updates are wasted on frames that
-    // are never drawn, and ticking pauses automatically when the app stops
-    // producing frames (e.g. backgrounded).
+    // At flight zooms the overlays move little between display frames, but
+    // every GeoJSON update queues work for the Android map renderer.
+    final overlayInterval =
+        !kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.android &&
+            startZoom <= 13 &&
+            targetZoom <= 13
+        ? const Duration(milliseconds: 30)
+        : Duration.zero;
+    Duration? lastOverlayUpdate;
+    var courseAtTarget = false;
+
+    // Keep the camera synchronized with the display even when skipping an
+    // overlay update.
     _interpolationTicker = Ticker((elapsed) {
       if (!refAccess.mounted || _mapController == null) {
         _stopInterpolation();
@@ -68,22 +78,38 @@ extension MapCameraInterpolation on MapCamera {
       );
       _lastProgrammaticMoveTime = DateTime.now();
 
-      // Interpolate the course line symbol 2x faster for snappier tracking
-      double t2 = progress * 2;
-      if (t2 > 1.0) t2 = 1.0;
+      final previousOverlayUpdate = lastOverlayUpdate;
+      final courseReachedTarget = progress >= 0.5 && !courseAtTarget;
+      if (previousOverlayUpdate == null ||
+          elapsed - previousOverlayUpdate >= overlayInterval ||
+          courseReachedTarget ||
+          t >= 1.0) {
+        lastOverlayUpdate = elapsed;
+        courseAtTarget = progress >= 0.5;
 
-      final lat2 = _interpolateLinear(startCenter.lat, targetCenter.lat, t2);
-      final lon2 = _interpolateLinear(startCenter.lon, targetCenter.lon, t2);
-      final bearing2 = _interpolateAngle(startBearing, targetBearing, t2);
-
-      _updateAircraftAndCourseLine(
-        aircraftLat: lat,
-        aircraftLon: lon,
-        aircraftBearing: bearing,
-        courseLat: lat2,
-        courseLon: lon2,
-        courseBearing: bearing2,
-      );
+        // Interpolate the course line 2x faster for snappier tracking.
+        final courseProgress = math.min(progress * 2, 1.0);
+        _updateAircraftAndCourseLine(
+          aircraftLat: lat,
+          aircraftLon: lon,
+          aircraftBearing: bearing,
+          courseLat: _interpolateLinear(
+            startCenter.lat,
+            targetCenter.lat,
+            courseProgress,
+          ),
+          courseLon: _interpolateLinear(
+            startCenter.lon,
+            targetCenter.lon,
+            courseProgress,
+          ),
+          courseBearing: _interpolateAngle(
+            startBearing,
+            targetBearing,
+            courseProgress,
+          ),
+        );
+      }
 
       if (t >= 1.0) {
         _stopInterpolation();

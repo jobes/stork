@@ -116,6 +116,26 @@ class MapSettingsPage extends ConsumerWidget {
                         .updateFollowZoom(val);
                   },
                 ),
+                const Divider(indent: 16, endIndent: 16),
+                SliderSetting(
+                  label: l10n.mapFollowPitch,
+                  value: settings.mapFollowPitch,
+                  min: 0.0,
+                  max: 60.0,
+                  divisions: 12,
+                  onChanged: (val) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateFollowPitch(val);
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Text(
+                    l10n.mapFollowPitchHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
               ],
             ),
             StorkSettingsSection(

@@ -162,6 +162,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapFollowZoom => 'Map Follow Zoom';
 
   @override
+  String get mapFollowPitch => 'Follow map tilt (°)';
+
+  @override
+  String get mapFollowPitchHint =>
+      'A steeper tilt improves the view ahead, but requires more processing power and may make the map stutter.';
+
+  @override
   String get resetSettings => 'Reset Settings';
 
   @override
@@ -2451,7 +2458,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMapAppearance => 'Map appearance';
 
   @override
-  String get settingsMapZoom => 'Map zoom levels';
+  String get settingsMapZoom => 'Map zoom and tilt';
 
   @override
   String get settingsWidgetLayout => 'Widget layout';

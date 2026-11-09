@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -56,6 +57,10 @@ class _FilteredTraffic extends FilteredTraffic {
 class _Settings extends AppSettingsNotifier {
   @override
   AppSettings build() => const AppSettings();
+
+  void setFollowPitch(double pitch) {
+    state = AsyncData(state.requireValue.copyWith(mapFollowPitch: pitch));
+  }
 }
 
 class _Navigation extends NavigationNotifier {
@@ -189,6 +194,29 @@ _setupFollow(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('follow applies a saved pitch change without a new GPS fix', (
+    tester,
+  ) async {
+    final (:map, :telemetry, camera: _, traffic: _) = await _setupFollow(
+      tester,
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Consumer)),
+    );
+    final settings = container.read(appSettingsProvider.notifier) as _Settings;
+
+    expect(map.camera.pitch, 30.0);
+    settings.setFollowPitch(60.0);
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(map.camera.pitch, 60.0);
+
+    telemetry.changeLatitude(48.01);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(map.camera.center.lat, closeTo(48.01, 1e-8));
+    expect(map.camera.pitch, 60.0);
+  });
+
   testWidgets('follow keeps the original camera and course interpolation', (
     tester,
   ) async {
@@ -229,6 +257,72 @@ void main() {
     expect(map.camera.center.lat, closeTo(48.01, 1e-8));
     expect(courseUpdates(), hasLength(updatesAtCourseEnd + 1));
   });
+
+  testWidgets('Android follow moves the camera between overlay updates', (
+    tester,
+  ) async {
+    final (:map, :telemetry, camera: _, traffic: _) = await _setupFollow(
+      tester,
+    );
+    telemetry.changeLatitude(48.01);
+    await tester.pump();
+
+    final aircraftUpdates = map.style.updates['aircraft-source']!;
+    final initialUpdates = aircraftUpdates.length;
+    final initialLatitude = map.camera.center.lat;
+
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(map.camera.center.lat, greaterThan(initialLatitude));
+    expect(aircraftUpdates, hasLength(initialUpdates));
+
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(aircraftUpdates, hasLength(initialUpdates + 1));
+
+    await tester.pump(const Duration(milliseconds: 955));
+    final beforeFinalTick = aircraftUpdates.length;
+    await tester.pump(const Duration(milliseconds: 13));
+    expect(aircraftUpdates, hasLength(beforeFinalTick + 1));
+    expect(map.camera.center.lat, closeTo(48.01, 1e-8));
+  }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+
+  testWidgets(
+    'identical traffic updates are skipped while threats still refresh',
+    (tester) async {
+      final (:map, :traffic, camera: _, telemetry: _) = await _setupFollow(
+        tester,
+      );
+      final aircraft = TrafficAircraft(
+        id: 'test',
+        callsign: 'TEST',
+        latitude: 48.02,
+        longitude: 17,
+        altitude: 800,
+        track: 0,
+        groundSpeed: 0,
+        verticalSpeed: 0,
+        aircraftType: 1,
+        lastSeen: DateTime(2026),
+      );
+      traffic.publish(aircraft);
+      final updates = map.style.updates['traffic-source']!;
+      expect(updates, hasLength(1));
+
+      traffic.publish(aircraft.copyWith());
+      expect(updates, hasLength(1));
+
+      final moved = aircraft.copyWith(latitude: 48.03);
+      traffic.publish(moved);
+      expect(updates, hasLength(2));
+
+      final threat = moved.copyWith(isCollisionThreat: true);
+      traffic.publish(threat);
+      traffic.publish(threat.copyWith());
+      expect(updates, hasLength(4));
+
+      traffic.publish(moved);
+      expect(updates, hasLength(5));
+    },
+  );
 
   testWidgets(
     'follow coalesces idle events and manual idle flushes immediately',

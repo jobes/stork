@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data' show Endian;
 
 import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart'
+    show TestDefaultBinaryMessengerBinding, TestWidgetsFlutterBinding;
+import 'package:stork/core/services/database/database_service.dart';
 import 'package:stork/core/services/map_assets_server.dart';
 import 'package:test/test.dart';
 
@@ -160,5 +164,103 @@ void main() {
         client.close(force: true);
       }
     });
+
+    test(
+      'shares archive reads, reuses tiles and retries failed reads',
+      () async {
+        final httpOverrides = HttpOverrides.current;
+        TestWidgetsFlutterBinding.ensureInitialized();
+        // This test uses real loopback HTTP for both ends of the request.
+        HttpOverrides.global = httpOverrides;
+        final directory = await Directory.systemTemp.createTemp(
+          'stork-map-assets',
+        );
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        const channel = MethodChannel('plugins.flutter.io/path_provider');
+        messenger.setMockMethodCallHandler(
+          channel,
+          (_) async => directory.path,
+        );
+        addTearDown(() async {
+          messenger.setMockMethodCallHandler(channel, null);
+          await directory.delete(recursive: true);
+        });
+        final database = await DatabaseService.database;
+
+        // PMTiles v3 with one uncompressed tile at z=0, x=0, y=0.
+        const payload = [1, 2, 3];
+        const tileOffset = 16384;
+        final archive = Uint8List(tileOffset + payload.length)
+          ..setAll(0, [...'PMTiles'.codeUnits, 3])
+          ..setAll(96, [1, 1, 1, 1])
+          ..setAll(127, [1, 0, 1, payload.length, 1])
+          ..setAll(tileOffset, payload);
+        ByteData.sublistView(archive)
+          ..setUint64(8, 127, Endian.little)
+          ..setUint64(16, 5, Endian.little)
+          ..setUint64(56, tileOffset, Endian.little)
+          ..setUint64(64, payload.length, Endian.little);
+
+        final backend = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        addTearDown(() => backend.close(force: true));
+        var tileReads = 0;
+        backend.listen((request) async {
+          final range = request.headers.value(HttpHeaders.rangeHeader)!;
+          final [start, end] = range
+              .substring(6)
+              .split('-')
+              .map(int.parse)
+              .toList();
+          if (start == tileOffset) {
+            tileReads++;
+            if (tileReads == 1) {
+              request.response.statusCode = HttpStatus.serviceUnavailable;
+              await request.response.close();
+              return;
+            }
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+          }
+          request.response
+            ..statusCode = HttpStatus.partialContent
+            ..contentLength = end - start + 1
+            ..add(Uint8List.sublistView(archive, start, end + 1));
+          await request.response.close();
+        });
+        const kind = 'cache-test';
+        MapAssetsServer.pmtilesUrls[kind] = 'http://127.0.0.1:${backend.port}';
+        addTearDown(() => MapAssetsServer.pmtilesUrls.remove(kind));
+        final client = HttpClient();
+        addTearDown(() => client.close(force: true));
+        final url = baseUri.replace(path: '/pmtiles/$kind/0/0/0.pbf');
+
+        Future<(int, List<int>)> readTile() async {
+          final response = await (await client.getUrl(url)).close();
+          return (
+            response.statusCode,
+            await response.expand((part) => part).toList(),
+          );
+        }
+
+        expect((await readTile()).$1, HttpStatus.notFound);
+        final pair = await Future.wait([readTile(), readTile()]);
+        for (final result in [...pair, await readTile()]) {
+          expect(result.$1, HttpStatus.ok);
+          expect(result.$2, payload);
+        }
+        expect(tileReads, 2);
+
+        final offlineTile = Uint8List.fromList([4, 5, 6]);
+        database.execute(
+          'INSERT INTO map_tiles (z, x, y, kind, tile_type, tile_data) '
+          'VALUES (0, 0, 0, ?, ?, ?)',
+          [kind, 'pbf', offlineTile],
+        );
+        final offline = await readTile();
+        expect(offline.$1, HttpStatus.ok);
+        expect(offline.$2, offlineTile);
+        expect(tileReads, 2);
+      },
+    );
   });
 }

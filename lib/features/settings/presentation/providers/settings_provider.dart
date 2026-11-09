@@ -199,6 +199,9 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<SettingsUpdateResult> updateFollowZoom(double zoom) =>
       _updateSettings((s) => s.copyWith(mapFollowZoom: zoom));
 
+  Future<SettingsUpdateResult> updateFollowPitch(double pitch) =>
+      _updateSettings((s) => s.copyWith(mapFollowPitch: pitch));
+
   Future<SettingsUpdateResult> updateSpeedUnit(SpeedUnit newUnit) {
     return _updateSettings((s) => s.copyWith(speedUnit: newUnit));
   }

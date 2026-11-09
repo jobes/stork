@@ -161,6 +161,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String get mapFollowZoom => 'Zoom sledovania mapy';
 
   @override
+  String get mapFollowPitch => 'Náklon mapy pri sledovaní (°)';
+
+  @override
+  String get mapFollowPitchHint =>
+      'Väčší náklon zlepší výhľad dopredu, ale vyžaduje vyšší výkon a mapa môže sekať.';
+
+  @override
   String get resetSettings => 'Resetovať nastavenia';
 
   @override
@@ -2464,7 +2471,7 @@ class AppLocalizationsSk extends AppLocalizations {
   String get settingsMapAppearance => 'Vzhľad mapy';
 
   @override
-  String get settingsMapZoom => 'Úrovne priblíženia mapy';
+  String get settingsMapZoom => 'Priblíženie a náklon mapy';
 
   @override
   String get settingsWidgetLayout => 'Rozloženie widgetov';

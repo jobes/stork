@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,8 @@ import 'package:pmtiles/pmtiles.dart';
 
 import 'database/database_service.dart';
 import 'protomaps_resolver.dart';
+
+typedef _ArchiveTileKey = (String, int, int, int);
 
 class MapAssetsServer {
   static HttpServer? _server;
@@ -20,6 +23,11 @@ class MapAssetsServer {
   };
 
   static final Map<String, Future<PmTilesArchive>> _archives = {};
+  static const _maxCachedArchiveTiles = 192;
+  static const _maxCachedArchiveBytes = 12 * 1024 * 1024;
+  static final _archiveTiles = LinkedHashMap<_ArchiveTileKey, List<int>>();
+  static final _pendingArchiveTiles = <_ArchiveTileKey, Future<List<int>>>{};
+  static int _cachedArchiveBytes = 0;
 
   static String get baseUrl {
     final url = _baseUrl;
@@ -75,6 +83,9 @@ class MapAssetsServer {
     _server = null;
     _baseUrl = null;
     _archives.clear();
+    _archiveTiles.clear();
+    _pendingArchiveTiles.clear();
+    _cachedArchiveBytes = 0;
   }
 
   static Future<void> _handleRequest(HttpRequest request) async {
@@ -138,10 +149,7 @@ class MapAssetsServer {
 
     // 2. Fallback: Remote PMTiles archive
     try {
-      final archive = await getArchive(id);
-      final tileId = ZXY(z, x, y).toTileId();
-      final remoteTile = await archive.tile(tileId);
-      final bytes = remoteTile.bytes();
+      final bytes = await _getArchiveTile(id, z, x, y);
 
       if (bytes.isNotEmpty) {
         final ext = yFile.contains('.')
@@ -157,6 +165,57 @@ class MapAssetsServer {
     }
 
     return _sendNotFound(request);
+  }
+
+  static Future<List<int>> _getArchiveTile(
+    String id,
+    int z,
+    int x,
+    int y,
+  ) async {
+    final key = (id, z, x, y);
+    final cached = _archiveTiles.remove(key);
+    if (cached != null) {
+      _archiveTiles[key] = cached;
+      return cached;
+    }
+
+    final pending = _pendingArchiveTiles[key];
+    if (pending != null) return pending;
+
+    final request = _readArchiveTile(id, z, x, y);
+    _pendingArchiveTiles[key] = request;
+    try {
+      final bytes = await request;
+      // A stopped server can still have archive reads finishing in the background.
+      if (identical(_pendingArchiveTiles[key], request) &&
+          bytes.isNotEmpty &&
+          bytes.length <= _maxCachedArchiveBytes) {
+        while (_archiveTiles.length >= _maxCachedArchiveTiles ||
+            _cachedArchiveBytes + bytes.length > _maxCachedArchiveBytes) {
+          final oldest = _archiveTiles.keys.first;
+          _cachedArchiveBytes -= _archiveTiles.remove(oldest)!.length;
+        }
+        _archiveTiles[key] = bytes;
+        _cachedArchiveBytes += bytes.length;
+      }
+      return bytes;
+    } finally {
+      if (identical(_pendingArchiveTiles[key], request)) {
+        _pendingArchiveTiles.remove(key);
+      }
+    }
+  }
+
+  static Future<List<int>> _readArchiveTile(
+    String id,
+    int z,
+    int x,
+    int y,
+  ) async {
+    final archive = await getArchive(id);
+    final tile = await archive.tile(ZXY(z, x, y).toTileId());
+    return tile.bytes();
   }
 
   static Future<void> _handleAssetRequest(

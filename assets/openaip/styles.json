@@ -63,6 +63,7 @@
       "source": "protomaps",
       "source-layer": "earth",
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#e2dfda"
       }
     },
@@ -71,7 +72,9 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "landcover",
+      "maxzoom": 7,
       "paint": {
+        "fill-antialias": false,
         "fill-color": [
           "match",
           [
@@ -112,6 +115,7 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "landuse",
+      "minzoom": 6,
       "filter": [
         "in",
         "kind",
@@ -133,6 +137,7 @@
         "airfield"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-opacity": [
           "interpolate",
           [
@@ -253,6 +258,7 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "landuse",
+      "minzoom": 13,
       "filter": [
         "in",
         "kind",
@@ -261,6 +267,7 @@
         "playground"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#9cd3b4",
         "fill-opacity": 0.7
       }
@@ -278,6 +285,7 @@
         "commercial"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#c8c8c8"
       }
     },
@@ -286,12 +294,14 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "landuse",
+      "minzoom": 13,
       "filter": [
         "==",
         "kind",
         "hospital"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#e4dad9"
       }
     },
@@ -306,6 +316,7 @@
         "industrial"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#d1dde1"
       }
     },
@@ -314,6 +325,7 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "landuse",
+      "minzoom": 13,
       "filter": [
         "in",
         "kind",
@@ -322,6 +334,7 @@
         "college"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#e4ded7"
       }
     },
@@ -330,12 +343,14 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "landuse",
+      "minzoom": 13,
       "filter": [
         "in",
         "kind",
         "beach"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#e8e4d0"
       }
     },
@@ -344,12 +359,14 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "landuse",
+      "minzoom": 13,
       "filter": [
         "in",
         "kind",
         "zoo"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#c6dcdc"
       }
     },
@@ -457,6 +474,7 @@
       "source": "protomaps",
       "source-layer": "water",
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#80deea"
       }
     },
@@ -512,6 +530,7 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "landuse",
+      "minzoom": 13,
       "filter": [
         "in",
         "kind",
@@ -519,6 +538,7 @@
         "dam"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#e3e0d4"
       }
     },
@@ -527,12 +547,14 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "landuse",
+      "minzoom": 13,
       "filter": [
         "==",
         "kind",
         "pier"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#e0e0e0"
       }
     },
@@ -541,6 +563,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 14,
       "filter": [
         "all",
         [
@@ -577,6 +600,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -634,6 +658,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -688,6 +713,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -747,6 +773,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -812,6 +839,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 14,
       "filter": [
         "all",
         [
@@ -852,6 +880,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -891,6 +920,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -927,6 +957,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -966,6 +997,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -1017,6 +1049,7 @@
       "type": "fill",
       "source": "protomaps",
       "source-layer": "buildings",
+      "minzoom": 14,
       "filter": [
         "in",
         "kind",
@@ -1024,6 +1057,7 @@
         "building_part"
       ],
       "paint": {
+        "fill-antialias": false,
         "fill-color": "#cccccc",
         "fill-opacity": 0.5
       }
@@ -1033,6 +1067,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "==",
         "kind_detail",
@@ -1122,6 +1157,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -1228,7 +1264,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -1286,7 +1322,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -1348,6 +1384,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 14,
       "filter": [
         "all",
         [
@@ -1397,6 +1434,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "has",
         "is_link"
@@ -1426,6 +1464,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -1470,6 +1509,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -1845,7 +1885,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 14,
       "filter": [
         "all",
         [
@@ -1882,7 +1922,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -1933,7 +1973,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -1987,7 +2027,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -2039,7 +2079,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 14,
       "filter": [
         "all",
         [
@@ -2080,7 +2120,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -2120,7 +2160,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -2197,7 +2237,7 @@
       "type": "line",
       "source": "protomaps",
       "source-layer": "roads",
-      "minzoom": 12,
+      "minzoom": 13,
       "filter": [
         "all",
         [
@@ -2328,7 +2368,7 @@
       "type": "symbol",
       "source": "protomaps",
       "source-layer": "water",
-      "minzoom": 13,
+      "minzoom": 14,
       "filter": [
         "in",
         "kind",
@@ -5959,6 +5999,7 @@
       "type": "symbol",
       "source": "protomaps",
       "source-layer": "pois",
+      "minzoom": 14,
       "filter": [
         "all",
         [
@@ -7996,13 +8037,18 @@
         "all",
         [
           "==",
-          "kind",
+          ["coalesce", ["get", "kind"], ""],
           "locality"
         ],
         [
           "!=",
-          "kind_detail",
+          ["coalesce", ["get", "kind_detail"], ""],
           "locality"
+        ],
+        [
+          ">=",
+          ["zoom"],
+          ["coalesce", ["get", "min_zoom"], 0]
         ]
       ],
       "layout": {

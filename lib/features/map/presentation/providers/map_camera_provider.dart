@@ -159,7 +159,7 @@ class MapCamera extends _$MapCamera {
               _startLinearInterpolation(
                 targetCenter: center,
                 targetZoom: settings?.mapFollowZoom ?? 12.0,
-                targetPitch: 60,
+                targetPitch: settings?.mapFollowPitch ?? 30.0,
                 targetBearing: next.heading ?? 0.0,
                 duration: _lastUpdateInterval,
               );
@@ -170,7 +170,7 @@ class MapCamera extends _$MapCamera {
                 moveCamera(
                   center: center,
                   zoom: settings?.mapFollowZoom ?? 12.0,
-                  pitch: 60,
+                  pitch: settings?.mapFollowPitch ?? 30.0,
                   bearing: next.heading ?? 0.0,
                   animate: true,
                 ),
@@ -211,14 +211,21 @@ class MapCamera extends _$MapCamera {
     );
 
     ref.listen(appSettingsProvider, (previous, next) {
+      final telemetry = ref.read(telemetryProvider);
+      final settings = next.value;
+      final previousPitch = previous?.value?.mapFollowPitch ?? 30.0;
+      if (settings != null &&
+          settings.mapFollowPitch != previousPitch &&
+          telemetry.mapViewState == MapViewState.follow &&
+          !_isFollowPaused) {
+        snapBackToAircraft(animate: false);
+      }
+
       if (_mapController == null ||
           !_isAircraftSymbolInitialized ||
           _mapController?.style == null) {
         return;
       }
-
-      final telemetry = ref.read(telemetryProvider);
-      final settings = next.value;
 
       unawaited(
         _updateCourseLineOnMap(
@@ -267,7 +274,9 @@ class MapCamera extends _$MapCamera {
     });
 
     ref.listen(filteredTrafficProvider, (previous, next) {
-      updateTrafficOnMap(next);
+      if (!_sameUnthreatenedTraffic(previous, next)) {
+        updateTrafficOnMap(next);
+      }
     });
 
     final trafficTimer = Timer.periodic(const Duration(seconds: 2), (_) {
@@ -316,6 +325,9 @@ class MapCamera extends _$MapCamera {
             lat: telemetry.latitude!,
           ),
           zoom: zoom,
+          pitch: telemetry.mapViewState == MapViewState.follow
+              ? settings.mapFollowPitch
+              : 0.0,
           animate: false,
         ),
       );
@@ -429,7 +441,7 @@ class MapCamera extends _$MapCamera {
     });
   }
 
-  void snapBackToAircraft() {
+  void snapBackToAircraft({bool animate = true}) {
     if (_mapController == null) return;
 
     final telemetry = ref.read(telemetryProvider);
@@ -442,9 +454,9 @@ class MapCamera extends _$MapCamera {
             lat: telemetry.latitude!,
           ),
           zoom: settings?.mapFollowZoom ?? 12.0,
-          pitch: 60,
+          pitch: settings?.mapFollowPitch ?? 30.0,
           bearing: telemetry.heading ?? 0.0,
-          animate: true,
+          animate: animate,
         ),
       );
     }
@@ -702,6 +714,35 @@ class MapCamera extends _$MapCamera {
       id: 'traffic-source',
       data: jsonEncode({'type': 'FeatureCollection', 'features': features}),
     );
+  }
+
+  // Other telemetry can republish the same traffic. The viewport and periodic
+  // refreshes still update projected positions as the camera and time change.
+  bool _sameUnthreatenedTraffic(
+    List<TrafficAircraft>? previous,
+    List<TrafficAircraft> next,
+  ) {
+    if (previous == null || previous.length != next.length) return false;
+    for (var i = 0; i < next.length; i++) {
+      final before = previous[i];
+      final after = next[i];
+      // Relative altitude labels for threats also depend on ownship telemetry.
+      if (before.isCollisionThreat ||
+          after.isCollisionThreat ||
+          before.id != after.id ||
+          before.callsign != after.callsign ||
+          before.latitude != after.latitude ||
+          before.longitude != after.longitude ||
+          before.altitude != after.altitude ||
+          before.track != after.track ||
+          before.groundSpeed != after.groundSpeed ||
+          before.verticalSpeed != after.verticalSpeed ||
+          before.aircraftType != after.aircraftType ||
+          before.lastSeen != after.lastSeen) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void _updateTrafficFilter() {

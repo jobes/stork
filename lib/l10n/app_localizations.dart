@@ -362,6 +362,18 @@ abstract class AppLocalizations {
   /// **'Map Follow Zoom'**
   String get mapFollowZoom;
 
+  /// No description provided for @mapFollowPitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow map tilt (°)'**
+  String get mapFollowPitch;
+
+  /// No description provided for @mapFollowPitchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A steeper tilt improves the view ahead, but requires more processing power and may make the map stutter.'**
+  String get mapFollowPitchHint;
+
   /// No description provided for @resetSettings.
   ///
   /// In en, this message translates to:
@@ -4605,7 +4617,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsMapZoom.
   ///
   /// In en, this message translates to:
-  /// **'Map zoom levels'**
+  /// **'Map zoom and tilt'**
   String get settingsMapZoom;
 
   /// No description provided for @settingsWidgetLayout.
