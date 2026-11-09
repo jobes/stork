@@ -112,7 +112,16 @@ def main():
             device_label, variant = baseline.stem, ''
         actual = current / baseline.name
         diffs = sorted(p for p in failures.glob(f'{baseline.stem}_*.png') if 'diff' in p.name.lower()) if failures.exists() else []
-        state = 'Missing capture' if not actual.exists() else ('Difference' if diffs else ('New reference — review it' if args.mode == 'update' else 'Match'))
+        if not actual.exists():
+            state = 'Missing capture'
+        elif diffs:
+            state = 'Difference'
+        elif args.mode == 'update':
+            state = 'New reference — review it'
+        elif result.returncode == 0:
+            state = 'Match'
+        else:
+            state = 'Unverified — test run failed'
         if state == 'Match' or args.mode == 'update':
             pictures = f'<figure><figcaption>Current screenshot</figcaption>{image(actual)}</figure>'
         else:

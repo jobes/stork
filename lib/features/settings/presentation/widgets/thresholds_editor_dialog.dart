@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 
 class ThresholdsEditorDialog extends StatefulWidget {
   const ThresholdsEditorDialog({
@@ -72,10 +73,10 @@ class _ThresholdsEditorDialogState extends State<ThresholdsEditorDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
-      title: Text(widget.title),
-      scrollable: true,
-      content: Form(
+    return BaseDetailsDialog(
+      titleText: widget.title,
+      showCloseButton: false,
+      child: Form(
         key: _form,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -102,16 +103,25 @@ class _ThresholdsEditorDialogState extends State<ThresholdsEditorDialog> {
                   validator: (_) => _validate(i, l10n),
                 ),
               ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(l10n.cancel),
+                  ),
+                  FilledButton(onPressed: _save, child: Text(l10n.save)),
+                ],
+              ),
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.cancel),
-        ),
-        FilledButton(onPressed: _save, child: Text(l10n.save)),
-      ],
     );
   }
 }
