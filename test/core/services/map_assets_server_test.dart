@@ -5,7 +5,7 @@ import 'dart:typed_data' show Endian;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart'
     show TestDefaultBinaryMessengerBinding, TestWidgetsFlutterBinding;
-import 'package:stork/core/services/database/database_service.dart';
+import 'package:stork/core/services/database/database_service_io.dart';
 import 'package:stork/core/services/map_assets_server.dart';
 import 'package:test/test.dart';
 

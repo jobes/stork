@@ -51,7 +51,8 @@ jobs:
         run: dart format --output=none --set-exit-if-changed lib test
 
       - name: Analyze
-        run: dart analyze
+        # Beta reports upcoming Flutter API deprecations before stable does.
+        run: dart analyze ${{ matrix.channel == 'beta' && '--no-fatal-infos' || '' }}
 
       - name: Run tests
         run: flutter test
