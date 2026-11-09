@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -24,7 +25,9 @@ class MapAssetsServer {
   static final Map<String, Future<PmTilesArchive>> _archives = {};
   static const _maxCachedArchiveTiles = 192;
   static const _maxCachedArchiveBytes = 12 * 1024 * 1024;
-  static final _archiveTiles = <_ArchiveTileKey, List<int>>{};
+  // Eviction relies on insertion order, with the least recently used tile first.
+  // ignore: prefer_collection_literals
+  static final _archiveTiles = LinkedHashMap<_ArchiveTileKey, List<int>>();
   static final _pendingArchiveTiles = <_ArchiveTileKey, Future<List<int>>>{};
   static int _cachedArchiveBytes = 0;
 
