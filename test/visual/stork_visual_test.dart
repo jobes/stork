@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart' show Geographic;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
 import 'package:stork/core/services/mdns_service.dart';
 import 'package:stork/core/theme/app_theme.dart';
@@ -432,6 +433,7 @@ Future<void> _checkMapWidgets(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
     for (final entry in {
       'Roboto': ['Roboto-Regular.ttf', 'Roboto-Medium.ttf', 'Roboto-Bold.ttf'],
       'MaterialIcons': ['MaterialIcons-Regular.otf'],

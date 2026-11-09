@@ -9,6 +9,33 @@ class AppLocalizationsSk extends AppLocalizations {
   AppLocalizationsSk([String locale = 'sk']) : super(locale);
 
   @override
+  String get settingsDisplayPreferences => 'Vzhľad a jazyk';
+
+  @override
+  String get settingsTheme => 'Téma';
+
+  @override
+  String get settingsLanguage => 'Jazyk';
+
+  @override
+  String get settingsFollowSystem => 'Podľa systému';
+
+  @override
+  String get settingsLightTheme => 'Svetlá';
+
+  @override
+  String get settingsDarkTheme => 'Tmavá';
+
+  @override
+  String get settingsEnglish => 'Angličtina';
+
+  @override
+  String get settingsSlovak => 'Slovenčina';
+
+  @override
+  String get settingsPreferenceSaveFailed => 'Predvoľbu sa nepodarilo uložiť.';
+
+  @override
   String get appTitle => 'Stork nav';
 
   @override

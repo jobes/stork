@@ -5,6 +5,7 @@ import '../../../../core/services/cannelloni_service.dart';
 import '../../../../core/widgets/stork_navigation_tile.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/altitude_unit.dart';
+import '../providers/display_preferences_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/stork_settings_section.dart';
 import 'flight_settings_page.dart';
@@ -19,16 +20,97 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final settings = ref.watch(appSettingsProvider).value;
+    final preferences = ref.watch(displayPreferencesProvider).value;
+    final canSave = preferences != null && !preferences.saving;
     final connected = ref.watch(cannelloniServiceProvider);
 
     void open(Widget page) {
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
     }
 
+    Future<void> savePreference(Future<void> Function() save) async {
+      try {
+        await save();
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.settingsPreferenceSaveFailed)),
+          );
+        }
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings)),
       body: StorkSettingsPageContent(
         children: [
+          StorkSettingsSection(
+            title: l10n.settingsDisplayPreferences,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.brightness_6_outlined),
+                title: Text(l10n.settingsTheme),
+                trailing: DropdownButton<ThemeMode>(
+                  value: preferences?.themeMode ?? ThemeMode.system,
+                  items: [
+                    DropdownMenuItem(
+                      value: ThemeMode.system,
+                      child: Text(l10n.settingsFollowSystem),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.light,
+                      child: Text(l10n.settingsLightTheme),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.dark,
+                      child: Text(l10n.settingsDarkTheme),
+                    ),
+                  ],
+                  onChanged: !canSave
+                      ? null
+                      : (mode) {
+                          if (mode == null) return;
+                          savePreference(
+                            () => ref
+                                .read(displayPreferencesProvider.notifier)
+                                .setThemeMode(mode),
+                          );
+                        },
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.language_outlined),
+                title: Text(l10n.settingsLanguage),
+                trailing: DropdownButton<AppLanguage>(
+                  value: preferences?.language ?? AppLanguage.system,
+                  items: [
+                    DropdownMenuItem(
+                      value: AppLanguage.system,
+                      child: Text(l10n.settingsFollowSystem),
+                    ),
+                    DropdownMenuItem(
+                      value: AppLanguage.english,
+                      child: Text(l10n.settingsEnglish),
+                    ),
+                    DropdownMenuItem(
+                      value: AppLanguage.slovak,
+                      child: Text(l10n.settingsSlovak),
+                    ),
+                  ],
+                  onChanged: !canSave
+                      ? null
+                      : (language) {
+                          if (language == null) return;
+                          savePreference(
+                            () => ref
+                                .read(displayPreferencesProvider.notifier)
+                                .setLanguage(language),
+                          );
+                        },
+                ),
+              ),
+            ],
+          ),
           StorkSettingsSection(
             title: '',
             children: [

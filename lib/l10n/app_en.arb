@@ -1,4 +1,13 @@
 {
+  "settingsDisplayPreferences": "Appearance and language",
+  "settingsTheme": "Theme",
+  "settingsLanguage": "Language",
+  "settingsFollowSystem": "System",
+  "settingsLightTheme": "Light",
+  "settingsDarkTheme": "Dark",
+  "settingsEnglish": "English",
+  "settingsSlovak": "Slovak",
+  "settingsPreferenceSaveFailed": "Could not save the preference.",
   "@@locale": "en",
   "appTitle": "Stork nav",
   "@appTitle": {

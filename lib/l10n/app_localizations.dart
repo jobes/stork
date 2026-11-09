@@ -98,6 +98,60 @@ abstract class AppLocalizations {
     Locale('sk'),
   ];
 
+  /// No description provided for @settingsDisplayPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance and language'**
+  String get settingsDisplayPreferences;
+
+  /// No description provided for @settingsTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingsTheme;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsFollowSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsFollowSystem;
+
+  /// No description provided for @settingsLightTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsLightTheme;
+
+  /// No description provided for @settingsDarkTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsDarkTheme;
+
+  /// No description provided for @settingsEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get settingsEnglish;
+
+  /// No description provided for @settingsSlovak.
+  ///
+  /// In en, this message translates to:
+  /// **'Slovak'**
+  String get settingsSlovak;
+
+  /// No description provided for @settingsPreferenceSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the preference.'**
+  String get settingsPreferenceSaveFailed;
+
   /// The title of the application
   ///
   /// In en, this message translates to:

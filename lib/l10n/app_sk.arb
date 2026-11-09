@@ -1,4 +1,13 @@
 {
+  "settingsDisplayPreferences": "Vzhľad a jazyk",
+  "settingsTheme": "Téma",
+  "settingsLanguage": "Jazyk",
+  "settingsFollowSystem": "Podľa systému",
+  "settingsLightTheme": "Svetlá",
+  "settingsDarkTheme": "Tmavá",
+  "settingsEnglish": "Angličtina",
+  "settingsSlovak": "Slovenčina",
+  "settingsPreferenceSaveFailed": "Predvoľbu sa nepodarilo uložiť.",
   "@@locale": "sk",
   "appTitle": "Stork nav",
   "mapLoadingError": "Chyba pri načítavaní štýlu mapy",

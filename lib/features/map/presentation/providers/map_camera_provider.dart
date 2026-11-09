@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
-import 'dart:ui' as ui;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,6 +12,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/location_provider.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/utils/geo_utils.dart';
+import '../../../settings/presentation/providers/display_preferences_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/aircraft_type.dart';
 import '../../../settings/domain/models/altitude_unit.dart';
@@ -653,9 +653,10 @@ class MapCamera extends _$MapCamera {
 
       final String altitudeTagStr;
       if (ac.isCollisionThreat) {
-        final l10n = lookupAppLocalizations(
-          ui.PlatformDispatcher.instance.locale,
-        );
+        final language =
+            ref.read(displayPreferencesProvider).value?.language ??
+            AppLanguage.system;
+        final l10n = lookupAppLocalizations(language.resolvedLocale);
         final diffMeters = ac.altitude - myAlt;
         final unitLabel = altUnit.getLabel(l10n);
         final String tagNum;

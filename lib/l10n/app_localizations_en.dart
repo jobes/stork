@@ -9,6 +9,33 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get settingsDisplayPreferences => 'Appearance and language';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsFollowSystem => 'System';
+
+  @override
+  String get settingsLightTheme => 'Light';
+
+  @override
+  String get settingsDarkTheme => 'Dark';
+
+  @override
+  String get settingsEnglish => 'English';
+
+  @override
+  String get settingsSlovak => 'Slovak';
+
+  @override
+  String get settingsPreferenceSaveFailed => 'Could not save the preference.';
+
+  @override
   String get appTitle => 'Stork nav';
 
   @override
