@@ -83,8 +83,10 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
     OfflineMapsNotifier notifier,
     AppLocalizations l10n,
   ) {
+    if (state.isDownloading) return [];
+
     return [
-      if (_selectedRegionId != null)
+      if (!_isAdding && _selectedRegionId != null)
         IconButton(
           icon: const Icon(Icons.delete_outline),
           tooltip: l10n.deleteArea,
@@ -93,7 +95,7 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
             setState(() => _selectedRegionId = null);
           },
         ),
-      if (state.regions.isNotEmpty)
+      if (!_isAdding && state.regions.isNotEmpty)
         IconButton(
           icon: const Icon(Icons.delete_sweep),
           tooltip: l10n.deleteAll,
@@ -101,16 +103,18 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
         ),
       IconButton(
         icon: Icon(_isAdding ? Icons.close : Icons.add_box),
-        tooltip: l10n.addArea,
-        onPressed: () {
-          setState(() {
-            _isAdding = !_isAdding;
-            _startPoint = null;
-            _currentEndPoint = null;
-          });
-        },
+        tooltip: _isAdding ? l10n.cancel : l10n.addArea,
+        onPressed: () => _setAdding(!_isAdding),
       ),
     ];
+  }
+
+  void _setAdding(bool isAdding) {
+    setState(() {
+      _isAdding = isAdding;
+      _startPoint = null;
+      _currentEndPoint = null;
+    });
   }
 
   Future<void> _confirmDeleteAll(
@@ -166,7 +170,7 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
             onMapCreated: (controller) =>
                 setState(() => _mapController = controller),
             onEvent: (event) {
-              if (event is MapEventClick) {
+              if (event is MapEventClick && !state.isDownloading) {
                 _handleMapClick(event.point);
               } else if (event is MapEventMoveCamera) {
                 setState(() {});
@@ -178,6 +182,25 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
               Center(child: Text('${l10n.mapLoadingError}: $error')),
         ),
         if (_mapController != null) _buildOverlayLayer(state, notifier),
+        if (_isAdding)
+          Positioned(
+            top: 12,
+            left: 16,
+            right: 16,
+            child: IgnorePointer(
+              child: Center(
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      l10n.drawOfflineAreaHint,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -208,7 +231,7 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
     // Interaction handlers
     if (_isAdding) {
       layers.add(_buildNewRegionGestureDetector(state, notifier));
-    } else if (_selectedRegionId != null) {
+    } else if (_selectedRegionId != null && !state.isDownloading) {
       layers.addAll(_buildSelectedRegionControls(state, notifier));
     }
 
@@ -225,6 +248,7 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
       onPanUpdate: (details) =>
           _handlePanUpdate(details.localPosition, state, notifier),
       onPanEnd: (_) => _handlePanEnd(notifier),
+      onPanCancel: () => _setAdding(true),
       child: const SizedBox.expand(),
     );
   }
@@ -446,13 +470,10 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
       final distLat = (_currentEndPoint!.lat - _startPoint!.lat).abs();
 
       if (distLon > 0.001 || distLat > 0.001) {
-        final newId = notifier.addRegion(_startPoint!, _currentEndPoint!);
-        setState(() {
-          _selectedRegionId = newId;
-          _isAdding = false;
-          _startPoint = null;
-          _currentEndPoint = null;
-        });
+        _selectedRegionId = notifier.addRegion(_startPoint!, _currentEndPoint!);
+        _setAdding(false);
+      } else {
+        _setAdding(true);
       }
     }
     setState(() {
@@ -481,14 +502,12 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              offset: const Offset(0, -5),
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
             ),
-          ],
+          ),
         ),
         child: SafeArea(
           top: false,
@@ -497,9 +516,9 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
             children: [
               _buildSummaryRow(state, l10n),
               _buildDownloadButton(state, notifier, l10n),
-              if (state.regions.isEmpty)
-                _buildEmptyStateText(l10n)
-              else
+              if (state.regions.isEmpty) ...[
+                if (!_isAdding) _buildEmptyStateText(l10n),
+              ] else
                 _buildProgressSection(state, l10n),
             ],
           ),
@@ -509,7 +528,8 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
   }
 
   Widget _buildSummaryRow(OfflineMapsState state, AppLocalizations l10n) {
-    if (state.downloadDate == null ||
+    if (state.isDownloading ||
+        state.downloadDate == null ||
         !state.isDownloaded ||
         state.downloadedTiles == 0) {
       return const SizedBox.shrink();
@@ -544,9 +564,19 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
           label: Text(l10n.cancelDownload),
           onPressed: () => notifier.cancelDownload(),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
+            backgroundColor: Theme.of(context).colorScheme.error,
+            foregroundColor: Theme.of(context).colorScheme.onError,
           ),
+        ),
+      );
+    }
+    if (_isAdding || state.regions.isEmpty) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          icon: Icon(_isAdding ? Icons.close : Icons.add_box),
+          label: Text(_isAdding ? l10n.cancel : l10n.selectOfflineArea),
+          onPressed: () => _setAdding(!_isAdding),
         ),
       );
     }
@@ -555,9 +585,7 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
       child: ElevatedButton.icon(
         icon: Icon(state.isDownloaded ? Icons.refresh : Icons.download),
         label: Text(l10n.downloadMaps),
-        onPressed: state.regions.isEmpty
-            ? null
-            : () => notifier.startDownload(),
+        onPressed: () => notifier.startDownload(),
       ),
     );
   }
@@ -567,7 +595,9 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
       padding: const EdgeInsets.only(top: 8.0),
       child: Text(
         l10n.noAreasSelected,
-        style: const TextStyle(color: Colors.grey, fontSize: 12),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }
@@ -585,7 +615,14 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          if (state.isDownloading && !state.isDownloadingMetadata)
+          if (!state.isDownloading)
+            Text(
+              state.isDownloaded
+                  ? l10n.offlineMapsReady
+                  : l10n.offlineMapsDownloadRequired,
+              textAlign: TextAlign.center,
+            )
+          else if (!state.isDownloadingMetadata)
             _ProgressIndicator(
               value: state.totalTiles > 0
                   ? state.downloadedTiles / state.totalTiles
@@ -596,7 +633,7 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
                 _formatBytes(state.downloadedBytes),
               ),
             )
-          else if (state.isDownloadingMetadata)
+          else
             _ProgressIndicator(
               value: state.totalMetadataCountries > 0
                   ? state.downloadedMetadataCountries /

@@ -5,6 +5,7 @@ import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../providers/telemetry_provider.dart';
 import 'telemetry_card.dart';
+import 'map_telemetry_palette.dart';
 import 'vhf_radio_dialog.dart';
 
 class VhfRadioTelemetryWidget extends ConsumerWidget {
@@ -46,7 +47,7 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider).value;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = MapTelemetryPalette.of(context);
     final isDisconnected = radioActiveFreq == null;
 
     final bool isTx = (radioFlags & 1) != 0;
@@ -59,10 +60,8 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
         ? ThresholdState.maxError
         : ThresholdState.operational;
 
-    final defaultTextColor = isDark
-        ? Colors.grey.shade300
-        : Colors.grey.shade800;
-    final dimTextColor = isDark ? Colors.grey.shade500 : Colors.grey.shade600;
+    final defaultTextColor = palette.value;
+    final dimTextColor = palette.label;
 
     // Helper to format frequency from kHz to MHz string
     String formatFreq(int? freqKz) {

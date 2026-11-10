@@ -6,7 +6,9 @@ This document describes the design and implementation of Stork's customizable ov
 
 ## 1. Generic Customizable Layout Architecture
 
-To allow pilots and operators to tailor their telemetry dashboards, Stork features a **Customizable Overlay Widget System** implemented on top of the map view. Widgets are positioned as dynamic floaters that can be toggled into an interactive edit mode, dragged around the screen, and saved persistently.
+To allow pilots and operators to tailor their telemetry dashboards, Stork features a **Customizable Overlay Widget System** implemented on top of the map view. Enable **Move widgets** in **Settings → Map → Widget layout**, then drag the
+widgets on the map. Select **Done** to lock them in place. Positions are saved
+for the [active pilot](scoped-settings.md).
 
 ```mermaid
 sequenceDiagram
@@ -19,7 +21,7 @@ sequenceDiagram
     participant Map as MapPage
 
     User->>DW: Pan Gesture (Drag Widget)
-    DW->>DW: Local Bounds Clamping
+    DW->>DW: Constrain movement to viewport and clear space
     User->>DW: Release Drag (onPanEnd)
     DW->>MWW: onDragEnd(top, left)
     MWW->>ASN: updateWidgetPosition(widgetId, top, left)
@@ -37,7 +39,7 @@ The architecture is divided into three layers to ensure separation of concerns:
 1. **[DraggableWidget](../../lib/features/map/presentation/components/controls/draggable_widget.dart) (Presentation/Interaction)**
    - A standalone `StatefulWidget` managing touch gestures and physical viewport constraints.
    - It intercepts pan movements using `GestureDetector` and calculates pixel-based coordinate shifts.
-   - Provides a premium visual indicator (moving scale effect, subtle opacity decay, and an edit-mode border with a multi-directional arrow icon) when the edit mode is active.
+   - Draws an edit border and move indicator without changing the widget position or size.
 
 2. **[MapWidgetWrapper](../../lib/features/map/presentation/components/controls/map_widget_wrapper.dart) (State Integration)**
    - A generic glue widget that acts as an adapter. It watches Riverpod's `appSettingsProvider` to determine:
@@ -56,18 +58,13 @@ The architecture is divided into three layers to ensure separation of concerns:
 
 Dragging elements on dynamic mobile viewports requires robust edge cases handling (e.g., orientation changes, screen resizing, and touch boundaries). Stork handles these issues with three layer-checks:
 
-### Real-Time Local Clamping
-During an active drag (`onPanUpdate`), positions are constrained instantly based on the widget's render dimensions and `MediaQuery` boundaries. This prevents the widget from sliding off-screen or disappearing under system status bars:
-```dart
-if (_left < 0) _left = 0;
-if (_top < 0) _top = 0;
-if (_left + size.width > screenSize.width) {
-  _left = screenSize.width - size.width;
-}
-if (_top + size.height > screenSize.height) {
-  _top = screenSize.height - size.height;
-}
-```
+### Drag boundaries
+
+During a drag, `DraggableWidget` uses the widget's rendered size and the
+viewport bounds. [MapPage](../../lib/features/map/presentation/pages/map_page.dart)
+supplies the rendered bounds of the other widgets, the compass and the Menu,
+GPS and Done buttons. Movement stops at an obstacle and can continue along
+its edge. Widgets in existing overlaps can be dragged clear.
 
 ### Post-Frame Snap Correction
 Since rendering sizes might not be fully initialized or may change dynamically, Stork registers a post-frame callback (`WidgetsBinding.instance.addPostFrameCallback`) after constraint updates to snap the widget safely back within the viewport boundaries and trigger a persistence update if boundaries were violated.

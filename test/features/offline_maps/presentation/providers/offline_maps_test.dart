@@ -8,9 +8,19 @@ import 'package:http/testing.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:stork/features/map/presentation/providers/airport_metadata_provider.dart';
 import 'package:stork/features/map/presentation/providers/airspace_metadata_provider.dart';
+import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/domain/tile_utils.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
 import 'package:stork/core/services/database/database_service.dart';
+
+class _SeededOfflineMapsNotifier extends OfflineMapsNotifier {
+  _SeededOfflineMapsNotifier(this.initial);
+
+  final OfflineMapsState initial;
+
+  @override
+  OfflineMapsState build() => initial;
+}
 
 void main() {
   group('TileUtils', () {
@@ -68,6 +78,42 @@ void main() {
       }
     });
   });
+
+  test(
+    'removing areas preserves readiness only for a ready nonempty selection',
+    () {
+      final regions = ['first', 'second'].map((id) {
+        return OfflineMapArea(
+          id: id,
+          northwest: Geographic(lon: 17, lat: 49),
+          southeast: Geographic(lon: 18, lat: 48),
+        );
+      }).toList();
+
+      for (final wasReady in [false, true]) {
+        final initial = OfflineMapsState(
+          regions: regions,
+          isDownloaded: wasReady,
+        );
+        final container = ProviderContainer.test(
+          overrides: [
+            offlineMapsProvider.overrideWith(
+              () => _SeededOfflineMapsNotifier(initial),
+            ),
+          ],
+        );
+        final notifier = container.read(offlineMapsProvider.notifier);
+
+        notifier.removeRegion('first');
+        expect(container.read(offlineMapsProvider).regions, [regions.last]);
+        expect(container.read(offlineMapsProvider).isDownloaded, wasReady);
+
+        notifier.removeRegion('second');
+        expect(container.read(offlineMapsProvider).regions, isEmpty);
+        expect(container.read(offlineMapsProvider).isDownloaded, isFalse);
+      }
+    },
+  );
 
   group('OfflineMapsNotifier Cache Clearing', () {
     late Directory tempDir;

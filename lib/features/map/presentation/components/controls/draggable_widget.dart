@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 class DraggableWidget extends StatefulWidget {
@@ -5,6 +7,7 @@ class DraggableWidget extends StatefulWidget {
   final double initialTop;
   final double initialLeft;
   final bool isDraggable;
+  final Iterable<Rect> Function()? dragObstacles;
   final void Function(double top, double left) onDragEnd;
 
   const DraggableWidget({
@@ -14,6 +17,7 @@ class DraggableWidget extends StatefulWidget {
     required this.initialLeft,
     required this.isDraggable,
     required this.onDragEnd,
+    this.dragObstacles,
   });
 
   @override
@@ -78,77 +82,110 @@ class _DraggableWidgetState extends State<DraggableWidget>
     _constrainToBounds();
   }
 
-  /// Synchronously constrains positions during active user dragging
-  void _constrainPositionsLocally() {
-    final context = _key.currentContext;
-    if (context == null) return;
-    final box = context.findRenderObject() as RenderBox?;
-    if (box == null) return;
-
-    final size = box.size;
-    final screenSize = MediaQuery.of(context).size;
-
-    if (_left < 0) {
-      _left = 0;
-    }
-    if (_top < 0) {
-      _top = 0;
-    }
-    if (_left + size.width > screenSize.width) {
-      _left = screenSize.width - size.width;
-      if (_left < 0) _left = 0;
-    }
-    if (_top + size.height > screenSize.height) {
-      _top = screenSize.height - size.height;
-      if (_top < 0) _top = 0;
-    }
+  Offset _boundedPosition(Offset position, Size size, Size screenSize) {
+    return Offset(
+      position.dx.clamp(0.0, math.max(0.0, screenSize.width - size.width)),
+      position.dy.clamp(0.0, math.max(0.0, screenSize.height - size.height)),
+    );
   }
 
-  /// Asynchronously resolves boundaries post-frame to ensure rendering completes
+  void _move(Offset delta) {
+    final context = _key.currentContext;
+    final box = context?.findRenderObject();
+    if (context == null || box is! RenderBox || !box.hasSize) return;
+
+    final current = Offset(_left, _top);
+    final screen = MediaQuery.sizeOf(context);
+    final target = _boundedPosition(current + delta, box.size, screen);
+    final obstacles = widget.dragObstacles?.call().toList() ?? const <Rect>[];
+    final rect = current & box.size;
+
+    // Resolve each axis separately so a diagonal drag can slide along an edge.
+    final dx = _limitMovement(
+      rect,
+      target.dx - current.dx,
+      obstacles,
+      horizontal: true,
+      extent: screen.width,
+    );
+    final dy = _limitMovement(
+      rect.shift(Offset(dx, 0)),
+      target.dy - current.dy,
+      obstacles,
+      horizontal: false,
+      extent: screen.height,
+    );
+    _left += dx;
+    _top += dy;
+  }
+
+  double _limitMovement(
+    Rect rect,
+    double delta,
+    List<Rect> obstacles, {
+    required bool horizontal,
+    required double extent,
+  }) {
+    if (delta == 0) return 0;
+    final (start, end) = horizontal
+        ? (rect.left, rect.right)
+        : (rect.top, rect.bottom);
+    for (final obstacle in obstacles) {
+      final sharesLane = horizontal
+          ? rect.top < obstacle.bottom && rect.bottom > obstacle.top
+          : rect.left < obstacle.right && rect.right > obstacle.left;
+      if (!sharesLane) continue;
+
+      final (near, far) = horizontal
+          ? (obstacle.left, obstacle.right)
+          : (obstacle.top, obstacle.bottom);
+      if (delta > 0 && end <= near) {
+        delta = math.min(delta, near - end);
+      } else if (delta < 0 && start >= far) {
+        delta = math.max(delta, far - start);
+      } else if (start < far && end > near) {
+        // A saved layout or a resize can start with an overlap. Let it exit
+        // along the nearer edge without allowing it to move farther in.
+        final exitForward = far - start;
+        final exitBackward = end - near;
+        final canExitForward = end + exitForward <= extent;
+        final canExitBackward = start - exitBackward >= 0;
+        if ((delta > 0 &&
+                canExitBackward &&
+                (!canExitForward || exitForward > exitBackward)) ||
+            (delta < 0 &&
+                canExitForward &&
+                (!canExitBackward || exitBackward > exitForward))) {
+          return 0;
+        }
+      }
+    }
+    return delta;
+  }
+
+  /// Resolves screen bounds after layout, when the widget has its final size.
   void _constrainToBounds({bool saveAfterConstrain = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final context = _key.currentContext;
-      if (context == null) return;
-      final box = context.findRenderObject() as RenderBox?;
-      if (box == null) return;
+      final box = context?.findRenderObject();
+      if (context == null || box is! RenderBox || !box.hasSize) return;
 
-      final size = box.size;
-      final screenSize = MediaQuery.of(context).size;
-
-      bool changed = false;
-      double newTop = _top;
-      double newLeft = _left;
-
-      if (newLeft < 0) {
-        newLeft = 0;
-        changed = true;
-      }
-      if (newTop < 0) {
-        newTop = 0;
-        changed = true;
-      }
-      if (newLeft + size.width > screenSize.width) {
-        newLeft = screenSize.width - size.width;
-        if (newLeft < 0) newLeft = 0;
-        changed = true;
-      }
-      if (newTop + size.height > screenSize.height) {
-        newTop = screenSize.height - size.height;
-        if (newTop < 0) newTop = 0;
-        changed = true;
-      }
-
+      final current = Offset(_left, _top);
+      final bounded = _boundedPosition(
+        current,
+        box.size,
+        MediaQuery.sizeOf(context),
+      );
+      final changed = bounded != current;
       if (changed) {
         setState(() {
-          _top = newTop;
-          _left = newLeft;
+          _top = bounded.dy;
+          _left = bounded.dx;
         });
       }
 
-      if (saveAfterConstrain && widget.isDraggable) {
-        widget.onDragEnd(_top, _left);
-      } else if (changed && widget.isDraggable) {
+      if (widget.isDraggable && (saveAfterConstrain || changed)) {
         widget.onDragEnd(_top, _left);
       }
     });
@@ -166,35 +203,42 @@ class _DraggableWidgetState extends State<DraggableWidget>
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Widget content = Container(key: _key, child: widget.child);
-
-    if (widget.isDraggable) {
-      // Draw an elegant "edit/move mode" glow border with a small floating indicator handle
-      content = Stack(
-        clipBehavior: Clip.none,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: _isDragging
-                    ? (isDark ? Colors.blueAccent : Colors.blue)
-                    : (isDark ? Colors.white24 : Colors.black12),
-                width: 1.5,
+    const editBorderWidth = 1.5;
+    const editOutset = 4.0 + editBorderWidth;
+    final content = Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(key: _key, child: widget.child),
+        // Keep the edit decoration outside the widget's layout and drag bounds.
+        if (widget.isDraggable) ...[
+          Positioned(
+            top: -editOutset,
+            left: -editOutset,
+            right: -editOutset,
+            bottom: -editOutset,
+            child: IgnorePointer(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _isDragging
+                        ? (isDark ? Colors.blueAccent : Colors.blue)
+                        : (isDark ? Colors.white24 : Colors.black12),
+                    width: editBorderWidth,
+                  ),
+                  color: _isDragging
+                      ? (isDark
+                            ? Colors.blue.withAlpha(25)
+                            : Colors.blue.withAlpha(15))
+                      : Colors.transparent,
+                ),
               ),
-              color: _isDragging
-                  ? (isDark
-                        ? Colors.blue.withAlpha(25)
-                        : Colors.blue.withAlpha(15))
-                  : Colors.transparent,
             ),
-            child: content,
           ),
           Positioned(
-            top: -6,
-            right: -6,
+            top: -editOutset - 6,
+            right: -editOutset - 6,
             child: AnimatedScale(
               scale: _isDragging ? 1.25 : 1.0,
               duration: const Duration(milliseconds: 200),
@@ -225,8 +269,8 @@ class _DraggableWidgetState extends State<DraggableWidget>
             ),
           ),
         ],
-      );
-    }
+      ],
+    );
 
     return Positioned(
       top: _top,
@@ -241,11 +285,7 @@ class _DraggableWidgetState extends State<DraggableWidget>
             : null,
         onPanUpdate: widget.isDraggable
             ? (details) {
-                setState(() {
-                  _top += details.delta.dy;
-                  _left += details.delta.dx;
-                  _constrainPositionsLocally();
-                });
+                setState(() => _move(details.delta));
               }
             : null,
         onPanEnd: widget.isDraggable
@@ -264,17 +304,7 @@ class _DraggableWidgetState extends State<DraggableWidget>
                 _constrainToBounds();
               }
             : null,
-        child: AnimatedScale(
-          scale: _isDragging ? 1.05 : 1.0,
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOutCubic,
-          child: AnimatedOpacity(
-            opacity: _isDragging ? 0.85 : 1.0,
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOutCubic,
-            child: content,
-          ),
-        ),
+        child: content,
       ),
     );
   }

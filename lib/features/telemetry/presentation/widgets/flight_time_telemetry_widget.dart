@@ -6,6 +6,7 @@ import '../providers/telemetry_provider.dart';
 import '../providers/flight_duration_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import 'telemetry_card.dart';
+import 'map_telemetry_palette.dart';
 import '../dialogs/flight_time_details_dialog.dart';
 
 class FlightTimeTelemetryWidget extends ConsumerWidget {
@@ -18,16 +19,8 @@ class FlightTimeTelemetryWidget extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider).value;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final Color timeColor;
-    if (isFlying) {
-      timeColor = isDark ? Colors.white : Colors.black;
-    } else {
-      timeColor = isDark
-          ? Colors.white.withAlpha(76)
-          : Colors.black.withAlpha(76);
-    }
+    final palette = MapTelemetryPalette.of(context);
+    final timeColor = isFlying ? palette.value : palette.label;
 
     final formattedTime = flightSummary.duration.toHMSString();
 

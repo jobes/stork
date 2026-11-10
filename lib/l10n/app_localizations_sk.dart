@@ -9,6 +9,33 @@ class AppLocalizationsSk extends AppLocalizations {
   AppLocalizationsSk([String locale = 'sk']) : super(locale);
 
   @override
+  String get settingsDisplayPreferences => 'Vzhľad a jazyk';
+
+  @override
+  String get settingsTheme => 'Téma';
+
+  @override
+  String get settingsLanguage => 'Jazyk';
+
+  @override
+  String get settingsFollowSystem => 'Podľa systému';
+
+  @override
+  String get settingsLightTheme => 'Svetlá';
+
+  @override
+  String get settingsDarkTheme => 'Tmavá';
+
+  @override
+  String get settingsEnglish => 'Angličtina';
+
+  @override
+  String get settingsSlovak => 'Slovenčina';
+
+  @override
+  String get settingsPreferenceSaveFailed => 'Predvoľbu sa nepodarilo uložiť.';
+
+  @override
   String get appTitle => 'Stork nav';
 
   @override
@@ -89,6 +116,19 @@ class AppLocalizationsSk extends AppLocalizations {
   String get noAreasSelected => 'Žiadne oblasti na stiahnutie';
 
   @override
+  String get selectOfflineArea => 'Vybrať oblasť';
+
+  @override
+  String get drawOfflineAreaHint =>
+      'Ťahom po mape vyznačte oblasť na stiahnutie.';
+
+  @override
+  String get offlineMapsReady => 'Pripravené na použitie offline';
+
+  @override
+  String get offlineMapsDownloadRequired => 'Vybrané oblasti treba stiahnuť';
+
+  @override
   String get deleteConfirmationTitle => 'Vymazať všetko';
 
   @override
@@ -148,6 +188,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String get mapFollowZoom => 'Zoom sledovania mapy';
 
   @override
+  String get mapFollowPitch => 'Náklon mapy pri sledovaní (°)';
+
+  @override
+  String get mapFollowPitchHint =>
+      'Väčší náklon zlepší výhľad dopredu, ale vyžaduje vyšší výkon a mapa môže sekať.';
+
+  @override
   String get resetSettings => 'Resetovať nastavenia';
 
   @override
@@ -191,6 +238,19 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get maxErrorThreshold => 'Kriticky vysoká hodnota';
+
+  @override
+  String get editThresholdValues => 'Presné nastavenie';
+
+  @override
+  String get thresholdValueInvalid => 'Zadajte platné číslo.';
+
+  @override
+  String get thresholdValueOutOfRange => 'Hodnota je mimo rozsahu posuvníka.';
+
+  @override
+  String get thresholdValuesOrder =>
+      'Zadajte hodnotu aspoň takú vysokú ako predchádzajúci prah.';
 
   @override
   String get mapSettings => 'Nastavenia mapy';
@@ -2307,6 +2367,15 @@ class AppLocalizationsSk extends AppLocalizations {
   String get collisionWarningLabel => 'KOLÍZIA';
 
   @override
+  String get collisionMinSeparation => 'Najmenší odstup';
+
+  @override
+  String get collisionTimeToClosest => 'Čas do priblíženia';
+
+  @override
+  String get collisionAltitudeDifference => 'Rozdiel výšky teraz';
+
+  @override
   String get pureTrackTitle => 'PureTrack Účet';
 
   @override
@@ -2424,4 +2493,104 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get clearAllHiddenAircraft => 'Vymazať všetky skryté';
+
+  @override
+  String get settingsMapAppearance => 'Vzhľad mapy';
+
+  @override
+  String get settingsMapZoom => 'Priblíženie a náklon mapy';
+
+  @override
+  String get settingsWidgetLayout => 'Rozloženie widgetov';
+
+  @override
+  String get settingsResetLayoutConfirm =>
+      'Obnoviť uložené pozície widgetov v aktuálnom rozložení? Táto zmena sa nedá vrátiť.';
+
+  @override
+  String get settingsConnection => 'Pripojenie brány';
+
+  @override
+  String get settingsFlightMeasurements => 'Jednotky a merania';
+
+  @override
+  String get settingsFlightLimits => 'Letové a motorové limity';
+
+  @override
+  String get settingsTrafficFilters => 'Filtre premávky';
+
+  @override
+  String get settingsCollisionAvoidance => 'Prevencia kolízií';
+
+  @override
+  String get settingsTrafficSources => 'Zdroje údajov o premávke';
+
+  @override
+  String get menuFlightAndMap => 'Let a mapa';
+
+  @override
+  String get menuRoute => 'Trasa';
+
+  @override
+  String get menuNoActiveRoute => 'Bez aktívnej trasy';
+
+  @override
+  String menuActiveRoute(String destination) {
+    return 'Aktívna · $destination';
+  }
+
+  @override
+  String get menuFavoritePlaces => 'Obľúbené miesta';
+
+  @override
+  String get menuDone => 'Hotovo';
+
+  @override
+  String get menuOfflineDownloading => 'Sťahujú sa mapy';
+
+  @override
+  String menuOfflineDownloaded(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat.yMMMd(localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'Stiahnuté $dateString';
+  }
+
+  @override
+  String get menuMap => 'Mapa';
+
+  @override
+  String get menuMapSummary => 'Vzhľad, priblíženie a rozloženie widgetov';
+
+  @override
+  String get menuUnitsAndLimits => 'Jednotky a limity';
+
+  @override
+  String menuUnitsSummary(String speed, String altitude) {
+    return '$speed · $altitude · limity lietadla';
+  }
+
+  @override
+  String get menuTrafficAndAlerts => 'Doprava a výstrahy';
+
+  @override
+  String get menuCollisionAlertsOn => 'Kolízne výstrahy zapnuté';
+
+  @override
+  String get menuCollisionAlertsOff => 'Kolízne výstrahy vypnuté';
+
+  @override
+  String get menuInstrumentsAndConnection => 'Prístroje a pripojenie';
+
+  @override
+  String get menuGatewayConnected => 'Brána pripojená';
+
+  @override
+  String get menuGatewayDisconnected => 'Brána odpojená';
+
+  @override
+  String get menuSearchingGateways => 'Vyhľadávajú sa brány…';
+
+  @override
+  String get menuFindGateways => 'Vyhľadať znova';
 }

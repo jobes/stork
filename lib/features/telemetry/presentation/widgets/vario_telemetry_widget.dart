@@ -8,6 +8,7 @@ import '../../../settings/domain/models/range_thresholds.dart';
 import '../providers/vario_provider.dart';
 import '../dialogs/vario_details_dialog.dart';
 import 'telemetry_card.dart';
+import 'map_telemetry_palette.dart';
 
 class VarioTelemetryWidget extends ConsumerWidget {
   const VarioTelemetryWidget({super.key});
@@ -22,11 +23,9 @@ class VarioTelemetryWidget extends ConsumerWidget {
       ),
     );
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTextColor = isDark
-        ? Colors.grey.shade300
-        : Colors.grey.shade700;
-    final valueColor = isDark ? Colors.white : Colors.black;
+    final palette = MapTelemetryPalette.of(context);
+    final defaultTextColor = palette.label;
+    final valueColor = palette.value;
 
     final String valueStr;
     final bool hasData = varioState.verticalSpeed != null;

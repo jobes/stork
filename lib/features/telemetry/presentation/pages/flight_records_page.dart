@@ -201,7 +201,7 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.flightRecordsTitle), centerTitle: true),
+      appBar: AppBar(title: Text(l10n.flightRecordsTitle)),
       body: Column(
         children: [
           Padding(
@@ -317,18 +317,13 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
 
                       return Card(
                         key: ValueKey(flight.uuid),
-                        elevation: 2,
                         margin: const EdgeInsets.symmetric(vertical: 6),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                           side: BorderSide(
                             color: isRecording
-                                ? Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withAlpha(100)
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.outlineVariant.withAlpha(100),
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.outlineVariant,
                             width: isRecording ? 2 : 1,
                           ),
                         ),

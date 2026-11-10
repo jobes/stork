@@ -102,10 +102,10 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
           // Section to add new favorite
           Text(
             l10n.manageFavoritesAddNew,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: Colors.blueAccent,
+              color: Theme.of(context).colorScheme.primary,
               letterSpacing: 1.0,
             ),
           ),
@@ -127,7 +127,6 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                         decoration: InputDecoration(
                           labelText: l10n.manageFavoritesFreqLabel,
                           hintText: l10n.manageFavoritesFreqHint,
-                          border: const OutlineInputBorder(),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 8,
@@ -148,7 +147,6 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                         decoration: InputDecoration(
                           labelText: l10n.manageFavoritesNameLabel,
                           hintText: l10n.manageFavoritesNameHint,
-                          border: const OutlineInputBorder(),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 8,
@@ -163,20 +161,17 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                   const SizedBox(height: 6),
                   Text(
                     _errorText!,
-                    style: const TextStyle(
-                      color: Colors.redAccent,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
                       fontSize: 12,
                     ),
                   ),
                 ],
                 const SizedBox(height: 8),
-                ElevatedButton.icon(
+                FilledButton.icon(
                   onPressed: _addFavorite,
                   icon: const Icon(Icons.add, size: 16),
                   label: Text(l10n.manageFavoritesAddToList),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(36),
-                  ),
                 ),
               ],
             ),
@@ -186,10 +181,10 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
 
           Text(
             l10n.manageFavoritesListTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: Colors.blueAccent,
+              color: Theme.of(context).colorScheme.primary,
               letterSpacing: 1.0,
             ),
           ),
@@ -203,7 +198,10 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                   child: Text(
                     l10n.manageFavoritesEmpty,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 13,
+                    ),
                   ),
                 );
               }
@@ -224,15 +222,6 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                       item.mhz.toString() + item.name + index.toString(),
                     ),
                     margin: const EdgeInsets.symmetric(vertical: 4),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color: Theme.of(
-                          context,
-                        ).dividerColor.withValues(alpha: 0.3),
-                      ),
-                    ),
                     child: ListTile(
                       dense: true,
                       contentPadding: const EdgeInsets.only(left: 12, right: 4),
@@ -245,10 +234,10 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                       ),
                       subtitle: Text(
                         '${item.mhz.toStringAsFixed(3)} MHz',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontFamily: 'monospace',
-                          color: Colors.grey,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       trailing: Row(
@@ -256,11 +245,13 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                         children: [
                           ReorderableDragStartListener(
                             index: index,
-                            child: const Padding(
-                              padding: EdgeInsets.all(8.0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
                               child: Icon(
                                 Icons.drag_handle,
-                                color: Colors.grey,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),

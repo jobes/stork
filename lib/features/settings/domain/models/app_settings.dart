@@ -20,6 +20,7 @@ abstract class AppSettings with _$AppSettings {
     @Default(6.0) double mapDefaultZoom,
     @Default(10.0) double mapOverviewZoom,
     @Default(12.0) double mapFollowZoom,
+    @Default(30.0) double mapFollowPitch,
     @Default(
       RangeThresholds.raw(
         inactiveMax: 2.77,

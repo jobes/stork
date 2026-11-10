@@ -112,7 +112,17 @@ GoRouter is configured in `lib/core/router/app_router.dart`. Add all routes ther
 
 - All dialogs must use `BaseDetailsDialog` (from `lib/features/map/presentation/components/dialogs/base_details_dialog.dart`) — never raw `AlertDialog`/`SimpleDialog`.
 - Map overlays must use `DraggableWidget` (via `MapWidgetWrapper`).
-- Always respect dark/light mode using `Theme.of(context)` colour tokens — never hard-coded colours.
+- Use the shared [app theme](lib/core/theme/app_theme.dart) and semantic
+  `Theme.of(context).colorScheme` roles for text, surfaces and outlines. Reuse
+  the shared [navigation tile](lib/core/widgets/stork_navigation_tile.dart) and
+  [settings sections](lib/features/settings/presentation/widgets/stork_settings_section.dart)
+  for repeated patterns.
+- Use the [map telemetry palette](lib/features/telemetry/presentation/widgets/map_telemetry_palette.dart)
+  for neutral instrument surfaces. Keep warnings, critical alerts and
+  missing-data states legible over map imagery in both themes.
+- Use the [visual regression tests](documentation/testing/visual-tests.md) when
+  changing shared UI. Check Slovak and English labels and larger text on
+  compact screens.
 
 ## Code Style & Quality
 

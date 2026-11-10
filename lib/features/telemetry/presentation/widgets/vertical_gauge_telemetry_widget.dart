@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../settings/domain/models/range_thresholds.dart';
 import 'telemetry_card.dart';
+import 'map_telemetry_palette.dart';
 import 'segmented_gauge_painter.dart';
 
 class VerticalGaugeTelemetryWidget extends StatelessWidget {
@@ -30,10 +31,9 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTextColor = isDark
-        ? Colors.grey.shade300
-        : Colors.grey.shade700;
+    final palette = MapTelemetryPalette.of(context);
+    final isDark = palette.isDark;
+    final defaultTextColor = palette.label;
 
     final bool isAbnormal =
         state != ThresholdState.operational && state != ThresholdState.inactive;
@@ -115,7 +115,7 @@ class VerticalGaugeTelemetryWidget extends StatelessWidget {
                     fontSize: (isAbnormal ? 24.0 : 18.0) * fontScale,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',
-                    color: isDark ? Colors.white : Colors.black,
+                    color: palette.value,
                     height: 1.0,
                   ),
                   child: Text(valueText),

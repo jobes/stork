@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:clock/clock.dart';
 
 import '../../../../core/utils/number_formatter.dart';
+import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
@@ -38,11 +39,11 @@ class NavigationDetailsDialog extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider).value;
     final navigationAsync = ref.watch(navigationProvider);
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
     final now = clock.now();
 
-    final defaultTextColor = isDark ? Colors.white70 : Colors.black87;
-    final valueColor = isDark ? Colors.white : Colors.black87;
+    final defaultTextColor = scheme.onSurfaceVariant;
+    final valueColor = scheme.onSurface;
 
     return navigationAsync.when(
       data: (navState) {
@@ -120,27 +121,23 @@ class NavigationDetailsDialog extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withAlpha(8)
-                      : Colors.black.withAlpha(5),
+                  color: scheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isDark ? Colors.white12 : Colors.black12,
-                  ),
+                  border: Border.all(color: scheme.outlineVariant),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withAlpha(20),
+                        color: scheme.primaryContainer,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         '${index + 1}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
+                          color: scheme.onPrimaryContainer,
                           fontSize: 12,
                         ),
                       ),
@@ -165,10 +162,10 @@ class NavigationDetailsDialog extends ConsumerWidget {
                               ),
                               if (p.isAirport) ...[
                                 const SizedBox(width: 6),
-                                const Icon(
+                                Icon(
                                   Icons.local_airport,
                                   size: 14,
-                                  color: Colors.blueAccent,
+                                  color: scheme.primary,
                                 ),
                               ],
                             ],
@@ -206,27 +203,23 @@ class NavigationDetailsDialog extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withAlpha(8)
-                      : Colors.black.withAlpha(5),
+                  color: scheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isDark ? Colors.white12 : Colors.black12,
-                  ),
+                  border: Border.all(color: scheme.outlineVariant),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withAlpha(20),
+                        color: scheme.primaryContainer,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         '${index + 1}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
+                          color: scheme.onPrimaryContainer,
                           fontSize: 12,
                         ),
                       ),
@@ -248,10 +241,10 @@ class NavigationDetailsDialog extends ConsumerWidget {
                           ),
                           if (p.isAirport) ...[
                             const SizedBox(width: 6),
-                            const Icon(
+                            Icon(
                               Icons.local_airport,
                               size: 14,
-                              color: Colors.blueAccent,
+                              color: scheme.primary,
                             ),
                           ],
                         ],
@@ -297,17 +290,9 @@ class NavigationDetailsDialog extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Summary container
-              Container(
+              StorkDetailSurface(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withAlpha(15)
-                      : Colors.black.withAlpha(10),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark ? Colors.white12 : Colors.black12,
-                  ),
-                ),
+                radius: 16,
                 child: Column(
                   children: [
                     if (hasMultiplePoints) ...[
@@ -319,7 +304,6 @@ class NavigationDetailsDialog extends ConsumerWidget {
                         distance: distToNearestStr,
                         time: timeToNearestStr,
                         eta: etaNearestStr,
-                        isDark: isDark,
                       ),
                       const Divider(height: 20),
                     ],
@@ -331,7 +315,6 @@ class NavigationDetailsDialog extends ConsumerWidget {
                       distance: distToDestStr,
                       time: timeToDestStr,
                       eta: etaDestStr,
-                      isDark: isDark,
                     ),
                     const Divider(height: 20),
                     Row(
@@ -339,7 +322,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
                         Icon(
                           Icons.speed_outlined,
                           size: 16,
-                          color: isDark ? Colors.white60 : Colors.black54,
+                          color: scheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -412,9 +395,9 @@ class NavigationDetailsDialog extends ConsumerWidget {
     required String distance,
     required String time,
     required String? eta,
-    required bool isDark,
   }) {
-    final defaultTextColor = isDark ? Colors.white70 : Colors.black87;
+    final scheme = Theme.of(context).colorScheme;
+    final defaultTextColor = scheme.onSurfaceVariant;
     final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,7 +412,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: scheme.onSurface,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -461,7 +444,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: scheme.onSurface,
                   ),
                 ),
                 if (eta != null) ...[

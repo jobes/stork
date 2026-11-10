@@ -41,9 +41,6 @@ Future<bool> promptForPin(
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
                 labelText: l10n.pinCode,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 prefixIcon: const Icon(Icons.lock_outline),
               ),
               validator: (val) {
@@ -62,17 +59,12 @@ Future<bool> promptForPin(
                   child: Text(l10n.cancel),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
+                FilledButton(
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
                       Navigator.of(context).pop(true);
                     }
                   },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
                   child: Text(l10n.confirm),
                 ),
               ],

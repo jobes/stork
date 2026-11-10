@@ -195,7 +195,8 @@ class DatabaseService {
     final dateStr = result.isEmpty
         ? null
         : result.first['last_date'] as String?;
-    return dateStr != null ? DateTime.tryParse(dateStr) : null;
+    // SQLite's CURRENT_TIMESTAMP stores UTC without a time zone suffix.
+    return dateStr == null ? null : DateTime.tryParse('${dateStr}Z')?.toLocal();
   }
 
   static Future<void> updateLastDownloadDate() async {

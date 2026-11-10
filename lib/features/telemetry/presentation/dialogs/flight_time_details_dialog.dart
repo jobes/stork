@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/utils/time_utils.dart';
+import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/flight_duration_provider.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
@@ -22,7 +23,7 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final flightSummary = ref.watch(flightDurationProvider);
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
 
     final distanceKm = flightSummary.distanceMeters / 1000.0;
 
@@ -30,15 +31,8 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
       titleText: l10n.flightDetailsTitle,
       icon: Icons.flight_takeoff,
       maxWidth: 450,
-      child: Container(
+      child: StorkDetailSurface(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark
-              ? Colors.white.withAlpha(15)
-              : Colors.black.withAlpha(10),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
-        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -48,16 +42,16 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
               iconColor: Colors.orangeAccent,
               label: l10n.flightStartTime,
               value: _formatStartTime(context, flightSummary.startTime),
-              isDark: isDark,
+              context: context,
             ),
             const Divider(height: 24),
             // Duration Row
             _buildDetailRow(
               icon: Icons.access_time,
-              iconColor: Colors.blueAccent,
+              iconColor: scheme.primary,
               label: l10n.flightDuration,
               value: flightSummary.duration.toHMSString(),
-              isDark: isDark,
+              context: context,
             ),
             const Divider(height: 24),
             // Distance Row
@@ -66,7 +60,7 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
               iconColor: Colors.green,
               label: l10n.flightDistance,
               value: '${context.formatNumber(distanceKm, 2)} km',
-              isDark: isDark,
+              context: context,
             ),
           ],
         ),
@@ -79,8 +73,9 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
     required Color iconColor,
     required String label,
     required String value,
-    required bool isDark,
+    required BuildContext context,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         Icon(icon, color: iconColor, size: 20),
@@ -91,7 +86,7 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white70 : Colors.black87,
+              color: scheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -101,7 +96,7 @@ class FlightTimeDetailsDialog extends ConsumerWidget {
             fontSize: 14,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',
-            color: isDark ? Colors.white : Colors.black87,
+            color: scheme.onSurface,
           ),
         ),
       ],

@@ -34,54 +34,78 @@ Future<void> _refreshAll(BuildContext context, WidgetRef ref) async {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
 
-/// Lists the flight instruments (DroneCAN nodes) currently seen on the bus.
-///
-/// Everything shown here comes from live DroneCAN traffic and is never
-/// persisted; "last seen" is derived from the time since the last heartbeat.
-class DroneCanInstrumentsPage extends ConsumerWidget {
+class DroneCanInstrumentsPage extends StatelessWidget {
   const DroneCanInstrumentsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.dronecanInstruments),
+        actions: const [DroneCanRefreshButton()],
+      ),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: DroneCanInstrumentsContent(),
+      ),
+    );
+  }
+}
+
+class DroneCanRefreshButton extends ConsumerWidget {
+  const DroneCanRefreshButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final nodesAsync = ref.watch(droneCanNodesProvider);
     final isConnected = ref.watch(cannelloniServiceProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.dronecanInstruments),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: l10n.dronecanRefresh,
-            onPressed: isConnected
-                ? () => unawaited(_refreshAll(context, ref))
-                : null,
-          ),
-        ],
-      ),
-      body: nodesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) {
-          debugPrint('DroneCAN instruments stream failed: $error');
-          return Center(child: Text(l10n.dronecanInstrumentsLoadError));
-        },
-        data: (nodes) {
-          if (nodes.isNotEmpty) {
-            return _NodeTable(nodes: nodes);
-          }
-          return _EmptyState(
-            icon: isConnected
-                ? Icons.developer_board_outlined
-                : Icons.wifi_off_outlined,
-            message: isConnected
-                ? l10n.dronecanInstrumentsEmpty
-                : l10n.dronecanInstrumentsDisconnected,
-          );
-        },
-      ),
+    return IconButton(
+      icon: const Icon(Icons.refresh),
+      tooltip: l10n.dronecanRefresh,
+      onPressed: isConnected
+          ? () => unawaited(_refreshAll(context, ref))
+          : null,
     );
+  }
+}
+
+/// Live instruments from the DroneCAN bus, shared by the connection settings
+/// and the standalone instruments route.
+class DroneCanInstrumentsContent extends ConsumerWidget {
+  const DroneCanInstrumentsContent({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final isConnected = ref.watch(cannelloniServiceProvider);
+    if (!isConnected) {
+      return _EmptyState(
+        icon: Icons.wifi_off_outlined,
+        message: l10n.dronecanInstrumentsDisconnected,
+      );
+    }
+
+    return ref
+        .watch(droneCanNodesProvider)
+        .when(
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (error, stack) {
+            debugPrint('DroneCAN instruments stream failed: $error');
+            return Center(child: Text(l10n.dronecanInstrumentsLoadError));
+          },
+          data: (nodes) => nodes.isNotEmpty
+              ? _NodeTable(nodes: nodes)
+              : _EmptyState(
+                  icon: Icons.developer_board_outlined,
+                  message: l10n.dronecanInstrumentsEmpty,
+                ),
+        );
   }
 }
 
@@ -96,77 +120,77 @@ class _NodeTable extends StatelessWidget {
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          columnSpacing: 28,
-          headingTextStyle: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
-          ),
-          columns: [
-            DataColumn(label: Text(l10n.dronecanNodeId)),
-            DataColumn(label: Text(l10n.dronecanNodeName)),
-            DataColumn(label: Text(l10n.dronecanUniqueId)),
-            DataColumn(label: Text(l10n.dronecanHealth)),
-            DataColumn(label: Text(l10n.dronecanMode)),
-            DataColumn(label: Text(l10n.dronecanUptime)),
-            DataColumn(label: Text(l10n.dronecanLastSeen)),
-          ],
-          rows: [
-            for (final node in nodes)
-              DataRow(
-                cells: [
-                  DataCell(
-                    Text(
-                      node.nodeId.toString(),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      node.name ?? l10n.placeholderDash,
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                        decorationColor: theme.colorScheme.primary,
-                      ),
-                    ),
-                    onTap: () => showDroneCanNodeDetailsDialog(context, node),
-                  ),
-                  DataCell(
-                    Text(
-                      node.uniqueId ?? l10n.placeholderDash,
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    _HealthIndicator(
-                      health: node.health,
-                      label: droneCanHealthLabel(node.health, l10n),
-                    ),
-                  ),
-                  DataCell(Text(droneCanModeLabel(node.mode, l10n))),
-                  DataCell(
-                    Text(
-                      formatDroneCanUptime(
-                        Duration(seconds: node.uptimeSec),
-                        l10n,
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    Text(formatDroneCanLastSeen(node.lastSeenAgo(), l10n)),
-                  ),
-                ],
-              ),
-          ],
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        columnSpacing: 28,
+        headingRowColor: WidgetStatePropertyAll(
+          theme.colorScheme.surfaceContainer,
         ),
+        headingTextStyle: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurface,
+        ),
+        columns: [
+          DataColumn(label: Text(l10n.dronecanNodeId)),
+          DataColumn(label: Text(l10n.dronecanNodeName)),
+          DataColumn(label: Text(l10n.dronecanUniqueId)),
+          DataColumn(label: Text(l10n.dronecanHealth)),
+          DataColumn(label: Text(l10n.dronecanMode)),
+          DataColumn(label: Text(l10n.dronecanUptime)),
+          DataColumn(label: Text(l10n.dronecanLastSeen)),
+        ],
+        rows: [
+          for (final node in nodes)
+            DataRow(
+              cells: [
+                DataCell(
+                  Text(
+                    node.nodeId.toString(),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    node.name ?? l10n.placeholderDash,
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                      decorationColor: theme.colorScheme.primary,
+                    ),
+                  ),
+                  onTap: () => showDroneCanNodeDetailsDialog(context, node),
+                ),
+                DataCell(
+                  Text(
+                    node.uniqueId ?? l10n.placeholderDash,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  _HealthIndicator(
+                    health: node.health,
+                    label: droneCanHealthLabel(node.health, l10n),
+                  ),
+                ),
+                DataCell(Text(droneCanModeLabel(node.mode, l10n))),
+                DataCell(
+                  Text(
+                    formatDroneCanUptime(
+                      Duration(seconds: node.uptimeSec),
+                      l10n,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Text(formatDroneCanLastSeen(node.lastSeenAgo(), l10n)),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }
@@ -212,13 +236,13 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 64,
+              size: 32,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),

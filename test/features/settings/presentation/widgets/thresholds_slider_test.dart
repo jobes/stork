@@ -7,6 +7,141 @@ import 'package:stork/l10n/app_localizations.dart';
 ThresholdState mockEvaluate(double value) => ThresholdState.operational;
 
 void main() {
+  testWidgets('vertical scrolling over a thumb leaves thresholds unchanged', (
+    tester,
+  ) async {
+    final scroll = ScrollController();
+    addTearDown(scroll.dispose);
+    final changes = <List<double>>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(
+            controller: scroll,
+            children: [
+              const SizedBox(height: 160),
+              ThresholdsSlider(
+                values: const [20, 40, 60],
+                min: 0,
+                max: 100,
+                evaluate: mockEvaluate,
+                onChanged: changes.add,
+                unitLabel: '%',
+              ),
+              const SizedBox(height: 1000),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final slider = tester.getRect(find.byType(ThresholdsSlider));
+    await tester.dragFrom(
+      Offset(slider.left + slider.width * 0.4, slider.center.dy),
+      const Offset(12, -135),
+    );
+    await tester.pumpAndSettle();
+    expect(scroll.offset, greaterThan(0));
+    expect(changes, isEmpty);
+  });
+
+  for (final direction in [-1, 1]) {
+    testWidgets('dragging overlapping thumbs separates them ($direction)', (
+      tester,
+    ) async {
+      final changes = <List<double>>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 300,
+                child: ThresholdsSlider(
+                  values: const [40, 40],
+                  min: 0,
+                  max: 100,
+                  evaluate: mockEvaluate,
+                  onChanged: changes.add,
+                  unitLabel: '%',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final slider = tester.getRect(find.byType(ThresholdsSlider));
+      await tester.dragFrom(
+        Offset(slider.left + slider.width * 0.4, slider.center.dy),
+        Offset(60.0 * direction, 0),
+      );
+      expect(changes.last, direction < 0 ? [20, 40] : [40, 60]);
+    });
+  }
+
+  testWidgets('precise settings validate and save the full set together', (
+    tester,
+  ) async {
+    final changes = <List<double>>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('sk'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: ThresholdsSlider(
+            values: const [1.2, 2.3],
+            min: 0,
+            max: 8,
+            evaluate: mockEvaluate,
+            onChanged: changes.add,
+            unitLabel: 'bar',
+            decimalPlaces: 1,
+            settingsTitle: 'Tlak oleja',
+            thresholdStates: const [
+              ThresholdState.minError,
+              ThresholdState.minWarning,
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final settings = find.text('Presné nastavenie');
+    await tester.tap(settings);
+    await tester.pumpAndSettle();
+    final fields = find.byType(TextFormField);
+    final save = find.text('Uložiť');
+    final l10n = AppLocalizations.of(tester.element(fields.first))!;
+
+    await tester.enterText(fields.first, '2,5');
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.thresholdValuesOrder), findsOneWidget);
+    expect(changes, isEmpty);
+
+    await tester.enterText(fields.last, '9,0');
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.thresholdValueOutOfRange), findsOneWidget);
+    expect(changes, isEmpty);
+
+    await tester.enterText(fields.last, '3,0');
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+    expect(fields, findsNothing);
+    expect(changes, [
+      [2.5, 3.0],
+    ]);
+
+    await tester.tap(settings);
+    await tester.pumpAndSettle();
+    await tester.enterText(fields.last, '4,0');
+    await tester.tap(find.text('Zrušiť'));
+    await tester.pumpAndSettle();
+    expect(changes, hasLength(1));
+  });
+
   testWidgets(
     'ThresholdsSlider changes activeThumbIndex during panning and clears it on pan end',
     (WidgetTester tester) async {

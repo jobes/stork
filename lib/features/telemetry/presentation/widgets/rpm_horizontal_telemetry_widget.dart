@@ -6,6 +6,7 @@ import '../providers/telemetry_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import 'telemetry_card.dart';
+import 'map_telemetry_palette.dart';
 
 class RpmHorizontalTelemetryWidget extends ConsumerWidget {
   const RpmHorizontalTelemetryWidget({super.key});
@@ -34,10 +35,9 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTextColor = isDark
-        ? Colors.grey.shade400
-        : Colors.grey.shade600;
+    final palette = MapTelemetryPalette.of(context);
+    final isDark = palette.isDark;
+    final defaultTextColor = palette.label;
 
     final int? currentRpm = engineRPM;
     final String rpmText = currentRpm != null
@@ -88,7 +88,7 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
                       fontSize: (isAbnormal ? 18.0 : 15.0) * fontScale,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'monospace',
-                      color: isDark ? Colors.white : Colors.black,
+                      color: palette.value,
                       height: 1.0,
                     ),
                     child: Text(rpmText),

@@ -11,6 +11,7 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   mapDefaultZoom: (json['mapDefaultZoom'] as num?)?.toDouble() ?? 6.0,
   mapOverviewZoom: (json['mapOverviewZoom'] as num?)?.toDouble() ?? 10.0,
   mapFollowZoom: (json['mapFollowZoom'] as num?)?.toDouble() ?? 12.0,
+  mapFollowPitch: (json['mapFollowPitch'] as num?)?.toDouble() ?? 30.0,
   flightSpeedThresholds: json['flightSpeedThresholds'] == null
       ? const RangeThresholds.raw(
           inactiveMax: 2.77,
@@ -156,6 +157,7 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'mapDefaultZoom': instance.mapDefaultZoom,
       'mapOverviewZoom': instance.mapOverviewZoom,
       'mapFollowZoom': instance.mapFollowZoom,
+      'mapFollowPitch': instance.mapFollowPitch,
       'flightSpeedThresholds': instance.flightSpeedThresholds,
       'flightSpeedMaxRange': instance.flightSpeedMaxRange,
       'courseLineSegmentsCount': instance.courseLineSegmentsCount,

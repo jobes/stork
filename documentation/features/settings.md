@@ -50,9 +50,23 @@ The settings are saved using the `shared_preferences` package, abstracted behind
 - **Serialization**: The entire `AppSettings` object is converted to a JSON map using the generated `.toJson()` method.
 - **Deserialization**: On application startup, the repository reads the JSON string and reconstructs the object via `AppSettings.fromJson()`. If no preferences exist, it yields the default settings template.
 
+### 3.1. Aircraft limits and pilot layouts
+
+Limits and ranges are stored separately for each aircraft. Map widget positions
+are stored separately for each pilot. Display units, map zoom and the edit lock
+remain global preferences. See [scoped settings](scoped-settings.md) for
+migration, persistence and serialized profile switching.
+
 ## 4. UI Implementation
 
-To prevent a single cluttered screen, the configuration is split into modular pages accessed via the main [SettingsPage](../../lib/features/settings/presentation/settings_page.dart):
+To prevent a single cluttered screen, the configuration is split into modular pages accessed via the main [SettingsPage](../../lib/features/settings/presentation/pages/settings_page.dart):
+
+### Appearance and Language
+
+Choose Light, Dark or System for the theme and English, Slovak or System for
+the interface language. Both preferences default to System and are saved
+locally for the whole app. System language uses the first supported device
+preference and falls back to English.
 
 ### 4.1. Flight Settings ([FlightSettingsPage](../../lib/features/settings/presentation/pages/flight_settings_page.dart))
 Manages aircraft-specific configurations:
@@ -68,8 +82,10 @@ Manages aircraft-specific configurations:
 ### 4.2. Map Settings ([MapSettingsPage](../../lib/features/settings/presentation/pages/map_settings_page.dart))
 Manages visual and layout preferences:
 - **Zoom Levels**: Sliders configuring the initial, overview, and follow-mode zoom levels.
-- **Typography**: Adjusts the `mapFontSize` which dynamically scales the text inside the glassmorphic telemetry cards.
-- **Widget Layout Controls**: A toggle to enable/disable widget dragging (`areWidgetsDraggable`) and a reset button to restore default widget positions.
+- **Typography**: Adjusts the `mapFontSize` which scales the text in map telemetry cards.
+- **Widget Layout Controls**: Enable **Move widgets** or reset the
+  active pilot's positions. Select **Done** on the map to finish editing. See
+  [customizable widget layouts](customizable-widgets-layout.md).
 
 ### 4.3. Gateway Settings ([GatewaySettingsPage](../../lib/features/settings/presentation/pages/gateway_settings_page.dart))
 Manages network connectivity:

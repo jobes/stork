@@ -7,6 +7,7 @@ import '../../../settings/domain/models/temperature_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../providers/telemetry_provider.dart';
 import 'telemetry_card.dart';
+import 'map_telemetry_palette.dart';
 import 'segmented_gauge_painter.dart';
 
 class CylinderTempTelemetryWidget extends ConsumerWidget {
@@ -79,10 +80,9 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
       }
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultTextColor = isDark
-        ? Colors.grey.shade300
-        : Colors.grey.shade700;
+    final palette = MapTelemetryPalette.of(context);
+    final isDark = palette.isDark;
+    final defaultTextColor = palette.label;
 
     // Dynamically calculate column layout sizes
     final double colWidth = (chts.length <= 2 ? 36.0 : 28.0) * fontScale;
@@ -187,8 +187,8 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
                               color: rawTemp == null
-                                  ? Colors.grey
-                                  : (isDark ? Colors.white : Colors.black),
+                                  ? palette.label
+                                  : palette.value,
                             ),
                           ),
                         ),

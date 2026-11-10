@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -10,10 +9,12 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:maplibre/maplibre.dart';
 import 'location_service.dart';
+import '../../features/settings/presentation/providers/display_preferences_provider.dart';
 import '../../l10n/app_localizations.dart';
 
 part 'location_provider.g.dart';
 
+/// Gets a single position fix from the device.
 @riverpod
 Future<Geographic?> currentLocation(Ref ref) async {
   return await LocationService.getCurrentLocation();
@@ -25,14 +26,12 @@ Future<Geographic?> currentLocation(Ref ref) async {
 /// stream is downgraded to `lowest` accuracy / 100 km distance filter / 10 s
 /// interval to save battery (its emissions are ignored anyway). Otherwise it
 /// runs at `bestForNavigation` with a 1 s interval for smooth tracking.
-geo.LocationSettings _locationSettings({required bool droneCan}) {
+geo.LocationSettings _locationSettings({
+  required bool droneCan,
+  required AppLanguage language,
+}) {
   if (defaultTargetPlatform == TargetPlatform.android) {
-    final locale = ui.PlatformDispatcher.instance.locale;
-    final isSupported = AppLocalizations.supportedLocales.any(
-      (l) => l.languageCode == locale.languageCode,
-    );
-    final supportedLocale = isSupported ? locale : const Locale('en');
-    final l10n = lookupAppLocalizations(supportedLocale);
+    final l10n = lookupAppLocalizations(language.resolvedLocale);
 
     return geo.AndroidSettings(
       accuracy: droneCan
@@ -94,7 +93,7 @@ class GeolocatorStreamFailed extends GeolocatorStreamStatus {
 ///
 /// The native OS subscription is started explicitly (see [start]) the first
 /// time the map needs a fix, and then kept alive for the whole app session.
-/// It is intentionally never torn down when other state changes: re-creating
+/// Ordinary provider updates leave the native subscription intact: re-creating
 /// the geolocator stream on every rebuild cancels the OS location subscription
 /// and re-subscribes, which on Android can silently leave the app subscribed
 /// to a dead stream — the phone GPS then stops delivering positions (frozen
@@ -167,6 +166,16 @@ class GeolocatorStream extends _$GeolocatorStream {
   @override
   ({Stream<geo.Position> stream, GeolocatorStreamStatus status}) build() {
     _controller ??= StreamController<geo.Position>.broadcast();
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      ref.listen(
+        displayPreferencesProvider.select(
+          (preferences) => preferences.value?.language ?? AppLanguage.system,
+        ),
+        (_, _) {
+          if (_subscription != null) _startWithMode();
+        },
+      );
+    }
     ref.onDispose(() {
       _retryTimer?.cancel();
       _retryTimer = null;
@@ -227,8 +236,9 @@ class GeolocatorStream extends _$GeolocatorStream {
     return _restartInFlight ?? Future.value();
   }
 
+  /// Restarts the native stream with the latest settings after cancellation.
   void _startWithMode() {
-    // A mode switch re-subscribes anyway; drop any pending retry/stall timer.
+    // The restart replaces any pending retry or stall timer.
     _retryTimer?.cancel();
     _retryTimer = null;
     _disarmStallWatchdog();
@@ -242,8 +252,8 @@ class GeolocatorStream extends _$GeolocatorStream {
     });
   }
 
-  /// Opens a new OS location subscription with the current mode. Any previous
-  /// subscription must already be cancelled by the caller.
+  /// Opens a native location subscription with the current mode and language.
+  /// The caller must cancel any previous subscription first.
   void _subscribe() {
     _retryTimer?.cancel();
     _retryTimer = null;
@@ -255,7 +265,12 @@ class GeolocatorStream extends _$GeolocatorStream {
     // re-armed below so a stream that stays silently dead is detected again.
     try {
       _subscription = geo.Geolocator.getPositionStream(
-        locationSettings: _locationSettings(droneCan: _droneCanMode),
+        locationSettings: _locationSettings(
+          droneCan: _droneCanMode,
+          language:
+              ref.read(displayPreferencesProvider).value?.language ??
+              AppLanguage.system,
+        ),
       ).listen(_onPosition, onError: _onStreamError);
     } catch (error, stackTrace) {
       // Some platforms surface OS location errors synchronously when the

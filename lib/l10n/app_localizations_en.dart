@@ -9,6 +9,33 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get settingsDisplayPreferences => 'Appearance and language';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsFollowSystem => 'System';
+
+  @override
+  String get settingsLightTheme => 'Light';
+
+  @override
+  String get settingsDarkTheme => 'Dark';
+
+  @override
+  String get settingsEnglish => 'English';
+
+  @override
+  String get settingsSlovak => 'Slovak';
+
+  @override
+  String get settingsPreferenceSaveFailed => 'Could not save the preference.';
+
+  @override
   String get appTitle => 'Stork nav';
 
   @override
@@ -89,6 +116,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noAreasSelected => 'No areas to download';
 
   @override
+  String get selectOfflineArea => 'Select area';
+
+  @override
+  String get drawOfflineAreaHint =>
+      'Drag on the map to draw the area to download.';
+
+  @override
+  String get offlineMapsReady => 'Ready to use offline';
+
+  @override
+  String get offlineMapsDownloadRequired =>
+      'Download required for the selected areas';
+
+  @override
   String get deleteConfirmationTitle => 'Delete All';
 
   @override
@@ -148,6 +189,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapFollowZoom => 'Map Follow Zoom';
 
   @override
+  String get mapFollowPitch => 'Follow map tilt (°)';
+
+  @override
+  String get mapFollowPitchHint =>
+      'A steeper tilt improves the view ahead, but requires more processing power and may make the map stutter.';
+
+  @override
   String get resetSettings => 'Reset Settings';
 
   @override
@@ -191,6 +239,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get maxErrorThreshold => 'Critically high';
+
+  @override
+  String get editThresholdValues => 'Precise settings';
+
+  @override
+  String get thresholdValueInvalid => 'Enter a valid number.';
+
+  @override
+  String get thresholdValueOutOfRange => 'Value is outside the slider range.';
+
+  @override
+  String get thresholdValuesOrder =>
+      'Use a value at least as high as the previous threshold.';
 
   @override
   String get mapSettings => 'Map Settings';
@@ -2294,6 +2355,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collisionWarningLabel => 'COLLISION';
 
   @override
+  String get collisionMinSeparation => 'Min. separation';
+
+  @override
+  String get collisionTimeToClosest => 'Time to closest';
+
+  @override
+  String get collisionAltitudeDifference => 'Altitude diff. now';
+
+  @override
   String get pureTrackTitle => 'PureTrack Account';
 
   @override
@@ -2410,4 +2480,104 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearAllHiddenAircraft => 'Clear all hidden';
+
+  @override
+  String get settingsMapAppearance => 'Map appearance';
+
+  @override
+  String get settingsMapZoom => 'Map zoom and tilt';
+
+  @override
+  String get settingsWidgetLayout => 'Widget layout';
+
+  @override
+  String get settingsResetLayoutConfirm =>
+      'Reset the saved widget positions for the current layout? This cannot be undone.';
+
+  @override
+  String get settingsConnection => 'Gateway connection';
+
+  @override
+  String get settingsFlightMeasurements => 'Units and measurements';
+
+  @override
+  String get settingsFlightLimits => 'Flight and engine limits';
+
+  @override
+  String get settingsTrafficFilters => 'Traffic filters';
+
+  @override
+  String get settingsCollisionAvoidance => 'Collision avoidance';
+
+  @override
+  String get settingsTrafficSources => 'Traffic data sources';
+
+  @override
+  String get menuFlightAndMap => 'Flight and map';
+
+  @override
+  String get menuRoute => 'Route';
+
+  @override
+  String get menuNoActiveRoute => 'No active route';
+
+  @override
+  String menuActiveRoute(String destination) {
+    return 'Active · $destination';
+  }
+
+  @override
+  String get menuFavoritePlaces => 'Favorite places';
+
+  @override
+  String get menuDone => 'Done';
+
+  @override
+  String get menuOfflineDownloading => 'Downloading maps';
+
+  @override
+  String menuOfflineDownloaded(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat.yMMMd(localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'Downloaded $dateString';
+  }
+
+  @override
+  String get menuMap => 'Map';
+
+  @override
+  String get menuMapSummary => 'Appearance, zoom and widget layout';
+
+  @override
+  String get menuUnitsAndLimits => 'Units and limits';
+
+  @override
+  String menuUnitsSummary(String speed, String altitude) {
+    return '$speed · $altitude · aircraft limits';
+  }
+
+  @override
+  String get menuTrafficAndAlerts => 'Traffic and alerts';
+
+  @override
+  String get menuCollisionAlertsOn => 'Collision alerts on';
+
+  @override
+  String get menuCollisionAlertsOff => 'Collision alerts off';
+
+  @override
+  String get menuInstrumentsAndConnection => 'Instruments and connection';
+
+  @override
+  String get menuGatewayConnected => 'Gateway connected';
+
+  @override
+  String get menuGatewayDisconnected => 'Gateway disconnected';
+
+  @override
+  String get menuSearchingGateways => 'Searching for gateways…';
+
+  @override
+  String get menuFindGateways => 'Search again';
 }

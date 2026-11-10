@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/number_formatter.dart';
+import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/vario_state.dart';
 import '../providers/vario_provider.dart';
@@ -17,7 +18,7 @@ class VarioDetailsDialog extends ConsumerWidget {
     final vario = ref.watch(varioProvider);
     final telemetry = ref.watch(telemetryProvider);
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
 
     // Source info — switch expression returning a record
     final (sourceText, sourceIcon, sourceColor) = switch (vario.source) {
@@ -25,7 +26,7 @@ class VarioDetailsDialog extends ConsumerWidget {
       VarioSource.gps => (
         l10n.varioSourceGps,
         Icons.satellite_alt,
-        Colors.blueAccent,
+        scheme.primary,
       ),
       VarioSource.none => (
         l10n.varioSourceNone,
@@ -51,17 +52,9 @@ class VarioDetailsDialog extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Current value card
-          Container(
+          StorkDetailSurface(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withAlpha(20)
-                  : Colors.black.withAlpha(12),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: isDark ? Colors.white12 : Colors.black12,
-              ),
-            ),
+            radius: 16,
             child: Row(
               children: [
                 Icon(trendIcon, color: trendColor, size: 32),
@@ -70,7 +63,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                   l10n.varioCurrentValue,
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? Colors.white70 : Colors.black54,
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
                 const Spacer(),
@@ -85,7 +78,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'monospace',
-                      color: isDark ? Colors.white : Colors.black,
+                      color: scheme.onSurface,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -93,7 +86,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                     l10n.varioUnitMs,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.white60 : Colors.black54,
+                      color: scheme.onSurfaceVariant,
                     ),
                   ),
                 ] else ...[
@@ -103,7 +96,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'monospace',
-                      color: Colors.grey,
+                      color: scheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -111,7 +104,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                     l10n.varioUnitMs,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.white60 : Colors.black54,
+                      color: scheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -126,21 +119,11 @@ class VarioDetailsDialog extends ConsumerWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white70 : Colors.black54,
+              color: scheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withAlpha(15)
-                  : Colors.black.withAlpha(10),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark ? Colors.white12 : Colors.black12,
-              ),
-            ),
+          StorkDetailSurface(
             child: Row(
               children: [
                 Icon(sourceIcon, color: sourceColor, size: 24),
@@ -151,7 +134,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: scheme.onSurface,
                     ),
                   ),
                 ),
@@ -163,16 +146,15 @@ class VarioDetailsDialog extends ConsumerWidget {
           // Source details
           if (vario.source == VarioSource.baro) ...[
             _buildDetailSection(
-              isDark: isDark,
               children: [
                 _buildDetailRow(
                   icon: Icons.air,
-                  iconColor: Colors.blueAccent,
+                  iconColor: scheme.primary,
                   label: l10n.varioAirPressure,
                   value: telemetry.airPressure != null
                       ? '${context.formatNumber(telemetry.airPressure! / 100, 1)} hPa'
                       : l10n.valueNotAvailable,
-                  isDark: isDark,
+                  context: context,
                 ),
                 const Divider(height: 16),
                 _buildDetailRow(
@@ -181,22 +163,21 @@ class VarioDetailsDialog extends ConsumerWidget {
                   label: l10n.varioQnhUsed,
                   value:
                       '${context.formatNumber(ref.watch(appSettingsProvider).value?.qnh ?? 1013.25, 2)} hPa',
-                  isDark: isDark,
+                  context: context,
                 ),
               ],
             ),
           ] else if (vario.source == VarioSource.gps) ...[
             _buildDetailSection(
-              isDark: isDark,
               children: [
                 _buildDetailRow(
                   icon: Icons.height,
-                  iconColor: Colors.blueAccent,
+                  iconColor: scheme.primary,
                   label: l10n.verticalAccuracy,
                   value: telemetry.gpsVerticalAccuracy != null
                       ? '± ${context.formatNumber(telemetry.gpsVerticalAccuracy!, 1)} m'
                       : l10n.valueNotAvailable,
-                  isDark: isDark,
+                  context: context,
                 ),
                 const Divider(height: 16),
                 _buildDetailRow(
@@ -210,7 +191,7 @@ class VarioDetailsDialog extends ConsumerWidget {
                   value: telemetry.gpsSatelliteCount != null
                       ? '${telemetry.gpsSatelliteCount}'
                       : l10n.valueNotAvailable,
-                  isDark: isDark,
+                  context: context,
                 ),
               ],
             ),
@@ -220,19 +201,8 @@ class VarioDetailsDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailSection({
-    required bool isDark,
-    required List<Widget> children,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withAlpha(15) : Colors.black.withAlpha(10),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
-      ),
-      child: Column(children: children),
-    );
+  Widget _buildDetailSection({required List<Widget> children}) {
+    return StorkDetailSurface(child: Column(children: children));
   }
 
   Widget _buildDetailRow({
@@ -240,8 +210,9 @@ class VarioDetailsDialog extends ConsumerWidget {
     required Color iconColor,
     required String label,
     required String value,
-    required bool isDark,
+    required BuildContext context,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         Icon(icon, color: iconColor, size: 20),
@@ -249,10 +220,7 @@ class VarioDetailsDialog extends ConsumerWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark ? Colors.white70 : Colors.black87,
-            ),
+            style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant),
           ),
         ),
         Text(
@@ -261,7 +229,7 @@ class VarioDetailsDialog extends ConsumerWidget {
             fontSize: 14,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',
-            color: isDark ? Colors.white : Colors.black,
+            color: scheme.onSurface,
           ),
         ),
       ],

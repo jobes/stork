@@ -91,12 +91,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.profileAndAircraftPageTitle),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
+      appBar: AppBar(title: Text(l10n.profileAndAircraftPageTitle)),
       body: body,
     );
   }

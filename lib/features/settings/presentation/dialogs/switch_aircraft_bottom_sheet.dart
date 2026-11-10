@@ -6,6 +6,7 @@ import '../../domain/models/app_settings.dart';
 import '../providers/settings_provider.dart';
 import 'create_aircraft_dialog.dart';
 
+/// Shows saved aircraft profiles and lets the user change the active selection.
 void showSwitchAircraftBottomSheet(
   BuildContext context,
   WidgetRef ref,
@@ -17,13 +18,25 @@ void showSwitchAircraftBottomSheet(
   final activeAircraftId = settings.airplaneId;
   final parentContext = context;
 
+  Future<void> switchAircraft(String? id) async {
+    final result = await ref
+        .read(appSettingsProvider.notifier)
+        .updateAirplaneId(id);
+    if (!parentContext.mounted) return;
+    if (result is SettingsUpdateFailure) {
+      ScaffoldMessenger.of(parentContext).showSnackBar(
+        SnackBar(
+          content: Text(l10n.settingsUpdateFailed(result.error.toString())),
+        ),
+      );
+    }
+  }
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: theme.colorScheme.surface,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
+    useSafeArea: true,
+    // Appearance comes from the shared BottomSheetThemeData.
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setSheetState) {
@@ -114,9 +127,7 @@ void showSwitchAircraftBottomSheet(
                               return TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  ref
-                                      .read(appSettingsProvider.notifier)
-                                      .updateAirplaneId(null);
+                                  switchAircraft(null);
                                 },
                                 child: Text(l10n.deselectAircraft),
                               );
@@ -125,28 +136,23 @@ void showSwitchAircraftBottomSheet(
                             final isActive = aircraft.id == activeAircraftId;
 
                             return Card(
-                              elevation: isActive ? 2 : 1,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                side: isActive
-                                    ? BorderSide(
-                                        color: theme.colorScheme.primary,
-                                        width: 2,
-                                      )
-                                    : BorderSide.none,
+                                borderRadius: BorderRadius.circular(14),
+                                side: BorderSide(
+                                  color: isActive
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.outlineVariant,
+                                  width: isActive ? 2 : 1,
+                                ),
                               ),
                               color: isActive
                                   ? theme.colorScheme.primaryContainer
-                                        .withValues(alpha: 0.15)
-                                  : theme.colorScheme.surfaceContainerHighest
-                                        .withValues(alpha: 0.3),
+                                  : theme.colorScheme.surfaceContainer,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () async {
                                   Navigator.pop(context);
-                                  await ref
-                                      .read(appSettingsProvider.notifier)
-                                      .updateAirplaneId(aircraft.id);
+                                  await switchAircraft(aircraft.id);
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -165,8 +171,10 @@ void showSwitchAircraftBottomSheet(
                                         child: Icon(
                                           Icons.flight,
                                           color: isActive
-                                              ? Colors.white
-                                              : Colors.grey[700],
+                                              ? theme.colorScheme.onPrimary
+                                              : theme
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
                                           size: 20,
                                         ),
                                       ),

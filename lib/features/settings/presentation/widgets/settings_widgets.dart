@@ -42,7 +42,7 @@ class SliderSetting extends StatelessWidget {
               ),
             ],
           ),
-          Slider(
+          SettingsSlider(
             value: value,
             min: min,
             max: max,
@@ -50,6 +50,48 @@ class SliderSetting extends StatelessWidget {
             onChanged: onChanged,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A full-width settings slider with room for the thumb at either endpoint.
+class SettingsSlider extends StatelessWidget {
+  const SettingsSlider({
+    super.key,
+    required this.value,
+    required this.min,
+    required this.max,
+    this.divisions,
+    required this.onChanged,
+  });
+
+  final double value;
+  final double min;
+  final double max;
+  final int? divisions;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = divisions;
+    final span = max - min;
+    // Flutter already paints at the nearest step. Pass that value so touching
+    // the thumb cannot round a saved setting that sits between steps.
+    final displayedValue = steps == null || span == 0
+        ? value
+        : (((value - min) / span * steps).round() / steps) * span + min;
+
+    return SizedBox(
+      height: kMinInteractiveDimension,
+      child: Slider(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        allowedInteraction: SliderInteraction.slideThumb,
+        value: displayedValue,
+        min: min,
+        max: max,
+        divisions: divisions,
+        onChanged: onChanged,
       ),
     );
   }
@@ -84,7 +126,6 @@ class DeviceDropdownSetting extends StatelessWidget {
   final CannelloniDevice? selectedDevice;
   final List<CannelloniDevice> devices;
   final bool enabled;
-  final bool isConnected;
   final ValueChanged<CannelloniDevice?> onChanged;
 
   const DeviceDropdownSetting({
@@ -93,27 +134,14 @@ class DeviceDropdownSetting extends StatelessWidget {
     required this.selectedDevice,
     required this.devices,
     required this.enabled,
-    required this.isConnected,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final uniqueDevices = devices.toSet().toList();
-    if (selectedDevice != null &&
-        isConnected &&
-        !uniqueDevices.any((d) => d == selectedDevice)) {
-      uniqueDevices.add(selectedDevice!);
-    }
-
-    // Check if the currently selected device is in the list
-    CannelloniDevice? value;
-    try {
-      value = uniqueDevices.firstWhere((d) => d == selectedDevice);
-    } catch (_) {
-      value = null;
-    }
+    final uniqueDevices = {...devices, ?selectedDevice};
+    final value = selectedDevice;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),

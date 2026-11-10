@@ -26,6 +26,7 @@ extension MapCameraStyle on MapCamera {
         ),
       );
       if (!refAccess.mounted) return;
+      _lastCourseLineUpdate = null;
 
       await style.addLayer(
         LineStyleLayer(
@@ -263,6 +264,22 @@ extension MapCameraStyle on MapCamera {
       debugPrint('Aircraft symbols initialized 😎');
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');
+    }
+  }
+
+  Future<void> _updateCourseLineOnMap(String data) async {
+    final style = _mapController?.style;
+    if (style == null) return;
+
+    final update = (style: style, data: data);
+    if (update == _lastCourseLineUpdate) return;
+
+    _lastCourseLineUpdate = update;
+    try {
+      await style.updateGeoJsonSource(id: 'course-line-source', data: data);
+    } catch (_) {
+      if (_lastCourseLineUpdate == update) _lastCourseLineUpdate = null;
+      rethrow;
     }
   }
 }

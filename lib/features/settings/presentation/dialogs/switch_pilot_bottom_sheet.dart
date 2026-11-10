@@ -7,6 +7,7 @@ import '../providers/settings_provider.dart';
 import 'create_pilot_dialog.dart';
 import 'pin_prompt_dialog.dart';
 
+/// Shows saved pilot profiles and lets the user change the active selection.
 void showSwitchPilotBottomSheet(
   BuildContext context,
   WidgetRef ref,
@@ -19,13 +20,28 @@ void showSwitchPilotBottomSheet(
   final activePilotId = settings.pilotId;
   final parentContext = context;
 
+  Future<void> switchPilot(String? id) async {
+    final result = await ref
+        .read(appSettingsProvider.notifier)
+        .updatePilotId(id);
+    if (!parentContext.mounted) return;
+    if (result is SettingsUpdateFailure) {
+      ScaffoldMessenger.of(parentContext).showSnackBar(
+        SnackBar(
+          content: Text(l10n.settingsUpdateFailed(result.error.toString())),
+        ),
+      );
+    }
+    if (result is SettingsUpdateSuccess && id != null) {
+      onPilotUnlocked(id);
+    }
+  }
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: theme.colorScheme.surface,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
+    useSafeArea: true,
+    // Appearance comes from the shared BottomSheetThemeData.
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setSheetState) {
@@ -122,9 +138,7 @@ void showSwitchPilotBottomSheet(
                               return TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  ref
-                                      .read(appSettingsProvider.notifier)
-                                      .updatePilotId(null);
+                                  switchPilot(null);
                                 },
                                 child: Text(l10n.deselectPilot),
                               );
@@ -133,21 +147,18 @@ void showSwitchPilotBottomSheet(
                             final isActive = pilot.id == activePilotId;
 
                             return Card(
-                              elevation: isActive ? 2 : 1,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                side: isActive
-                                    ? BorderSide(
-                                        color: theme.colorScheme.primary,
-                                        width: 2,
-                                      )
-                                    : BorderSide.none,
+                                borderRadius: BorderRadius.circular(14),
+                                side: BorderSide(
+                                  color: isActive
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.outlineVariant,
+                                  width: isActive ? 2 : 1,
+                                ),
                               ),
                               color: isActive
                                   ? theme.colorScheme.primaryContainer
-                                        .withValues(alpha: 0.15)
-                                  : theme.colorScheme.surfaceContainerHighest
-                                        .withValues(alpha: 0.3),
+                                  : theme.colorScheme.surfaceContainerLow,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () async {
@@ -159,11 +170,8 @@ void showSwitchPilotBottomSheet(
                                     pilot,
                                     l10n.selectPilotTitle,
                                   );
-                                  if (success) {
-                                    await ref
-                                        .read(appSettingsProvider.notifier)
-                                        .updatePilotId(pilot.id);
-                                    onPilotUnlocked(pilot.id);
+                                  if (success && parentContext.mounted) {
+                                    await switchPilot(pilot.id);
                                   }
                                 },
                                 child: Padding(
@@ -183,8 +191,10 @@ void showSwitchPilotBottomSheet(
                                         child: Icon(
                                           Icons.person,
                                           color: isActive
-                                              ? Colors.white
-                                              : Colors.grey[700],
+                                              ? theme.colorScheme.onPrimary
+                                              : theme
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
                                           size: 20,
                                         ),
                                       ),

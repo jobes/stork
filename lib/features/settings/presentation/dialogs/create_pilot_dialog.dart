@@ -6,6 +6,7 @@ import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../providers/pilot_provider.dart';
 import '../providers/settings_provider.dart';
 
+/// Creates a pilot and calls [onCreated] after the pilot becomes active.
 void showCreatePilotDialog(
   BuildContext context,
   WidgetRef ref, {
@@ -34,9 +35,6 @@ void showCreatePilotDialog(
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: l10n.pilotNameLabel,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                   prefixIcon: const Icon(Icons.person_outline),
                 ),
                 validator: (value) {
@@ -54,9 +52,6 @@ void showCreatePilotDialog(
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   labelText: l10n.optionalPinLabel,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                   prefixIcon: const Icon(Icons.lock_outline),
                 ),
               ),
@@ -69,7 +64,7 @@ void showCreatePilotDialog(
                     child: Text(l10n.cancel),
                   ),
                   const SizedBox(width: 8),
-                  ElevatedButton(
+                  FilledButton(
                     onPressed: () async {
                       if (formKey.currentState!.validate()) {
                         final name = nameController.text.trim();
@@ -95,14 +90,20 @@ void showCreatePilotDialog(
                           if (dialogCtx.mounted) {
                             dialogNavigator.pop();
                           }
+                        } else if (updateResult is SettingsUpdateFailure &&
+                            dialogCtx.mounted) {
+                          ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                l10n.settingsUpdateFailed(
+                                  updateResult.error.toString(),
+                                ),
+                              ),
+                            ),
+                          );
                         }
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
                     child: Text(l10n.create),
                   ),
                 ],

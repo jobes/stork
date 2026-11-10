@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'features/settings/presentation/providers/display_preferences_provider.dart';
 import 'l10n/app_localizations.dart';
 
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -105,18 +105,15 @@ class _StorkAppState extends ConsumerState<StorkApp>
 
   @override
   Widget build(BuildContext context) {
+    final preferences = ref.watch(displayPreferencesProvider).value;
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('en'), Locale('sk')],
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: preferences?.language.locale,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: preferences?.themeMode ?? ThemeMode.system,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
     );

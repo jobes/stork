@@ -25,12 +25,14 @@ class StatItem extends StatelessWidget {
               color: Theme.of(context).colorScheme.onPrimary.withAlpha(204),
             ),
             const SizedBox(width: 4),
-            Text(
-              value,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+            Flexible(
+              child: Text(
+                value,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

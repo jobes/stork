@@ -1,9 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/domain/models/pressure_unit.dart';
 import 'package:stork/features/settings/domain/models/range_thresholds.dart';
 
 void main() {
+  test('Follow pitch defaults to 30 degrees and survives serialization', () {
+    expect(AppSettings.fromJson({}).mapFollowPitch, 30.0);
+
+    const settings = AppSettings(mapFollowPitch: 60.0);
+    final json = jsonDecode(jsonEncode(settings)) as Map<String, dynamic>;
+    expect(AppSettings.fromJson(json).mapFollowPitch, 60.0);
+  });
+
   group('AppSettings copyWithValidatedOilPressureMaxRange Tests', () {
     test('Preserves fractional values in bar mode', () {
       const settings = AppSettings(

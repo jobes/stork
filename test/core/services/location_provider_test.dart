@@ -1,10 +1,15 @@
 import 'dart:async';
 
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/core/services/location_provider.dart';
+import 'package:stork/features/settings/presentation/providers/display_preferences_provider.dart';
+import 'package:stork/l10n/app_localizations.dart';
 
 import '../../helpers/fake_geolocator_platform.dart';
 
@@ -15,6 +20,7 @@ void main() {
   late FakeGeolocatorPlatform fakePlatform;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     controller = StreamController<Position>.broadcast();
     fakePlatform = FakeGeolocatorPlatform(controller);
     GeolocatorPlatform.instance = fakePlatform;
@@ -63,6 +69,59 @@ void main() {
     expect(received, hasLength(2));
     expect(received.last.latitude, 48.1);
   });
+
+  test(
+    'Android GPS applies loaded and updated notification languages',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      SharedPreferences.setMockInitialValues({'appLanguage': 'slovak'});
+      final prefs = Completer<SharedPreferences>();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWith((ref) => prefs.future),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      String? notificationTitle() =>
+          (fakePlatform.settingsLog.last as AndroidSettings)
+              .foregroundNotificationConfig
+              ?.notificationTitle;
+
+      container.read(geolocatorStreamProvider.notifier).start();
+      expect(fakePlatform.getPositionStreamCallCount, 1);
+      expect(
+        notificationTitle(),
+        lookupAppLocalizations(
+          AppLanguage.system.resolvedLocale,
+        ).gpsNotificationTitle,
+      );
+
+      prefs.complete(await SharedPreferences.getInstance());
+      await container.read(displayPreferencesProvider.future);
+      await Future<void>.delayed(Duration.zero);
+      expect(fakePlatform.getPositionStreamCallCount, 2);
+      expect(
+        notificationTitle(),
+        lookupAppLocalizations(
+          AppLanguage.slovak.resolvedLocale,
+        ).gpsNotificationTitle,
+      );
+
+      await container
+          .read(displayPreferencesProvider.notifier)
+          .setLanguage(AppLanguage.english);
+      await Future<void>.delayed(Duration.zero);
+      expect(fakePlatform.getPositionStreamCallCount, 3);
+      expect(
+        notificationTitle(),
+        lookupAppLocalizations(
+          AppLanguage.english.resolvedLocale,
+        ).gpsNotificationTitle,
+      );
+    },
+  );
 
   test('setDroneCanActive switches between high-accuracy and low-power modes '
       'and positions keep flowing', () async {

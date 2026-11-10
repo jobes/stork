@@ -103,7 +103,6 @@ class SpeedDetailsDialog extends ConsumerWidget {
                   state: iasState,
                   thresholdColor: getThresholdColor(iasState),
                   thresholdLabel: getThresholdLabel(iasState),
-                  isDark: isDark,
                   l10n: l10n,
                 ),
               ),
@@ -122,7 +121,6 @@ class SpeedDetailsDialog extends ConsumerWidget {
                   state: gsState,
                   thresholdColor: getThresholdColor(gsState),
                   thresholdLabel: getThresholdLabel(gsState),
-                  isDark: isDark,
                   l10n: l10n,
                   sourceLabel: isGsAvailable
                       ? (telemetry.isGpsDroneCan
@@ -143,7 +141,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white70 : Colors.black54,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -152,12 +150,10 @@ class SpeedDetailsDialog extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withAlpha(15)
-                  : Colors.black.withAlpha(10),
-              borderRadius: BorderRadius.circular(16),
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? Colors.white12 : Colors.black12,
+                color: Theme.of(context).colorScheme.outlineVariant,
               ),
             ),
             child: Column(
@@ -183,7 +179,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                 // Horizontal Accuracy Row
                 _buildDetailRow(
                   icon: Icons.gps_fixed,
-                  iconColor: Colors.blueAccent,
+                  iconColor: Theme.of(context).colorScheme.primary,
                   label: l10n.horizontalAccuracy,
                   value: telemetry.gpsHorizontalAccuracy != null
                       ? '± ${context.formatNumber(telemetry.gpsHorizontalAccuracy!, 1)} m'
@@ -194,7 +190,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                 // Vertical Accuracy Row
                 _buildDetailRow(
                   icon: Icons.height,
-                  iconColor: Colors.blueAccent,
+                  iconColor: Theme.of(context).colorScheme.primary,
                   label: l10n.verticalAccuracy,
                   value: telemetry.gpsVerticalAccuracy != null
                       ? '± ${context.formatNumber(telemetry.gpsVerticalAccuracy!, 1)} m'
@@ -219,19 +215,18 @@ class SpeedDetailsDialog extends ConsumerWidget {
     required ThresholdState state,
     required Color thresholdColor,
     required String thresholdLabel,
-    required bool isDark,
     required AppLocalizations l10n,
     String? sourceLabel,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withAlpha(20) : Colors.black.withAlpha(12),
-        borderRadius: BorderRadius.circular(18),
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isAvailable
               ? thresholdColor.withAlpha(100)
-              : Colors.grey.withAlpha(50),
+              : Theme.of(context).colorScheme.outlineVariant,
           width: 1.5,
         ),
         boxShadow: isAvailable && state != ThresholdState.inactive
@@ -255,7 +250,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               Container(
@@ -275,7 +270,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 9,
-              color: isDark ? Colors.white54 : Colors.black54,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
@@ -289,7 +284,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'monospace',
-                  color: isDark ? Colors.white : Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(width: 4),
@@ -297,7 +292,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
                 unit,
                 style: TextStyle(
                   fontSize: 11,
-                  color: isDark ? Colors.white60 : Colors.black54,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -348,7 +343,7 @@ class SpeedDetailsDialog extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
