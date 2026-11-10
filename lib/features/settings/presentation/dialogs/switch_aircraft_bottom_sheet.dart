@@ -6,6 +6,7 @@ import '../../domain/models/app_settings.dart';
 import '../providers/settings_provider.dart';
 import 'create_aircraft_dialog.dart';
 
+/// Shows saved aircraft profiles and lets the user change the active selection.
 void showSwitchAircraftBottomSheet(
   BuildContext context,
   WidgetRef ref,
@@ -16,6 +17,20 @@ void showSwitchAircraftBottomSheet(
   final theme = Theme.of(context);
   final activeAircraftId = settings.airplaneId;
   final parentContext = context;
+
+  Future<void> switchAircraft(String? id) async {
+    final result = await ref
+        .read(appSettingsProvider.notifier)
+        .updateAirplaneId(id);
+    if (!parentContext.mounted) return;
+    if (result is SettingsUpdateFailure) {
+      ScaffoldMessenger.of(parentContext).showSnackBar(
+        SnackBar(
+          content: Text(l10n.settingsUpdateFailed(result.error.toString())),
+        ),
+      );
+    }
+  }
 
   showModalBottomSheet(
     context: context,
@@ -112,9 +127,7 @@ void showSwitchAircraftBottomSheet(
                               return TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  ref
-                                      .read(appSettingsProvider.notifier)
-                                      .updateAirplaneId(null);
+                                  switchAircraft(null);
                                 },
                                 child: Text(l10n.deselectAircraft),
                               );
@@ -134,14 +147,12 @@ void showSwitchAircraftBottomSheet(
                               ),
                               color: isActive
                                   ? theme.colorScheme.primaryContainer
-                                  : theme.colorScheme.surfaceContainerLow,
+                                  : theme.colorScheme.surfaceContainer,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () async {
                                   Navigator.pop(context);
-                                  await ref
-                                      .read(appSettingsProvider.notifier)
-                                      .updateAirplaneId(aircraft.id);
+                                  await switchAircraft(aircraft.id);
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(

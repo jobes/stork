@@ -14,6 +14,7 @@ import '../../l10n/app_localizations.dart';
 
 part 'location_provider.g.dart';
 
+/// Gets a single position fix from the device.
 @riverpod
 Future<Geographic?> currentLocation(Ref ref) async {
   return await LocationService.getCurrentLocation();
@@ -92,7 +93,7 @@ class GeolocatorStreamFailed extends GeolocatorStreamStatus {
 ///
 /// The native OS subscription is started explicitly (see [start]) the first
 /// time the map needs a fix, and then kept alive for the whole app session.
-/// It is intentionally never torn down when other state changes: re-creating
+/// Ordinary provider updates leave the native subscription intact: re-creating
 /// the geolocator stream on every rebuild cancels the OS location subscription
 /// and re-subscribes, which on Android can silently leave the app subscribed
 /// to a dead stream — the phone GPS then stops delivering positions (frozen
@@ -165,6 +166,16 @@ class GeolocatorStream extends _$GeolocatorStream {
   @override
   ({Stream<geo.Position> stream, GeolocatorStreamStatus status}) build() {
     _controller ??= StreamController<geo.Position>.broadcast();
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      ref.listen(
+        displayPreferencesProvider.select(
+          (preferences) => preferences.value?.language ?? AppLanguage.system,
+        ),
+        (_, _) {
+          if (_subscription != null) _startWithMode();
+        },
+      );
+    }
     ref.onDispose(() {
       _retryTimer?.cancel();
       _retryTimer = null;
@@ -225,8 +236,9 @@ class GeolocatorStream extends _$GeolocatorStream {
     return _restartInFlight ?? Future.value();
   }
 
+  /// Restarts the native stream with the latest settings after cancellation.
   void _startWithMode() {
-    // A mode switch re-subscribes anyway; drop any pending retry/stall timer.
+    // The restart replaces any pending retry or stall timer.
     _retryTimer?.cancel();
     _retryTimer = null;
     _disarmStallWatchdog();
@@ -240,8 +252,8 @@ class GeolocatorStream extends _$GeolocatorStream {
     });
   }
 
-  /// Opens a new OS location subscription with the current mode. Any previous
-  /// subscription must already be cancelled by the caller.
+  /// Opens a native location subscription with the current mode and language.
+  /// The caller must cancel any previous subscription first.
   void _subscribe() {
     _retryTimer?.cancel();
     _retryTimer = null;

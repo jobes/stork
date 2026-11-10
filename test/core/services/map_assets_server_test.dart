@@ -204,14 +204,33 @@ void main() {
 
         final backend = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
         addTearDown(() => backend.close(force: true));
+        final invalidRanges = <List<String>?>[];
+        addTearDown(() {
+          expect(
+            invalidRanges,
+            isEmpty,
+            reason: 'Invalid archive Range headers',
+          );
+        });
+        final byteRange = RegExp(r'^bytes=([0-9]+)-([0-9]+)$');
         var tileReads = 0;
         backend.listen((request) async {
-          final range = request.headers.value(HttpHeaders.rangeHeader)!;
-          final [start, end] = range
-              .substring(6)
-              .split('-')
-              .map(int.parse)
-              .toList();
+          final ranges = request.headers[HttpHeaders.rangeHeader];
+          final match = ranges != null && ranges.length == 1
+              ? byteRange.firstMatch(ranges.single)
+              : null;
+          final start = match == null ? null : int.tryParse(match[1]!);
+          final end = match == null ? null : int.tryParse(match[2]!);
+          if (start == null ||
+              end == null ||
+              start > end ||
+              end >= archive.length) {
+            invalidRanges.add(ranges);
+            request.response.statusCode =
+                HttpStatus.requestedRangeNotSatisfiable;
+            await request.response.close();
+            return;
+          }
           if (start == tileOffset) {
             tileReads++;
             if (tileReads == 1) {

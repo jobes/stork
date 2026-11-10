@@ -386,16 +386,6 @@ class _AltitudeDetailsDialogState extends ConsumerState<AltitudeDetailsDialog> {
                                       horizontal: 10,
                                       vertical: 12,
                                     ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: scheme.primary,
-                                        width: 2,
-                                      ),
-                                    ),
                                   ),
                                   onChanged: (val) {
                                     if (_errorMessage != null) {

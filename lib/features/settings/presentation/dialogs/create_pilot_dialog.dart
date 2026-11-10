@@ -6,6 +6,7 @@ import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../providers/pilot_provider.dart';
 import '../providers/settings_provider.dart';
 
+/// Creates a pilot and calls [onCreated] after the pilot becomes active.
 void showCreatePilotDialog(
   BuildContext context,
   WidgetRef ref, {
@@ -89,6 +90,17 @@ void showCreatePilotDialog(
                           if (dialogCtx.mounted) {
                             dialogNavigator.pop();
                           }
+                        } else if (updateResult is SettingsUpdateFailure &&
+                            dialogCtx.mounted) {
+                          ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                l10n.settingsUpdateFailed(
+                                  updateResult.error.toString(),
+                                ),
+                              ),
+                            ),
+                          );
                         }
                       }
                     },

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/mdns_service.dart';
 import '../../data/repositories/settings_repository.dart';
@@ -373,6 +374,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       }
       return const SettingsUpdateSuccess();
     } catch (error, stackTrace) {
+      developer.log(
+        'Failed to apply queued settings change.',
+        name: 'AppSettingsNotifier',
+        error: error,
+        stackTrace: stackTrace,
+      );
       return SettingsUpdateFailure(error, stackTrace);
     } finally {
       _pendingProfileUpdates--;

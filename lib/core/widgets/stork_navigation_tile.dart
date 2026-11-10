@@ -25,7 +25,7 @@ class StorkNavigationTile extends StatelessWidget {
         ? colors.onPrimaryContainer
         : colors.onSurface;
     final secondary = highlighted
-        ? colors.onPrimaryContainer
+        ? colors.onPrimaryContainer.withValues(alpha: 0.75)
         : colors.onSurfaceVariant;
 
     return ListTile(

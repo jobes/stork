@@ -7,6 +7,7 @@ import '../providers/settings_provider.dart';
 import 'create_pilot_dialog.dart';
 import 'pin_prompt_dialog.dart';
 
+/// Shows saved pilot profiles and lets the user change the active selection.
 void showSwitchPilotBottomSheet(
   BuildContext context,
   WidgetRef ref,
@@ -18,6 +19,23 @@ void showSwitchPilotBottomSheet(
   final theme = Theme.of(context);
   final activePilotId = settings.pilotId;
   final parentContext = context;
+
+  Future<void> switchPilot(String? id) async {
+    final result = await ref
+        .read(appSettingsProvider.notifier)
+        .updatePilotId(id);
+    if (!parentContext.mounted) return;
+    if (result is SettingsUpdateFailure) {
+      ScaffoldMessenger.of(parentContext).showSnackBar(
+        SnackBar(
+          content: Text(l10n.settingsUpdateFailed(result.error.toString())),
+        ),
+      );
+    }
+    if (result is SettingsUpdateSuccess && id != null) {
+      onPilotUnlocked(id);
+    }
+  }
 
   showModalBottomSheet(
     context: context,
@@ -120,9 +138,7 @@ void showSwitchPilotBottomSheet(
                               return TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  ref
-                                      .read(appSettingsProvider.notifier)
-                                      .updatePilotId(null);
+                                  switchPilot(null);
                                 },
                                 child: Text(l10n.deselectPilot),
                               );
@@ -154,11 +170,8 @@ void showSwitchPilotBottomSheet(
                                     pilot,
                                     l10n.selectPilotTitle,
                                   );
-                                  if (success) {
-                                    await ref
-                                        .read(appSettingsProvider.notifier)
-                                        .updatePilotId(pilot.id);
-                                    onPilotUnlocked(pilot.id);
+                                  if (success && parentContext.mounted) {
+                                    await switchPilot(pilot.id);
                                   }
                                 },
                                 child: Padding(

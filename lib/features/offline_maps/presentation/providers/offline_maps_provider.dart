@@ -91,10 +91,12 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     );
   }
 
+  /// Removes an area and keeps a downloaded selection ready while areas remain.
   void removeRegion(String id) {
+    final regions = state.regions.where((r) => r.id != id).toList();
     state = state.copyWith(
-      regions: state.regions.where((r) => r.id != id).toList(),
-      isDownloaded: false,
+      regions: regions,
+      isDownloaded: state.isDownloaded && regions.isNotEmpty,
     );
   }
 
