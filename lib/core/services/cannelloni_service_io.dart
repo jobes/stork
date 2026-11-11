@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ffi';
 import 'dart:math' as math;
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stork/core/native/canard_bindings.dart';
@@ -136,6 +137,7 @@ class CannelloniService extends _$CannelloniService
   static const _receiveWatchdogPeriod = Duration(seconds: 5);
 
   RawDatagramSocket? _socket;
+  Object? _connectionAttempt;
   String? _lastIp;
   int? _lastPort;
   Timer? _heartbeatTimer;
@@ -164,6 +166,13 @@ class CannelloniService extends _$CannelloniService
   Timer? _disconnectTimer;
   Timer? _receiveWatchdogTimer;
 
+  /// True once the selected gateway has sent data in this app session.
+  ///
+  /// Distinguishes "never connected" (e.g. no gateway selected/available yet)
+  /// from "connection lost", which is what the map status indicator reports.
+  bool _hasEverConnected = false;
+  DateTime? _lastTelemetryActivityAt;
+
   final Map<String, PendingRequest> _pendingRequests = {};
   StreamController<NodeStatusEvent> _nodeStatusController =
       StreamController<NodeStatusEvent>.broadcast();
@@ -171,6 +180,13 @@ class CannelloniService extends _$CannelloniService
   /// Stream of DroneCAN node status heartbeats and registry resets.
   @override
   Stream<NodeStatusEvent> get nodeStatusEvents => _nodeStatusController.stream;
+
+  /// Whether data has arrived from the selected gateway in this app session.
+  bool get hasEverConnected => _hasEverConnected;
+
+  /// Most recent received packet, or the first bind while awaiting packets.
+  /// A watchdog rebind must not make old data appear fresh.
+  DateTime? get lastTelemetryActivityAt => _lastTelemetryActivityAt;
 
   @override
   bool build() {
@@ -216,9 +232,13 @@ class CannelloniService extends _$CannelloniService
     _txDataBuffer = malloc.allocate<Uint8>(_packetBufferSize);
 
     ref.listen(appSettingsProvider, (previous, next) {
-      final prevDevice = previous?.asData?.value.selectedDevice;
-      final nextDevice = next.asData?.value.selectedDevice;
+      final settings = next.asData?.value;
+      if (settings == null) return;
+      final prevDevice = previous?.value?.selectedDevice;
+      final nextDevice = settings.selectedDevice;
       if (prevDevice != nextDevice) {
+        _hasEverConnected = false;
+        _lastTelemetryActivityAt = null;
         _updateConnection();
       }
     }, fireImmediately: true);
@@ -269,7 +289,7 @@ class CannelloniService extends _$CannelloniService
       _isDiscovered = isDiscovered;
 
       if (!isDiscovered) {
-        final now = DateTime.now();
+        final now = clock.now();
         final lastData = _lastDataReceivedTime;
         if (_socket != null &&
             lastData != null &&
@@ -307,6 +327,7 @@ class CannelloniService extends _$CannelloniService
   }
 
   void _resetConnectionState() {
+    _connectionAttempt = null;
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
     _dnaHandler?.stop();
@@ -371,7 +392,7 @@ class CannelloniService extends _$CannelloniService
     final lastData = _lastDataReceivedTime;
     if (lastData == null) return;
 
-    final elapsed = DateTime.now().difference(lastData);
+    final elapsed = clock.now().difference(lastData);
     if (elapsed >= _receiveWatchdogPeriod) {
       debugPrint(
         'CannelloniService: No data received for ${elapsed.inSeconds}s. '
@@ -389,16 +410,19 @@ class CannelloniService extends _$CannelloniService
     }
   }
 
-  void _listenToSocket() {
-    _socket?.listen(
+  void _listenToSocket(RawDatagramSocket socket) {
+    socket.listen(
       (RawSocketEvent event) {
+        if (!identical(_socket, socket)) return;
         if (event == RawSocketEvent.read) {
-          final datagram = _socket?.receive();
+          final datagram = socket.receive();
           if (datagram != null &&
               datagram.data.isNotEmpty &&
               _canard != null &&
               _packetDataBuffer != null) {
-            _lastDataReceivedTime = DateTime.now();
+            _lastDataReceivedTime = clock.now();
+            _lastTelemetryActivityAt = _lastDataReceivedTime;
+            _hasEverConnected = true;
             _resetDisconnectTimerIfNeeded();
 
             final data = datagram.data;
@@ -424,6 +448,7 @@ class CannelloniService extends _$CannelloniService
         debugPrint('CannelloniService: Socket error: $e');
       },
       onDone: () {
+        if (!identical(_socket, socket)) return;
         debugPrint(
           'CannelloniService: Socket stream ended unexpectedly. '
           'Last IP: $_lastIp, Last data: $_lastDataReceivedTime',
@@ -465,6 +490,8 @@ class CannelloniService extends _$CannelloniService
 
   Future<void> _connect(String ip, int port) async {
     _disconnect();
+    final attempt = Object();
+    _connectionAttempt = attempt;
 
     try {
       _lastIp = ip;
@@ -472,19 +499,26 @@ class CannelloniService extends _$CannelloniService
 
       // Load or generate a persistent Unique ID for DroneCAN using SharedPreferences
       final uniqueId = await _loadOrGenerateUniqueId();
+      if (_connectionAttempt != attempt) return;
 
       _nodeId = 0;
       _canard?.storkCanardInit(0);
 
       // Bind to any available local port
-      _socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+      final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+      if (_connectionAttempt != attempt) {
+        socket.close();
+        return;
+      }
+      _socket = socket;
 
       debugPrint(
         'CannelloniService: Connected to $ip:$port (local port: ${_socket?.port})',
       );
 
-      _listenToSocket();
+      _listenToSocket(socket);
 
+      _lastTelemetryActivityAt ??= clock.now();
       state = true;
 
       // Start the DNA allocation process
@@ -493,6 +527,7 @@ class CannelloniService extends _$CannelloniService
       // Start processing the TX queue at 10Hz
       _startTxProcessing();
     } catch (e) {
+      if (_connectionAttempt != attempt) return;
       debugPrint('CannelloniService: Failed to connect: $e');
       _resetConnectionState();
     }

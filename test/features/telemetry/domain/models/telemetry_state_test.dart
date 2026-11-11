@@ -104,4 +104,14 @@ void main() {
       },
     );
   });
+
+  group('GPS fix timestamp', () {
+    test('copyWith stores the last fix time and keeps it when omitted', () {
+      final fix = DateTime.utc(2026, 11, 10, 12);
+      final state = const TelemetryState().copyWith(gpsLastFixAt: fix);
+
+      expect(state.gpsLastFixAt, equals(fix));
+      expect(state.copyWith(isFlying: true).gpsLastFixAt, equals(fix));
+    });
+  });
 }

@@ -7,6 +7,7 @@ import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../data/repositories/aup_repository.dart';
 import '../../domain/models/airspace_activity_status.dart';
 import '../../domain/utils/fir_utils.dart';
+import 'airspace_data_status_provider.dart';
 
 part 'airspace_activity_provider.g.dart';
 
@@ -41,6 +42,7 @@ class AirspaceActivityController extends _$AirspaceActivityController {
   final Map<String, Set<String>> _activitiesByFir = {};
 
   final Set<String> _inflightFirs = {};
+  Set<String> _nearbyFirs = const {};
   DateTime? _lastEvaluationTime;
 
   @override
@@ -82,7 +84,8 @@ class AirspaceActivityController extends _$AirspaceActivityController {
       longitude,
       bufferMeters: kAirspacePrefetchBufferMeters,
     );
-    _pruneStaleActivities(firs);
+    _nearbyFirs = firs.toSet();
+    _pruneStaleActivities();
     for (final fir in firs) {
       _maybeFetchForFir(fir);
     }
@@ -91,11 +94,11 @@ class AirspaceActivityController extends _$AirspaceActivityController {
   /// Removes activities contributed by FIRs that are no longer within the
   /// pre-fetch buffer, so the map stops highlighting airspaces the aircraft
   /// has left (and the provider state does not grow without bound).
-  void _pruneStaleActivities(List<String> nearbyFirs) {
-    final nearby = nearbyFirs.toSet();
+  void _pruneStaleActivities() {
+    ref.read(airspaceDataStatusProvider.notifier).prune(_nearbyFirs);
     var changed = false;
     _activitiesByFir.removeWhere((fir, ids) {
-      if (nearby.contains(fir)) return false;
+      if (_nearbyFirs.contains(fir)) return false;
       for (final id in ids) {
         _activities.remove(id);
       }
@@ -114,7 +117,7 @@ class AirspaceActivityController extends _$AirspaceActivityController {
     try {
       final repository = ref.read(aupRepositoryProvider);
       final activities = await repository.fetchActivitiesForFir(firIcao);
-      if (!ref.mounted) return;
+      if (!ref.mounted || !_nearbyFirs.contains(firIcao)) return;
 
       // Replace the FIR's previous activities so entries that disappeared from
       // the AUP (e.g. deactivated by a UUP) no longer linger.
@@ -131,10 +134,13 @@ class AirspaceActivityController extends _$AirspaceActivityController {
       }
       _activitiesByFir[firIcao] = ids;
       state = _snapshot();
+      ref.read(airspaceDataStatusProvider.notifier).markSuccess(firIcao);
     } catch (e) {
+      if (!ref.mounted || !_nearbyFirs.contains(firIcao)) return;
       debugPrint(
         'AirspaceActivityController: failed to fetch AUP for $firIcao: $e',
       );
+      ref.read(airspaceDataStatusProvider.notifier).markFailure(firIcao);
     } finally {
       _inflightFirs.remove(firIcao);
     }

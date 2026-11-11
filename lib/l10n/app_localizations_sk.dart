@@ -1006,27 +1006,6 @@ class AppLocalizationsSk extends AppLocalizations {
   String get etaLabel => 'ETA';
 
   @override
-  String get notamsTitle => 'NOTAMy';
-
-  @override
-  String get notamDetails => 'Detaily NOTAMu';
-
-  @override
-  String get notamStart => 'Začiatok platnosti';
-
-  @override
-  String get notamEnd => 'Koniec platnosti';
-
-  @override
-  String get notamFir => 'FIR';
-
-  @override
-  String get notamLimits => 'Vertikálne limity';
-
-  @override
-  String get hideNotam => 'Skryť';
-
-  @override
   String get flightRecords => 'Záznamy letov';
 
   @override
@@ -2593,4 +2572,244 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get menuFindGateways => 'Vyhľadať znova';
+
+  @override
+  String get mapAlertStatusTooltip => 'Stav systémov';
+
+  @override
+  String mapAlertSince(String time) {
+    return 'Aktívne od $time';
+  }
+
+  @override
+  String get mapAlertAllGoodTitle => 'Stav systémov';
+
+  @override
+  String get mapAlertAllGoodBody => 'Všetky sledované systémy fungujú správne.';
+
+  @override
+  String get mapAlertMapStyleTitle => 'Mapu sa nepodarilo načítať';
+
+  @override
+  String get mapAlertMapStyleBody =>
+      'Mapu sa nepodarilo zobraziť. Skús mapu zavrieť a znova otvoriť.';
+
+  @override
+  String get mapAlertGpsPermissionTitle => 'Chýba povolenie na polohu';
+
+  @override
+  String get mapAlertGpsPermissionBody =>
+      'Stork nemá povolenie používať polohu zariadenia. Povoľ prístup k polohe v nastaveniach telefónu.';
+
+  @override
+  String get mapAlertLocationServicesTitle => 'Polohové služby sú vypnuté';
+
+  @override
+  String get mapAlertLocationServicesBody =>
+      'Zapni polohové služby v zariadení, aby Stork mohol zobraziť tvoju polohu.';
+
+  @override
+  String get mapAlertGpsStreamTitle => 'GPS prestalo odpovedať';
+
+  @override
+  String get mapAlertGpsStreamBody =>
+      'Zariadenie prestalo posielať aktualizácie polohy. Stork sa ich pokúsi automaticky obnoviť.';
+
+  @override
+  String get mapAlertGpsLostTitle => 'GPS signál sa stratil';
+
+  @override
+  String get mapAlertGpsLostBody =>
+      'Poloha lietadla na mape už nemusí byť aktuálna. Pokračuj v navigácii vizuálne a skús obnoviť GPS signál.';
+
+  @override
+  String get mapAlertGpsNoFixTitle => 'Čakám na GPS';
+
+  @override
+  String get mapAlertGpsNoFixBody =>
+      'Stork zatiaľ nemá polohu z GPS. Uisti sa, že máš voľný výhľad na oblohu a že je GPS zapnutá.';
+
+  @override
+  String get mapAlertDroneCanGpsTitle => 'Používa sa záložná GPS';
+
+  @override
+  String get mapAlertDroneCanGpsBody =>
+      'GPS lietadla prestala posielať údaje. Stork prešiel na GPS telefónu, ktorá môže byť menej presná.';
+
+  @override
+  String get mapAlertTelemetryLinkTitle => 'Spojenie s lietadlom sa stratilo';
+
+  @override
+  String get mapAlertTelemetryLinkBody =>
+      'Stork nemá spojenie s telemetriou lietadla. Rýchlosť, výška a údaje o motore môžu byť zastarané.';
+
+  @override
+  String get mapAlertTelemetryStaleTitle => 'Telemetria sa neaktualizuje';
+
+  @override
+  String get mapAlertTelemetryStaleBody =>
+      'Spojenie je nadviazané, ale neprichádzajú nové údaje. Hodnoty na obrazovke môžu byť zamrznuté.';
+
+  @override
+  String get mapAlertAltitudeUnavailableTitle => 'Výška nie je dostupná';
+
+  @override
+  String get mapAlertAltitudeUnavailableBody =>
+      'Stork nemá údaj o výške. Výstrahy terénu a zrážok môžu byť obmedzené.';
+
+  @override
+  String get mapAlertTrafficOfflineTitle => 'Dopravné dáta nie sú dostupné';
+
+  @override
+  String get mapAlertTrafficOfflineBody =>
+      'Stork neprijíma údaje o okolitej doprave, preto nie sú aktívne výstrahy zrážok. Skontroluj internet alebo prijímač.';
+
+  @override
+  String get mapAlertInternetTitle => 'Bez internetového pripojenia';
+
+  @override
+  String get mapAlertInternetBody =>
+      'Mapové detaily a aktuálne priestory sa nemusia aktualizovať.';
+
+  @override
+  String get mapAlertAirspaceTitle => 'Dáta o priestoroch nie sú dostupné';
+
+  @override
+  String get mapAlertAirspaceBody =>
+      'Aktuálnu aktivitu vzdušných priestorov sa nepodarilo stiahnuť. Zvýraznenie aktívnych priestorov môže chýbať.';
+
+  @override
+  String get mapAlertTerrainTitle => 'Terénne dáta nie sú dostupné';
+
+  @override
+  String get mapAlertTerrainBody =>
+      'Stork nemá výšku terénu. Výška nad terénom a terénne výstrahy nemusia fungovať.';
+
+  @override
+  String get mapAlertOfflineMapsTitle => 'Offline mapa nie je pripravená';
+
+  @override
+  String get mapAlertOfflineMapsBody =>
+      'Offline mapu sa nepodarilo stiahnuť. Bez internetu nemusí byť mapa dostupná.';
+
+  @override
+  String get mapAlertAltitudeSourceTitle => 'Zmenil sa zdroj výšky';
+
+  @override
+  String get mapAlertAltitudeSourceBody =>
+      'Zdroj výšky sa zmenil. Hodnota sa môže mierne líšiť od predošlej.';
+
+  @override
+  String get mapAlertCollisionTitle => 'Výstraha pred zrážkou';
+
+  @override
+  String get mapAlertCollisionBody =>
+      'Stork zistil možné nebezpečenstvo zrážky s okolitou premávkou. Podrobnosti o hrozbe sú v upozornení na mape.';
+
+  @override
+  String mapAlertEngineOverheat(String instrument) {
+    return 'Prehrievanie motora · $instrument';
+  }
+
+  @override
+  String mapAlertInstrumentLow(String instrument) {
+    return '$instrument · Nízka hodnota';
+  }
+
+  @override
+  String mapAlertInstrumentHigh(String instrument) {
+    return '$instrument · Vysoká hodnota';
+  }
+
+  @override
+  String mapAlertInstrumentUnavailable(String instrument) {
+    return '$instrument · Bez údajov';
+  }
+
+  @override
+  String get mapAlertInstrumentUnavailableBody =>
+      'Prístroj momentálne nedostáva údaj.';
+
+  @override
+  String get mapAlertInstrumentLowWarningBody =>
+      'Hodnota dosiahla nastavenú dolnú hranicu varovania.';
+
+  @override
+  String get mapAlertInstrumentHighWarningBody =>
+      'Hodnota dosiahla nastavenú hornú hranicu varovania.';
+
+  @override
+  String get mapAlertInstrumentLowErrorBody =>
+      'Hodnota je na nastavenej dolnej kritickej hranici alebo pod ňou.';
+
+  @override
+  String get mapAlertInstrumentHighErrorBody =>
+      'Hodnota je na nastavenej hornej kritickej hranici alebo nad ňou.';
+
+  @override
+  String mapAlertInstrumentCylinder(int number) {
+    return 'Valec $number';
+  }
+
+  @override
+  String get mapAlertRadioLabel => 'Rádio';
+
+  @override
+  String get mapAlertRadioFault => 'Porucha rádia';
+
+  @override
+  String get mapAlertRadioFaultBody => 'Rádio hlási poruchu.';
+
+  @override
+  String mapAlertActiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count aktívnych výstrah',
+      few: '$count aktívne výstrahy',
+      one: '1 aktívna výstraha',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String mapAlertMeasured(String value) {
+    return 'Namerané $value';
+  }
+
+  @override
+  String mapAlertCriticalLimit(String value) {
+    return 'Kritický limit $value';
+  }
+
+  @override
+  String mapAlertWarningLimit(String value) {
+    return 'Hranica varovania $value';
+  }
+
+  @override
+  String get mapAlertHistoryTitle => 'História výstrah';
+
+  @override
+  String mapAlertHistoryPeak(String value) {
+    return 'Extrémna hodnota $value';
+  }
+
+  @override
+  String mapAlertHistoryTiming(String start, String end, String duration) {
+    return '$start – $end · Trvanie $duration';
+  }
+
+  @override
+  String get mapAlertTemperatureSteady => 'Teplota stabilná za 30 s';
+
+  @override
+  String mapAlertTemperatureRising(String amount) {
+    return 'Teplota stúpa · +$amount za 30 s';
+  }
+
+  @override
+  String mapAlertTemperatureFalling(String amount) {
+    return 'Teplota klesá · −$amount za 30 s';
+  }
 }

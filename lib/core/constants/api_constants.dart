@@ -5,10 +5,8 @@ class ApiConstants {
       'https://api.core.openaip.net/api/files/images';
   static const openAipWebBaseUrl = 'https://www.openaip.net/data/airports';
 
-  static const faaNotamSearchUrl =
-      'https://notams.aim.faa.gov/notamSearch/search';
-  static const webProxyNotamSearchUrl =
-      'https://www.stork-nav.app/nocors.php?url=';
+  /// CORS proxy used by Web builds for sources that do not send CORS headers.
+  static const webProxyUrl = 'https://www.stork-nav.app/nocors.php?url=';
 
   // AUP/UUP (Airspace Use Plan / Updated Use Plan) sources.
   /// Slovak LzPS (AIS SR) — public ArcGIS FeatureServer with currently active

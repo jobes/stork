@@ -73,36 +73,6 @@ extension MapCameraStyle on MapCamera {
       );
       if (!refAccess.mounted) return;
 
-      await style.addSource(
-        GeoJsonSource(
-          id: 'notams-source',
-          data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
-        ),
-      );
-      if (!refAccess.mounted) return;
-
-      await style.addLayer(
-        FillStyleLayer(
-          id: 'notams-fill-layer',
-          sourceId: 'notams-source',
-          paint: {'fill-color': '#FF5722', 'fill-opacity': 0.25},
-        ),
-      );
-      if (!refAccess.mounted) return;
-
-      await style.addLayer(
-        LineStyleLayer(
-          id: 'notams-line-layer',
-          sourceId: 'notams-source',
-          paint: {
-            'line-color': '#FF5722',
-            'line-width': 2.0,
-            'line-dasharray': [2.0, 2.0],
-          },
-        ),
-      );
-      if (!refAccess.mounted) return;
-
       // Real-time airspace activity (AUP/UUP) highlight layers are defined in
       // `assets/openaip/styles.json` (on the existing `openaip-data` source)
       // and their filters are updated dynamically in `updateAirspacesOnMap()`.
@@ -252,7 +222,6 @@ extension MapCameraStyle on MapCamera {
 
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();
-      updateNotamsOnMap();
       updateFavoritesOnMap();
       // The (re)loaded style wiped the runtime highlight layers, so clear the
       // diff cache to force updateAirspacesOnMap to re-apply them.

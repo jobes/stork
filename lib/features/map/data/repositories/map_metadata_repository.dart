@@ -93,7 +93,7 @@ class MapMetadataRepository {
     final rawUrl =
         '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_apt.geojson';
     final url = kIsWeb
-        ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
+        ? '${ApiConstants.webProxyUrl}${Uri.encodeComponent(rawUrl)}'
         : rawUrl;
     final response = await _client
         .get(Uri.parse(url))
@@ -113,7 +113,7 @@ class MapMetadataRepository {
     final rawUrl =
         '${ApiConstants.openAipMetadataBaseUrl}/${lowerCountryCode}_asp.geojson';
     final url = kIsWeb
-        ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
+        ? '${ApiConstants.webProxyUrl}${Uri.encodeComponent(rawUrl)}'
         : rawUrl;
     final response = await _client
         .get(Uri.parse(url))

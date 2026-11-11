@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:stork/features/map/data/services/cze_aup_service.dart';
 import 'package:stork/features/map/data/services/svk_aup_service.dart';
 import 'package:stork/features/map/data/utils/aup_parsing.dart';
@@ -123,14 +125,14 @@ void main() {
       expect(result.first.designator, 'LZR1');
     });
 
-    test('returns empty list for invalid payloads', () {
-      expect(SvkAupService.parseLzpsGisResponse('not json'), isEmpty);
-      expect(SvkAupService.parseLzpsGisResponse('42'), isEmpty);
-      expect(SvkAupService.parseLzpsGisResponse('[]'), isEmpty);
-      expect(
-        SvkAupService.parseLzpsGisResponse('{"features": "nope"}'),
-        isEmpty,
-      );
+    test('rejects invalid payloads and accepts a valid empty list', () {
+      for (final body in ['not json', '42', '[]', '{"features": "nope"}']) {
+        expect(
+          () => SvkAupService.parseLzpsGisResponse(body),
+          throwsFormatException,
+        );
+      }
+      expect(SvkAupService.parseLzpsGisResponse('{"features": []}'), isEmpty);
     });
   });
 
@@ -191,6 +193,26 @@ void main() {
     <TR><TH class="titlex">D/ Prostory nespravovane AMC (NAM) : </TH></TR>
     </BODY></HTML>
     ''';
+
+    test('propagates a failed UUP download', () async {
+      final client = MockClient((request) async {
+        final path = request.url.path;
+        if (path.contains('uup_')) return http.Response('', 503);
+        return http.Response(path.contains('aup_') ? aupHtml : indexHtml, 200);
+      });
+      addTearDown(client.close);
+      final service = CzeAupService(client: client, useWebProxy: false);
+
+      await expectLater(
+        service.fetchAupData('LKAA'),
+        throwsA(
+          predicate<Object>(
+            (error) =>
+                error.toString().contains('UUP request failed: HTTP 503'),
+          ),
+        ),
+      );
+    });
 
     test('parses the valid AUP and its UUP updates from the index', () {
       final index = CzeAupService.parseAupIndex(indexHtml);

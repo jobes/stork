@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -67,59 +65,56 @@ class CzeAupService implements AupService {
   Future<List<AupAirspaceActivity>> fetchAupData(
     String countryOrFirCode,
   ) async {
-    try {
-      final indexBody = await _fetchText(
-        ApiConstants.czeAupBaseUrl,
-        'AUP index',
-      );
-      final index = parseAupIndex(indexBody);
-      if (index == null) return const [];
-
-      final aupBody = await _fetchText(
-        '${ApiConstants.czeAupBaseUrl}data/${index.aup}',
-        'AUP',
-      );
-      final aupActivities = parseAupDocument(aupBody, isUup: false);
-
-      // UUP activation times refer to the AUP day, so resolve them against
-      // the AUP validity window (the AUP itself starts at 06:00 UTC).
-      final dayWindow = parseAupValidity(aupBody);
-
-      // Merge the UUP updates over the base AUP: cancellations (`CNL`) become
-      // inactive, every other UUP row updates the activation in place.
-      final merged = <String, AupAirspaceActivity>{
-        for (final activity in aupActivities) activity.designator: activity,
-      };
-      for (final uup in index.uups) {
-        final uupBody = await _fetchText(
-          '${ApiConstants.czeAupBaseUrl}data/$uup',
-          'UUP',
-        );
-        final updates = parseAupDocument(
-          uupBody,
-          isUup: true,
-          dayWindow: dayWindow,
-        );
-        for (final update in updates) {
-          merged[update.designator] = update;
-        }
-      }
-      return merged.values.toList();
-    } on TimeoutException catch (e) {
-      debugPrint('ŘLP AUP: timeout fetching $countryOrFirCode: $e');
-      return const [];
-    } on SocketException catch (e) {
-      debugPrint('ŘLP AUP: network error fetching $countryOrFirCode: $e');
-      return const [];
-    } catch (e) {
-      debugPrint('ŘLP AUP: failed to fetch $countryOrFirCode: $e');
-      return const [];
+    final indexBody = await _fetchText(ApiConstants.czeAupBaseUrl, 'AUP index');
+    final index = parseAupIndex(indexBody);
+    if (index == null) {
+      throw FormatException('Missing ŘLP AUP link for $countryOrFirCode');
     }
+
+    final aupBody = await _fetchText(
+      '${ApiConstants.czeAupBaseUrl}data/${index.aup}',
+      'AUP',
+    );
+    // UUP activation times refer to the AUP day, so resolve them against
+    // the AUP validity window (the AUP itself starts at 06:00 UTC).
+    final dayWindow = parseAupValidity(aupBody);
+    if (dayWindow == null) {
+      throw FormatException('Missing ŘLP AUP validity for $countryOrFirCode');
+    }
+    final aupActivities = parseAupDocument(
+      aupBody,
+      isUup: false,
+      dayWindow: dayWindow,
+    );
+
+    // Merge the UUP updates over the base AUP: cancellations (`CNL`) become
+    // inactive, every other UUP row updates the activation in place.
+    final merged = <String, AupAirspaceActivity>{
+      for (final activity in aupActivities) activity.designator: activity,
+    };
+    for (final uup in index.uups) {
+      final uupBody = await _fetchText(
+        '${ApiConstants.czeAupBaseUrl}data/$uup',
+        'UUP',
+      );
+      if (parseAupValidity(uupBody) == null) {
+        throw FormatException('Missing ŘLP UUP validity in $uup');
+      }
+      final updates = parseAupDocument(
+        uupBody,
+        isUup: true,
+        dayWindow: dayWindow,
+      );
+      for (final update in updates) {
+        merged[update.designator] = update;
+      }
+    }
+    return merged.values.toList();
   }
 
   Future<String> _fetchText(String rawUrl, String label) async {
     final url = _useWebProxy
-        ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
+        ? '${ApiConstants.webProxyUrl}${Uri.encodeComponent(rawUrl)}'
         : rawUrl;
     final response = await _client
         .get(Uri.parse(url))

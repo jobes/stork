@@ -500,13 +500,6 @@
   "placeholderDash": "---",
   "minutesAbbrev": "min",
   "etaLabel": "ETA",
-  "notamsTitle": "NOTAMs",
-  "notamDetails": "NOTAM Details",
-  "notamStart": "Start Time",
-  "notamEnd": "End Time",
-  "notamFir": "FIR",
-  "notamLimits": "Vertical Limits",
-  "hideNotam": "Hide",
   "flightRecords": "Flight Records",
   "flightRecordsTitle": "Flight Records",
   "flightName": "Flight Name",
@@ -1241,5 +1234,170 @@
   "menuGatewayConnected": "Gateway connected",
   "menuGatewayDisconnected": "Gateway disconnected",
   "menuSearchingGateways": "Searching for gateways…",
-  "menuFindGateways": "Search again"
+  "menuFindGateways": "Search again",
+  "mapAlertStatusTooltip": "System status",
+  "mapAlertSince": "Active since {time}",
+  "@mapAlertSince": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "mapAlertAllGoodTitle": "System status",
+  "mapAlertAllGoodBody": "All monitored systems are working normally.",
+  "mapAlertMapStyleTitle": "Map could not load",
+  "mapAlertMapStyleBody": "The map failed to load. Try closing and reopening the map.",
+  "mapAlertGpsPermissionTitle": "Location permission needed",
+  "mapAlertGpsPermissionBody": "Stork is not allowed to use your location. Allow location access in your device settings.",
+  "mapAlertLocationServicesTitle": "Location services are off",
+  "mapAlertLocationServicesBody": "Turn on location services on your device so Stork can show your position.",
+  "mapAlertGpsStreamTitle": "GPS stopped responding",
+  "mapAlertGpsStreamBody": "Your device stopped sending position updates. Stork will try to restore them automatically.",
+  "mapAlertGpsLostTitle": "GPS signal lost",
+  "mapAlertGpsLostBody": "The aircraft position on the map may be out of date. Keep navigating visually and try to restore the GPS signal.",
+  "mapAlertGpsNoFixTitle": "Waiting for GPS",
+  "mapAlertGpsNoFixBody": "Stork does not have a GPS position yet. Make sure you have a clear view of the sky and that GPS is enabled.",
+  "mapAlertDroneCanGpsTitle": "Using backup GPS",
+  "mapAlertDroneCanGpsBody": "The aircraft GPS stopped sending data. Stork switched to the device GPS, which may be less accurate.",
+  "mapAlertTelemetryLinkTitle": "Aircraft connection lost",
+  "mapAlertTelemetryLinkBody": "Stork has no connection to the aircraft telemetry. Speed, altitude and engine values may be out of date.",
+  "mapAlertTelemetryStaleTitle": "Telemetry is not updating",
+  "mapAlertTelemetryStaleBody": "The connection is up, but no new data is arriving. Values on the screen may be frozen.",
+  "mapAlertAltitudeUnavailableTitle": "Altitude is not available",
+  "mapAlertAltitudeUnavailableBody": "Stork has no altitude reading. Terrain and collision warnings may be limited.",
+  "mapAlertTrafficOfflineTitle": "Traffic data unavailable",
+  "mapAlertTrafficOfflineBody": "Stork is not receiving nearby traffic, so collision warnings are not active. Check your internet connection or receiver.",
+  "mapAlertInternetTitle": "No internet connection",
+  "mapAlertInternetBody": "Map details and airspace updates may not refresh.",
+  "mapAlertAirspaceTitle": "Airspace data unavailable",
+  "mapAlertAirspaceBody": "Current airspace activity could not be downloaded. Active airspace highlights may be missing.",
+  "mapAlertTerrainTitle": "Terrain data unavailable",
+  "mapAlertTerrainBody": "Stork has no terrain elevation. Height above ground and terrain warnings may not work.",
+  "mapAlertOfflineMapsTitle": "Offline map not ready",
+  "mapAlertOfflineMapsBody": "The offline map could not be downloaded. The map may not be available without internet.",
+  "mapAlertAltitudeSourceTitle": "Altitude source changed",
+  "mapAlertAltitudeSourceBody": "The altitude source changed. The value may differ slightly from before.",
+  "mapAlertCollisionTitle": "Collision warning",
+  "mapAlertCollisionBody": "Stork detected a potential conflict with nearby traffic. See the map banner for details.",
+  "mapAlertEngineOverheat": "Engine overheating · {instrument}",
+  "mapAlertInstrumentLow": "{instrument} · Low",
+  "mapAlertInstrumentHigh": "{instrument} · High",
+  "mapAlertInstrumentUnavailable": "{instrument} · No data",
+  "mapAlertInstrumentUnavailableBody": "The instrument is currently receiving no reading.",
+  "mapAlertInstrumentLowWarningBody": "The reading has reached the configured lower warning limit.",
+  "mapAlertInstrumentHighWarningBody": "The reading has reached the configured upper warning limit.",
+  "mapAlertInstrumentLowErrorBody": "The reading is at or below the configured lower critical limit.",
+  "mapAlertInstrumentHighErrorBody": "The reading is at or above the configured upper critical limit.",
+  "mapAlertInstrumentCylinder": "Cylinder {number}",
+  "mapAlertRadioLabel": "Radio",
+  "mapAlertRadioFault": "Radio fault",
+  "mapAlertRadioFaultBody": "The radio is reporting a hardware fault.",
+  "@mapAlertEngineOverheat": {
+    "placeholders": {
+      "instrument": {
+        "type": "String"
+      }
+    }
+  },
+  "@mapAlertInstrumentLow": {
+    "placeholders": {
+      "instrument": {
+        "type": "String"
+      }
+    }
+  },
+  "@mapAlertInstrumentHigh": {
+    "placeholders": {
+      "instrument": {
+        "type": "String"
+      }
+    }
+  },
+  "@mapAlertInstrumentUnavailable": {
+    "placeholders": {
+      "instrument": {
+        "type": "String"
+      }
+    }
+  },
+  "@mapAlertInstrumentCylinder": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "mapAlertActiveCount": "{count, plural, one{1 active alert} other{{count} active alerts}}",
+  "@mapAlertActiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapAlertMeasured": "Measured {value}",
+  "@mapAlertMeasured": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mapAlertCriticalLimit": "Critical limit {value}",
+  "@mapAlertCriticalLimit": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mapAlertWarningLimit": "Warning limit {value}",
+  "@mapAlertWarningLimit": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mapAlertHistoryTitle": "Alert history",
+  "mapAlertHistoryPeak": "Most extreme reading {value}",
+  "@mapAlertHistoryPeak": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mapAlertHistoryTiming": "{start} – {end} · Duration {duration}",
+  "@mapAlertHistoryTiming": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "mapAlertTemperatureSteady": "Temperature steady over 30 s",
+  "mapAlertTemperatureRising": "Temperature rising · +{amount} in 30 s",
+  "@mapAlertTemperatureRising": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "mapAlertTemperatureFalling": "Temperature falling · −{amount} in 30 s",
+  "@mapAlertTemperatureFalling": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  }
 }

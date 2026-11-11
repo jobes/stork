@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/models/telemetry_instrument.dart';
+import '../providers/instrument_status_provider.dart';
 import '../providers/telemetry_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
@@ -20,15 +22,7 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
       ),
     );
     final settings = ref.watch(appSettingsProvider).value;
-    final thresholds =
-        settings?.rpmThresholds ??
-        const RangeThresholds.raw(
-          inactiveMax: 10.0,
-          minError: 1400.0,
-          minWarning: 1800.0,
-          maxWarning: 5500.0,
-          maxError: 5800.0,
-        );
+    final thresholds = TelemetryInstrument.rpm.thresholds(settings);
     final maxVisualValue = settings?.rpmMaxRange ?? 6000.0;
     const double minVisualValue = 0.0;
 
@@ -44,9 +38,11 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
         ? currentRpm.toString()
         : l10n.placeholderDash;
 
-    final ThresholdState rpmState = currentRpm != null
-        ? thresholds.evaluate(currentRpm.toDouble())
-        : ThresholdState.maxError;
+    final rpmState = ref.watch(
+      instrumentStatusProvider(
+        TelemetryInstrument.rpm,
+      ).select((status) => status.cardState),
+    );
 
     final bool isAbnormal =
         rpmState != ThresholdState.operational &&

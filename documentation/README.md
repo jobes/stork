@@ -45,8 +45,6 @@ Documents in this section detail user-facing features, overlay widgets, custom c
     *   *Describes the user-defined favourite points: Freezed domain model, SharedPreferences JSON persistence, keep-alive Riverpod notifier with persistence-first writes, the MapLibre `favorites-layer` symbol rendering with POI icons, tap interaction and `focusOnPoint` camera preview, plus the add/edit/details dialogs and the dedicated Favourites page.*
 *   [Active Airspaces (AUP/UUP)](features/active-airspaces.md)
     *   *Describes the real-time airspace activity system: AUP/UUP data sources (Slovak LzPS ArcGIS and Czech ŘLP AUP portal), openAIP id binding, 30 km FIR-buffer pre-fetching with Riverpod, MapLibre active/inactive highlight layers, and the live status badges in the airspace details dialog.*
-*   [NOTAM (Notice to Airmen) Alerts](features/notams.md)
-    *   *Describes how NOTAMs are fetched from the FAA API, decoded and expanded from contractions to English, managed through performance-optimized Riverpod providers, rendered as map layers with mathematical circle polygon projection, and controlled with user hide mechanisms.*
 *   [Settings and Configuration](features/settings.md)
     *   *Details the settings architecture, encompassing the domain models (units, range thresholds, cannelloni devices) and the modular user interface.*
 *   [Pilot and Aircraft Management](features/pilot-and-aircraft-management.md)

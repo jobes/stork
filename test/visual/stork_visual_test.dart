@@ -12,7 +12,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
 import 'package:stork/core/services/mdns_service.dart';
 import 'package:stork/core/theme/app_theme.dart';
+import 'package:stork/features/map/presentation/components/controls/map_alert_indicator.dart';
+import 'package:stork/features/map/presentation/components/controls/map_controls.dart';
 import 'package:stork/features/map/presentation/components/controls/map_drawer.dart';
+import 'package:stork/features/map/presentation/components/dialogs/base_details_dialog.dart';
+import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
@@ -32,6 +36,7 @@ import 'package:stork/features/settings/presentation/providers/settings_provider
 import 'package:stork/features/settings/presentation/providers/pilot_provider.dart';
 import 'package:stork/features/settings/presentation/providers/aircraft_provider.dart';
 import 'package:stork/features/telemetry/data/puretrack_auth_service.dart';
+import 'package:stork/features/telemetry/domain/models/map_view_state.dart';
 import 'package:stork/features/telemetry/domain/models/resolved_altitude.dart';
 import 'package:stork/features/telemetry/domain/models/vario_state.dart';
 import 'package:stork/features/telemetry/presentation/providers/agl_provider.dart';
@@ -57,6 +62,10 @@ import 'package:stork/features/telemetry/presentation/widgets/vhf_radio_telemetr
 import 'package:stork/l10n/app_localizations.dart';
 
 const _frame = ValueKey('visual-frame');
+
+/// Muted, map-like backdrop so the indicator is judged against the surface it
+/// is normally drawn over instead of a plain white page.
+const _mapBackdrop = Color(0xFF7C8F9B);
 const _devices = {
   'phone_portrait': Size(412, 892),
   'phone_landscape': Size(892, 412),
@@ -173,6 +182,16 @@ class _Telemetry extends TelemetryNotifier {
   TelemetryState build() => telemetry;
 }
 
+/// Drives the map status indicator without touching any health provider.
+class _MapAlerts extends MapAlerts {
+  _MapAlerts(this.alert);
+
+  final MapAlert? alert;
+
+  @override
+  List<MapAlert> build() => [?alert];
+}
+
 class _Vario extends VarioNotifier {
   _Vario(this.hasFlightData);
 
@@ -240,6 +259,8 @@ Future<void> _pump(
   double mapFontSize = 1,
   double? collisionDistance,
   TelemetryState? telemetry,
+  MapAlert? mapAlert,
+  bool disableAnimations = false,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
@@ -259,6 +280,7 @@ Future<void> _pump(
         cannelloniServiceProvider.overrideWith(
           () => _Gateway(telemetry?.indicatedAirSpeed != null),
         ),
+        mapAlertsProvider.overrideWith(() => _MapAlerts(mapAlert)),
         if (telemetry != null) ...[
           telemetryProvider.overrideWith(() => _Telemetry(telemetry)),
           varioProvider.overrideWith(() => _Vario(telemetry.isFlying)),
@@ -321,9 +343,10 @@ Future<void> _pump(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: const [Locale('en')],
           builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(textScaler: TextScaler.noScaling),
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.noScaling,
+              disableAnimations: disableAnimations,
+            ),
             child: child!,
           ),
           home: page,
@@ -430,6 +453,63 @@ Future<void> _checkMapWidgets(
   await _shot(tester, screenshot);
 }
 
+// The dialog displays wall-clock time. Keep it stable across host time zones.
+final _alertSince = DateTime(2026, 11, 10, 13, 5);
+
+Future<void> _checkMapAlert(
+  WidgetTester tester,
+  Brightness brightness,
+  Size size, {
+  required MapAlert? alert,
+  required String screenshot,
+  bool openDialog = false,
+}) async {
+  await _pump(
+    tester,
+    Scaffold(
+      body: Stack(
+        children: [
+          const Positioned.fill(child: ColoredBox(color: _mapBackdrop)),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: MapControls(
+              mapViewState: MapViewState.follow,
+              onMenuPressed: () {},
+              onGpsPressed: () {},
+            ),
+          ),
+        ],
+      ),
+    ),
+    brightness,
+    size,
+    mapAlert: alert,
+    // A pulsing badge never settles; the captured frame must stay stable.
+    disableAnimations: true,
+  );
+
+  final expectedIcon = alert == null
+      ? Icons.shield_outlined
+      : mapAlertIcon(alert.kind);
+  expect(find.byIcon(expectedIcon), findsOneWidget);
+
+  // The touch target stays 48 dp even when the visible badge is smaller.
+  final target = tester.getRect(find.byType(MapAlertIndicator));
+  expect(target.width, greaterThanOrEqualTo(48));
+  expect(target.height, greaterThanOrEqualTo(48));
+
+  if (openDialog) {
+    await tester.tapAt(tester.getCenter(find.byIcon(expectedIcon)));
+    await tester.pumpAndSettle();
+    expect(find.byType(BaseDetailsDialog), findsOneWidget);
+    expect(find.textContaining('Active since'), findsOneWidget);
+  }
+
+  await _shot(tester, screenshot);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
@@ -512,6 +592,40 @@ void main() {
         expect(tester.widget<RawImage>(find.byType(RawImage)).image, isNotNull);
         await _shot(tester, 'drawer_$suffix');
       });
+      for (final entry in <String, MapAlert?>{
+        'quiet': null,
+        'critical': MapAlert(kind: MapAlertKind.gpsFixLost, since: _alertSince),
+        'warning': MapAlert(
+          kind: MapAlertKind.terrainUnavailable,
+          since: _alertSince,
+        ),
+        'info': MapAlert(
+          kind: MapAlertKind.internetUnavailable,
+          since: _alertSince,
+        ),
+      }.entries) {
+        testWidgets('alert_${entry.key}_$suffix', (tester) async {
+          await _checkMapAlert(
+            tester,
+            brightness,
+            device.value,
+            alert: entry.value,
+            screenshot: 'alert_${entry.key}_$suffix',
+          );
+        });
+      }
+      if (device.key == 'phone_portrait') {
+        testWidgets('alert_dialog_$suffix', (tester) async {
+          await _checkMapAlert(
+            tester,
+            brightness,
+            device.value,
+            alert: MapAlert(kind: MapAlertKind.gpsFixLost, since: _alertSince),
+            screenshot: 'alert_dialog_$suffix',
+            openDialog: true,
+          );
+        });
+      }
       for (final entry in <String, Widget>{
         'settings': const SettingsPage(),
         'map': const MapSettingsPage(),

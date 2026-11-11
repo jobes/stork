@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
+import '../../domain/models/telemetry_instrument.dart';
+import '../providers/instrument_status_provider.dart';
 import '../providers/telemetry_provider.dart';
 import 'telemetry_card.dart';
 import 'map_telemetry_palette.dart';
@@ -53,12 +55,12 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
     final bool isTx = (radioFlags & 1) != 0;
     final bool isRx = (radioFlags & 2) != 0;
     final bool isDual = (radioFlags & 4) != 0;
-    final bool isErr = (radioFlags & 8) != 0 || isDisconnected;
-
-    // Use error card state if disconnected or hardware error flag is set
-    final cardState = isErr
-        ? ThresholdState.maxError
-        : ThresholdState.operational;
+    final cardState = ref.watch(
+      instrumentStatusProvider(
+        TelemetryInstrument.radio,
+      ).select((status) => status.cardState),
+    );
+    final isErr = cardState == ThresholdState.maxError;
 
     final defaultTextColor = palette.value;
     final dimTextColor = palette.label;

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../domain/models/telemetry_instrument.dart';
+import '../providers/instrument_status_provider.dart';
 import '../providers/telemetry_provider.dart';
 import 'vertical_gauge_telemetry_widget.dart';
 
@@ -27,17 +28,16 @@ class FuelStatusTelemetryWidget extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
-    final thresholds =
-        settings?.fuelThresholds ??
-        const RangeThresholds.raw(minError: 10.0, minWarning: 20.0);
+    final thresholds = TelemetryInstrument.fuel.thresholds(settings);
 
     final double? rawPercent = fuelLevelPercent;
     final double? rawLiters = fuelVolumeLiters;
 
-    // Use minError as the state fallback if no data
-    final ThresholdState fuelState = rawPercent != null
-        ? thresholds.evaluate(rawPercent)
-        : ThresholdState.minError;
+    final fuelState = ref.watch(
+      instrumentStatusProvider(
+        TelemetryInstrument.fuel,
+      ).select((status) => status.cardState),
+    );
 
     // "Na widgete teplomer ukazuje hodnoty v %, ale cislo je pocet litrov."
     // Gauge visual min: 0.0, max: 100.0, and currentValue is rawPercent (which is 0..100)

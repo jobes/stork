@@ -22,6 +22,10 @@ class CannelloniService extends _$CannelloniService
     return false;
   }
 
+  /// DroneCAN is never available on this platform.
+  bool get hasEverConnected => false;
+  DateTime? get lastTelemetryActivityAt => null;
+
   /// Node discovery requires a native DroneCAN transport.
   @override
   Future<GetNodeInfoResponse> getNodeInfo(

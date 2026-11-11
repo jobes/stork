@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -207,6 +208,8 @@ class PureTrackStreamService {
   bool _isPolling = false;
   bool _isDisposed = false;
   String? _activeToken;
+  int _pollSession = 0;
+  DateTime? _lastSuccessfulPollAt;
   VoidCallback? _onUnauthorized;
 
   double _lat1 = 90.0;
@@ -215,6 +218,7 @@ class PureTrackStreamService {
   double _long2 = -180.0;
 
   Stream<PureTrackPacket> get stream => _packetController.stream;
+  DateTime? get lastSuccessfulPollAt => _lastSuccessfulPollAt;
   bool get isConnected =>
       _activeToken != null && _pollTimer != null && _pollTimer!.isActive;
 
@@ -251,6 +255,7 @@ class PureTrackStreamService {
 
   Future<void> connect(String token) async {
     if (_isDisposed) return;
+    disconnect();
     _activeToken = token;
     _startPolling();
   }
@@ -265,6 +270,7 @@ class PureTrackStreamService {
 
   Future<void> _fetchTraffic() async {
     if (_isDisposed || _activeToken == null || _isPolling) return;
+    final session = _pollSession;
     _isPolling = true;
 
     try {
@@ -289,6 +295,7 @@ class PureTrackStreamService {
           )
           .timeout(const Duration(seconds: 8));
 
+      if (session != _pollSession) return;
       if (response.statusCode == 401) {
         _handleUnauthorized();
         return;
@@ -297,14 +304,14 @@ class PureTrackStreamService {
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         if (json is Map<String, dynamic>) {
-          if (json['http_code'] == 401 ||
-              json['success'] == false && json['http_code'] == 401) {
+          if (json['http_code'] == 401) {
             _handleUnauthorized();
             return;
           }
 
           final dataList = json['data'];
-          if (dataList is List) {
+          if (json['success'] != false && dataList is List) {
+            _lastSuccessfulPollAt = clock.now();
             for (var i = 0; i < dataList.length; i++) {
               final item = dataList[i];
               if (item is String) {
@@ -320,6 +327,7 @@ class PureTrackStreamService {
               }
               if (i > 0 && i % 100 == 0) {
                 await Future<void>.delayed(Duration.zero);
+                if (session != _pollSession) return;
               }
             }
           }
@@ -328,7 +336,7 @@ class PureTrackStreamService {
     } catch (e) {
       debugPrint('PureTrack traffic poll error: $e');
     } finally {
-      _isPolling = false;
+      if (session == _pollSession) _isPolling = false;
     }
   }
 
@@ -369,6 +377,8 @@ class PureTrackStreamService {
   }
 
   void disconnect() {
+    _pollSession++;
+    _lastSuccessfulPollAt = null;
     _activeToken = null;
     _pollTimer?.cancel();
     _pollTimer = null;

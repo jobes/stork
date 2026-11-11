@@ -19,6 +19,7 @@ import '../../domain/repositories/traffic_aggregator.dart';
 import '../../domain/utils/canonical_id.dart';
 import '../../data/puretrack_stream_service.dart';
 import 'puretrack_auth_provider.dart';
+import 'ogn_connection_provider.dart';
 import 'agl_provider.dart';
 import '../../domain/models/gdl90_target.dart';
 import 'gdl90_provider.dart';
@@ -127,7 +128,7 @@ class Traffic extends _$Traffic {
       _outboundTimer?.cancel();
       _reconnectTimer?.cancel();
       _filterDebounceTimer?.cancel();
-      _inboundConnection?.disconnect();
+      _inboundConnection?.disconnect(isManual: true);
       _outboundManager?.stop();
     });
 
@@ -161,22 +162,21 @@ class Traffic extends _$Traffic {
           debugPrint('[OGN APRS Parse Error] $e for line: $line');
         }
       },
-      onDisconnected: () {
+      onConnected: () {
+        if (!ref.mounted) return;
         _isConnecting = false;
+        _reconnectAttempts = 0;
+        ref.read(ognConnectedProvider.notifier).setConnected(true);
+      },
+      onDisconnected: () {
+        if (!ref.mounted) return;
+        _isConnecting = false;
+        ref.read(ognConnectedProvider.notifier).setConnected(false);
         _scheduleReconnect();
       },
     );
 
-    _inboundConnection!
-        .connect()
-        .then((_) {
-          _isConnecting = false;
-          _reconnectAttempts = 0;
-        })
-        .catchError((_) {
-          _isConnecting = false;
-          _scheduleReconnect();
-        });
+    unawaited(_inboundConnection!.connect());
   }
 
   void _disconnectInbound() {
@@ -184,6 +184,7 @@ class Traffic extends _$Traffic {
     _inboundConnection?.disconnect(isManual: true);
     _inboundConnection = null;
     _isConnecting = false;
+    ref.read(ognConnectedProvider.notifier).setConnected(false);
   }
 
   void _scheduleReconnect() {

@@ -6,10 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart' as ml;
 import 'package:stork/core/services/location_provider.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
-import 'package:stork/features/map/domain/models/notam.dart';
 import 'package:stork/features/map/presentation/providers/airspace_activity_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
-import 'package:stork/features/map/presentation/providers/notams_provider.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
@@ -70,11 +68,6 @@ class _Navigation extends NavigationNotifier {
 class _Favorites extends FavoritesNotifier {
   @override
   Future<List<FavoritePoint>> build() async => [];
-}
-
-class _Notams extends Notams {
-  @override
-  Future<List<Notam>> build() async => [];
 }
 
 class _Style extends Fake implements ml.StyleController {
@@ -164,7 +157,6 @@ _setupFollow(WidgetTester tester) async {
         currentLocationProvider.overrideWithValue(const AsyncData(null)),
         navigationProvider.overrideWith(_Navigation.new),
         favoritesProvider.overrideWith(_Favorites.new),
-        notamsProvider.overrideWith(_Notams.new),
         airspaceActivityProvider.overrideWithValue(const {}),
         resolvedAltitudeProvider.overrideWithValue(
           const ResolvedAltitude(source: AltitudeSource.none),

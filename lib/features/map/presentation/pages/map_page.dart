@@ -47,6 +47,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   final _menuButtonKey = GlobalKey();
   final _gpsButtonKey = GlobalKey();
   final _doneButtonKey = GlobalKey();
+  final _alertIndicatorKey = GlobalKey();
   final _widgetKeys = <String, GlobalKey>{};
 
   Iterable<Rect> _dragObstacles(String widgetId) sync* {
@@ -58,6 +59,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
       _menuButtonKey,
       _gpsButtonKey,
       _doneButtonKey,
+      _alertIndicatorKey,
       for (final entry in _widgetKeys.entries)
         if (entry.key != widgetId) entry.value,
     ]) {
@@ -111,6 +113,11 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final styleAsync = ref.watch(mapStyleProvider);
+    ref.listen(mapStyleProvider, (_, next) {
+      if (next case AsyncError(:final error, :final stackTrace)) {
+        debugPrint('MapPage: failed to load map style: $error\n$stackTrace');
+      }
+    });
     final mapViewState = ref.watch(
       telemetryProvider.select((t) => t.mapViewState),
     );
@@ -233,9 +240,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) {
-                return Center(child: Text('${l10n.mapLoadingError}: $error'));
-              },
+              error: (_, _) => Center(child: Text(l10n.mapLoadingError)),
             ),
             Positioned(
               top: 0,
@@ -314,6 +319,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 menuButtonKey: _menuButtonKey,
                 gpsButtonKey: _gpsButtonKey,
                 doneButtonKey: _doneButtonKey,
+                alertIndicatorKey: _alertIndicatorKey,
                 onMenuPressed: () => Scaffold.of(context).openDrawer(),
                 onGpsPressed: cameraController.handleGpsToggle,
                 onFinishEditing: isEditingWidgets ? _finishEditing : null,

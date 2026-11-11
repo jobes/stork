@@ -222,70 +222,70 @@ class OgnOutboundManager {
 class OgnInboundConnection {
   Socket? _socket;
   bool _isConnected = false;
-  bool _hasNotifiedDisconnected = false;
+  Object? _connectionAttempt;
   final Function(String) onLineReceived;
+  final VoidCallback onConnected;
   final VoidCallback onDisconnected;
   String _currentFilter = '';
 
   OgnInboundConnection({
     required this.onLineReceived,
+    required this.onConnected,
     required this.onDisconnected,
   });
 
-  void _notifyDisconnected() {
-    if (!_hasNotifiedDisconnected) {
-      _hasNotifiedDisconnected = true;
-      onDisconnected();
-    }
-  }
-
   Future<void> connect() async {
-    // Tear down any previous socket without notifying: onDone/onError drive
-    // reconnection, and notifying here would fire onDisconnected on every
-    // fresh connect (the provider recreates the connection per reconnect).
-    await disconnect(isManual: true);
-    _hasNotifiedDisconnected = false;
+    disconnect(isManual: true);
+    final attempt = Object();
+    _connectionAttempt = attempt;
     try {
-      _socket = await Socket.connect(
+      final socket = await Socket.connect(
         'aprs.glidernet.org',
         14580,
         timeout: const Duration(seconds: 5),
       );
-      _isConnected = true;
+      if (_connectionAttempt != attempt) {
+        socket.destroy();
+        return;
+      }
+      _socket = socket;
 
-      _socket!
+      socket
           .cast<List<int>>()
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen(
             (line) {
-              onLineReceived(line);
+              if (_connectionAttempt == attempt) onLineReceived(line);
             },
             onError: (e) {
               debugPrint('OGN Inbound: Socket error: $e');
-              disconnect();
+              if (_connectionAttempt == attempt) disconnect();
             },
             onDone: () {
               debugPrint('OGN Inbound: Socket closed by host');
-              disconnect();
+              if (_connectionAttempt == attempt) disconnect();
             },
           );
 
-      _socket!.write('user anonymous pass -1 vers storknav 1.0\r\n');
-      await _socket!.flush();
+      socket.write('user anonymous pass -1 vers storknav 1.0\r\n');
+      await socket.flush();
+      if (_connectionAttempt != attempt) return;
 
       if (_currentFilter.isNotEmpty) {
         final cmd = _currentFilter.startsWith('#')
             ? _currentFilter
             : '#$_currentFilter';
         debugPrint('OGN Inbound: Sending initial filter -> $cmd');
-        _socket!.write('$cmd\r\n');
-        await _socket!.flush();
+        socket.write('$cmd\r\n');
+        await socket.flush();
       }
+      if (_connectionAttempt != attempt) return;
+      _isConnected = true;
+      onConnected();
     } catch (e) {
       debugPrint('OGN Inbound: Connection failed: $e');
-      _isConnected = false;
-      _notifyDisconnected();
+      if (_connectionAttempt == attempt) disconnect();
     }
   }
 
@@ -301,12 +301,14 @@ class OgnInboundConnection {
     }
   }
 
-  Future<void> disconnect({bool isManual = false}) async {
+  void disconnect({bool isManual = false}) {
+    final hadConnectionAttempt = _connectionAttempt != null;
+    _connectionAttempt = null;
     _isConnected = false;
     _socket?.destroy();
     _socket = null;
-    if (!isManual) {
-      _notifyDisconnected();
+    if (!isManual && hadConnectionAttempt) {
+      onDisconnected();
     }
   }
 }

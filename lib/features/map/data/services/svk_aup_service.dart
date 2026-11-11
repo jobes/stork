@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -65,28 +63,17 @@ class SvkAupService implements AupService {
     ).query;
     final rawUrl = '${ApiConstants.svkAupQueryUrl}?$query';
     final url = _useWebProxy
-        ? '${ApiConstants.webProxyNotamSearchUrl}${Uri.encodeComponent(rawUrl)}'
+        ? '${ApiConstants.webProxyUrl}${Uri.encodeComponent(rawUrl)}'
         : rawUrl;
-    try {
-      final response = await _client
-          .get(Uri.parse(url))
-          .timeout(const Duration(seconds: 15));
-      if (response.statusCode != 200) {
-        throw Exception(
-          'LzPS AUP request failed for $countryOrFirCode: HTTP ${response.statusCode}',
-        );
-      }
-      return parseLzpsGisResponse(utf8.decode(response.bodyBytes));
-    } on TimeoutException catch (e) {
-      debugPrint('LzPS AUP: timeout fetching $countryOrFirCode: $e');
-      return const [];
-    } on SocketException catch (e) {
-      debugPrint('LzPS AUP: network error fetching $countryOrFirCode: $e');
-      return const [];
-    } catch (e) {
-      debugPrint('LzPS AUP: failed to fetch $countryOrFirCode: $e');
-      return const [];
+    final response = await _client
+        .get(Uri.parse(url))
+        .timeout(const Duration(seconds: 15));
+    if (response.statusCode != 200) {
+      throw Exception(
+        'LzPS AUP request failed for $countryOrFirCode: HTTP ${response.statusCode}',
+      );
     }
+    return parseLzpsGisResponse(utf8.decode(response.bodyBytes));
   }
 
   /// Parses an LzPS ArcGIS FeatureServer response into
@@ -97,16 +84,11 @@ class SvkAupService implements AupService {
   /// carries the airspace designator (no status or validity window), so each
   /// entry gets [AirspaceActivityStatus.active] and no time window.
   static List<AupAirspaceActivity> parseLzpsGisResponse(String body) {
-    final Object? decoded;
-    try {
-      decoded = json.decode(body);
-    } catch (_) {
-      return const [];
+    final Object? decoded = json.decode(body);
+    if (decoded is! Map || decoded['features'] is! List) {
+      throw const FormatException('Invalid LzPS AUP response');
     }
-    if (decoded is! Map) return const [];
-
-    final features = decoded['features'];
-    if (features is! List) return const [];
+    final features = decoded['features'] as List;
 
     final now = clock.now();
     final result = <AupAirspaceActivity>[];
