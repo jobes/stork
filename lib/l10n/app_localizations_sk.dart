@@ -2812,4 +2812,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String mapAlertTemperatureFalling(String amount) {
     return 'Teplota klesá · −$amount za 30 s';
   }
+
+  @override
+  String get flightNoRecordedAlerts =>
+      'V tomto lete nie sú zaznamenané výstrahy.';
+
+  @override
+  String flightAlertNoRecordedEnd(String start) {
+    return '$start · Koniec nezaznamenaný';
+  }
 }

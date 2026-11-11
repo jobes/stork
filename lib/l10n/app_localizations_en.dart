@@ -2800,4 +2800,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String mapAlertTemperatureFalling(String amount) {
     return 'Temperature falling · −$amount in 30 s';
   }
+
+  @override
+  String get flightNoRecordedAlerts => 'No alerts recorded for this flight.';
+
+  @override
+  String flightAlertNoRecordedEnd(String start) {
+    return '$start · End not recorded';
+  }
 }

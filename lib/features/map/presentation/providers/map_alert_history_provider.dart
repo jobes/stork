@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../telemetry/domain/models/telemetry_instrument.dart';
@@ -12,7 +15,14 @@ final mapAlertHistoryProvider =
     );
 
 class MapAlertHistoryEntry {
-  const MapAlertHistoryEntry({required this.alert, this.peak, this.endedAt});
+  const MapAlertHistoryEntry({
+    required this.id,
+    required this.alert,
+    this.peak,
+    this.endedAt,
+  });
+
+  final String id;
 
   final MapAlert alert;
   final double? peak;
@@ -20,6 +30,8 @@ class MapAlertHistoryEntry {
 }
 
 enum _Band { status, low, high, missing }
+
+typedef _Observation = ({MapAlert alert, double? peak});
 
 typedef _AlertKey = ({MapAlertKind kind, int? channel, _Band band});
 
@@ -29,8 +41,18 @@ class MapAlertHistory extends Notifier<List<MapAlertHistoryEntry>> {
   final _completed = <MapAlertHistoryEntry>[];
   bool _observingInstruments = false;
 
+  late StreamController<MapAlertHistoryEntry> _changes;
+  Stream<MapAlertHistoryEntry> get changes => _changes.stream;
+
   @override
-  List<MapAlertHistoryEntry> build() => const [];
+  List<MapAlertHistoryEntry> build() {
+    final changes = StreamController<MapAlertHistoryEntry>.broadcast(
+      sync: true,
+    );
+    _changes = changes;
+    ref.onDispose(changes.close);
+    return const [];
+  }
 
   bool _startObservingInstruments(DateTime now) {
     if (_observingInstruments) return false;
@@ -58,7 +80,8 @@ class MapAlertHistory extends Notifier<List<MapAlertHistoryEntry>> {
           band: alert.instrumentIssue?.unavailable == true
               ? _Band.missing
               : _Band.status,
-        ): MapAlertHistoryEntry(
+        ): (
+          peak: null,
           alert: MapAlert(
             kind: alert.kind,
             since: now,
@@ -77,7 +100,7 @@ class MapAlertHistory extends Notifier<List<MapAlertHistoryEntry>> {
     InstrumentStatus status,
     DateTime now,
   ) {
-    final current = <_AlertKey, MapAlertHistoryEntry>{};
+    final current = <_AlertKey, _Observation>{};
     if (status.supported) {
       for (final reading in status.alertReadings) {
         final issue = reading.issue;
@@ -88,11 +111,7 @@ class MapAlertHistory extends Notifier<List<MapAlertHistoryEntry>> {
                 ThresholdState.minError => _Band.low,
                 _ => _Band.high,
               };
-        current[(
-          kind: kind,
-          channel: issue.channel,
-          band: band,
-        )] = MapAlertHistoryEntry(
+        current[(kind: kind, channel: issue.channel, band: band)] = (
           alert: MapAlert(kind: kind, since: now, instrumentIssue: issue),
           peak: reading.value?.isFinite == true ? reading.value : null,
         );
@@ -102,20 +121,21 @@ class MapAlertHistory extends Notifier<List<MapAlertHistoryEntry>> {
   }
 
   bool _sync(
-    Map<_AlertKey, MapAlertHistoryEntry> current,
+    Map<_AlertKey, _Observation> current,
     bool Function(_AlertKey) inScope,
     DateTime now,
   ) {
     var changed = false;
     _active.removeWhere((key, entry) {
       if (!inScope(key) || current.containsKey(key)) return false;
-      _completed.add(
-        MapAlertHistoryEntry(
-          alert: entry.alert,
-          peak: entry.peak,
-          endedAt: now.isBefore(entry.alert.since) ? entry.alert.since : now,
-        ),
+      final ended = MapAlertHistoryEntry(
+        id: entry.id,
+        alert: entry.alert,
+        peak: entry.peak,
+        endedAt: now.isBefore(entry.alert.since) ? entry.alert.since : now,
       );
+      _completed.add(ended);
+      _changes.add(ended);
       changed = true;
       return true;
     });
@@ -123,7 +143,13 @@ class MapAlertHistory extends Notifier<List<MapAlertHistoryEntry>> {
     for (final MapEntry(key: key, value: next) in current.entries) {
       final previous = _active[key];
       if (previous == null) {
-        _active[key] = next;
+        final started = MapAlertHistoryEntry(
+          id: const Uuid().v4(),
+          alert: next.alert,
+          peak: next.peak,
+        );
+        _active[key] = started;
+        _changes.add(started);
         changed = true;
         continue;
       }
@@ -136,7 +162,8 @@ class MapAlertHistory extends Notifier<List<MapAlertHistoryEntry>> {
           (oldPeak == null ||
               (key.band == _Band.low ? value < oldPeak : value > oldPeak));
       if (!escalated && !newPeak) continue;
-      _active[key] = MapAlertHistoryEntry(
+      final updated = MapAlertHistoryEntry(
+        id: previous.id,
         alert: escalated
             ? MapAlert(
                 kind: key.kind,
@@ -146,6 +173,8 @@ class MapAlertHistory extends Notifier<List<MapAlertHistoryEntry>> {
             : previous.alert,
         peak: newPeak ? value : oldPeak,
       );
+      _active[key] = updated;
+      if (escalated) _changes.add(updated);
       changed = true;
     }
     return changed;

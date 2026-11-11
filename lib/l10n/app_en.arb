@@ -1399,5 +1399,14 @@
         "type": "String"
       }
     }
+  },
+  "flightNoRecordedAlerts": "No alerts recorded for this flight.",
+  "flightAlertNoRecordedEnd": "{start} · End not recorded",
+  "@flightAlertNoRecordedEnd": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      }
+    }
   }
 }

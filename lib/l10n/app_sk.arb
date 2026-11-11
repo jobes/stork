@@ -1164,5 +1164,7 @@
   "mapAlertHistoryTiming": "{start} – {end} · Trvanie {duration}",
   "mapAlertTemperatureSteady": "Teplota stabilná za 30 s",
   "mapAlertTemperatureRising": "Teplota stúpa · +{amount} za 30 s",
-  "mapAlertTemperatureFalling": "Teplota klesá · −{amount} za 30 s"
+  "mapAlertTemperatureFalling": "Teplota klesá · −{amount} za 30 s",
+  "flightNoRecordedAlerts": "V tomto lete nie sú zaznamenané výstrahy.",
+  "flightAlertNoRecordedEnd": "{start} · Koniec nezaznamenaný"
 }

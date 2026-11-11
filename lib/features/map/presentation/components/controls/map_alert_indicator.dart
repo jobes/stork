@@ -10,6 +10,7 @@ import '../../../../../l10n/app_localizations.dart';
 import '../../../../settings/domain/models/app_settings.dart';
 import '../../../../settings/domain/models/range_thresholds.dart';
 import '../../../../settings/presentation/providers/settings_provider.dart';
+import '../../../../telemetry/domain/models/flight_alert_record.dart';
 import '../../../../telemetry/domain/models/telemetry_instrument.dart';
 import '../../../../telemetry/presentation/providers/instrument_status_provider.dart';
 import '../../../../telemetry/presentation/providers/temperature_trend_provider.dart';
@@ -286,6 +287,63 @@ void _showMapAlertDialog(BuildContext context) {
   _showStatusDialog(context, const _MapAlertDialog());
 }
 
+void showRecordedFlightAlerts(
+  BuildContext context,
+  Future<List<FlightAlertRecord>> records,
+) {
+  _showStatusDialog(
+    context,
+    FutureBuilder<List<FlightAlertRecord>>(
+      future: records,
+      builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
+        final data = snapshot.data;
+        if (data != null) {
+          return _MapAlertHistoryDialog(
+            recordedEntries: [
+              for (final record in data)
+                if (_recordedEntry(record)
+                    case final MapAlertHistoryEntry entry)
+                  entry,
+            ],
+          );
+        }
+        return BaseDetailsDialog(
+          titleText: l10n.mapAlertHistoryTitle,
+          icon: Icons.history,
+          child: snapshot.hasError
+              ? Text(l10n.flightRecordsLoadError)
+              : const Center(
+                  heightFactor: 1,
+                  child: CircularProgressIndicator(),
+                ),
+        );
+      },
+    ),
+  );
+}
+
+MapAlertHistoryEntry? _recordedEntry(FlightAlertRecord record) {
+  final kind = MapAlertKind.values.asNameMap()[record.kind];
+  if (kind == null) return null;
+  final threshold = ThresholdState.values.asNameMap()[record.threshold];
+  return MapAlertHistoryEntry(
+    id: record.episodeId,
+    alert: MapAlert(
+      kind: kind,
+      since: record.startedAt,
+      instrumentIssue: threshold == null
+          ? null
+          : (
+              state: threshold,
+              unavailable: record.unavailable,
+              channel: record.channel,
+            ),
+    ),
+    endedAt: record.endedAt,
+  );
+}
+
 void _showStatusDialog(BuildContext context, Widget dialog) {
   final container = ProviderScope.containerOf(context, listen: false);
   showDialog<void>(
@@ -375,11 +433,14 @@ class _MapAlertDialog extends ConsumerWidget {
 }
 
 class _MapAlertHistoryDialog extends ConsumerWidget {
-  const _MapAlertHistoryDialog();
+  const _MapAlertHistoryDialog({this.recordedEntries});
+
+  final List<MapAlertHistoryEntry>? recordedEntries;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entries = ref.watch(mapAlertHistoryProvider);
+    final List<MapAlertHistoryEntry> entries =
+        recordedEntries ?? ref.watch(mapAlertHistoryProvider);
     final settings =
         ref.watch(appSettingsProvider).value ?? const AppSettings();
     final l10n = AppLocalizations.of(context)!;
@@ -390,6 +451,7 @@ class _MapAlertHistoryDialog extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (entries.isEmpty) Text(l10n.flightNoRecordedAlerts),
           for (final (index, entry) in entries.indexed) ...[
             if (index > 0) const Divider(height: 28),
             Row(
@@ -443,7 +505,11 @@ class _MapAlertHistoryDialog extends ConsumerWidget {
     ).formatShortDate(started.toLocal());
     final start = '$date · ${_formatTime(context, started)}';
     final end = entry.endedAt;
-    if (end == null) return l10n.mapAlertSince(start);
+    if (end == null) {
+      return recordedEntries == null
+          ? l10n.mapAlertSince(start)
+          : l10n.flightAlertNoRecordedEnd(start);
+    }
     return l10n.mapAlertHistoryTiming(
       start,
       _formatTime(context, end),

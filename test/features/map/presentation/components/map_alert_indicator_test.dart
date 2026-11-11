@@ -8,6 +8,7 @@ import 'package:stork/features/map/presentation/providers/map_alerts_provider.da
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/domain/models/range_thresholds.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
+import 'package:stork/features/telemetry/domain/models/flight_alert_record.dart';
 import 'package:stork/features/telemetry/domain/models/map_view_state.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/temperature_trend_provider.dart';
@@ -85,6 +86,43 @@ double _badgeScale(WidgetTester tester) {
 }
 
 void main() {
+  testWidgets('shows stored flight alerts with channel and duration', (
+    tester,
+  ) async {
+    final start = DateTime(2026, 11, 11, 12);
+    await tester.pumpWidget(
+      _app(
+        alert: null,
+        body: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showRecordedFlightAlerts(
+              context,
+              Future.value([
+                FlightAlertRecord(
+                  flightUuid: 'flight',
+                  episodeId: 'alert',
+                  kind: 'cylinderTemperature',
+                  severity: 'critical',
+                  startedAt: start,
+                  endedAt: start.add(const Duration(seconds: 25)),
+                  threshold: 'maxError',
+                  channel: 2,
+                ),
+              ]),
+            ),
+            child: const Text('Open flight alerts'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open flight alerts'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Engine overheating · CHT'), findsOneWidget);
+    expect(find.textContaining('Cylinder 2'), findsOneWidget);
+    expect(find.textContaining('Duration 00:25'), findsOneWidget);
+  });
+
   testWidgets('shows an overheating icon and identifies the cylinder', (
     tester,
   ) async {

@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import '../../../features/telemetry/domain/models/flight.dart';
+import '../../../features/telemetry/domain/models/flight_alert_record.dart';
 import '../../../features/telemetry/domain/models/telemetry_entry.dart';
 import '../../../features/telemetry/domain/models/telemetry_state.dart';
 import '../../../features/telemetry/domain/utils/flight_statistics_calculator.dart';
@@ -148,6 +149,22 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     );
 
     db.execute('''
+      CREATE TABLE IF NOT EXISTS flight_alerts (
+          flight_uuid TEXT NOT NULL,
+          episode_id TEXT NOT NULL,
+          kind TEXT NOT NULL,
+          severity TEXT NOT NULL,
+          started_at TEXT NOT NULL,
+          ended_at TEXT,
+          threshold_state TEXT,
+          channel INTEGER,
+          unavailable INTEGER NOT NULL,
+          PRIMARY KEY (flight_uuid, episode_id),
+          FOREIGN KEY (flight_uuid) REFERENCES flights(uuid) ON DELETE CASCADE
+      );
+    ''');
+
+    db.execute('''
       CREATE TABLE IF NOT EXISTS flight_statistics (
           flight_uuid TEXT PRIMARY KEY,
           max_altitude REAL,
@@ -241,6 +258,74 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
     // performs a blocking fsync. Offloading keeps the main UI thread completely fluid.
     final path = await _dbPath;
     await Isolate.run(() => _insertTelemetryEntriesIsolate(path, entries));
+  }
+
+  @override
+  Future<void> saveAlertRecords(List<FlightAlertRecord> records) async {
+    if (records.isEmpty) return;
+    final db = await database;
+    final stmt = db.prepare('''
+      INSERT INTO flight_alerts (
+        flight_uuid, episode_id, kind, severity, started_at, ended_at,
+        threshold_state, channel, unavailable
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(flight_uuid, episode_id) DO UPDATE SET
+        severity = excluded.severity,
+        ended_at = excluded.ended_at,
+        threshold_state = excluded.threshold_state,
+        unavailable = excluded.unavailable
+    ''');
+    try {
+      db.execute('BEGIN TRANSACTION');
+      try {
+        for (final record in records) {
+          stmt.execute([
+            record.flightUuid,
+            record.episodeId,
+            record.kind,
+            record.severity,
+            record.startedAt.toUtc().toIso8601String(),
+            record.endedAt?.toUtc().toIso8601String(),
+            record.threshold,
+            record.channel,
+            record.unavailable ? 1 : 0,
+          ]);
+        }
+        db.execute('COMMIT');
+      } catch (_) {
+        db.execute('ROLLBACK');
+        rethrow;
+      }
+    } finally {
+      stmt.close();
+    }
+  }
+
+  @override
+  Future<List<FlightAlertRecord>> getAlertRecordsForFlight(
+    String flightUuid,
+  ) async {
+    final db = await database;
+    return [
+      for (final row in db.select(
+        'SELECT * FROM flight_alerts WHERE flight_uuid = ? ORDER BY started_at DESC, rowid DESC',
+        [flightUuid],
+      ))
+        FlightAlertRecord(
+          flightUuid: flightUuid,
+          episodeId: row['episode_id'] as String,
+          kind: row['kind'] as String,
+          severity: row['severity'] as String,
+          startedAt: DateTime.parse(row['started_at'] as String).toUtc(),
+          endedAt: switch (row['ended_at']) {
+            final String end => DateTime.parse(end).toUtc(),
+            _ => null,
+          },
+          threshold: row['threshold_state'] as String?,
+          channel: row['channel'] as int?,
+          unavailable: row['unavailable'] == 1,
+        ),
+    ];
   }
 
   Flight _mapFlightFromRow(Row row) {

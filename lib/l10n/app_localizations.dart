@@ -5165,6 +5165,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Temperature falling · −{amount} in 30 s'**
   String mapAlertTemperatureFalling(String amount);
+
+  /// No description provided for @flightNoRecordedAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts recorded for this flight.'**
+  String get flightNoRecordedAlerts;
+
+  /// No description provided for @flightAlertNoRecordedEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} · End not recorded'**
+  String flightAlertNoRecordedEnd(String start);
 }
 
 class _AppLocalizationsDelegate

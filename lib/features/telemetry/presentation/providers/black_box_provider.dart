@@ -4,10 +4,12 @@ import 'package:intl/intl.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../map/presentation/providers/map_alert_history_provider.dart';
 import 'black_box_repository_provider.dart';
 import '../../domain/repositories/black_box_repository.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/models/flight.dart';
+import '../../domain/models/flight_alert_record.dart';
 import '../../domain/models/telemetry_entry.dart';
 import 'telemetry_provider.dart';
 import 'flight_records_provider.dart';
@@ -19,8 +21,10 @@ class BlackBoxService extends _$BlackBoxService {
   static const _uuidGen = Uuid();
 
   String? _activeFlightUuid;
+  DateTime? _flightStartedAt;
   Timer? _flushTimer;
   final List<TelemetryEntry> _buffer = [];
+  final _alertBuffer = <(String, String), FlightAlertRecord>{};
 
   TelemetryState? _lastBufferedState;
   DateTime _lastKeyframeTime = DateTime.fromMillisecondsSinceEpoch(0);
@@ -30,6 +34,12 @@ class BlackBoxService extends _$BlackBoxService {
   @override
   void build() {
     final repo = ref.read(blackBoxRepositoryProvider);
+    // Keep the history's instrument listeners active with the dialog closed.
+    ref.listen(mapAlertHistoryProvider, (_, _) {});
+    final alertSubscription = ref
+        .read(mapAlertHistoryProvider.notifier)
+        .changes
+        .listen(_bufferAlert);
 
     // Recover unfinished flights in the background
     unawaited(
@@ -44,8 +54,13 @@ class BlackBoxService extends _$BlackBoxService {
     );
 
     ref.onDispose(() {
+      unawaited(alertSubscription.cancel());
       _flushTimer?.cancel();
-      _flush(forceRepo: repo);
+      unawaited(
+        _flush(forceRepo: repo).catchError((Object error) {
+          debugPrint('Error flushing black box records on dispose: $error');
+        }),
+      );
     });
 
     ref.listen<TelemetryState>(telemetryProvider, (previous, next) {
@@ -94,12 +109,16 @@ class BlackBoxService extends _$BlackBoxService {
       airplaneId: airplaneId,
     );
     _activeFlightUuid = uuid;
+    _flightStartedAt = now;
     _lastKeyframeTime = now;
     _lastBufferedState = null;
     _buffer.clear();
 
     // Record the initial keyframe immediately in the memory buffer
     _bufferTelemetry(state);
+    for (final entry in ref.read(mapAlertHistoryProvider)) {
+      if (entry.endedAt == null) _bufferAlert(entry);
+    }
 
     // Persist flight metadata asynchronously
     final repo = ref.read(blackBoxRepositoryProvider);
@@ -116,8 +135,10 @@ class BlackBoxService extends _$BlackBoxService {
           }
           // Setup periodic database flusher (every 1 second) – isolated error handling
           try {
-            _flushTimer?.cancel();
-            _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
+            if (_activeFlightUuid == uuid) {
+              _flushTimer?.cancel();
+              _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
+            }
           } catch (e) {
             debugPrint('Error initializing flush timer after save: $e');
           }
@@ -126,6 +147,8 @@ class BlackBoxService extends _$BlackBoxService {
           // Only handle errors from saveFlight itself
           _flightCreationFuture = null;
           _activeFlightUuid = null;
+          _flightStartedAt = null;
+          _alertBuffer.removeWhere((key, _) => key.$1 == uuid);
           _buffer
               .clear(); // Clear memory buffer on database initialization failure
           debugPrint('Error starting flight in database: $e');
@@ -135,6 +158,11 @@ class BlackBoxService extends _$BlackBoxService {
 
   void _onTick(Timer timer) {
     if (_activeFlushFuture != null) return;
+    if (_activeFlightUuid == null && _alertBuffer.isEmpty && _buffer.isEmpty) {
+      timer.cancel();
+      if (identical(timer, _flushTimer)) _flushTimer = null;
+      return;
+    }
     unawaited(
       _flush().catchError((e) {
         debugPrint('Error during periodic flush: $e');
@@ -147,6 +175,8 @@ class BlackBoxService extends _$BlackBoxService {
     if (uuid == null) return;
 
     _activeFlightUuid = null; // Set null synchronously
+    _flightStartedAt = null;
+    final now = DateTime.now().toUtc();
 
     _flushTimer?.cancel();
     _flushTimer = null;
@@ -156,9 +186,11 @@ class BlackBoxService extends _$BlackBoxService {
       await _flush();
     } catch (e) {
       debugPrint('Error flushing telemetry at end of flight: $e');
+      if (ref.mounted && _alertBuffer.isNotEmpty && _activeFlightUuid == null) {
+        _flushTimer ??= Timer.periodic(const Duration(seconds: 1), _onTick);
+      }
     }
 
-    final now = DateTime.now().toUtc();
     final repo = ref.read(blackBoxRepositoryProvider);
     try {
       await repo.updateFlightEndTime(uuid, now);
@@ -168,7 +200,7 @@ class BlackBoxService extends _$BlackBoxService {
       debugPrint('Error updating flight end time: $e');
     }
 
-    _lastBufferedState = null;
+    if (_activeFlightUuid == null) _lastBufferedState = null;
   }
 
   void _bufferTelemetry(TelemetryState next) {
@@ -223,31 +255,70 @@ class BlackBoxService extends _$BlackBoxService {
     _buffer.add(entry);
   }
 
-  Future<void> _flush({BlackBoxRepository? forceRepo}) async {
-    if (_buffer.isEmpty && _activeFlushFuture == null) return;
+  void _bufferAlert(MapAlertHistoryEntry entry) {
+    final uuid = _activeFlightUuid;
+    final flightStart = _flightStartedAt;
+    if (uuid == null || flightStart == null) return;
+    final alert = entry.alert;
+    final startedAt = alert.since.isBefore(flightStart)
+        ? flightStart
+        : alert.since;
+    final endedAt = entry.endedAt;
+    _alertBuffer[(uuid, entry.id)] = FlightAlertRecord(
+      flightUuid: uuid,
+      episodeId: entry.id,
+      kind: alert.kind.name,
+      severity: alert.severity.name,
+      startedAt: startedAt,
+      endedAt: endedAt != null && endedAt.isBefore(startedAt)
+          ? startedAt
+          : endedAt,
+      threshold: alert.instrumentIssue?.state.name,
+      channel: alert.instrumentIssue?.channel,
+      unavailable: alert.instrumentIssue?.unavailable ?? false,
+    );
+  }
 
-    if (_activeFlushFuture != null) {
+  Future<void> _flush({BlackBoxRepository? forceRepo}) async {
+    if (_buffer.isEmpty && _alertBuffer.isEmpty && _activeFlushFuture == null) {
+      return;
+    }
+
+    final repo = forceRepo ?? ref.read(blackBoxRepositoryProvider);
+    final creation = _flightCreationFuture;
+    if (creation != null) await creation;
+    while (_activeFlushFuture != null) {
       try {
         await _activeFlushFuture;
       } catch (_) {}
     }
 
-    if (_buffer.isEmpty) return;
+    if (_buffer.isEmpty && _alertBuffer.isEmpty) return;
 
     final batch = List<TelemetryEntry>.from(_buffer);
     _buffer.clear();
+    final alerts = Map.of(_alertBuffer);
 
-    final repo = forceRepo ?? ref.read(blackBoxRepositoryProvider);
     final flushCompleter = Completer<void>();
     _activeFlushFuture = flushCompleter.future;
 
     try {
       if (repo != null) {
-        await repo.insertTelemetryEntries(batch);
+        try {
+          if (batch.isNotEmpty) await repo.insertTelemetryEntries(batch);
+        } catch (e) {
+          _buffer.insertAll(0, batch);
+          rethrow;
+        }
+        if (alerts.isNotEmpty) {
+          await repo.saveAlertRecords(alerts.values.toList());
+          _alertBuffer.removeWhere(
+            (key, value) => identical(value, alerts[key]),
+          );
+        }
       }
     } catch (e) {
-      _buffer.insertAll(0, batch);
-      debugPrint('Error inserting black box telemetry: $e');
+      debugPrint('Error inserting black box records: $e');
       rethrow;
     } finally {
       flushCompleter.complete();

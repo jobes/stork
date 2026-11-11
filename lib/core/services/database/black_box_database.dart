@@ -1,4 +1,5 @@
 import '../../../features/telemetry/domain/models/flight.dart';
+import '../../../features/telemetry/domain/models/flight_alert_record.dart';
 import '../../../features/telemetry/domain/models/flight_statistics.dart';
 import '../../../features/telemetry/domain/models/telemetry_entry.dart';
 import '../../../features/telemetry/domain/models/time_based_stats.dart';
@@ -14,6 +15,8 @@ abstract interface class BlackBoxDatabase {
   Future<void> saveFlight(Flight flight);
   Future<void> updateFlightEndTime(String uuid, DateTime endTime);
   Future<void> insertTelemetryEntries(List<TelemetryEntry> entries);
+  Future<void> saveAlertRecords(List<FlightAlertRecord> records);
+  Future<List<FlightAlertRecord>> getAlertRecordsForFlight(String flightUuid);
   Future<List<Flight>> getFlights();
   Future<List<Flight>> getUnfinishedFlights();
   Future<List<TelemetryEntry>> getTelemetryForFlight(String flightUuid);

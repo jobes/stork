@@ -1,4 +1,5 @@
 import '../models/flight.dart';
+import '../models/flight_alert_record.dart';
 import '../models/telemetry_entry.dart';
 import '../models/time_based_stats.dart';
 
@@ -6,6 +7,8 @@ abstract class BlackBoxRepository {
   Future<void> saveFlight(Flight flight);
   Future<void> updateFlightEndTime(String uuid, DateTime endTime);
   Future<void> insertTelemetryEntries(List<TelemetryEntry> entries);
+  Future<void> saveAlertRecords(List<FlightAlertRecord> records);
+  Future<List<FlightAlertRecord>> getAlertRecordsForFlight(String flightUuid);
   Future<List<Flight>> getFlights();
   Future<List<TelemetryEntry>> getTelemetryForFlight(String flightUuid);
   Future<void> deleteFlight(String uuid);

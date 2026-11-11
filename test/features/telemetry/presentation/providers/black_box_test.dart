@@ -6,9 +6,12 @@ import 'package:sqlite3/sqlite3.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 
+import 'package:stork/features/map/presentation/models/map_alert.dart';
+import 'package:stork/features/map/presentation/providers/map_alert_history_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/telemetry/domain/models/flight.dart';
+import 'package:stork/features/telemetry/domain/models/flight_alert_record.dart';
 import 'package:stork/features/telemetry/domain/models/telemetry_entry.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/black_box_provider.dart';
@@ -179,6 +182,88 @@ void main() {
   });
 
   group('BlackBoxService Provider Tests', () {
+    test(
+      'records alert episodes with the flight and removes them on deletion',
+      () {
+        fakeAsync((async) {
+          final retryingDb = FakeDelayingBlackBoxDatabase()..database = db;
+          final container = ProviderContainer(
+            overrides: [
+              blackBoxDatabaseProvider.overrideWithValue(retryingDb),
+              appSettingsProvider.overrideWith(
+                () => MockAppSettingsNotifier(const AppSettings()),
+              ),
+            ],
+          );
+          container.listen(blackBoxServiceProvider, (_, _) {});
+          final service = container.read(blackBoxServiceProvider.notifier);
+          final history = container.read(mapAlertHistoryProvider.notifier);
+          final telemetry = container.read(telemetryProvider.notifier);
+          final groundTime = DateTime.now().toUtc().subtract(
+            const Duration(minutes: 1),
+          );
+          history.observeSystemAlerts([
+            MapAlert(kind: MapAlertKind.gpsFixLost, since: groundTime),
+          ], groundTime);
+          async.flushMicrotasks();
+          expect(db.select('SELECT * FROM flight_alerts'), isEmpty);
+
+          telemetry.updateGPS(
+            latitude: 48.0,
+            longitude: 17.0,
+            groundSpeed: 25.0,
+          );
+          final uuid = service.activeFlightUuid!;
+          async.elapse(const Duration(seconds: 1));
+          final initial = db.select('SELECT * FROM flight_alerts').single;
+          final started = db.select('SELECT start_time FROM flights').single;
+          expect(initial['flight_uuid'], uuid);
+          expect(initial['started_at'], started['start_time']);
+
+          history.observeSystemAlerts([], DateTime.now().toUtc());
+          telemetry.updateIceStatus(
+            engineSpeedRpm: 3000,
+            cylinderHeadTemperatures: [410],
+          );
+          async.elapse(const Duration(milliseconds: 100));
+          telemetry.updateIceStatus(
+            engineSpeedRpm: 3000,
+            cylinderHeadTemperatures: [430],
+          );
+          async.elapse(const Duration(milliseconds: 100));
+          telemetry.updateIceStatus(
+            engineSpeedRpm: 3000,
+            cylinderHeadTemperatures: [370],
+          );
+          async.elapse(const Duration(milliseconds: 100));
+          retryingDb.failSaveAlertRecords = true;
+          telemetry.updateGPS(groundSpeed: 0.0);
+          async.flushMicrotasks();
+          expect(db.select('SELECT * FROM flight_alerts'), hasLength(1));
+
+          retryingDb.failSaveAlertRecords = false;
+          async.elapse(const Duration(seconds: 1));
+          async.flushMicrotasks();
+
+          final result = db.select('SELECT * FROM flight_alerts');
+          expect(result, hasLength(2));
+          final gps = result.singleWhere((row) => row['kind'] == 'gpsFixLost');
+          expect(gps['ended_at'], isNotNull);
+          final cht = result.singleWhere(
+            (row) => row['kind'] == 'cylinderTemperature',
+          );
+          expect(cht['channel'], 1);
+          expect(cht['severity'], 'critical');
+          expect(cht['threshold_state'], 'maxError');
+          expect(cht['ended_at'], isNotNull);
+          unawaited(blackBoxDb.deleteFlight(uuid));
+          async.flushMicrotasks();
+          expect(db.select('SELECT * FROM flight_alerts'), isEmpty);
+          container.dispose();
+        });
+      },
+    );
+
     test('Transitions of isFlying start and stop flight logging', () {
       fakeAsync((async) {
         final container = ProviderContainer(
@@ -819,6 +904,7 @@ class FakeDelayingBlackBoxDatabase extends IoBlackBoxDatabase {
   Completer<void>? saveFlightCompleter;
   bool failSaveFlight = false;
   bool failInsertTelemetry = false;
+  bool failSaveAlertRecords = false;
   bool runStatsSynchronously = false;
 
   @override
@@ -838,6 +924,12 @@ class FakeDelayingBlackBoxDatabase extends IoBlackBoxDatabase {
       throw Exception('Transient SQLite insert error');
     }
     await super.insertTelemetryEntries(entries);
+  }
+
+  @override
+  Future<void> saveAlertRecords(List<FlightAlertRecord> records) async {
+    if (failSaveAlertRecords) throw StateError('Transient alert write error');
+    await super.saveAlertRecords(records);
   }
 
   @override
