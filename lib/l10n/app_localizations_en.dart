@@ -1006,27 +1006,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get etaLabel => 'ETA';
 
   @override
-  String get notamsTitle => 'NOTAMs';
-
-  @override
-  String get notamDetails => 'NOTAM Details';
-
-  @override
-  String get notamStart => 'Start Time';
-
-  @override
-  String get notamEnd => 'End Time';
-
-  @override
-  String get notamFir => 'FIR';
-
-  @override
-  String get notamLimits => 'Vertical Limits';
-
-  @override
-  String get hideNotam => 'Hide';
-
-  @override
   String get flightRecords => 'Flight Records';
 
   @override
@@ -2580,4 +2559,253 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuFindGateways => 'Search again';
+
+  @override
+  String get mapAlertStatusTooltip => 'System status';
+
+  @override
+  String mapAlertSince(String time) {
+    return 'Active since $time';
+  }
+
+  @override
+  String get mapAlertAllGoodTitle => 'System status';
+
+  @override
+  String get mapAlertAllGoodBody =>
+      'All monitored systems are working normally.';
+
+  @override
+  String get mapAlertMapStyleTitle => 'Map could not load';
+
+  @override
+  String get mapAlertMapStyleBody =>
+      'The map failed to load. Try closing and reopening the map.';
+
+  @override
+  String get mapAlertGpsPermissionTitle => 'Location permission needed';
+
+  @override
+  String get mapAlertGpsPermissionBody =>
+      'Stork is not allowed to use your location. Allow location access in your device settings.';
+
+  @override
+  String get mapAlertLocationServicesTitle => 'Location services are off';
+
+  @override
+  String get mapAlertLocationServicesBody =>
+      'Turn on location services on your device so Stork can show your position.';
+
+  @override
+  String get mapAlertGpsStreamTitle => 'GPS stopped responding';
+
+  @override
+  String get mapAlertGpsStreamBody =>
+      'Your device stopped sending position updates. Stork will try to restore them automatically.';
+
+  @override
+  String get mapAlertGpsLostTitle => 'GPS signal lost';
+
+  @override
+  String get mapAlertGpsLostBody =>
+      'The aircraft position on the map may be out of date. Keep navigating visually and try to restore the GPS signal.';
+
+  @override
+  String get mapAlertGpsNoFixTitle => 'Waiting for GPS';
+
+  @override
+  String get mapAlertGpsNoFixBody =>
+      'Stork does not have a GPS position yet. Make sure you have a clear view of the sky and that GPS is enabled.';
+
+  @override
+  String get mapAlertDroneCanGpsTitle => 'Using backup GPS';
+
+  @override
+  String get mapAlertDroneCanGpsBody =>
+      'The aircraft GPS stopped sending data. Stork switched to the device GPS, which may be less accurate.';
+
+  @override
+  String get mapAlertTelemetryLinkTitle => 'Aircraft connection lost';
+
+  @override
+  String get mapAlertTelemetryLinkBody =>
+      'Stork has no connection to the aircraft telemetry. Speed, altitude and engine values may be out of date.';
+
+  @override
+  String get mapAlertTelemetryStaleTitle => 'Telemetry is not updating';
+
+  @override
+  String get mapAlertTelemetryStaleBody =>
+      'The connection is up, but no new data is arriving. Values on the screen may be frozen.';
+
+  @override
+  String get mapAlertAltitudeUnavailableTitle => 'Altitude is not available';
+
+  @override
+  String get mapAlertAltitudeUnavailableBody =>
+      'Stork has no altitude reading. Terrain and collision warnings may be limited.';
+
+  @override
+  String get mapAlertTrafficOfflineTitle => 'Traffic data unavailable';
+
+  @override
+  String get mapAlertTrafficOfflineBody =>
+      'Stork is not receiving nearby traffic, so collision warnings are not active. Check your internet connection or receiver.';
+
+  @override
+  String get mapAlertInternetTitle => 'No internet connection';
+
+  @override
+  String get mapAlertInternetBody =>
+      'Map details and airspace updates may not refresh.';
+
+  @override
+  String get mapAlertAirspaceTitle => 'Airspace data unavailable';
+
+  @override
+  String get mapAlertAirspaceBody =>
+      'Current airspace activity could not be downloaded. Active airspace highlights may be missing.';
+
+  @override
+  String get mapAlertTerrainTitle => 'Terrain data unavailable';
+
+  @override
+  String get mapAlertTerrainBody =>
+      'Stork has no terrain elevation. Height above ground and terrain warnings may not work.';
+
+  @override
+  String get mapAlertOfflineMapsTitle => 'Offline map not ready';
+
+  @override
+  String get mapAlertOfflineMapsBody =>
+      'The offline map could not be downloaded. The map may not be available without internet.';
+
+  @override
+  String get mapAlertAltitudeSourceTitle => 'Altitude source changed';
+
+  @override
+  String get mapAlertAltitudeSourceBody =>
+      'The altitude source changed. The value may differ slightly from before.';
+
+  @override
+  String get mapAlertCollisionTitle => 'Collision warning';
+
+  @override
+  String get mapAlertCollisionBody =>
+      'Stork detected a potential conflict with nearby traffic. See the map banner for details.';
+
+  @override
+  String mapAlertEngineOverheat(String instrument) {
+    return 'Engine overheating · $instrument';
+  }
+
+  @override
+  String mapAlertInstrumentLow(String instrument) {
+    return '$instrument · Low';
+  }
+
+  @override
+  String mapAlertInstrumentHigh(String instrument) {
+    return '$instrument · High';
+  }
+
+  @override
+  String mapAlertInstrumentUnavailable(String instrument) {
+    return '$instrument · No data';
+  }
+
+  @override
+  String get mapAlertInstrumentUnavailableBody =>
+      'The instrument is currently receiving no reading.';
+
+  @override
+  String get mapAlertInstrumentLowWarningBody =>
+      'The reading has reached the configured lower warning limit.';
+
+  @override
+  String get mapAlertInstrumentHighWarningBody =>
+      'The reading has reached the configured upper warning limit.';
+
+  @override
+  String get mapAlertInstrumentLowErrorBody =>
+      'The reading is at or below the configured lower critical limit.';
+
+  @override
+  String get mapAlertInstrumentHighErrorBody =>
+      'The reading is at or above the configured upper critical limit.';
+
+  @override
+  String mapAlertInstrumentCylinder(int number) {
+    return 'Cylinder $number';
+  }
+
+  @override
+  String get mapAlertRadioLabel => 'Radio';
+
+  @override
+  String get mapAlertRadioFault => 'Radio fault';
+
+  @override
+  String get mapAlertRadioFaultBody =>
+      'The radio is reporting a hardware fault.';
+
+  @override
+  String mapAlertActiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active alerts',
+      one: '1 active alert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String mapAlertMeasured(String value) {
+    return 'Measured $value';
+  }
+
+  @override
+  String mapAlertCriticalLimit(String value) {
+    return 'Critical limit $value';
+  }
+
+  @override
+  String mapAlertWarningLimit(String value) {
+    return 'Warning limit $value';
+  }
+
+  @override
+  String get mapAlertHistoryTitle => 'Alert history';
+
+  @override
+  String mapAlertHistoryPeak(String value) {
+    return 'Most extreme reading $value';
+  }
+
+  @override
+  String mapAlertHistoryTiming(String start, String end, String duration) {
+    return '$start – $end · Duration $duration';
+  }
+
+  @override
+  String get mapAlertTemperatureSteady => 'Temperature steady over 30 s';
+
+  @override
+  String mapAlertTemperatureRising(String amount) {
+    return 'Temperature rising · +$amount in 30 s';
+  }
+
+  @override
+  String mapAlertTemperatureFalling(String amount) {
+    return 'Temperature falling · −$amount in 30 s';
+  }
+
+  @override
+  String get flightNoRecordedAlerts => 'No alerts recorded for this flight.';
+
+  @override
+  String flightAlertNoRecordedEnd(String start) {
+    return '$start · End not recorded';
+  }
 }

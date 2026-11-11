@@ -46,10 +46,10 @@ We appreciate responsible disclosure and will handle all reports confidentially.
 
 ## Security Considerations for This Project
 
-- **Telemetry integrity** — decoded telemetry (DroneCAN, OGN, GDL90, NOTAMs)
-  is untrusted input; it is validated and clamped before use.
-- **Network data** — data from external services (AUP portals, NOTAM/FAA API,
-  OGN, PureTrack) is treated as untrusted; never trust positions or airspace
+- **Telemetry integrity** — decoded telemetry (DroneCAN, OGN, GDL90) is
+  untrusted input; it is validated and clamped before use.
+- **Network data** — data from external services (AUP portals, OpenAIP, OGN,
+  PureTrack) is treated as untrusted; never trust positions or airspace
   geometry without validation.
 - **Web platform** — SQLite and `dart:io` APIs are unavailable on Web; all
   IO-only code is guarded and must never break the build on `kIsWeb`.

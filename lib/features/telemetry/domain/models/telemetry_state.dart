@@ -146,6 +146,13 @@ class TelemetryState {
   final double? airPressure; // in Pa
   final double? gpsAltitude; // MSL
   final DateTime? gpsTimestamp;
+
+  /// Local time of the last received GPS fix (phone stream or DroneCAN).
+  ///
+  /// Unlike [gpsTimestamp] (the fix time reported by the receiver, which may
+  /// be missing), this is always set when a position arrives and is used to
+  /// detect a stalled GPS signal without relying on the aircraft moving.
+  final DateTime? gpsLastFixAt;
   final int? gpsSatelliteCount;
   final double? gpsHorizontalAccuracy; // in meters
   final double? gpsVerticalAccuracy; // in meters
@@ -195,6 +202,7 @@ class TelemetryState {
     this.airPressure,
     this.gpsAltitude,
     this.gpsTimestamp,
+    this.gpsLastFixAt,
     this.gpsSatelliteCount,
     this.gpsHorizontalAccuracy,
     this.gpsVerticalAccuracy,
@@ -420,6 +428,7 @@ class TelemetryState {
     TelemetryValue<double?>? airPressure,
     TelemetryValue<double?>? gpsAltitude,
     TelemetryValue<DateTime?>? gpsTimestamp,
+    DateTime? gpsLastFixAt,
     TelemetryValue<int?>? gpsSatelliteCount,
     TelemetryValue<double?>? gpsHorizontalAccuracy,
     TelemetryValue<double?>? gpsVerticalAccuracy,
@@ -467,6 +476,7 @@ class TelemetryState {
       gpsTimestamp: gpsTimestamp != null
           ? gpsTimestamp.value
           : this.gpsTimestamp,
+      gpsLastFixAt: gpsLastFixAt ?? this.gpsLastFixAt,
       gpsSatelliteCount: gpsSatelliteCount != null
           ? gpsSatelliteCount.value
           : this.gpsSatelliteCount,

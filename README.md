@@ -11,6 +11,7 @@
 - **Offline Maps (PMTiles)** — offline-first mapping with PMTiles, a local HTTP tile server, and a reliable background download system with progress tracking and fault tolerance.
 - **Aircraft Map Tracking** — Geolocator GPS integration with GeoIP fallbacks and map states (`init`, `waitingForGps`, `overview`, `follow`) with follow-mode snapping.
 - **Course Line (Trend Vector)** — predictive course-line overlay projecting the aircraft's future trajectory.
+- **System Status Indicator** — one prioritized, at-a-glance alert for GPS, telemetry link, traffic sources, network, airspace data, terrain and offline maps, with a plain-language explanation on tap.
 - **Waypoint Navigation** — waypoint-based routing with dynamic ETA/ETE, reorderable legs, and auto-advance logic.
 
 **Telemetry & Avionics**
@@ -25,7 +26,6 @@
 - **Black Box Flight Logging** — automated flight recording, delta-compressed SQLite persistence, background statistics, crash recovery, and GPX export.
 - **Flight Duration & Distance Tracking** — automatic takeoff/landing detection and GPS-noise-filtered distance accumulation.
 - **Active Airspaces (AUP/UUP)** — real-time airspace activity from Slovak LzPS and Czech ŘLP AUP portals with MapLibre highlight layers.
-- **NOTAM Alerts** — NOTAMs fetched from the FAA API, decoded and expanded to English, rendered as map layers.
 - **Aeronautical Metadata** — OpenAIP airport/airspace synchronization, cached in SQLite, queried on map tap.
 - **Pilot & Aircraft Management** — pilot/aircraft profiles with JSON persistence, PIN security, and dashboard integration.
 - **Altitude Resolution & Terrain Elevation** — Web Mercator terrain tiles with bilinear interpolation, LRU caching, and Auto-QNH calibration via a 2D Extended Kalman Filter.
@@ -107,7 +107,7 @@ lib/
 │   ├── theme/               # Light/dark Material themes
 │   └── utils/               # Geo, aviation math, time, number formatting
 └── features/
-    ├── map/                 # Map rendering, aircraft tracking, aeronautical metadata, AUP/NOTAMs
+    ├── map/                 # Map rendering, aircraft tracking, aeronautical metadata, AUP
     ├── telemetry/           # DroneCAN telemetry, vario, engine, airspeed, black box, traffic, VHF radio
     ├── navigation/          # Waypoint routing and navigation state
     ├── offline_maps/        # PMTiles offline region management and downloads

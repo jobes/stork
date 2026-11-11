@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../../../telemetry/domain/models/map_view_state.dart';
 import '../../../../../l10n/app_localizations.dart';
+import 'map_alert_indicator.dart';
 
 class MapControls extends StatelessWidget {
   final MapViewState mapViewState;
@@ -11,6 +12,7 @@ class MapControls extends StatelessWidget {
   final Key? menuButtonKey;
   final Key? gpsButtonKey;
   final Key? doneButtonKey;
+  final Key? alertIndicatorKey;
 
   const MapControls({
     super.key,
@@ -21,6 +23,7 @@ class MapControls extends StatelessWidget {
     this.menuButtonKey,
     this.gpsButtonKey,
     this.doneButtonKey,
+    this.alertIndicatorKey,
   });
 
   @override
@@ -64,33 +67,44 @@ class MapControls extends StatelessWidget {
                   ),
                 ),
               ),
-            PointerInterceptor(
-              child: IconButton.filled(
-                key: gpsButtonKey,
-                style: IconButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.tertiary,
-                  foregroundColor: Theme.of(context).colorScheme.onTertiary,
-                  elevation: 4,
-                  shadowColor: Colors.black.withAlpha(76),
-                ),
-                tooltip: gpsTooltip,
-                icon: mapViewState == MapViewState.waitingForGps
-                    ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.onTertiary,
-                        ),
-                      )
-                    : Icon(
-                        mapViewState == MapViewState.init
-                            ? Icons.gps_not_fixed
-                            : mapViewState == MapViewState.follow
-                            ? Icons.navigation
-                            : Icons.gps_fixed,
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(child: MapAlertIndicator(key: alertIndicatorKey)),
+                  const SizedBox(width: 8),
+                  PointerInterceptor(
+                    child: IconButton.filled(
+                      key: gpsButtonKey,
+                      style: IconButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.tertiary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onTertiary,
+                        elevation: 4,
+                        shadowColor: Colors.black.withAlpha(76),
                       ),
-                onPressed: onGpsPressed,
+                      tooltip: gpsTooltip,
+                      icon: mapViewState == MapViewState.waitingForGps
+                          ? SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.onTertiary,
+                              ),
+                            )
+                          : Icon(
+                              mapViewState == MapViewState.init
+                                  ? Icons.gps_not_fixed
+                                  : mapViewState == MapViewState.follow
+                                  ? Icons.navigation
+                                  : Icons.gps_fixed,
+                            ),
+                      onPressed: onGpsPressed,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

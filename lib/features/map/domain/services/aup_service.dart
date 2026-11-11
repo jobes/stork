@@ -25,5 +25,7 @@ abstract class AupService {
 
   /// Fetches and parses the current AUP/UUP activity for the given country
   /// or FIR code (e.g. `'SK'`, `'LZBB'`).
+  /// An empty list represents a valid response without activities. Fetch or
+  /// payload errors propagate to the caller.
   Future<List<AupAirspaceActivity>> fetchAupData(String countryOrFirCode);
 }

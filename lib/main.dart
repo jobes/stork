@@ -85,7 +85,8 @@ class _StorkAppState extends ConsumerState<StorkApp>
       ),
     );
     ref.read(cannelloniServiceProvider);
-    ref.read(blackBoxServiceProvider);
+    // Keep the recorder's alert subscriptions active with the dialog closed.
+    ref.listenManual(blackBoxServiceProvider, (_, _) {});
     ref.read(gpsListenerProvider);
     ref.read(airspaceActivityProvider);
   }

@@ -416,6 +416,9 @@ class TelemetryNotifier extends _$TelemetryNotifier {
       gpsTimestamp: gpsTimestamp == _sentinel
           ? null
           : TelemetryValue(gpsTimestamp as DateTime?),
+      gpsLastFixAt: latitude != _sentinel && latitude != null
+          ? clock.now()
+          : null,
     );
 
     if ((oldState.mapViewState == MapViewState.init ||

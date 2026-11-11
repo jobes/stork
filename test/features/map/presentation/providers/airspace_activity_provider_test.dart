@@ -2,12 +2,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:stork/features/map/data/repositories/aup_repository.dart';
 import 'package:stork/features/map/data/repositories/map_metadata_repository.dart';
+import 'package:stork/features/map/data/services/svk_aup_service.dart';
 import 'package:stork/features/map/domain/models/airspace_activity_status.dart';
 import 'package:stork/features/map/domain/utils/fir_utils.dart';
 import 'package:stork/core/services/location_provider.dart';
 import 'package:stork/features/map/presentation/providers/airspace_activity_provider.dart';
+import 'package:stork/features/map/presentation/providers/airspace_data_status_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 
 /// Two synthetic FIR rectangles used for the 30 km buffer tests:
@@ -63,6 +66,14 @@ class FakeAupRepository extends AupRepository {
   }
 }
 
+class _TestFirAupService extends SvkAupService {
+  _TestFirAupService(http.Client client)
+    : super(client: client, useWebProxy: false);
+
+  @override
+  List<String> get firPrefixes => const ['TEST1'];
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -71,6 +82,43 @@ void main() {
   });
 
   group('AirspaceActivity 30 km FIR buffer pre-fetch', () {
+    test('reports an HTTP failure and clears it after a valid empty plan', () {
+      fakeAsync((async) {
+        var statusCode = 503;
+        final client = MockClient(
+          (_) async => http.Response('{"features": []}', statusCode),
+        );
+        addTearDown(client.close);
+        final repo = AupRepository([
+          _TestFirAupService(client),
+        ], MapMetadataRepository(client: client));
+        final container = ProviderContainer(
+          overrides: [
+            aupRepositoryProvider.overrideWith((ref) => repo),
+            compassStreamProvider.overrideWithValue(
+              const AsyncValue<double?>.data(null),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        container.read(airspaceActivityProvider);
+        final telemetry = container.read(telemetryProvider.notifier);
+        telemetry.updateGPS(latitude: 48.5, longitude: 17.5, groundSpeed: 0.0);
+        async.flushMicrotasks();
+        expect(container.read(airspaceDataStatusProvider).failedFirs, {
+          'TEST1',
+        });
+
+        statusCode = 200;
+        async.elapse(kAirspaceEvaluationInterval);
+        telemetry.updateGPS(latitude: 48.6, longitude: 17.5, groundSpeed: 0.0);
+        async.flushMicrotasks();
+        expect(container.read(airspaceDataStatusProvider).hasError, isFalse);
+        expect(container.read(airspaceActivityProvider), isEmpty);
+      });
+    });
+
     test('no GPS fix or distant position does not trigger a fetch', () async {
       final fakeRepo = FakeAupRepository();
       final container = ProviderContainer(

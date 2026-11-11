@@ -82,7 +82,7 @@ The [AupService](../../lib/features/map/domain/services/aup_service.dart) abstra
 | `countryCode` | ISO 3166-1 alpha-2 country code used to select the openAIP network metadata fallback (e.g. `SK`, `CZ`). |
 | `fetchAupData(code)` | Fetches and parses the current activity for a country/FIR code. |
 
-Every service degrades gracefully: on timeout, socket, or parse errors it logs via `debugPrint` and returns `const []`, so the map simply shows no highlights and no badges instead of crashing.
+Every service degrades gracefully: on timeout, socket, or parse errors it logs via `debugPrint` and returns `const []`, so the map simply shows no highlights and no badges instead of crashing. The failed FIR is also reported to `airspaceDataStatusProvider`, which makes the map status indicator show that current airspace data is unavailable.
 
 ### 3.1. Slovak LzPS — `SvkAupService` (`SVK_LZPS`)
 [svk_aup_service.dart](../../lib/features/map/data/services/svk_aup_service.dart) queries the public **ArcGIS FeatureServer** used by the official LzPS airspace reservation viewer (`https://gis.lps.sk/.../Reservation_(Public)2/FeatureServer/0/query`), with CORS support. The `where` clause restricts results to GA/VFR-relevant reservations:
@@ -94,7 +94,7 @@ Every service degrades gracefully: on timeout, socket, or parse errors it logs v
  OR status = 'REFERENCE_ALLOCATED' OR status = 'PENDING')
 ```
 
-Because the server only returns the designator (`outFields=airspace`) and the `where` clause already filters by status, `parseLzpsGisResponse` marks **every** returned feature `active` with **no** validity window. On Web, the request is routed through the CORS web proxy (`ApiConstants.webProxyNotamSearchUrl`).
+Because the server only returns the designator (`outFields=airspace`) and the `where` clause already filters by status, `parseLzpsGisResponse` marks **every** returned feature `active` with **no** validity window. On Web, the request is routed through the shared CORS web proxy (`ApiConstants.webProxyUrl`).
 
 ### 3.2. Czech ŘLP (AMC ČR) — `CzeAupService` (`CZE_RLP`)
 [cze_aup_service.dart](../../lib/features/map/data/services/cze_aup_service.dart) parses the official Czech AUP portal [`https://aup.rlp.cz/`](https://aup.rlp.cz/), which publishes dated HTML documents:
@@ -109,7 +109,7 @@ Key details:
 *   **Times** are UTC `HH:MM` within the AUP day (`OD ... 06:00 DO ... 06:00`); UUP rows resolve against the **AUP validity window** (passed as `dayWindow`), not the UUP's own issue-time validity.
 *   **Designator normalization** — the portal publishes `TSA2` while openAIP names the same airspace `LKTSA2`; `CzeAupService` prepends the `LK` prefix (`_openAipDesignatorPrefix`) to every parsed designator so the shared repository binding stays country-agnostic.
 *   **Encoding** — documents are windows-1250 (ASCII in practice), decoded with `latin1.decode(bodyBytes)` (the index is UTF-8, but only HREFs are parsed).
-*   **CORS** — `aup.rlp.cz` sends no CORS headers, so Web builds go through the same web proxy as NOTAMs.
+*   **CORS** — `aup.rlp.cz` sends no CORS headers, so Web builds go through the shared CORS web proxy.
 
 ---
 

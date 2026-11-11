@@ -8,9 +8,12 @@ part of 'location_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Gets a single position fix from the device.
 
 @ProviderFor(currentLocation)
 final currentLocationProvider = CurrentLocationProvider._();
+
+/// Gets a single position fix from the device.
 
 final class CurrentLocationProvider
     extends
@@ -20,6 +23,7 @@ final class CurrentLocationProvider
           FutureOr<Geographic?>
         >
     with $FutureModifier<Geographic?>, $FutureProvider<Geographic?> {
+  /// Gets a single position fix from the device.
   CurrentLocationProvider._()
     : super(
         from: null,
@@ -52,7 +56,7 @@ String _$currentLocationHash() => r'cb79119672f4cb95e04b9d102ca104793b740642';
 ///
 /// The native OS subscription is started explicitly (see [start]) the first
 /// time the map needs a fix, and then kept alive for the whole app session.
-/// It is intentionally never torn down when other state changes: re-creating
+/// Ordinary provider updates leave the native subscription intact: re-creating
 /// the geolocator stream on every rebuild cancels the OS location subscription
 /// and re-subscribes, which on Android can silently leave the app subscribed
 /// to a dead stream — the phone GPS then stops delivering positions (frozen
@@ -81,7 +85,7 @@ final geolocatorStreamProvider = GeolocatorStreamProvider._();
 ///
 /// The native OS subscription is started explicitly (see [start]) the first
 /// time the map needs a fix, and then kept alive for the whole app session.
-/// It is intentionally never torn down when other state changes: re-creating
+/// Ordinary provider updates leave the native subscription intact: re-creating
 /// the geolocator stream on every rebuild cancels the OS location subscription
 /// and re-subscribes, which on Android can silently leave the app subscribed
 /// to a dead stream — the phone GPS then stops delivering positions (frozen
@@ -112,7 +116,7 @@ final class GeolocatorStreamProvider
   ///
   /// The native OS subscription is started explicitly (see [start]) the first
   /// time the map needs a fix, and then kept alive for the whole app session.
-  /// It is intentionally never torn down when other state changes: re-creating
+  /// Ordinary provider updates leave the native subscription intact: re-creating
   /// the geolocator stream on every rebuild cancels the OS location subscription
   /// and re-subscribes, which on Android can silently leave the app subscribed
   /// to a dead stream — the phone GPS then stops delivering positions (frozen
@@ -165,13 +169,13 @@ final class GeolocatorStreamProvider
   }
 }
 
-String _$geolocatorStreamHash() => r'ae440629d1e6e79c8a8aeb815b59dd33246f6c61';
+String _$geolocatorStreamHash() => r'f9749e16d95eafe750b443545413e6e0f550fec2';
 
 /// A single, persistent stream of raw OS positions.
 ///
 /// The native OS subscription is started explicitly (see [start]) the first
 /// time the map needs a fix, and then kept alive for the whole app session.
-/// It is intentionally never torn down when other state changes: re-creating
+/// Ordinary provider updates leave the native subscription intact: re-creating
 /// the geolocator stream on every rebuild cancels the OS location subscription
 /// and re-subscribes, which on Android can silently leave the app subscribed
 /// to a dead stream — the phone GPS then stops delivering positions (frozen

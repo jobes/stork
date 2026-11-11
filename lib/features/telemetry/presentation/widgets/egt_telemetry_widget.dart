@@ -5,6 +5,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/domain/models/temperature_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../domain/models/telemetry_instrument.dart';
+import '../providers/instrument_status_provider.dart';
 import '../providers/telemetry_provider.dart';
 import 'telemetry_card.dart';
 import 'map_telemetry_palette.dart';
@@ -12,20 +14,6 @@ import 'segmented_gauge_painter.dart';
 
 class EgtTelemetryWidget extends ConsumerWidget {
   const EgtTelemetryWidget({super.key});
-
-  int _stateSeverity(ThresholdState state) {
-    switch (state) {
-      case ThresholdState.minError:
-      case ThresholdState.maxError:
-        return 2;
-      case ThresholdState.minWarning:
-      case ThresholdState.maxWarning:
-        return 1;
-      case ThresholdState.inactive:
-      case ThresholdState.operational:
-        return 0;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,15 +32,9 @@ class EgtTelemetryWidget extends ConsumerWidget {
     final tempUnit = settings?.temperatureUnit ?? TemperatureUnit.celsius;
 
     // EGT thresholds loaded from settings
-    final thresholds =
-        settings?.egtThresholds ??
-        const RangeThresholds.raw(
-          inactiveMax: 423.15, // 150 °C
-          minError: 773.15, // 500 °C
-          minWarning: 973.15, // 700 °C
-          maxWarning: 1153.15, // 880 °C
-          maxError: 1173.15, // 900 °C
-        );
+    final thresholds = TelemetryInstrument.exhaustTemperature.thresholds(
+      settings,
+    );
 
     final double maxVisualK = settings?.egtMaxRange ?? 1223.15; // 950 °C
     final double minVisualK = thresholds.inactiveMax ?? 423.15; // 150 °C
@@ -66,19 +48,11 @@ class EgtTelemetryWidget extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    // Determine the worst state among all cylinders
-    ThresholdState worstState = ThresholdState.inactive;
-    int worstSeverity = -1;
-    for (final temp in egts) {
-      final state = temp != null
-          ? thresholds.evaluate(temp)
-          : ThresholdState.maxError;
-      final sev = _stateSeverity(state);
-      if (sev > worstSeverity) {
-        worstSeverity = sev;
-        worstState = state;
-      }
-    }
+    final worstState = ref.watch(
+      instrumentStatusProvider(
+        TelemetryInstrument.exhaustTemperature,
+      ).select((status) => status.cardState),
+    );
 
     final palette = MapTelemetryPalette.of(context);
     final isDark = palette.isDark;

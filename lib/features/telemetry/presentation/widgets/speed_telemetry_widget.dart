@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/cannelloni_service_io.dart'
-    if (dart.library.html) '../../../../core/services/cannelloni_service_stub.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/models/telemetry_instrument.dart';
+import '../providers/instrument_status_provider.dart';
 import '../providers/telemetry_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../dialogs/speed_details_dialog.dart';
 import 'telemetry_card.dart';
@@ -52,10 +51,7 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     final groundSpeed = ref.watch(
       telemetryProvider.select((t) => t.groundSpeed),
     );
-    final isConnected = ref.watch(cannelloniServiceProvider);
     final settings = ref.watch(appSettingsProvider).value;
-    final thresholds =
-        settings?.flightSpeedThresholds ?? const RangeThresholds.raw();
     final l10n = AppLocalizations.of(context)!;
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
@@ -72,18 +68,11 @@ class SpeedTelemetryWidget extends ConsumerWidget {
         : null;
     final String unitLabel = speedUnit.getAbbreviation(l10n);
 
-    ThresholdState speedState = ThresholdState.inactive;
-    if (!isConnected) {
-      if (groundSpeed != null) {
-        speedState = thresholds.evaluate(groundSpeed);
-      }
-    } else {
-      if (indicatedAirSpeed != null) {
-        speedState = thresholds.evaluate(indicatedAirSpeed);
-      } else if (groundSpeed != null) {
-        speedState = thresholds.evaluate(groundSpeed);
-      }
-    }
+    final speedState = ref.watch(
+      instrumentStatusProvider(
+        TelemetryInstrument.speed,
+      ).select((status) => status.cardState),
+    );
 
     final List<Widget> columnChildren = [];
 

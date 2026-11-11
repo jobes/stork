@@ -22,7 +22,6 @@ import '../../../telemetry/presentation/providers/traffic_provider.dart';
 import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
-import 'notams_provider.dart';
 import 'airspace_activity_provider.dart';
 import 'airspace_highlight_layers.dart';
 import 'traffic_colors.dart';
@@ -255,12 +254,6 @@ class MapCamera extends _$MapCamera {
 
     ref.listen(navigationProvider, (previous, next) {
       _updateNavigationRouteOnMap(force: true);
-    });
-
-    ref.listen(notamsProvider, (previous, next) {
-      if (next.hasValue) {
-        updateNotamsOnMap();
-      }
     });
 
     ref.listen(favoritesProvider, (previous, next) {
@@ -788,11 +781,6 @@ class MapCamera extends _$MapCamera {
         layerIds: ['places_locality'],
       );
 
-      final notamFeatures = _mapController!.featuresAtPoint(
-        event.screenPoint,
-        layerIds: ['notams-fill-layer'],
-      );
-
       final favoriteFeatures = _mapController!.featuresAtPoint(
         event.screenPoint,
         layerIds: ['favorites-layer'],
@@ -823,13 +811,6 @@ class MapCamera extends _$MapCamera {
           'id': f.id,
           'properties': f.properties,
           'layerType': 'place',
-        });
-      }
-      for (final f in notamFeatures) {
-        featureMaps.add({
-          'id': f.id,
-          'properties': f.properties,
-          'layerType': 'notam',
         });
       }
       for (final f in favoriteFeatures) {
@@ -1008,71 +989,6 @@ class MapCamera extends _$MapCamera {
     }
 
     return path;
-  }
-
-  void updateNotamsOnMap() {
-    if (_mapController == null ||
-        !_isAircraftSymbolInitialized ||
-        _mapController?.style == null) {
-      return;
-    }
-
-    final notamsAsync = ref.read(notamsProvider);
-    final notams = notamsAsync.value ?? [];
-
-    final List<Map<String, dynamic>> features = [];
-
-    for (final notam in notams) {
-      final List<List<double>> ring = [];
-      const int segments = 32;
-      final latRad = notam.latitude * math.pi / 180.0;
-      final lonRad = notam.longitude * math.pi / 180.0;
-      final dRad = notam.radius / 6371000.0;
-
-      for (int i = 0; i <= segments; i++) {
-        final double angle = i * 2.0 * math.pi / segments;
-        final double destLatRad = math.asin(
-          math.sin(latRad) * math.cos(dRad) +
-              math.cos(latRad) * math.sin(dRad) * math.cos(angle),
-        );
-        final double destLonRad =
-            lonRad +
-            math.atan2(
-              math.sin(angle) * math.sin(dRad) * math.cos(latRad),
-              math.cos(dRad) - math.sin(latRad) * math.sin(destLatRad),
-            );
-        ring.add([destLonRad * 180.0 / math.pi, destLatRad * 180.0 / math.pi]);
-      }
-
-      features.add({
-        'type': 'Feature',
-        'id': notam.id,
-        'properties': {
-          'id': notam.id,
-          'fir': notam.fir,
-          'title': notam.featureName,
-          'description': notam.msg,
-          'startTime': notam.startDate,
-          'endTime': notam.endDate,
-          'lowerLimit': notam.lowerLimit2 ?? 'GND',
-          'upperLimit': notam.upperLimit2 ?? 'UNL',
-        },
-        'geometry': {
-          'type': 'Polygon',
-          'coordinates': [ring],
-        },
-      });
-    }
-
-    final geojson = jsonEncode({
-      'type': 'FeatureCollection',
-      'features': features,
-    });
-
-    _mapController!.style!.updateGeoJsonSource(
-      id: 'notams-source',
-      data: geojson,
-    );
   }
 
   void updateFavoritesOnMap() {

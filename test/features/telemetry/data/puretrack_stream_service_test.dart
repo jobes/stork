@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stork/features/telemetry/data/puretrack_stream_service.dart';
 
@@ -121,6 +123,38 @@ void main() {
   });
 
   group('PureTrackStreamService tests', () {
+    test('only a successful traffic response refreshes the source', () {
+      fakeAsync((async) {
+        var response = http.Response('{"success":true,"data":[]}', 200);
+        final service = PureTrackStreamService(
+          client: MockClient((_) async => response),
+        );
+        try {
+          service.connect('test-token');
+          async.flushMicrotasks();
+          final lastSuccessfulPoll = service.lastSuccessfulPollAt;
+          expect(lastSuccessfulPoll, isNotNull);
+
+          response = http.Response('{"success":false,"data":[]}', 200);
+          async.elapse(const Duration(seconds: 5));
+          expect(service.lastSuccessfulPollAt, lastSuccessfulPoll);
+
+          response = http.Response('Server unavailable', 500);
+          async.elapse(const Duration(seconds: 5));
+          expect(service.lastSuccessfulPollAt, lastSuccessfulPoll);
+
+          response = http.Response('{"success":true,"data":[]}', 200);
+          async.elapse(const Duration(seconds: 5));
+          expect(
+            service.lastSuccessfulPollAt!.isAfter(lastSuccessfulPoll!),
+            isTrue,
+          );
+        } finally {
+          service.dispose();
+        }
+      });
+    });
+
     test(
       'processRawPayload emits parsed packet to stream from data array',
       () async {

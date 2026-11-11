@@ -89,3 +89,65 @@ To resolve this and ensure perfect visual synchrony, the outline is painted manu
 
 This manual double-painting approach produces a crisp border/outline around the characters that is guaranteed to animate smoothly without caching artifacts.
 
+
+## 7. Map Status Indicator
+
+The map shows a small status indicator in the top control row, immediately to
+the left of the GPS button
+([MapAlertIndicator](../../lib/features/map/presentation/components/controls/map_alert_indicator.dart)).
+When every monitored system is healthy it is a quiet, translucent shield. When
+something needs attention it grows into a large high-contrast badge — red for
+`critical`, amber for `warning`, blue for `info` — with a soft pulsing glow and
+an expanding ring for anything that needs action, so the condition is impossible
+to overlook in flight. Both light and dark palettes are defined in
+`map_alert_indicator.dart`, and the quiet state keeps a 48 dp tap target even
+though it looks small. The active states also provide at least 48 dp. The badge
+stays active until the condition clears or a more
+important condition takes over. The condition itself is not written on the map;
+tapping the badge opens the explanation, and the semantics label announces it to
+screen readers.
+
+`critical` alerts pulse strongest; `warning` alerts pulse gently; `info` alerts
+are static. The pulse is a smooth breathing animation rather than a hard blink,
+and it is disabled when the OS accessibility setting "remove animations" is on
+(the static badge keeps full contrast).
+
+Only the most important active condition is shown at a time. The most severe
+condition wins; conditions of the same severity are ranked by their declaration
+order in [map_alert.dart](../../lib/features/map/presentation/models/map_alert.dart),
+so a warning can never hide a critical condition and an informational hint can
+never hide a warning. A new condition only has to be inserted at the right place
+among conditions of equal severity. The declaration order groups: map style, GPS
+permission/location services, GPS stream, GPS fix, telemetry link, altitude,
+stale telemetry, traffic source, airspace data, terrain, offline maps, DroneCAN
+GPS fallback, internet and altitude-source change.
+
+Each signal owns a small provider and [MapAlerts](../../lib/features/map/presentation/providers/map_alerts_provider.dart)
+only composes them, tracks how long each condition has been active and drives a
+single 1 Hz ticker. The ticker runs for as long as the indicator is mounted,
+because a grace period must keep maturing after the event that started it (a
+lost link produces no further events); a tick only reads providers and OS
+location polling is gated separately, so an idle map stays cheap. Telemetry
+packets do not trigger recomputation — the health providers notify only when
+their state actually changes. The pure time-based decisions
+(`evaluateGpsFixHealth`, `isTelemetryStale`,
+`evaluateTrafficSourceUnavailable`, `evaluateTerrainUnavailable`,
+`mostImportantAlert`) are unit-tested directly.
+
+Tapping the indicator opens [BaseDetailsDialog](../../lib/features/map/presentation/components/dialogs/base_details_dialog.dart)
+with an explanation and start time for each active condition, in priority order.
+
+Signals used by the indicator:
+
+| Condition | Source |
+| :--- | :--- |
+| GPS permission / services | [LocationAccess](../../lib/core/providers/location_access_provider.dart) (reported while using device GPS, with a 5 s refresh while GPS is requested or an access problem remains) |
+| GPS stream failure | `geolocatorStreamProvider.status` (`GeolocatorStreamFailed`, reported while using device GPS) |
+| GPS fix lost / no fix | [GpsHealth](../../lib/features/telemetry/presentation/providers/gps_health_provider.dart) reading `TelemetryState.gpsLastFixAt` (12 s stale, 20 s without a first fix) |
+| DroneCAN GPS fallback | [GpsHealth](../../lib/features/telemetry/presentation/providers/gps_health_provider.dart) (shown after a device GPS fix arrives within 30 s of losing DroneCAN GPS) |
+| Telemetry link / stale data | [TelemetryLinkHealth](../../lib/features/telemetry/presentation/providers/telemetry_link_health_provider.dart) (Cannelloni socket state and received packets, with a 10 s startup grace, 3 s loss confirmation and 20 s stale threshold) |
+| Traffic / collision warnings | [TrafficSourceHealth](../../lib/features/telemetry/presentation/providers/traffic_source_health_provider.dart) (OGN socket, successful PureTrack poll within 15 s, GDL90 heartbeat. Loss is reported in flight after a previously available source goes offline and no source recovers within 30 s) |
+| Internet | `connectivity_plus` via [NetworkLinkAvailability](../../lib/core/providers/connectivity_provider.dart) — interface-level only (a captive portal still counts as online), reported after a 10 s grace and as `info` because offline flight is normal |
+| Airspace activity | `airspaceDataStatusProvider` (failed FIRs; a real fetch failure is more relevant than the missing link) |
+| Terrain / altitude | [AltitudeHealth](../../lib/features/telemetry/presentation/providers/altitude_health_provider.dart) on top of `aglProvider` (`terrainElevation`, `AltitudeSource`, 5 s terrain grace) |
+| Offline maps | `offlineMapsProvider.hasError` |

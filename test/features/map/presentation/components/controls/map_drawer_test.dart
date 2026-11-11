@@ -13,6 +13,7 @@ import 'package:stork/features/map/presentation/components/controls/map_controls
 import 'package:stork/features/map/presentation/components/controls/map_drawer.dart';
 import 'package:stork/features/map/presentation/components/controls/map_widget_wrapper.dart';
 import 'package:stork/features/map/presentation/pages/map_page.dart';
+import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
@@ -39,6 +40,11 @@ const _gateway = CannelloniDevice(
   ip: '192.0.2.1',
   port: 47998,
 );
+
+class _MapAlerts extends MapAlerts {
+  @override
+  List<MapAlert> build() => const [];
+}
 
 class _Settings extends AppSettingsNotifier {
   _Settings(this.widgetPositions);
@@ -165,6 +171,7 @@ Future<ProviderContainer> _pumpDrawer(
       if (useMapPage) ...[
         mapStyleProvider.overrideWith((ref) => throw StateError('Test map')),
         mapCameraProvider.overrideWith(_MapCamera.new),
+        mapAlertsProvider.overrideWith(_MapAlerts.new),
         telemetryProvider.overrideWith(_Telemetry.new),
         activeCollisionAlertProvider.overrideWith((ref) => null),
         aglProvider.overrideWith(

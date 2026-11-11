@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
@@ -8,6 +10,24 @@ class MockHttpClient extends Mock implements http.Client {}
 void main() {
   setUpAll(() {
     registerFallbackValue(Uri());
+  });
+
+  test('a failed OGN connection only reports disconnection', () async {
+    final events = <String>[];
+    final connection = OgnInboundConnection(
+      onLineReceived: (_) {},
+      onConnected: () => events.add('connected'),
+      onDisconnected: () => events.add('disconnected'),
+    );
+
+    await IOOverrides.runZoned(
+      connection.connect,
+      socketConnect: (_, _, {sourceAddress, sourcePort = 0, timeout}) async {
+        throw const SocketException('Connection refused');
+      },
+    );
+
+    expect(events, ['disconnected']);
   });
 
   group('OgnAprsService Tests', () {

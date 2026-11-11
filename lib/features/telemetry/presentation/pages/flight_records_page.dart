@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../core/services/export/gpx_export_service.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../map/presentation/components/controls/map_alert_indicator.dart';
 import '../../domain/models/flight.dart';
 import '../../domain/models/flight_statistics.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -460,6 +461,24 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                                       _FlightStatisticsWidget(
                                         stats: flight.statistics!,
                                       ),
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: TextButton.icon(
+                                        icon: const Icon(Icons.history),
+                                        label: Text(l10n.mapAlertHistoryTitle),
+                                        onPressed: () =>
+                                            showRecordedFlightAlerts(
+                                              context,
+                                              ref
+                                                  .read(
+                                                    blackBoxRepositoryProvider,
+                                                  )
+                                                  .getAlertRecordsForFlight(
+                                                    flight.uuid,
+                                                  ),
+                                            ),
+                                      ),
+                                    ),
                                     const SizedBox(height: 12),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,

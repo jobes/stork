@@ -39,7 +39,7 @@ body:
         - Telemetry (DroneCAN)
         - Traffic / CAS
         - Flight logging
-        - Aeronautical data (AUP, NOTAM, OpenAIP)
+        - Aeronautical data (AUP, OpenAIP)
         - Settings / UI
         - Documentation
         - Other

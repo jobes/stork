@@ -23,9 +23,9 @@ Highlights:
 - Collision Avoidance System (CAS) with kinematic prediction.
 - Black box flight logging with SQLite persistence and GPX export.
 - Active airspaces (AUP/UUP) from Slovak LzPS and Czech ŘLP AUP portals.
-- NOTAM alerts from the FAA API.
 - OpenAIP aeronautical metadata synchronization.
 - Pilot & aircraft management with JSON persistence and PIN security.
 - Altitude resolution & terrain elevation with Auto-QNH calibration.
+- Map system status indicator: a single prioritized, pulsing alert for GPS, telemetry-link, traffic-source, network, airspace-data, terrain and offline-map problems.
 - Customizable draggable/resizable overlay widgets.
 - English and Slovak localization.

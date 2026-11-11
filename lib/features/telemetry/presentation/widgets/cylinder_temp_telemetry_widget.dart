@@ -5,6 +5,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/domain/models/temperature_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../domain/models/telemetry_instrument.dart';
+import '../providers/instrument_status_provider.dart';
 import '../providers/telemetry_provider.dart';
 import 'telemetry_card.dart';
 import 'map_telemetry_palette.dart';
@@ -12,20 +14,6 @@ import 'segmented_gauge_painter.dart';
 
 class CylinderTempTelemetryWidget extends ConsumerWidget {
   const CylinderTempTelemetryWidget({super.key});
-
-  int _stateSeverity(ThresholdState state) {
-    switch (state) {
-      case ThresholdState.minError:
-      case ThresholdState.maxError:
-        return 2;
-      case ThresholdState.minWarning:
-      case ThresholdState.maxWarning:
-        return 1;
-      case ThresholdState.inactive:
-      case ThresholdState.operational:
-        return 0;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,15 +32,9 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
     final tempUnit = settings?.temperatureUnit ?? TemperatureUnit.celsius;
 
     // CHT thresholds loaded from settings
-    final thresholds =
-        settings?.chtThresholds ??
-        const RangeThresholds.raw(
-          inactiveMax: 323.15, // 50 °C
-          minError: 333.15, // 60 °C
-          minWarning: 348.15, // 75 °C
-          maxWarning: 403.15, // 130 °C
-          maxError: 423.15, // 150 °C
-        );
+    final thresholds = TelemetryInstrument.cylinderTemperature.thresholds(
+      settings,
+    );
 
     final double maxVisualK = settings?.chtMaxRange ?? 433.15; // 160 °C
     final double minVisualK = thresholds.inactiveMax ?? 323.15; // 50 °C
@@ -66,19 +48,11 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
-    // Determine the worst state among all cylinders
-    ThresholdState worstState = ThresholdState.inactive;
-    int worstSeverity = -1;
-    for (final temp in chts) {
-      final state = temp != null
-          ? thresholds.evaluate(temp)
-          : ThresholdState.maxError;
-      final sev = _stateSeverity(state);
-      if (sev > worstSeverity) {
-        worstSeverity = sev;
-        worstState = state;
-      }
-    }
+    final worstState = ref.watch(
+      instrumentStatusProvider(
+        TelemetryInstrument.cylinderTemperature,
+      ).select((status) => status.cardState),
+    );
 
     final palette = MapTelemetryPalette.of(context);
     final isDark = palette.isDark;

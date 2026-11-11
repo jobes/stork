@@ -1,5 +1,6 @@
 import '../../../../core/services/database/black_box_database.dart';
 import '../../domain/models/flight.dart';
+import '../../domain/models/flight_alert_record.dart';
 import '../../domain/models/telemetry_entry.dart';
 import '../../domain/models/time_based_stats.dart';
 import '../../domain/repositories/black_box_repository.dart';
@@ -21,6 +22,14 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
   @override
   Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) =>
       _database.insertTelemetryEntries(entries);
+
+  @override
+  Future<void> saveAlertRecords(List<FlightAlertRecord> records) =>
+      _database.saveAlertRecords(records);
+
+  @override
+  Future<List<FlightAlertRecord>> getAlertRecordsForFlight(String flightUuid) =>
+      _database.getAlertRecordsForFlight(flightUuid);
 
   @override
   Future<List<Flight>> getFlights() => _database.getFlights();
@@ -95,7 +104,11 @@ class BlackBoxRepositoryImpl implements BlackBoxRepository {
     final unfinishedFlights = await _database.getUnfinishedFlights();
     for (final flight in unfinishedFlights) {
       final lastEntry = await _database.getLastTelemetryForFlight(flight.uuid);
-      final endTime = lastEntry?.timestamp ?? flight.startTime;
+      var endTime = lastEntry?.timestamp ?? flight.startTime;
+      for (final alert in await getAlertRecordsForFlight(flight.uuid)) {
+        final lastObserved = alert.endedAt ?? alert.startedAt;
+        if (lastObserved.isAfter(endTime)) endTime = lastObserved;
+      }
       await calculateAndSaveFlightStatistics(flight.uuid);
       await _database.updateFlightEndTime(flight.uuid, endTime);
     }

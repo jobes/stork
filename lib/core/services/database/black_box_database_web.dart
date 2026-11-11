@@ -1,4 +1,5 @@
 import '../../../features/telemetry/domain/models/flight.dart';
+import '../../../features/telemetry/domain/models/flight_alert_record.dart';
 import '../../../features/telemetry/domain/models/flight_statistics.dart';
 import '../../../features/telemetry/domain/models/telemetry_entry.dart';
 import '../../../features/telemetry/domain/models/time_based_stats.dart';
@@ -36,6 +37,18 @@ class WebBlackBoxDatabase implements BlackBoxDatabase {
 
   @override
   Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
+    throw UnsupportedError('SQLite is not supported on web.');
+  }
+
+  @override
+  Future<void> saveAlertRecords(List<FlightAlertRecord> records) async {
+    throw UnsupportedError('SQLite is not supported on web.');
+  }
+
+  @override
+  Future<List<FlightAlertRecord>> getAlertRecordsForFlight(
+    String flightUuid,
+  ) async {
     throw UnsupportedError('SQLite is not supported on web.');
   }
 

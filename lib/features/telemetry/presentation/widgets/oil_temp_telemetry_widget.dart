@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/domain/models/temperature_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../domain/models/telemetry_instrument.dart';
+import '../providers/instrument_status_provider.dart';
 import '../providers/telemetry_provider.dart';
 import 'vertical_gauge_telemetry_widget.dart';
 
@@ -26,20 +27,14 @@ class OilTempTelemetryWidget extends ConsumerWidget {
     final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
 
     final tempUnit = settings?.temperatureUnit ?? TemperatureUnit.celsius;
-    final thresholds =
-        settings?.oilTempThresholds ??
-        const RangeThresholds.raw(
-          inactiveMax: 303.15,
-          minError: 323.15,
-          minWarning: 333.15,
-          maxWarning: 383.15,
-          maxError: 403.15,
-        );
+    final thresholds = TelemetryInstrument.oilTemperature.thresholds(settings);
 
     final double? rawTemp = oilTemperature;
-    final ThresholdState tempState = rawTemp != null
-        ? thresholds.evaluate(rawTemp)
-        : ThresholdState.maxError;
+    final tempState = ref.watch(
+      instrumentStatusProvider(
+        TelemetryInstrument.oilTemperature,
+      ).select((status) => status.cardState),
+    );
 
     final String valueStr = rawTemp != null
         ? tempUnit.convertFromKelvin(rawTemp).toStringAsFixed(0)

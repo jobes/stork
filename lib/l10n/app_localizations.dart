@@ -2000,48 +2000,6 @@ abstract class AppLocalizations {
   /// **'ETA'**
   String get etaLabel;
 
-  /// No description provided for @notamsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'NOTAMs'**
-  String get notamsTitle;
-
-  /// No description provided for @notamDetails.
-  ///
-  /// In en, this message translates to:
-  /// **'NOTAM Details'**
-  String get notamDetails;
-
-  /// No description provided for @notamStart.
-  ///
-  /// In en, this message translates to:
-  /// **'Start Time'**
-  String get notamStart;
-
-  /// No description provided for @notamEnd.
-  ///
-  /// In en, this message translates to:
-  /// **'End Time'**
-  String get notamEnd;
-
-  /// No description provided for @notamFir.
-  ///
-  /// In en, this message translates to:
-  /// **'FIR'**
-  String get notamFir;
-
-  /// No description provided for @notamLimits.
-  ///
-  /// In en, this message translates to:
-  /// **'Vertical Limits'**
-  String get notamLimits;
-
-  /// No description provided for @hideNotam.
-  ///
-  /// In en, this message translates to:
-  /// **'Hide'**
-  String get hideNotam;
-
   /// No description provided for @flightRecords.
   ///
   /// In en, this message translates to:
@@ -4841,6 +4799,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search again'**
   String get menuFindGateways;
+
+  /// No description provided for @mapAlertStatusTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'System status'**
+  String get mapAlertStatusTooltip;
+
+  /// No description provided for @mapAlertSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Active since {time}'**
+  String mapAlertSince(String time);
+
+  /// No description provided for @mapAlertAllGoodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System status'**
+  String get mapAlertAllGoodTitle;
+
+  /// No description provided for @mapAlertAllGoodBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All monitored systems are working normally.'**
+  String get mapAlertAllGoodBody;
+
+  /// No description provided for @mapAlertMapStyleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Map could not load'**
+  String get mapAlertMapStyleTitle;
+
+  /// No description provided for @mapAlertMapStyleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The map failed to load. Try closing and reopening the map.'**
+  String get mapAlertMapStyleBody;
+
+  /// No description provided for @mapAlertGpsPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission needed'**
+  String get mapAlertGpsPermissionTitle;
+
+  /// No description provided for @mapAlertGpsPermissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork is not allowed to use your location. Allow location access in your device settings.'**
+  String get mapAlertGpsPermissionBody;
+
+  /// No description provided for @mapAlertLocationServicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location services are off'**
+  String get mapAlertLocationServicesTitle;
+
+  /// No description provided for @mapAlertLocationServicesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location services on your device so Stork can show your position.'**
+  String get mapAlertLocationServicesBody;
+
+  /// No description provided for @mapAlertGpsStreamTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS stopped responding'**
+  String get mapAlertGpsStreamTitle;
+
+  /// No description provided for @mapAlertGpsStreamBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your device stopped sending position updates. Stork will try to restore them automatically.'**
+  String get mapAlertGpsStreamBody;
+
+  /// No description provided for @mapAlertGpsLostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS signal lost'**
+  String get mapAlertGpsLostTitle;
+
+  /// No description provided for @mapAlertGpsLostBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The aircraft position on the map may be out of date. Keep navigating visually and try to restore the GPS signal.'**
+  String get mapAlertGpsLostBody;
+
+  /// No description provided for @mapAlertGpsNoFixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for GPS'**
+  String get mapAlertGpsNoFixTitle;
+
+  /// No description provided for @mapAlertGpsNoFixBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork does not have a GPS position yet. Make sure you have a clear view of the sky and that GPS is enabled.'**
+  String get mapAlertGpsNoFixBody;
+
+  /// No description provided for @mapAlertDroneCanGpsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Using backup GPS'**
+  String get mapAlertDroneCanGpsTitle;
+
+  /// No description provided for @mapAlertDroneCanGpsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The aircraft GPS stopped sending data. Stork switched to the device GPS, which may be less accurate.'**
+  String get mapAlertDroneCanGpsBody;
+
+  /// No description provided for @mapAlertTelemetryLinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft connection lost'**
+  String get mapAlertTelemetryLinkTitle;
+
+  /// No description provided for @mapAlertTelemetryLinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork has no connection to the aircraft telemetry. Speed, altitude and engine values may be out of date.'**
+  String get mapAlertTelemetryLinkBody;
+
+  /// No description provided for @mapAlertTelemetryStaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry is not updating'**
+  String get mapAlertTelemetryStaleTitle;
+
+  /// No description provided for @mapAlertTelemetryStaleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection is up, but no new data is arriving. Values on the screen may be frozen.'**
+  String get mapAlertTelemetryStaleBody;
+
+  /// No description provided for @mapAlertAltitudeUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude is not available'**
+  String get mapAlertAltitudeUnavailableTitle;
+
+  /// No description provided for @mapAlertAltitudeUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork has no altitude reading. Terrain and collision warnings may be limited.'**
+  String get mapAlertAltitudeUnavailableBody;
+
+  /// No description provided for @mapAlertTrafficOfflineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic data unavailable'**
+  String get mapAlertTrafficOfflineTitle;
+
+  /// No description provided for @mapAlertTrafficOfflineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork is not receiving nearby traffic, so collision warnings are not active. Check your internet connection or receiver.'**
+  String get mapAlertTrafficOfflineBody;
+
+  /// No description provided for @mapAlertInternetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection'**
+  String get mapAlertInternetTitle;
+
+  /// No description provided for @mapAlertInternetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Map details and airspace updates may not refresh.'**
+  String get mapAlertInternetBody;
+
+  /// No description provided for @mapAlertAirspaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Airspace data unavailable'**
+  String get mapAlertAirspaceTitle;
+
+  /// No description provided for @mapAlertAirspaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Current airspace activity could not be downloaded. Active airspace highlights may be missing.'**
+  String get mapAlertAirspaceBody;
+
+  /// No description provided for @mapAlertTerrainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrain data unavailable'**
+  String get mapAlertTerrainTitle;
+
+  /// No description provided for @mapAlertTerrainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork has no terrain elevation. Height above ground and terrain warnings may not work.'**
+  String get mapAlertTerrainBody;
+
+  /// No description provided for @mapAlertOfflineMapsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline map not ready'**
+  String get mapAlertOfflineMapsTitle;
+
+  /// No description provided for @mapAlertOfflineMapsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The offline map could not be downloaded. The map may not be available without internet.'**
+  String get mapAlertOfflineMapsBody;
+
+  /// No description provided for @mapAlertAltitudeSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude source changed'**
+  String get mapAlertAltitudeSourceTitle;
+
+  /// No description provided for @mapAlertAltitudeSourceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The altitude source changed. The value may differ slightly from before.'**
+  String get mapAlertAltitudeSourceBody;
+
+  /// No description provided for @mapAlertCollisionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Collision warning'**
+  String get mapAlertCollisionTitle;
+
+  /// No description provided for @mapAlertCollisionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork detected a potential conflict with nearby traffic. See the map banner for details.'**
+  String get mapAlertCollisionBody;
+
+  /// No description provided for @mapAlertEngineOverheat.
+  ///
+  /// In en, this message translates to:
+  /// **'Engine overheating · {instrument}'**
+  String mapAlertEngineOverheat(String instrument);
+
+  /// No description provided for @mapAlertInstrumentLow.
+  ///
+  /// In en, this message translates to:
+  /// **'{instrument} · Low'**
+  String mapAlertInstrumentLow(String instrument);
+
+  /// No description provided for @mapAlertInstrumentHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'{instrument} · High'**
+  String mapAlertInstrumentHigh(String instrument);
+
+  /// No description provided for @mapAlertInstrumentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{instrument} · No data'**
+  String mapAlertInstrumentUnavailable(String instrument);
+
+  /// No description provided for @mapAlertInstrumentUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The instrument is currently receiving no reading.'**
+  String get mapAlertInstrumentUnavailableBody;
+
+  /// No description provided for @mapAlertInstrumentLowWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The reading has reached the configured lower warning limit.'**
+  String get mapAlertInstrumentLowWarningBody;
+
+  /// No description provided for @mapAlertInstrumentHighWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The reading has reached the configured upper warning limit.'**
+  String get mapAlertInstrumentHighWarningBody;
+
+  /// No description provided for @mapAlertInstrumentLowErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The reading is at or below the configured lower critical limit.'**
+  String get mapAlertInstrumentLowErrorBody;
+
+  /// No description provided for @mapAlertInstrumentHighErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The reading is at or above the configured upper critical limit.'**
+  String get mapAlertInstrumentHighErrorBody;
+
+  /// No description provided for @mapAlertInstrumentCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder {number}'**
+  String mapAlertInstrumentCylinder(int number);
+
+  /// No description provided for @mapAlertRadioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio'**
+  String get mapAlertRadioLabel;
+
+  /// No description provided for @mapAlertRadioFault.
+  ///
+  /// In en, this message translates to:
+  /// **'Radio fault'**
+  String get mapAlertRadioFault;
+
+  /// No description provided for @mapAlertRadioFaultBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The radio is reporting a hardware fault.'**
+  String get mapAlertRadioFaultBody;
+
+  /// No description provided for @mapAlertActiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 active alert} other{{count} active alerts}}'**
+  String mapAlertActiveCount(int count);
+
+  /// No description provided for @mapAlertMeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured {value}'**
+  String mapAlertMeasured(String value);
+
+  /// No description provided for @mapAlertCriticalLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical limit {value}'**
+  String mapAlertCriticalLimit(String value);
+
+  /// No description provided for @mapAlertWarningLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning limit {value}'**
+  String mapAlertWarningLimit(String value);
+
+  /// No description provided for @mapAlertHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert history'**
+  String get mapAlertHistoryTitle;
+
+  /// No description provided for @mapAlertHistoryPeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Most extreme reading {value}'**
+  String mapAlertHistoryPeak(String value);
+
+  /// No description provided for @mapAlertHistoryTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} – {end} · Duration {duration}'**
+  String mapAlertHistoryTiming(String start, String end, String duration);
+
+  /// No description provided for @mapAlertTemperatureSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature steady over 30 s'**
+  String get mapAlertTemperatureSteady;
+
+  /// No description provided for @mapAlertTemperatureRising.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature rising · +{amount} in 30 s'**
+  String mapAlertTemperatureRising(String amount);
+
+  /// No description provided for @mapAlertTemperatureFalling.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature falling · −{amount} in 30 s'**
+  String mapAlertTemperatureFalling(String amount);
+
+  /// No description provided for @flightNoRecordedAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts recorded for this flight.'**
+  String get flightNoRecordedAlerts;
+
+  /// No description provided for @flightAlertNoRecordedEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} · End not recorded'**
+  String flightAlertNoRecordedEnd(String start);
 }
 
 class _AppLocalizationsDelegate
