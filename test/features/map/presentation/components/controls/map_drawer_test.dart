@@ -26,6 +26,7 @@ import 'package:stork/features/settings/domain/models/cannelloni_device.dart';
 import 'package:stork/features/settings/domain/models/pilot.dart';
 import 'package:stork/features/settings/domain/models/widget_position.dart';
 import 'package:stork/features/settings/presentation/pages/settings_page.dart';
+import 'package:stork/features/settings/presentation/pages/widget_settings_page.dart';
 import 'package:stork/features/settings/presentation/providers/aircraft_provider.dart';
 import 'package:stork/features/settings/presentation/providers/pilot_provider.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
@@ -161,7 +162,16 @@ Future<ProviderContainer> _pumpDrawer(
         path: '/',
         builder: (_, _) => useMapPage ? const MapPage() : const _MapStub(),
       ),
-      GoRoute(path: '/settings', builder: (_, _) => const SettingsPage()),
+      GoRoute(
+        path: '/settings',
+        builder: (_, _) => const SettingsPage(),
+        routes: [
+          GoRoute(
+            path: 'widgets',
+            builder: (_, _) => const WidgetSettingsPage(),
+          ),
+        ],
+      ),
     ],
   );
   final container = ProviderContainer(

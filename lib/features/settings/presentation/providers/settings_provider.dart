@@ -58,8 +58,19 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   @override
   FutureOr<AppSettings> build() async {
-    final repository = await ref.watch(settingsRepositoryProvider.future);
-    final settings = await repository.getSettings();
+    final AppSettings settings;
+    try {
+      final repository = await ref.watch(settingsRepositoryProvider.future);
+      settings = await repository.getSettings();
+    } catch (error, stackTrace) {
+      developer.log(
+        'Failed to load settings.',
+        name: 'AppSettingsNotifier',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
 
     // Listen to discovered devices for auto-selection
     ref.listen(discoveredDevicesProvider, (previous, next) {

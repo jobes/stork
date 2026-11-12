@@ -48,7 +48,7 @@ class WidgetSettingsPage extends ConsumerWidget {
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text(error.toString())),
+        error: (_, _) => Center(child: Text(l10n.errorLoadingSettings)),
       ),
     );
   }
