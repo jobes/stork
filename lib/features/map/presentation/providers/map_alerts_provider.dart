@@ -21,6 +21,7 @@ import '../../../telemetry/domain/models/telemetry_instrument.dart';
 import '../models/map_alert.dart';
 import 'airspace_data_status_provider.dart';
 import 'map_alert_history_provider.dart';
+import 'map_radar.dart';
 
 export '../models/map_alert.dart';
 
@@ -63,6 +64,17 @@ class MapAlerts extends _$MapAlerts {
 
   @override
   List<MapAlert> build() {
+    final radar = ref.watch(mapRadarProvider);
+    var radarUnavailable = radar.value.unavailable;
+    void onRadarChanged() {
+      final unavailable = radar.value.unavailable;
+      if (unavailable == radarUnavailable) return;
+      radarUnavailable = unavailable;
+      _scheduleRecompute();
+    }
+
+    radar.addListener(onRadarChanged);
+    ref.onDispose(() => radar.removeListener(onRadarChanged));
     ref.listen(gpsHealthProvider, (_, _) => _scheduleRecompute());
     ref.listen(telemetryLinkHealthProvider, (_, _) => _scheduleRecompute());
     ref.listen(trafficSourceHealthProvider, (_, _) => _scheduleRecompute());
@@ -122,6 +134,8 @@ class MapAlerts extends _$MapAlerts {
       if (ref.read(offlineMapsProvider).hasError) MapAlertKind.offlineMapsError,
       if (ref.read(airspaceDataStatusProvider).hasError)
         MapAlertKind.airspaceDataUnavailable,
+      if (ref.read(mapRadarProvider).value.unavailable)
+        MapAlertKind.radarUnavailable,
       if (_isInternetUnavailable(now)) MapAlertKind.internetUnavailable,
       ..._gpsKinds(ref.read(gpsHealthProvider)),
       ..._linkKinds(ref.read(telemetryLinkHealthProvider)),

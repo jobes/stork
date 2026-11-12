@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
@@ -28,6 +29,7 @@ import '../../../telemetry/presentation/widgets/vario_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/collision_warning_banner.dart';
 import '../components/controls/map_widget_wrapper.dart';
 import '../providers/map_camera_provider.dart';
+import '../providers/map_radar.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import '../components/controls/map_features_bottom_sheet.dart';
@@ -42,6 +44,10 @@ class MapPage extends ConsumerStatefulWidget {
 
 class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   bool _isDrawerOpen = false;
+  late final _radar = ref.read(mapRadarProvider);
+  Timer? _radarRefresh;
+  bool _appInForeground = true;
+  bool _mapIsCurrent = false;
   final _mapStackKey = GlobalKey();
   final _compassKey = GlobalKey();
   final _menuButtonKey = GlobalKey();
@@ -74,6 +80,10 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _radarRefresh = Timer.periodic(
+      MapRadar.refreshInterval,
+      (_) => _refreshRadarIfVisible(),
+    );
     // Enable immersive mode on the map page
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
@@ -86,6 +96,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _radarRefresh?.cancel();
     // Restore normal system UI mode when leaving the map page
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
@@ -93,8 +104,18 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+    _appInForeground = state == AppLifecycleState.resumed;
+    if (_appInForeground) {
+      _refreshRadarIfVisible();
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      _radar.interruptPlayback();
+    }
+  }
+
+  void _refreshRadarIfVisible() {
+    if (mounted && _appInForeground && _mapIsCurrent) {
+      unawaited(_radar.refresh());
     }
   }
 
@@ -112,6 +133,19 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final isCurrent = ModalRoute.isCurrentOf(context) ?? true;
+    ref.watch(mapRadarProvider);
+    if (isCurrent != _mapIsCurrent) {
+      _mapIsCurrent = isCurrent;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _mapIsCurrent != isCurrent) return;
+        if (isCurrent) {
+          _refreshRadarIfVisible();
+        } else {
+          _radar.interruptPlayback();
+        }
+      });
+    }
     final styleAsync = ref.watch(mapStyleProvider);
     ref.listen(mapStyleProvider, (_, next) {
       if (next case AsyncError(:final error, :final stackTrace)) {
@@ -195,7 +229,10 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
           });
         }
       },
-      drawer: const MapDrawer(),
+      drawer: MapDrawer(
+        radar: _radar,
+        onRadarPlayback: () => unawaited(_radar.play()),
+      ),
       drawerScrimColor: Colors.black45,
       body: AbsorbPointer(
         absorbing: _isDrawerOpen,
@@ -220,9 +257,11 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                     onUserInteraction: cameraController.handleUserInteraction,
                     onMapCreated: cameraController.attachController,
                     onStyleLoaded: (style) {
+                      _radar.attachStyle(style);
                       unawaited(cameraController.handleStyleLoaded(style));
                     },
                     onEvent: (event) {
+                      _radar.onMapEvent(event);
                       if (_isDrawerOpen) return;
                       cameraController.handleMapEvent(
                         event,
@@ -323,6 +362,48 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 onMenuPressed: () => Scaffold.of(context).openDrawer(),
                 onGpsPressed: cameraController.handleGpsToggle,
                 onFinishEditing: isEditingWidgets ? _finishEditing : null,
+              ),
+            ),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 12,
+              child: IgnorePointer(
+                child: SafeArea(
+                  top: false,
+                  child: ValueListenableBuilder(
+                    valueListenable: _radar,
+                    builder: (context, radar, _) {
+                      final time = radar.playing;
+                      if (!radar.preparing && time == null) {
+                        return const SizedBox.shrink();
+                      }
+                      final theme = Theme.of(context);
+                      return Center(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            child: Text(
+                              time == null
+                                  ? l10n.radarPreparing
+                                  : l10n.radarPlaybackTime(
+                                      DateFormat('HH:mm').format(time),
+                                    ),
+                              style: theme.textTheme.labelLarge,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
             Positioned(

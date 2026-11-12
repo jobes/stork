@@ -712,6 +712,7 @@ IconData mapAlertIcon(MapAlertKind kind) {
     MapAlertKind.internetUnavailable => Icons.wifi_off,
     MapAlertKind.airspaceDataUnavailable => Icons.layers_clear,
     MapAlertKind.terrainUnavailable => Icons.landscape_outlined,
+    MapAlertKind.radarUnavailable => Icons.thunderstorm_outlined,
     MapAlertKind.offlineMapsError => Icons.map_outlined,
     MapAlertKind.mapStyleUnavailable => Icons.map_outlined,
   };
@@ -751,6 +752,7 @@ String _alertTitle(AppLocalizations l10n, MapAlert alert) {
     MapAlertKind.offlineMapsError => l10n.mapAlertOfflineMapsTitle,
     MapAlertKind.droneCanGpsFallback => l10n.mapAlertDroneCanGpsTitle,
     MapAlertKind.altitudeSourceChanged => l10n.mapAlertAltitudeSourceTitle,
+    MapAlertKind.radarUnavailable => l10n.radarUnavailable,
     _ => _instrumentLabel(l10n, kind),
   };
 }
@@ -785,6 +787,7 @@ String _alertBody(AppLocalizations l10n, MapAlert alert) {
     MapAlertKind.offlineMapsError => l10n.mapAlertOfflineMapsBody,
     MapAlertKind.droneCanGpsFallback => l10n.mapAlertDroneCanGpsBody,
     MapAlertKind.altitudeSourceChanged => l10n.mapAlertAltitudeSourceBody,
+    MapAlertKind.radarUnavailable => l10n.mapAlertRadarBody,
     _ => l10n.mapAlertInstrumentUnavailableBody,
   };
 }

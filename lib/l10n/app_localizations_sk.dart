@@ -2505,6 +2505,32 @@ class AppLocalizationsSk extends AppLocalizations {
   String get settingsTrafficSources => 'Zdroje údajov o premávke';
 
   @override
+  String get radarPlay => 'Prehrať vývoj zrážok';
+
+  @override
+  String get radarPreparing => 'Načítava sa vývoj zrážok…';
+
+  @override
+  String radarPlaybackTime(String time) {
+    return 'Staršia snímka · $time UTC';
+  }
+
+  @override
+  String radarLatestTime(String time) {
+    return 'Najnovšia snímka · $time UTC';
+  }
+
+  @override
+  String get radarUnavailable => 'Radar zrážok je nedostupný';
+
+  @override
+  String get mapAlertRadarBody =>
+      'Radarová vrstva je skrytá, pretože sa nepodarilo načítať aktuálne údaje o zrážkach.';
+
+  @override
+  String get radarAttribution => 'Zdroj radarových dát: RainViewer';
+
+  @override
   String get menuFlightAndMap => 'Let a mapa';
 
   @override

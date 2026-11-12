@@ -15,6 +15,7 @@ import 'package:stork/features/map/presentation/components/controls/map_widget_w
 import 'package:stork/features/map/presentation/pages/map_page.dart';
 import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
+import 'package:stork/features/map/presentation/providers/map_radar.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
@@ -235,6 +236,25 @@ void main() {
     northwest: const Geographic(lat: 49, lon: 17),
     southeast: const Geographic(lat: 48, lon: 18),
   );
+
+  testWidgets('radar playback is the first action and closes the drawer', (
+    tester,
+  ) async {
+    final container = await _pumpDrawer(tester, useMapPage: true);
+
+    final playback = find.text('Play precipitation history');
+    expect(playback.hitTestable(), findsOneWidget);
+    expect(
+      tester.getTopLeft(playback).dy,
+      lessThan(tester.getTopLeft(find.text('Flight and map')).dy),
+    );
+
+    await tester.tap(playback);
+    await tester.pumpAndSettle();
+    expect(find.byType(MapDrawer), findsNothing);
+    expect(container.read(mapRadarProvider).value.unavailable, isTrue);
+    expect(find.byType(SnackBar), findsNothing);
+  });
 
   testWidgets(
     'shows the active crew, destination and offline map download date',
