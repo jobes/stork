@@ -17,6 +17,8 @@ abstract class AppSettings with _$AppSettings {
 
   const factory AppSettings({
     @Default(1.0) double mapFontSize,
+    @Default(true) bool showUtcClock,
+    @Default(60) int sunsetWarningMinutes,
     @Default(6.0) double mapDefaultZoom,
     @Default(10.0) double mapOverviewZoom,
     @Default(12.0) double mapFollowZoom,

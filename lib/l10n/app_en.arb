@@ -1182,6 +1182,7 @@
   "clearAllHiddenAircraft": "Clear all hidden",
   "settingsMapAppearance": "Map appearance",
   "settingsMapZoom": "Map zoom and tilt",
+  "settingsWidgetSettings": "Widget settings",
   "settingsWidgetLayout": "Widget layout",
   "settingsResetLayoutConfirm": "Reset the saved widget positions for the current layout? This cannot be undone.",
   "settingsConnection": "Gateway connection",
@@ -1417,6 +1418,49 @@
     "placeholders": {
       "start": {
         "type": "String"
+      }
+    }
+  },
+  "solarClockTitle": "Time and sun",
+  "clockUtc": "UTC",
+  "clockLocalTime": "Local time",
+  "clockLocalTimeWithOffset": "Local time · UTC{offset}",
+  "clockCivilDawn": "Start of civil twilight",
+  "clockCivilDawnAbbrev": "BMCT",
+  "clockSunrise": "Sunrise",
+  "clockSunset": "Sunset",
+  "clockCivilDusk": "End of civil twilight",
+  "clockCivilDuskAbbrev": "EECT",
+  "clockDayLength": "Day length: {duration}",
+  "@clockDayLength": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "clockDayLengthUnavailable": "unavailable",
+  "settingsShowUtcClock": "Show UTC clock",
+  "settingsSunsetWarningMinutes": "Sunset warning (min)",
+  "clockUntilDawn": "Until civil dawn",
+  "clockUntilDusk": "Until end of civil twilight",
+  "clockUntilTomorrowDawn": "Until civil dawn tomorrow",
+  "clockUntilTomorrowDusk": "Until end of civil twilight tomorrow",
+  "clockCountdownHoursMinutes": "{hours} h {minutes} min",
+  "@clockLocalTimeWithOffset": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "@clockCountdownHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
       }
     }
   }

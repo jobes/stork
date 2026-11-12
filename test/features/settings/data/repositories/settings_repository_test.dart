@@ -13,6 +13,24 @@ void main() {
       prefs = await SharedPreferences.getInstance();
     });
 
+    test(
+      'older settings show the clock and warn one hour before sunset',
+      () async {
+        await prefs.setString('app_settings', '{"mapFontSize": 1.2}');
+        final repository = SettingsRepository(prefs);
+        final settings = await repository.getSettings();
+        expect(settings.showUtcClock, isTrue);
+        expect(settings.sunsetWarningMinutes, 60);
+
+        await repository.saveSettings(
+          settings.copyWith(showUtcClock: false, sunsetWarningMinutes: 30),
+        );
+        final reloaded = await SettingsRepository(prefs).getSettings();
+        expect(reloaded.showUtcClock, isFalse);
+        expect(reloaded.sunsetWarningMinutes, 30);
+      },
+    );
+
     test('Loads and parses a valid AppSettings JSON correctly', () async {
       final repository = SettingsRepository(prefs);
       const originalSettings = AppSettings(

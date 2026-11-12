@@ -58,8 +58,19 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   @override
   FutureOr<AppSettings> build() async {
-    final repository = await ref.watch(settingsRepositoryProvider.future);
-    final settings = await repository.getSettings();
+    final AppSettings settings;
+    try {
+      final repository = await ref.watch(settingsRepositoryProvider.future);
+      settings = await repository.getSettings();
+    } catch (error, stackTrace) {
+      developer.log(
+        'Failed to load settings.',
+        name: 'AppSettingsNotifier',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
 
     // Listen to discovered devices for auto-selection
     ref.listen(discoveredDevicesProvider, (previous, next) {
@@ -164,6 +175,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   Future<SettingsUpdateResult> updateFontSize(double fontSize) =>
       _updateSettings((s) => s.copyWith(mapFontSize: fontSize));
+
+  Future<SettingsUpdateResult> updateShowUtcClock(bool visible) =>
+      _updateSettings((s) => s.copyWith(showUtcClock: visible));
+
+  Future<SettingsUpdateResult> updateSunsetWarningMinutes(int minutes) =>
+      _updateSettings((s) => s.copyWith(sunsetWarningMinutes: minutes));
 
   Future<SettingsUpdateResult> updateDefaultZoom(double zoom) =>
       _updateSettings((s) => s.copyWith(mapDefaultZoom: zoom));

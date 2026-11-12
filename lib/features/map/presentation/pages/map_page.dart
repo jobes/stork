@@ -28,6 +28,7 @@ import '../../../telemetry/presentation/widgets/vhf_radio_telemetry_widget.dart'
 import '../../../telemetry/presentation/widgets/vario_telemetry_widget.dart';
 import '../../../telemetry/presentation/widgets/collision_warning_banner.dart';
 import '../components/controls/map_widget_wrapper.dart';
+import '../components/controls/utc_clock_widget.dart';
 import '../providers/map_camera_provider.dart';
 import '../providers/map_radar.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
@@ -183,6 +184,9 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
       ),
     );
     final compassBarHeight = 40.0 * fontScale;
+    final showUtcClock = ref.watch(
+      appSettingsProvider.select((s) => s.value?.showUtcClock ?? true),
+    );
     final isEditingWidgets = ref.watch(
       appSettingsProvider.select((s) => s.value?.areWidgetsDraggable ?? false),
     );
@@ -338,20 +342,27 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                   150.0,
                   const VhfRadioTelemetryWidget(),
                 ),
-              if (navigationAsync.value?.isActive == true &&
-                  navigationAsync.value?.points.isNotEmpty == true)
-                MapWidgetWrapper(
-                  key: _widgetKeys.putIfAbsent(
-                    'navigation_widget',
-                    GlobalKey.new,
-                  ),
-                  dragObstacles: () => _dragObstacles('navigation_widget'),
-                  widgetId: 'navigation_widget',
-                  defaultTop: currentY + rowHeight + itemGap,
-                  defaultLeft: 16.0,
-                  child: const NavigationTelemetryWidget(),
-                ),
             ],
+            if (showUtcClock)
+              buildWidget(
+                'utc_clock_widget',
+                120.0 * fontScale,
+                const UtcClockWidget(),
+              ),
+            if ((mapViewState != MapViewState.init || isEditingWidgets) &&
+                navigationAsync.value?.isActive == true &&
+                navigationAsync.value?.points.isNotEmpty == true)
+              MapWidgetWrapper(
+                key: _widgetKeys.putIfAbsent(
+                  'navigation_widget',
+                  GlobalKey.new,
+                ),
+                dragObstacles: () => _dragObstacles('navigation_widget'),
+                widgetId: 'navigation_widget',
+                defaultTop: currentY + rowHeight + itemGap,
+                defaultLeft: 16.0,
+                child: const NavigationTelemetryWidget(),
+              ),
             Builder(
               builder: (context) => MapControls(
                 mapViewState: mapViewState,

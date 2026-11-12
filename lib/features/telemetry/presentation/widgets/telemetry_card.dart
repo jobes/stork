@@ -31,6 +31,9 @@ class TelemetryCard extends ConsumerWidget {
     this.disableAnimations = false,
   });
 
+  static Color warningColor({required bool isDark}) =>
+      isDark ? Colors.orangeAccent : Colors.orange.shade700;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider).value;
@@ -50,9 +53,7 @@ class TelemetryCard extends ConsumerWidget {
           ? Colors.redAccent.shade400
           : Colors.red.shade700;
     } else if (isWarning) {
-      defaultBorderColor = isDark
-          ? Colors.orangeAccent
-          : Colors.orange.shade700;
+      defaultBorderColor = warningColor(isDark: isDark);
     } else {
       defaultBorderColor = palette.neutralBorder;
     }

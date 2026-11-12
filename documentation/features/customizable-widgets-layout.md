@@ -10,6 +10,10 @@ To allow pilots and operators to tailor their telemetry dashboards, Stork featur
 widgets on the map. Select **Done** to lock them in place. Positions are saved
 for the [active pilot](scoped-settings.md).
 
+The map's UTC clock opens a dialog with UTC and device-local time. From the
+current GPS fix, Stork calculates sunrise, sunset and the civil twilight
+boundaries offline. The countdown shows the upcoming civil dawn or dusk.
+
 ```mermaid
 sequenceDiagram
     autonumber
