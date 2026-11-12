@@ -69,6 +69,12 @@ class _Settings extends AppSettingsNotifier {
   }
 
   @override
+  Future<SettingsUpdateResult> updateShowUtcClock(bool visible) async {
+    state = AsyncData(state.requireValue.copyWith(showUtcClock: visible));
+    return const SettingsUpdateSuccess();
+  }
+
+  @override
   Future<SettingsUpdateResult> updateWidgetPosition(
     String widgetId,
     double top,
@@ -431,6 +437,44 @@ void main() {
         .requireValue
         .widgetPositions['utc_clock_widget']!;
     expect(newPosition, Offset(saved.left, saved.top));
+
+    Future<void> toggleClockFromMenu() async {
+      tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Settings'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Map'));
+      await tester.pumpAndSettle();
+      final widgetSettings = find.widgetWithText(ListTile, 'Widget settings');
+      await tester.scrollUntilVisible(
+        widgetSettings,
+        100,
+        scrollable: find.byType(Scrollable),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(widgetSettings.hitTestable());
+      await tester.pumpAndSettle();
+
+      final toggle = find.widgetWithText(SwitchListTile, 'Show UTC clock');
+      final wasVisible = tester.widget<SwitchListTile>(toggle).value;
+      await tester.tap(toggle.hitTestable());
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Sunset warning (min)'),
+        wasVisible ? findsNothing : findsOneWidget,
+      );
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+    }
+
+    await toggleClockFromMenu();
+    expect(clock, findsNothing);
+    await toggleClockFromMenu();
+    expect(tester.getTopLeft(clock), newPosition);
   });
 
   testWidgets('finishes widget editing from the map controls', (tester) async {

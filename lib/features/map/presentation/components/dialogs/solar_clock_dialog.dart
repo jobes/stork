@@ -10,8 +10,13 @@ import '../../../domain/models/solar_times.dart';
 import '../../providers/map_clock_provider.dart';
 import 'base_details_dialog.dart';
 
-class SolarClockDialog extends ConsumerWidget {
-  const SolarClockDialog({super.key});
+Future<void> showSolarClockDialog(BuildContext context) => showDialog<void>(
+  context: context,
+  builder: (_) => const _SolarClockDialog(),
+);
+
+class _SolarClockDialog extends ConsumerWidget {
+  const _SolarClockDialog();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,6 +40,14 @@ class SolarClockDialog extends ConsumerWidget {
         now.difference(lastFix) < GpsHealth.fixStaleAfter;
     final solar = hasFix ? ref.watch(mapSolarTimesProvider) : null;
     final today = solar?.today;
+    final sunrise = today?.firstTimeOf(SolarEvent.sunrise);
+    final sunset = today?.firstTimeOf(SolarEvent.sunset);
+    final daylight =
+        sunrise != null && sunset != null && sunset.isAfter(sunrise)
+        ? (sunset.difference(sunrise).inMilliseconds /
+                  Duration.millisecondsPerMinute)
+              .round()
+        : null;
     final timeFormat = DateFormat.Hm(l10n.localeName);
     final dateFormat = DateFormat.yMMMd(l10n.localeName);
     final nextTwilight = solar == null
@@ -128,8 +141,8 @@ class SolarClockDialog extends ConsumerWidget {
                           SolarEvent.civilDusk => l10n.clockCivilDusk,
                         },
                         abbreviation: switch (event) {
-                          SolarEvent.civilDawn => 'BMCT',
-                          SolarEvent.civilDusk => 'EECT',
+                          SolarEvent.civilDawn => l10n.clockCivilDawnAbbrev,
+                          SolarEvent.civilDusk => l10n.clockCivilDuskAbbrev,
                           _ => null,
                         },
                         leading: switch (event) {
@@ -219,6 +232,18 @@ class SolarClockDialog extends ConsumerWidget {
               ),
             ],
           ],
+          const SizedBox(height: 12),
+          Text(
+            l10n.clockDayLength(
+              daylight == null
+                  ? l10n.clockDayLengthUnavailable
+                  : l10n.clockCountdownHoursMinutes(
+                      daylight ~/ 60,
+                      daylight % 60,
+                    ),
+            ),
+            style: theme.textTheme.bodyMedium,
+          ),
         ],
       ),
     );

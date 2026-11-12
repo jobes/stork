@@ -4,10 +4,43 @@ import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../settings/domain/models/app_settings.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../../telemetry/presentation/providers/gps_health_provider.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../domain/models/solar_times.dart';
 
 part 'map_clock_provider.g.dart';
+
+@riverpod
+bool mapSunsetWarning(Ref ref) {
+  final minutes = ref.watch(
+    appSettingsProvider.select(
+      (s) => (s.value ?? const AppSettings()).sunsetWarningMinutes,
+    ),
+  );
+  final lastFix = ref.watch(
+    telemetryProvider.select((state) => state.gpsLastFixAt),
+  );
+  if (lastFix == null || minutes <= 0) return false;
+
+  final solar = ref.watch(mapSolarTimesProvider);
+  final threshold = Duration(minutes: minutes);
+  return ref.watch(
+    mapClockProvider.select((now) {
+      if (now.difference(lastFix) >= GpsHealth.fixStaleAfter) return false;
+      for (final day in [solar.today, solar.tomorrow]) {
+        for (final crossing in day.crossings) {
+          if (crossing.event == SolarEvent.sunset &&
+              crossing.time.isAfter(now)) {
+            return crossing.time.difference(now) <= threshold;
+          }
+        }
+      }
+      return false;
+    }),
+  );
+}
 
 @riverpod
 class MapClock extends _$MapClock {

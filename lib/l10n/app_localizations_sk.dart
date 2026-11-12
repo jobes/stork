@@ -2480,6 +2480,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get settingsMapZoom => 'Priblíženie a náklon mapy';
 
   @override
+  String get settingsWidgetSettings => 'Nastavenie widgetov';
+
+  @override
   String get settingsWidgetLayout => 'Rozloženie widgetov';
 
   @override
@@ -2873,6 +2876,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get clockCivilDawn => 'Začiatok občianskeho svitania';
 
   @override
+  String get clockCivilDawnAbbrev => 'BMCT';
+
+  @override
   String get clockSunrise => 'Východ slnka';
 
   @override
@@ -2880,6 +2886,23 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get clockCivilDusk => 'Koniec občianskeho súmraku';
+
+  @override
+  String get clockCivilDuskAbbrev => 'EECT';
+
+  @override
+  String clockDayLength(String duration) {
+    return 'Dĺžka dňa: $duration';
+  }
+
+  @override
+  String get clockDayLengthUnavailable => 'nedostupná';
+
+  @override
+  String get settingsShowUtcClock => 'Zobraziť hodiny UTC';
+
+  @override
+  String get settingsSunsetWarningMinutes => 'Výstraha pred západom (min)';
 
   @override
   String get clockUntilDawn => 'Do začiatku občianskeho svitania';

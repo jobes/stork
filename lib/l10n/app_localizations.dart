@@ -4632,6 +4632,12 @@ abstract class AppLocalizations {
   /// **'Map zoom and tilt'**
   String get settingsMapZoom;
 
+  /// No description provided for @settingsWidgetSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Widget settings'**
+  String get settingsWidgetSettings;
+
   /// No description provided for @settingsWidgetLayout.
   ///
   /// In en, this message translates to:
@@ -5262,6 +5268,12 @@ abstract class AppLocalizations {
   /// **'Start of civil twilight'**
   String get clockCivilDawn;
 
+  /// No description provided for @clockCivilDawnAbbrev.
+  ///
+  /// In en, this message translates to:
+  /// **'BMCT'**
+  String get clockCivilDawnAbbrev;
+
   /// No description provided for @clockSunrise.
   ///
   /// In en, this message translates to:
@@ -5279,6 +5291,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'End of civil twilight'**
   String get clockCivilDusk;
+
+  /// No description provided for @clockCivilDuskAbbrev.
+  ///
+  /// In en, this message translates to:
+  /// **'EECT'**
+  String get clockCivilDuskAbbrev;
+
+  /// No description provided for @clockDayLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Day length: {duration}'**
+  String clockDayLength(String duration);
+
+  /// No description provided for @clockDayLengthUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'unavailable'**
+  String get clockDayLengthUnavailable;
+
+  /// No description provided for @settingsShowUtcClock.
+  ///
+  /// In en, this message translates to:
+  /// **'Show UTC clock'**
+  String get settingsShowUtcClock;
+
+  /// No description provided for @settingsSunsetWarningMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset warning (min)'**
+  String get settingsSunsetWarningMinutes;
 
   /// No description provided for @clockUntilDawn.
   ///

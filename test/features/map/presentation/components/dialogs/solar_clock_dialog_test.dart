@@ -62,19 +62,29 @@ void main() {
               ).copyWith(textScaler: TextScaler.linear(1.3)),
               child: child!,
             ),
-            home: const SolarClockDialog(),
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => showSolarClockDialog(context),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
           ),
         ),
       );
+      await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
       final l10n = lookupAppLocalizations(const Locale('sk'));
       expect(find.text(l10n.gpsWaiting), findsOneWidget);
       expect(find.text(l10n.clockSunrise), findsNothing);
+      expect(find.text('Dĺžka dňa: nedostupná'), findsOneWidget);
       telemetry.fix(now);
       await tester.pump();
-      expect(find.text('BMCT'), findsOneWidget);
-      expect(find.text('EECT'), findsOneWidget);
+      expect(find.text(l10n.clockCivilDawnAbbrev), findsOneWidget);
+      expect(find.text(l10n.clockCivilDuskAbbrev), findsOneWidget);
+      expect(find.text('Dĺžka dňa: 9 h 24 min'), findsOneWidget);
       expect(find.text(l10n.clockUntilDusk), findsOneWidget);
 
       now = dusk;
@@ -88,5 +98,42 @@ void main() {
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     });
+  });
+
+  testWidgets('shows unavailable day length with a fix during polar night', (
+    tester,
+  ) async {
+    final telemetry = _Telemetry();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          telemetryProvider.overrideWith(() => telemetry),
+          mapSolarTimesProvider.overrideWithValue((
+            today: const SolarTimes.empty(),
+            tomorrow: const SolarTimes.empty(),
+          )),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showSolarClockDialog(context),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    telemetry.fix(clock.now());
+    await tester.pump();
+    expect(find.text('Day length: unavailable'), findsOneWidget);
+    expect(find.text('Sunrise'), findsOneWidget);
+    expect(find.text('Waiting for GPS...'), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }

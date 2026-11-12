@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/widgets/stork_navigation_tile.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../providers/settings_provider.dart';
 import '../providers/pilot_provider.dart';
 import '../widgets/settings_widgets.dart';
 import '../widgets/stork_settings_section.dart';
+import 'widget_settings_page.dart';
 
 class MapSettingsPage extends ConsumerWidget {
   const MapSettingsPage({super.key});
@@ -144,6 +146,16 @@ class MapSettingsPage extends ConsumerWidget {
                   ? l10n.settingsWidgetLayout
                   : '${l10n.settingsWidgetLayout} · ${pilotNames[settings.pilotId]}',
               children: [
+                StorkNavigationTile(
+                  title: l10n.settingsWidgetSettings,
+                  icon: Icons.widgets_outlined,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const WidgetSettingsPage(),
+                    ),
+                  ),
+                ),
+                const Divider(indent: 16, endIndent: 16),
                 SwitchListTile(
                   title: Text(l10n.moveWidgets),
                   value: settings.areWidgetsDraggable,

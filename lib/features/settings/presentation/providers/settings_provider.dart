@@ -165,6 +165,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<SettingsUpdateResult> updateFontSize(double fontSize) =>
       _updateSettings((s) => s.copyWith(mapFontSize: fontSize));
 
+  Future<SettingsUpdateResult> updateShowUtcClock(bool visible) =>
+      _updateSettings((s) => s.copyWith(showUtcClock: visible));
+
+  Future<SettingsUpdateResult> updateSunsetWarningMinutes(int minutes) =>
+      _updateSettings((s) => s.copyWith(sunsetWarningMinutes: minutes));
+
   Future<SettingsUpdateResult> updateDefaultZoom(double zoom) =>
       _updateSettings((s) => s.copyWith(mapDefaultZoom: zoom));
 

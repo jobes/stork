@@ -184,6 +184,9 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
       ),
     );
     final compassBarHeight = 40.0 * fontScale;
+    final showUtcClock = ref.watch(
+      appSettingsProvider.select((s) => s.value?.showUtcClock ?? true),
+    );
     final isEditingWidgets = ref.watch(
       appSettingsProvider.select((s) => s.value?.areWidgetsDraggable ?? false),
     );
@@ -340,11 +343,12 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                   const VhfRadioTelemetryWidget(),
                 ),
             ],
-            buildWidget(
-              'utc_clock_widget',
-              120.0 * fontScale,
-              const UtcClockWidget(),
-            ),
+            if (showUtcClock)
+              buildWidget(
+                'utc_clock_widget',
+                120.0 * fontScale,
+                const UtcClockWidget(),
+              ),
             if ((mapViewState != MapViewState.init || isEditingWidgets) &&
                 navigationAsync.value?.isActive == true &&
                 navigationAsync.value?.points.isNotEmpty == true)

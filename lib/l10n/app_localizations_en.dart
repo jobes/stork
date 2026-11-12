@@ -2467,6 +2467,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMapZoom => 'Map zoom and tilt';
 
   @override
+  String get settingsWidgetSettings => 'Widget settings';
+
+  @override
   String get settingsWidgetLayout => 'Widget layout';
 
   @override
@@ -2860,6 +2863,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clockCivilDawn => 'Start of civil twilight';
 
   @override
+  String get clockCivilDawnAbbrev => 'BMCT';
+
+  @override
   String get clockSunrise => 'Sunrise';
 
   @override
@@ -2867,6 +2873,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clockCivilDusk => 'End of civil twilight';
+
+  @override
+  String get clockCivilDuskAbbrev => 'EECT';
+
+  @override
+  String clockDayLength(String duration) {
+    return 'Day length: $duration';
+  }
+
+  @override
+  String get clockDayLengthUnavailable => 'unavailable';
+
+  @override
+  String get settingsShowUtcClock => 'Show UTC clock';
+
+  @override
+  String get settingsSunsetWarningMinutes => 'Sunset warning (min)';
 
   @override
   String get clockUntilDawn => 'Until civil dawn';

@@ -29,6 +29,7 @@ import 'package:stork/features/settings/domain/models/range_thresholds.dart';
 import 'package:stork/features/settings/domain/models/widget_position.dart';
 import 'package:stork/features/settings/presentation/pages/settings_page.dart';
 import 'package:stork/features/settings/presentation/pages/map_settings_page.dart';
+import 'package:stork/features/settings/presentation/pages/widget_settings_page.dart';
 import 'package:stork/features/settings/presentation/pages/flight_settings_page.dart';
 import 'package:stork/features/settings/presentation/pages/traffic_settings_page.dart';
 import 'package:stork/features/settings/presentation/pages/gateway_settings_page.dart';
@@ -629,6 +630,7 @@ void main() {
       for (final entry in <String, Widget>{
         'settings': const SettingsPage(),
         'map': const MapSettingsPage(),
+        'widget_settings': const WidgetSettingsPage(),
         'flight': const FlightSettingsPage(),
         'traffic': const TrafficSettingsPage(),
         'gateway': const GatewaySettingsPage(),

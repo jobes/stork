@@ -32,14 +32,10 @@ class UtcClockWidget extends ConsumerWidget {
     );
     final l10n = AppLocalizations.of(context)!;
     final palette = MapTelemetryPalette.of(context);
+    final warnBeforeSunset = ref.watch(mapSunsetWarningProvider);
 
     return TelemetryCard(
-      onTap: () => unawaited(
-        showDialog<void>(
-          context: context,
-          builder: (context) => const SolarClockDialog(),
-        ),
-      ),
+      onTap: () => unawaited(showSolarClockDialog(context)),
       padding: EdgeInsets.symmetric(
         horizontal: 10 * fontScale,
         vertical: 8 * fontScale,
@@ -55,7 +51,9 @@ class UtcClockWidget extends ConsumerWidget {
           ],
         ),
         style: TextStyle(
-          color: palette.value,
+          color: warnBeforeSunset
+              ? TelemetryCard.warningColor(isDark: palette.isDark)
+              : palette.value,
           fontSize: 24 * fontScale,
           fontWeight: FontWeight.bold,
           fontFamily: 'monospace',
