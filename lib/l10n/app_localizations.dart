@@ -5231,6 +5231,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{start} · End not recorded'**
   String flightAlertNoRecordedEnd(String start);
+
+  /// No description provided for @solarClockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time and sun'**
+  String get solarClockTitle;
+
+  /// No description provided for @clockUtc.
+  ///
+  /// In en, this message translates to:
+  /// **'UTC'**
+  String get clockUtc;
+
+  /// No description provided for @clockLocalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Local time'**
+  String get clockLocalTime;
+
+  /// No description provided for @clockLocalTimeWithOffset.
+  ///
+  /// In en, this message translates to:
+  /// **'Local time · UTC{offset}'**
+  String clockLocalTimeWithOffset(String offset);
+
+  /// No description provided for @clockCivilDawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Start of civil twilight'**
+  String get clockCivilDawn;
+
+  /// No description provided for @clockSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunrise'**
+  String get clockSunrise;
+
+  /// No description provided for @clockSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset'**
+  String get clockSunset;
+
+  /// No description provided for @clockCivilDusk.
+  ///
+  /// In en, this message translates to:
+  /// **'End of civil twilight'**
+  String get clockCivilDusk;
+
+  /// No description provided for @clockUntilDawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Until civil dawn'**
+  String get clockUntilDawn;
+
+  /// No description provided for @clockUntilDusk.
+  ///
+  /// In en, this message translates to:
+  /// **'Until end of civil twilight'**
+  String get clockUntilDusk;
+
+  /// No description provided for @clockUntilTomorrowDawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Until civil dawn tomorrow'**
+  String get clockUntilTomorrowDawn;
+
+  /// No description provided for @clockUntilTomorrowDusk.
+  ///
+  /// In en, this message translates to:
+  /// **'Until end of civil twilight tomorrow'**
+  String get clockUntilTomorrowDusk;
+
+  /// No description provided for @clockCountdownHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String clockCountdownHoursMinutes(int hours, int minutes);
 }
 
 class _AppLocalizationsDelegate

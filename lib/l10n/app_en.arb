@@ -1419,5 +1419,35 @@
         "type": "String"
       }
     }
+  },
+  "solarClockTitle": "Time and sun",
+  "clockUtc": "UTC",
+  "clockLocalTime": "Local time",
+  "clockLocalTimeWithOffset": "Local time · UTC{offset}",
+  "clockCivilDawn": "Start of civil twilight",
+  "clockSunrise": "Sunrise",
+  "clockSunset": "Sunset",
+  "clockCivilDusk": "End of civil twilight",
+  "clockUntilDawn": "Until civil dawn",
+  "clockUntilDusk": "Until end of civil twilight",
+  "clockUntilTomorrowDawn": "Until civil dawn tomorrow",
+  "clockUntilTomorrowDusk": "Until end of civil twilight tomorrow",
+  "clockCountdownHoursMinutes": "{hours} h {minutes} min",
+  "@clockLocalTimeWithOffset": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "@clockCountdownHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
   }
 }

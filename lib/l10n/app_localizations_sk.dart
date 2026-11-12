@@ -2854,4 +2854,48 @@ class AppLocalizationsSk extends AppLocalizations {
   String flightAlertNoRecordedEnd(String start) {
     return '$start · Koniec nezaznamenaný';
   }
+
+  @override
+  String get solarClockTitle => 'Čas a slnko';
+
+  @override
+  String get clockUtc => 'UTC';
+
+  @override
+  String get clockLocalTime => 'Miestny čas';
+
+  @override
+  String clockLocalTimeWithOffset(String offset) {
+    return 'Miestny čas · UTC$offset';
+  }
+
+  @override
+  String get clockCivilDawn => 'Začiatok občianskeho svitania';
+
+  @override
+  String get clockSunrise => 'Východ slnka';
+
+  @override
+  String get clockSunset => 'Západ slnka';
+
+  @override
+  String get clockCivilDusk => 'Koniec občianskeho súmraku';
+
+  @override
+  String get clockUntilDawn => 'Do začiatku občianskeho svitania';
+
+  @override
+  String get clockUntilDusk => 'Do konca občianskeho súmraku';
+
+  @override
+  String get clockUntilTomorrowDawn =>
+      'Do začiatku občianskeho svitania zajtra';
+
+  @override
+  String get clockUntilTomorrowDusk => 'Do konca občianskeho súmraku zajtra';
+
+  @override
+  String clockCountdownHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
 }

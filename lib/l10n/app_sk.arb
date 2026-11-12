@@ -1175,5 +1175,18 @@
   "mapAlertTemperatureRising": "Teplota stúpa · +{amount} za 30 s",
   "mapAlertTemperatureFalling": "Teplota klesá · −{amount} za 30 s",
   "flightNoRecordedAlerts": "V tomto lete nie sú zaznamenané výstrahy.",
-  "flightAlertNoRecordedEnd": "{start} · Koniec nezaznamenaný"
+  "flightAlertNoRecordedEnd": "{start} · Koniec nezaznamenaný",
+  "solarClockTitle": "Čas a slnko",
+  "clockUtc": "UTC",
+  "clockLocalTime": "Miestny čas",
+  "clockLocalTimeWithOffset": "Miestny čas · UTC{offset}",
+  "clockCivilDawn": "Začiatok občianskeho svitania",
+  "clockSunrise": "Východ slnka",
+  "clockSunset": "Západ slnka",
+  "clockCivilDusk": "Koniec občianskeho súmraku",
+  "clockUntilDawn": "Do začiatku občianskeho svitania",
+  "clockUntilDusk": "Do konca občianskeho súmraku",
+  "clockUntilTomorrowDawn": "Do začiatku občianskeho svitania zajtra",
+  "clockUntilTomorrowDusk": "Do konca občianskeho súmraku zajtra",
+  "clockCountdownHoursMinutes": "{hours} h {minutes} min"
 }

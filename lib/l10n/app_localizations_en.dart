@@ -2841,4 +2841,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String flightAlertNoRecordedEnd(String start) {
     return '$start · End not recorded';
   }
+
+  @override
+  String get solarClockTitle => 'Time and sun';
+
+  @override
+  String get clockUtc => 'UTC';
+
+  @override
+  String get clockLocalTime => 'Local time';
+
+  @override
+  String clockLocalTimeWithOffset(String offset) {
+    return 'Local time · UTC$offset';
+  }
+
+  @override
+  String get clockCivilDawn => 'Start of civil twilight';
+
+  @override
+  String get clockSunrise => 'Sunrise';
+
+  @override
+  String get clockSunset => 'Sunset';
+
+  @override
+  String get clockCivilDusk => 'End of civil twilight';
+
+  @override
+  String get clockUntilDawn => 'Until civil dawn';
+
+  @override
+  String get clockUntilDusk => 'Until end of civil twilight';
+
+  @override
+  String get clockUntilTomorrowDawn => 'Until civil dawn tomorrow';
+
+  @override
+  String get clockUntilTomorrowDusk => 'Until end of civil twilight tomorrow';
+
+  @override
+  String clockCountdownHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
 }

@@ -15,6 +15,7 @@ import 'package:stork/features/map/presentation/components/controls/map_widget_w
 import 'package:stork/features/map/presentation/pages/map_page.dart';
 import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
+import 'package:stork/features/map/presentation/providers/map_clock_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_radar.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
@@ -172,6 +173,7 @@ Future<ProviderContainer> _pumpDrawer(
       if (useMapPage) ...[
         mapStyleProvider.overrideWith((ref) => throw StateError('Test map')),
         mapCameraProvider.overrideWith(_MapCamera.new),
+        mapClockProvider.overrideWithValue(DateTime.utc(2026, 11, 12, 14, 32)),
         mapAlertsProvider.overrideWith(_MapAlerts.new),
         telemetryProvider.overrideWith(_Telemetry.new),
         activeCollisionAlertProvider.overrideWith((ref) => null),
@@ -337,6 +339,7 @@ void main() {
         'altitude_widget': WidgetPosition(top: 200, left: 400),
         'vario_widget': WidgetPosition(top: 400, left: 180),
         'flight_time_widget': WidgetPosition(top: 400, left: 400),
+        'utc_clock_widget': WidgetPosition(top: 500, left: 100),
       },
     );
     await _enableEditingInMapSettings(tester);
@@ -388,6 +391,48 @@ void main() {
     expect(saved.top, closeTo(gps.bottom, 0.01));
   });
 
+  testWidgets('UTC clock uses the default and saved map layout', (
+    tester,
+  ) async {
+    final container = await _pumpDrawer(tester, useMapPage: true);
+    tester.state<ScaffoldState>(find.byType(Scaffold)).closeDrawer();
+    await tester.pumpAndSettle();
+    Finder instrument(String id) => find.byWidgetPredicate(
+      (widget) => widget is MapWidgetWrapper && widget.widgetId == id,
+    );
+    final clock = instrument('utc_clock_widget');
+    expect(find.text('14:32 UTC', findRichText: true), findsOneWidget);
+    final wrapper = tester.widget<MapWidgetWrapper>(clock);
+    expect(wrapper.defaultLeft, 652);
+    expect(wrapper.defaultTop, 50);
+
+    await tester.tap(clock);
+    await tester.pumpAndSettle();
+    expect(find.text('Time and sun'), findsOneWidget);
+    expect(find.text('Waiting for GPS...'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close).hitTestable().first);
+    await tester.pumpAndSettle();
+
+    final settings = container.read(appSettingsProvider.notifier);
+    await settings.updateWidgetPosition('utc_clock_widget', 300, 500);
+    await settings.updateAreWidgetsDraggable(true);
+    await tester.pumpAndSettle();
+    final oldPosition = tester.getTopLeft(clock);
+    expect(oldPosition, const Offset(500, 300));
+    final gesture = await tester.startGesture(tester.getCenter(clock));
+    await gesture.moveBy(const Offset(0, 20));
+    await gesture.moveBy(const Offset(0, 160));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    final newPosition = tester.getTopLeft(clock);
+    expect(newPosition.dy, greaterThan(oldPosition.dy));
+    final saved = container
+        .read(appSettingsProvider)
+        .requireValue
+        .widgetPositions['utc_clock_widget']!;
+    expect(newPosition, Offset(saved.left, saved.top));
+  });
+
   testWidgets('finishes widget editing from the map controls', (tester) async {
     final container = await _pumpDrawer(tester, useMapPage: true);
 
@@ -417,7 +462,7 @@ void main() {
     final widgets = tester.widgetList<DraggableWidget>(
       find.byType(DraggableWidget),
     );
-    expect(widgets, hasLength(4));
+    expect(widgets, hasLength(5));
     expect(widgets.every((widget) => !widget.isDraggable), isTrue);
   });
 
