@@ -6,6 +6,7 @@ import 'package:stork/core/services/style_provider.dart';
 import 'package:stork/features/map/presentation/providers/airspace_data_status_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_alert_history_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
+import 'package:stork/features/map/presentation/providers/map_radar.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
@@ -132,6 +133,19 @@ void main() {
     addTearDown(container.dispose);
 
     expect(await _firstAlert(container), isNull);
+  });
+
+  test('reports an unavailable radar as informational', () async {
+    final container = _container();
+    addTearDown(container.dispose);
+
+    expect(await _firstAlert(container), isNull);
+    await container.read(mapRadarProvider).play();
+    await pumpEventQueue();
+
+    final alert = container.read(mapAlertsProvider).single;
+    expect(alert.kind, MapAlertKind.radarUnavailable);
+    expect(alert.severity, MapAlertSeverity.info);
   });
 
   test('surfaces a denied location permission', () async {

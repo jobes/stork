@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../../../../../core/widgets/stork_navigation_tile.dart';
@@ -14,9 +15,13 @@ import '../../../../offline_maps/presentation/providers/offline_maps_provider.da
 import '../../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../../settings/presentation/providers/pilot_provider.dart';
 import '../../../../settings/presentation/providers/settings_provider.dart';
+import '../../providers/map_radar.dart';
 
 class MapDrawer extends ConsumerWidget {
-  const MapDrawer({super.key});
+  const MapDrawer({super.key, this.radar, this.onRadarPlayback});
+
+  final ValueListenable<RadarDisplay>? radar;
+  final VoidCallback? onRadarPlayback;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -101,6 +106,26 @@ class MapDrawer extends ConsumerWidget {
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => open('/profile'),
               ),
+              if (radar case final radar?)
+                ValueListenableBuilder(
+                  valueListenable: radar,
+                  builder: (context, status, _) {
+                    final latest = status.latest;
+                    return StorkNavigationTile(
+                      icon: Icons.thunderstorm_outlined,
+                      title: l10n.radarPlay,
+                      subtitle: latest == null
+                          ? null
+                          : l10n.radarLatestTime(
+                              DateFormat('HH:mm').format(latest),
+                            ),
+                      onTap: () {
+                        Scaffold.of(context).closeDrawer();
+                        onRadarPlayback?.call();
+                      },
+                    );
+                  },
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 20, 12, 6),
                 child: Semantics(

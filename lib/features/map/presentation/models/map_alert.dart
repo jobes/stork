@@ -50,7 +50,9 @@ enum MapAlertKind {
   terrainUnavailable(MapAlertSeverity.warning),
   offlineMapsError(MapAlertSeverity.warning),
   droneCanGpsFallback(MapAlertSeverity.warning),
-  altitudeSourceChanged(MapAlertSeverity.info);
+  altitudeSourceChanged(MapAlertSeverity.info),
+  radarUnavailable(MapAlertSeverity.info),
+  radarHistoryUnavailable(MapAlertSeverity.info);
 
   const MapAlertKind(this.severity, {this.instrument});
 

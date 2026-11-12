@@ -56,6 +56,29 @@ void main() {
       expect(second, first);
     });
 
+    test('serves a registered radar tile and closes its route', () async {
+      final route = MapAssetsServer.registerRadarTiles((z, x, y) async {
+        expect((z, x, y), (2, 1, 3));
+        return Uint8List.fromList([1, 2, 3]);
+      });
+      addTearDown(route.close);
+      final url = Uri.parse(
+        route.template.replaceFirst('{z}/{x}/{y}', '2/1/3'),
+      );
+      final client = HttpClient();
+      addTearDown(() => client.close(force: true));
+
+      final tile = await (await client.getUrl(url)).close();
+      expect(tile.statusCode, HttpStatus.ok);
+      expect(tile.headers.contentType?.mimeType, 'image/png');
+      expect(await tile.expand((bytes) => bytes).toList(), [1, 2, 3]);
+
+      route.close();
+      final closed = await (await client.getUrl(url)).close();
+      expect(closed.statusCode, HttpStatus.notFound);
+      await closed.drain<void>();
+    });
+
     test(
       'serves openaip JSON asset with application/json content type',
       () async {

@@ -21,6 +21,7 @@ import '../../../telemetry/domain/models/telemetry_instrument.dart';
 import '../models/map_alert.dart';
 import 'airspace_data_status_provider.dart';
 import 'map_alert_history_provider.dart';
+import 'map_radar.dart';
 
 export '../models/map_alert.dart';
 
@@ -63,6 +64,23 @@ class MapAlerts extends _$MapAlerts {
 
   @override
   List<MapAlert> build() {
+    final radar = ref.watch(mapRadarProvider);
+    var radarAvailability = (
+      radar.value.unavailable,
+      radar.value.historyUnavailable,
+    );
+    void onRadarChanged() {
+      final availability = (
+        radar.value.unavailable,
+        radar.value.historyUnavailable,
+      );
+      if (availability == radarAvailability) return;
+      radarAvailability = availability;
+      _scheduleRecompute();
+    }
+
+    radar.addListener(onRadarChanged);
+    ref.onDispose(() => radar.removeListener(onRadarChanged));
     ref.listen(gpsHealthProvider, (_, _) => _scheduleRecompute());
     ref.listen(telemetryLinkHealthProvider, (_, _) => _scheduleRecompute());
     ref.listen(trafficSourceHealthProvider, (_, _) => _scheduleRecompute());
@@ -114,6 +132,7 @@ class MapAlerts extends _$MapAlerts {
     ref.read(telemetryLinkHealthProvider.notifier).refresh();
     ref.read(trafficSourceHealthProvider.notifier).refresh();
     ref.read(altitudeHealthProvider.notifier).refresh();
+    final radar = ref.read(mapRadarProvider).value;
 
     final active = <MapAlertKind>{
       if (ref.read(activeCollisionAlertProvider) != null)
@@ -122,6 +141,8 @@ class MapAlerts extends _$MapAlerts {
       if (ref.read(offlineMapsProvider).hasError) MapAlertKind.offlineMapsError,
       if (ref.read(airspaceDataStatusProvider).hasError)
         MapAlertKind.airspaceDataUnavailable,
+      if (radar.unavailable) MapAlertKind.radarUnavailable,
+      if (radar.historyUnavailable) MapAlertKind.radarHistoryUnavailable,
       if (_isInternetUnavailable(now)) MapAlertKind.internetUnavailable,
       ..._gpsKinds(ref.read(gpsHealthProvider)),
       ..._linkKinds(ref.read(telemetryLinkHealthProvider)),

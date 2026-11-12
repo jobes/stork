@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../providers/settings_provider.dart';
@@ -169,6 +170,16 @@ class MapSettingsPage extends ConsumerWidget {
                   ),
                 ],
               ],
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton(
+                onPressed: () => launchUrl(
+                  Uri.https('www.rainviewer.com'),
+                  mode: LaunchMode.externalApplication,
+                ),
+                child: Text(l10n.radarAttribution),
+              ),
             ),
           ],
         ),

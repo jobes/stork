@@ -2492,6 +2492,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTrafficSources => 'Traffic data sources';
 
   @override
+  String get radarPlay => 'Play precipitation history';
+
+  @override
+  String get radarPreparing => 'Loading precipitation history…';
+
+  @override
+  String radarPlaybackTime(String time) {
+    return 'Radar history · $time UTC';
+  }
+
+  @override
+  String radarLatestTime(String time) {
+    return 'Latest image · $time UTC';
+  }
+
+  @override
+  String get radarUnavailable => 'Precipitation radar unavailable';
+
+  @override
+  String get mapAlertRadarBody =>
+      'The radar layer is hidden because current precipitation data could not be loaded.';
+
+  @override
+  String get radarHistoryUnavailable => 'Precipitation history unavailable';
+
+  @override
+  String get mapAlertRadarHistoryBody =>
+      'Precipitation history could not be played. The latest radar image is still visible.';
+
+  @override
+  String get radarAttribution => 'Weather data by RainViewer';
+
+  @override
   String get menuFlightAndMap => 'Flight and map';
 
   @override

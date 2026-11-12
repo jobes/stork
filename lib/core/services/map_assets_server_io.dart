@@ -14,6 +14,18 @@ class MapAssetsServer {
   static HttpServer? _server;
   static String? _baseUrl;
   static AssetBundle bundle = rootBundle;
+  static int _nextRadarTileRoute = 0;
+  static final _radarTileRoutes =
+      <String, Future<Uint8List?> Function(int, int, int)>{};
+
+  static ({String template, VoidCallback close}) registerRadarTiles(
+    Future<Uint8List?> Function(int, int, int) load,
+  ) {
+    final id = '${_nextRadarTileRoute++}';
+    final template = '$baseUrl/radar/$id/{z}/{x}/{y}.png';
+    _radarTileRoutes[id] = load;
+    return (template: template, close: () => _radarTileRoutes.remove(id));
+  }
 
   static final Map<String, String> _pmtilesUrls = {
     'openaip':
@@ -87,6 +99,7 @@ class MapAssetsServer {
     _archives.clear();
     _archiveTiles.clear();
     _pendingArchiveTiles.clear();
+    _radarTileRoutes.clear();
     _cachedArchiveBytes = 0;
   }
 
@@ -101,6 +114,10 @@ class MapAssetsServer {
       }
 
       final firstSegment = segments[0];
+
+      if (firstSegment == 'radar' && segments.length == 5) {
+        return await _handleRadarTileRequest(request, segments);
+      }
 
       // Route PMTiles requests
       if (firstSegment == 'pmtiles' && segments.length >= 5) {
@@ -119,6 +136,44 @@ class MapAssetsServer {
       debugPrint('Error handling request ${request.uri}: $e');
       return await _sendError(request);
     }
+  }
+
+  static Future<void> _handleRadarTileRequest(
+    HttpRequest request,
+    List<String> segments,
+  ) async {
+    final load = _radarTileRoutes[segments[1]];
+    final z = int.tryParse(segments[2]);
+    final x = int.tryParse(segments[3]);
+    final yFile = segments[4];
+    final y = yFile.endsWith('.png')
+        ? int.tryParse(yFile.substring(0, yFile.length - 4))
+        : null;
+    if (request.method != 'GET' ||
+        load == null ||
+        z == null ||
+        z < 0 ||
+        z > 7 ||
+        x == null ||
+        x < 0 ||
+        x >= 1 << z ||
+        y == null ||
+        y < 0 ||
+        y >= 1 << z) {
+      return _sendNotFound(request);
+    }
+    final bytes = await load(z, x, y);
+    if (bytes == null) {
+      request.response.statusCode = HttpStatus.badGateway;
+    } else {
+      _setResponseContentType(request, 'png');
+      request.response.headers.set(
+        HttpHeaders.cacheControlHeader,
+        'max-age=3600',
+      );
+      request.response.add(bytes);
+    }
+    await request.response.close();
   }
 
   static Future<void> _handlePmTilesRequest(

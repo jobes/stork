@@ -4680,6 +4680,60 @@ abstract class AppLocalizations {
   /// **'Traffic data sources'**
   String get settingsTrafficSources;
 
+  /// No description provided for @radarPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play precipitation history'**
+  String get radarPlay;
+
+  /// No description provided for @radarPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading precipitation history…'**
+  String get radarPreparing;
+
+  /// No description provided for @radarPlaybackTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Radar history · {time} UTC'**
+  String radarPlaybackTime(String time);
+
+  /// No description provided for @radarLatestTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest image · {time} UTC'**
+  String radarLatestTime(String time);
+
+  /// No description provided for @radarUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation radar unavailable'**
+  String get radarUnavailable;
+
+  /// No description provided for @mapAlertRadarBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The radar layer is hidden because current precipitation data could not be loaded.'**
+  String get mapAlertRadarBody;
+
+  /// No description provided for @radarHistoryUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation history unavailable'**
+  String get radarHistoryUnavailable;
+
+  /// No description provided for @mapAlertRadarHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation history could not be played. The latest radar image is still visible.'**
+  String get mapAlertRadarHistoryBody;
+
+  /// No description provided for @radarAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather data by RainViewer'**
+  String get radarAttribution;
+
   /// No description provided for @menuFlightAndMap.
   ///
   /// In en, this message translates to:
