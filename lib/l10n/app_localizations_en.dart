@@ -2515,6 +2515,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'The radar layer is hidden because current precipitation data could not be loaded.';
 
   @override
+  String get radarHistoryUnavailable => 'Precipitation history unavailable';
+
+  @override
+  String get mapAlertRadarHistoryBody =>
+      'Precipitation history could not be played. The latest radar image is still visible.';
+
+  @override
   String get radarAttribution => 'Weather data by RainViewer';
 
   @override

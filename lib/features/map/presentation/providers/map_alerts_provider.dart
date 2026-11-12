@@ -65,11 +65,17 @@ class MapAlerts extends _$MapAlerts {
   @override
   List<MapAlert> build() {
     final radar = ref.watch(mapRadarProvider);
-    var radarUnavailable = radar.value.unavailable;
+    var radarAvailability = (
+      radar.value.unavailable,
+      radar.value.historyUnavailable,
+    );
     void onRadarChanged() {
-      final unavailable = radar.value.unavailable;
-      if (unavailable == radarUnavailable) return;
-      radarUnavailable = unavailable;
+      final availability = (
+        radar.value.unavailable,
+        radar.value.historyUnavailable,
+      );
+      if (availability == radarAvailability) return;
+      radarAvailability = availability;
       _scheduleRecompute();
     }
 
@@ -126,6 +132,7 @@ class MapAlerts extends _$MapAlerts {
     ref.read(telemetryLinkHealthProvider.notifier).refresh();
     ref.read(trafficSourceHealthProvider.notifier).refresh();
     ref.read(altitudeHealthProvider.notifier).refresh();
+    final radar = ref.read(mapRadarProvider).value;
 
     final active = <MapAlertKind>{
       if (ref.read(activeCollisionAlertProvider) != null)
@@ -134,8 +141,8 @@ class MapAlerts extends _$MapAlerts {
       if (ref.read(offlineMapsProvider).hasError) MapAlertKind.offlineMapsError,
       if (ref.read(airspaceDataStatusProvider).hasError)
         MapAlertKind.airspaceDataUnavailable,
-      if (ref.read(mapRadarProvider).value.unavailable)
-        MapAlertKind.radarUnavailable,
+      if (radar.unavailable) MapAlertKind.radarUnavailable,
+      if (radar.historyUnavailable) MapAlertKind.radarHistoryUnavailable,
       if (_isInternetUnavailable(now)) MapAlertKind.internetUnavailable,
       ..._gpsKinds(ref.read(gpsHealthProvider)),
       ..._linkKinds(ref.read(telemetryLinkHealthProvider)),

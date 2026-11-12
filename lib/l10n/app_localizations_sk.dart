@@ -2528,6 +2528,13 @@ class AppLocalizationsSk extends AppLocalizations {
       'Radarová vrstva je skrytá, pretože sa nepodarilo načítať aktuálne údaje o zrážkach.';
 
   @override
+  String get radarHistoryUnavailable => 'História zrážok je nedostupná';
+
+  @override
+  String get mapAlertRadarHistoryBody =>
+      'Históriu zrážok sa nepodarilo prehrať. Na mape zostáva najnovšia radarová snímka.';
+
+  @override
   String get radarAttribution => 'Zdroj radarových dát: RainViewer';
 
   @override

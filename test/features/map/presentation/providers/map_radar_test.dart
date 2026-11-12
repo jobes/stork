@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:clock/clock.dart';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maplibre/maplibre.dart';
+import 'package:stork/features/map/data/repositories/radar_repository.dart';
 import 'package:stork/features/map/presentation/providers/map_radar.dart';
 
 int get _recentTime =>
@@ -23,12 +23,13 @@ DateTime _utc(int seconds) =>
 http.Response _manifest(
   int latest, {
   String host = 'https://tilecache.rainviewer.com',
+  int frameCount = 9,
 }) => http.Response(
   jsonEncode({
     'host': host,
     'radar': {
       'past': [
-        for (var index = 0; index < 9; index++)
+        for (var index = 0; index < frameCount; index++)
           {
             'time': latest - index * _step,
             'path': '/v2/radar/${latest - index * _step}',
@@ -102,6 +103,12 @@ class _Style implements StyleController {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+MapRadar _radar(_Style style, http.Client client) {
+  final repository = RadarRepository(client: client);
+  addTearDown(repository.close);
+  return MapRadar(repository: repository, registerTiles: style.registerTiles);
+}
+
 void main() {
   testWidgets('uses a changed HTTPS tile server at the same timestamp', (
     tester,
@@ -110,9 +117,9 @@ void main() {
     var host = 'https://tiles.example.org/rain/';
     final tileRequests = <Uri>[];
     final style = _Style();
-    final radar = MapRadar(
-      registerTiles: style.registerTiles,
-      client: MockClient((request) async {
+    final radar = _radar(
+      style,
+      MockClient((request) async {
         if (request.url.host == 'api.rainviewer.com') {
           return _manifest(latest, host: host);
         }
@@ -140,9 +147,9 @@ void main() {
   ) async {
     final style = _Style();
     final latest = _recentTime;
-    final radar = MapRadar(
-      registerTiles: style.registerTiles,
-      client: MockClient(
+    final radar = _radar(
+      style,
+      MockClient(
         (request) async => request.url.host == 'api.rainviewer.com'
             ? _manifest(latest)
             : _tile(),
@@ -176,9 +183,9 @@ void main() {
     final initial = _recentTime;
     var latest = initial;
     final style = _Style();
-    final radar = MapRadar(
-      registerTiles: style.registerTiles,
-      client: MockClient(
+    final radar = _radar(
+      style,
+      MockClient(
         (request) async => request.url.host == 'api.rainviewer.com'
             ? _manifest(latest)
             : _tile(),
@@ -213,9 +220,9 @@ void main() {
       final latest = _recentTime;
       final style = _Style()..autoLoad = false;
       var failTile = false;
-      final radar = MapRadar(
-        registerTiles: style.registerTiles,
-        client: MockClient((request) async {
+      final radar = _radar(
+        style,
+        MockClient((request) async {
           if (request.url.host == 'api.rainviewer.com') {
             return _manifest(latest);
           }
@@ -253,9 +260,9 @@ void main() {
   ) async {
     var latest = _recentTime;
     final style = _Style();
-    final radar = MapRadar(
-      registerTiles: style.registerTiles,
-      client: MockClient(
+    final radar = _radar(
+      style,
+      MockClient(
         (request) async => request.url.host == 'api.rainviewer.com'
             ? _manifest(latest)
             : _tile(),
@@ -274,6 +281,96 @@ void main() {
     latest = _recentTime;
     await radar.refresh(force: true);
     expect(radar.value.unavailable, isFalse);
+    expect(radar.value.latest, _utc(latest));
+    radar.dispose();
+  });
+
+  testWidgets(
+    'a missing history keeps the live frame and reports history only',
+    (tester) async {
+      final latest = _recentTime;
+      final style = _Style();
+      final radar = _radar(
+        style,
+        MockClient(
+          (request) async => request.url.host == 'api.rainviewer.com'
+              ? _manifest(latest, frameCount: 1)
+              : _tile(),
+        ),
+      );
+      radar.attachStyle(style);
+      await tester.pump();
+      final live = style.sources.values.single;
+
+      await radar.play();
+
+      expect(radar.value.latest, _utc(latest));
+      expect(radar.value.unavailable, isFalse);
+      expect(radar.value.historyUnavailable, isTrue);
+      expect(style.sources.values.single, same(live));
+      expect(style.shown, [live.id]);
+      radar.dispose();
+    },
+  );
+
+  testWidgets('HTTP 429 during history keeps the live radar visible', (
+    tester,
+  ) async {
+    final latest = _recentTime;
+    final style = _Style();
+    final radar = _radar(
+      style,
+      MockClient((request) async {
+        if (request.url.host == 'api.rainviewer.com') {
+          return _manifest(latest);
+        }
+        return request.url.path.startsWith('/v2/radar/$latest/')
+            ? _tile()
+            : http.Response('Too Many Requests', 429);
+      }),
+    );
+    radar.attachStyle(style);
+    await tester.pump();
+    final live = style.sources.values.single;
+
+    final playback = radar.play();
+    await tester.pump();
+    await playback;
+
+    expect(radar.value.historyUnavailable, isTrue);
+    expect(radar.value.unavailable, isFalse);
+    expect(style.sources.values.single, same(live));
+    expect(style.shown, [live.id]);
+
+    expect(await style.loadTile(live), isNotNull);
+    radar.dispose();
+  });
+
+  testWidgets('gives a late tile request its own 15-second HTTP budget', (
+    tester,
+  ) async {
+    final latest = clock.now().millisecondsSinceEpoch ~/ 1000;
+    final style = _Style()..autoLoad = false;
+    final tile = Completer<http.Response>();
+    final radar = _radar(
+      style,
+      MockClient(
+        (request) async => request.url.host == 'api.rainviewer.com'
+            ? _manifest(latest)
+            : tile.future,
+      ),
+    );
+    radar.attachStyle(style);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 14));
+    final loading = style.loadTile(style.sources.values.single);
+    await tester.pump(const Duration(seconds: 14));
+
+    expect(radar.value.unavailable, isFalse);
+    expect(style.shown, isEmpty);
+    tile.complete(_tile());
+    expect(await loading, isNotNull);
+    await tester.pump();
     expect(radar.value.latest, _utc(latest));
     radar.dispose();
   });

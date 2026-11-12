@@ -4716,6 +4716,18 @@ abstract class AppLocalizations {
   /// **'The radar layer is hidden because current precipitation data could not be loaded.'**
   String get mapAlertRadarBody;
 
+  /// No description provided for @radarHistoryUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation history unavailable'**
+  String get radarHistoryUnavailable;
+
+  /// No description provided for @mapAlertRadarHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation history could not be played. The latest radar image is still visible.'**
+  String get mapAlertRadarHistoryBody;
+
   /// No description provided for @radarAttribution.
   ///
   /// In en, this message translates to:

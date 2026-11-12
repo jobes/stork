@@ -3,23 +3,27 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import 'package:maplibre/maplibre.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/services/map_assets_server.dart';
+import '../../data/repositories/radar_repository.dart';
 
-final mapRadarProvider = Provider.autoDispose<MapRadar>((ref) {
-  final radar = MapRadar();
+part 'map_radar.g.dart';
+
+@riverpod
+MapRadar mapRadar(Ref ref) {
+  final radar = MapRadar(repository: ref.watch(radarRepositoryProvider));
   ref.onDispose(radar.dispose);
   return radar;
-});
+}
 
 typedef RadarDisplay = ({
   DateTime? latest,
   DateTime? playing,
   bool preparing,
   bool unavailable,
+  bool historyUnavailable,
 });
 
 typedef RadarTileRegistration =
@@ -28,30 +32,25 @@ typedef RadarTileRegistration =
     );
 
 class MapRadar extends ValueNotifier<RadarDisplay> {
-  MapRadar({http.Client? client, RadarTileRegistration? registerTiles})
-    : _client = client ?? http.Client(),
-      _registerTiles = registerTiles ?? MapAssetsServer.registerRadarTiles,
+  MapRadar({required this._repository, RadarTileRegistration? registerTiles})
+    : _registerTiles = registerTiles ?? MapAssetsServer.registerRadarTiles,
       super(_empty);
 
-  static final _manifest = Uri.https(
-    'api.rainviewer.com',
-    '/public/weather-maps.json',
-  );
   static const refreshInterval = Duration(minutes: 5);
   static const _maxFrameAge = Duration(minutes: 20);
   static const _frameInterval = Duration(milliseconds: 750);
-  static const _requestTimeout = Duration(seconds: 8);
   static const _empty = (
     latest: null,
     playing: null,
     preparing: false,
     unavailable: false,
+    historyUnavailable: false,
   );
 
-  final http.Client _client;
+  final RadarRepository _repository;
   final RadarTileRegistration _registerTiles;
   _RadarLayers? _layers;
-  List<_RadarFrame> _frames = const [];
+  List<RadarFrame> _frames = const [];
   Future<void>? _refreshing;
   Future<void>? _clearing;
   DateTime? _lastRefreshAttempt;
@@ -68,11 +67,12 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
     layers = _RadarLayers(
       style,
       _registerTiles,
-      _loadTile,
+      _repository,
       () => _fail(layers),
+      _historyUnavailable,
     );
     _layers = layers;
-    _setDisplay(unavailable: unavailable);
+    _setDisplay(unavailable: unavailable, historyUnavailable: false);
     unawaited(refresh(force: true));
   }
 
@@ -128,14 +128,11 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
         if (!layers.attached) return;
       }
       layers.reset();
-      final response = await Future.any<http.Response?>([
-        _client.get(_manifest).timeout(_requestTimeout),
+      final frames = await Future.any<List<RadarFrame>?>([
+        _repository.fetchFrames(),
         layers.invalidated.then((_) => null),
       ]);
-      if (response == null || !layers.attached || layers.failed) return;
-      final frames = response.statusCode == 200
-          ? _decodeFrames(response.body)
-          : const <_RadarFrame>[];
+      if (frames == null || !layers.attached || layers.failed) return;
       final now = clock.now();
       if (frames.isEmpty || !_isFresh(frames.last, now)) {
         _fail(layers);
@@ -167,26 +164,9 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
     }
   }
 
-  static bool _isFresh(_RadarFrame frame, DateTime now) {
+  static bool _isFresh(RadarFrame frame, DateTime now) {
     final age = now.difference(frame.time);
     return age >= -refreshInterval && age < _maxFrameAge;
-  }
-
-  Future<Uint8List?> _loadTile(_RadarFrame frame, int z, int x, int y) async {
-    try {
-      final response = await _client
-          .get(frame.tileUrl(z, x, y))
-          .timeout(_requestTimeout);
-      const pngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
-      final bytes = response.bodyBytes;
-      if (response.statusCode == 200 &&
-          listEquals(bytes.take(pngSignature.length).toList(), pngSignature)) {
-        return bytes;
-      }
-    } catch (error) {
-      debugPrint('RainViewer tile unavailable: $error');
-    }
-    return null;
   }
 
   void _fail(_RadarLayers layers) {
@@ -195,7 +175,7 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
     _expiry?.cancel();
     _frames = const [];
     interruptPlayback();
-    _setDisplay(unavailable: true);
+    _setDisplay(unavailable: true, historyUnavailable: false);
 
     final refreshing = _refreshing;
     final playback = _playbackDone?.future;
@@ -216,7 +196,7 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
     if (_disposed) return;
     final layers = _layers;
     if (layers == null) {
-      _setDisplay(unavailable: true);
+      _setDisplay(unavailable: true, historyUnavailable: false);
       return;
     }
     if (layers.latest case final frame? when !_isFresh(frame, clock.now())) {
@@ -237,7 +217,7 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
       preparing: !value.unavailable,
       unavailable: value.unavailable,
     );
-    List<_RadarFrame> history = const [];
+    List<RadarFrame> history = const [];
     try {
       if (refreshBeforePlaying != null) {
         await Future.any([refreshBeforePlaying, stop.future]);
@@ -254,11 +234,15 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
           )
           .toList();
       if (history.isEmpty) {
-        _fail(layers);
+        _historyUnavailable();
         return;
       }
 
-      _setDisplay(latest: latest.time, preparing: true);
+      _setDisplay(
+        latest: latest.time,
+        preparing: true,
+        historyUnavailable: false,
+      );
       await layers.stage(history, cancel: stop);
       for (final frame in history) {
         if (stop.isCompleted || !layers.attached) break;
@@ -306,13 +290,20 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
     DateTime? playing,
     bool preparing = false,
     bool unavailable = false,
+    bool? historyUnavailable,
   }) {
     value = (
       latest: latest,
       playing: playing,
       preparing: preparing,
       unavailable: unavailable,
+      historyUnavailable: historyUnavailable ?? value.historyUnavailable,
     );
+  }
+
+  void _historyUnavailable() {
+    interruptPlayback();
+    _setDisplay(latest: value.latest, historyUnavailable: true);
   }
 
   void interruptPlayback() {
@@ -324,65 +315,19 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
   void dispose() {
     _disposed = true;
     _detach();
-    _client.close();
     super.dispose();
   }
 }
 
-typedef _RadarFrame = ({DateTime time, Uri tileBase});
-
-final _radarPath = RegExp(r'^/v2/radar/[a-zA-Z0-9_-]+$');
-
-List<_RadarFrame> _decodeFrames(String body) {
-  final manifest = jsonDecode(body);
-  if (manifest case {
-    'host': final String host,
-    'radar': {'past': final List<dynamic> past},
-  }) {
-    final tileServer = Uri.tryParse(host);
-    if (tileServer == null ||
-        tileServer.scheme != 'https' ||
-        tileServer.host.isEmpty ||
-        tileServer.userInfo.isNotEmpty ||
-        tileServer.hasQuery ||
-        tileServer.hasFragment) {
-      return const [];
-    }
-    final serverPath = tileServer.path.replaceFirst(RegExp(r'/+$'), '');
-    final frames = <DateTime, _RadarFrame>{};
-    for (final frame in past) {
-      // RainViewer sends Unix seconds. The upper bound filters out typical
-      // Unix millisecond timestamps supplied by mistake.
-      if (frame case {'time': final int seconds, 'path': final String path}
-          when seconds > 0 &&
-              seconds < 10000000000 &&
-              _radarPath.hasMatch(path)) {
-        final time = DateTime.fromMillisecondsSinceEpoch(
-          seconds * 1000,
-          isUtc: true,
-        );
-        frames[time] = (
-          time: time,
-          tileBase: tileServer.replace(path: '$serverPath$path'),
-        );
-      }
-    }
-    return frames.values.toList()..sort((a, b) => a.time.compareTo(b.time));
-  }
-  return const [];
-}
-
-extension on _RadarFrame {
+extension on RadarFrame {
   String get id {
     final encodedTileBase = base64Url.encode(utf8.encode(tileBase.toString()));
     return 'rainviewer-${time.millisecondsSinceEpoch}-$encodedTileBase';
   }
-
-  Uri tileUrl(int z, int x, int y) =>
-      Uri.parse('$tileBase/256/$z/$x/$y/2/1_1.png');
 }
 
 class _RadarSource {
+  final requested = Completer<void>();
   final ready = Completer<void>();
   late final VoidCallback close;
   bool added = false;
@@ -393,22 +338,29 @@ class _RadarSource {
 }
 
 class _RadarLayers {
-  _RadarLayers(this.style, this.registerTiles, this.loadTile, this.onTileError);
+  _RadarLayers(
+    this.style,
+    this.registerTiles,
+    this.repository,
+    this.onTileError,
+    this.onHistoryLimited,
+  );
 
   static const _below = 'obstacle_clicktarget';
-  static const _tileWarmup = Duration(seconds: 12);
+  static const _tileWarmup = RadarRepository.requestTimeout;
 
   final StyleController style;
   final RadarTileRegistration registerTiles;
-  final Future<Uint8List?> Function(_RadarFrame, int, int, int) loadTile;
+  final RadarRepository repository;
   final VoidCallback onTileError;
-  final _sources = <_RadarFrame, _RadarSource>{};
+  final VoidCallback onHistoryLimited;
+  final _sources = <RadarFrame, _RadarSource>{};
   var _invalidated = Completer<void>();
   Future<void> get invalidated => _invalidated.future;
   bool attached = true;
   bool get failed => _invalidated.isCompleted;
-  _RadarFrame? latest;
-  _RadarFrame? _visible;
+  RadarFrame? latest;
+  RadarFrame? _visible;
 
   void invalidate() {
     if (!failed) _invalidated.complete();
@@ -427,14 +379,12 @@ class _RadarLayers {
     _sources.clear();
   }
 
-  Future<void> stage(
-    List<_RadarFrame> frames, {
-    Completer<void>? cancel,
-  }) async {
+  Future<void> stage(List<RadarFrame> frames, {Completer<void>? cancel}) async {
+    final requested = <Future<void>>[];
     final ready = <Future<void>>[];
     for (final frame in frames) {
       if (!attached || failed || cancel?.isCompleted == true) return;
-      final source = _sources[frame] ?? await _addSource(frame);
+      final source = _sources[frame] ?? await _addSource(frame, cancel);
       if (!attached || failed || cancel?.isCompleted == true) return;
       if (!source.staged) {
         await style.addLayer(
@@ -443,25 +393,44 @@ class _RadarLayers {
         );
         source.staged = true;
       }
+      requested.add(source.requested.future);
       ready.add(source.ready.future);
     }
-    // Adding a layer can succeed before MapLibre receives any tile. Wait for
-    // tile responses for each frame. Later errors still invalidate it.
+    // Allow time for MapLibre to start requesting each frame. Once requested,
+    // tiles use their own HTTP deadline, even if the renderer started late.
     await Future.any<void>([
-      Future.wait(ready),
+      Future.wait(requested),
       invalidated,
       ?cancel?.future,
     ]).timeout(_tileWarmup);
+    await Future.any<void>([Future.wait(ready), invalidated, ?cancel?.future]);
   }
 
-  Future<_RadarSource> _addSource(_RadarFrame frame) async {
+  Future<_RadarSource> _addSource(
+    RadarFrame frame,
+    Completer<void>? playback,
+  ) async {
     final source = _RadarSource();
+    bool isActive() =>
+        attached && !failed && !source.closed && playback?.isCompleted != true;
     final route = registerTiles((z, x, y) async {
-      if (!attached || failed || source.closed) return null;
+      if (!isActive()) return null;
+      if (!source.requested.isCompleted) source.requested.complete();
       source.loading++;
-      final bytes = await loadTile(frame, z, x, y);
-      source.loading--;
-      if (!attached || failed || source.closed) return null;
+      Uint8List? bytes;
+      try {
+        bytes = await repository.fetchTile(frame, z, x, y);
+      } on RadarRequestLimitReached {
+        if (playback != null && isActive()) {
+          onHistoryLimited();
+          return null;
+        }
+      } catch (error) {
+        debugPrint('RainViewer tile unavailable: $error');
+      } finally {
+        source.loading--;
+      }
+      if (!isActive()) return null;
       if (bytes == null) {
         onTileError();
       } else if (source.loading == 0 && !source.ready.isCompleted) {
@@ -483,7 +452,7 @@ class _RadarLayers {
     return source;
   }
 
-  Future<void> show(_RadarFrame frame) async {
+  Future<void> show(RadarFrame frame) async {
     if (!attached || failed || _visible == frame) return;
     final previous = _visible;
     await style.addLayer(_layer(frame), belowLayerId: _below);
@@ -493,7 +462,7 @@ class _RadarLayers {
     if (previous != null) await _hide(previous);
   }
 
-  Future<void> _hide(_RadarFrame frame) async {
+  Future<void> _hide(RadarFrame frame) async {
     final source = _sources[frame];
     if (!attached || source == null || !source.shown) return;
     await style.removeLayer('${frame.id}-visible');
@@ -501,7 +470,7 @@ class _RadarLayers {
     if (_visible == frame) _visible = null;
   }
 
-  Future<void> remove(_RadarFrame frame) async {
+  Future<void> remove(RadarFrame frame) async {
     final source = _sources[frame];
     if (!attached || source == null) return;
     if (!source.closed) {
@@ -529,7 +498,7 @@ class _RadarLayers {
     }
   }
 
-  RasterStyleLayer _layer(_RadarFrame frame, {bool staging = false}) =>
+  RasterStyleLayer _layer(RadarFrame frame, {bool staging = false}) =>
       RasterStyleLayer(
         id: '${frame.id}-${staging ? 'staging' : 'visible'}',
         sourceId: frame.id,

@@ -1090,6 +1090,8 @@
   "radarLatestTime": "Najnovšia snímka · {time} UTC",
   "radarUnavailable": "Radar zrážok je nedostupný",
   "mapAlertRadarBody": "Radarová vrstva je skrytá, pretože sa nepodarilo načítať aktuálne údaje o zrážkach.",
+  "radarHistoryUnavailable": "História zrážok je nedostupná",
+  "mapAlertRadarHistoryBody": "Históriu zrážok sa nepodarilo prehrať. Na mape zostáva najnovšia radarová snímka.",
   "radarAttribution": "Zdroj radarových dát: RainViewer",
   "menuFlightAndMap": "Let a mapa",
   "menuRoute": "Trasa",

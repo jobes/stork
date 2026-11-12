@@ -1198,6 +1198,8 @@
   "@radarLatestTime": { "placeholders": { "time": { "type": "String" } } },
   "radarUnavailable": "Precipitation radar unavailable",
   "mapAlertRadarBody": "The radar layer is hidden because current precipitation data could not be loaded.",
+  "radarHistoryUnavailable": "Precipitation history unavailable",
+  "mapAlertRadarHistoryBody": "Precipitation history could not be played. The latest radar image is still visible.",
   "radarAttribution": "Weather data by RainViewer",
   "menuFlightAndMap": "Flight and map",
   "menuRoute": "Route",
