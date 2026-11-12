@@ -67,11 +67,12 @@ class BlackBoxService extends _$BlackBoxService {
       _handleTelemetryChange(previous, next);
     });
 
-    // Check initial state in case the app was started while flying
     final initialTelemetry = ref.read(telemetryProvider);
-    if (initialTelemetry.isFlying) {
-      _startFlight(initialTelemetry);
+    if (initialTelemetry.isFlying ||
+        _hasStateChanged(const TelemetryState(), initialTelemetry)) {
+      _handleTelemetryChange(null, initialTelemetry);
     }
+    _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
   }
 
   String? get activeFlightUuid => _activeFlightUuid;
@@ -81,17 +82,14 @@ class BlackBoxService extends _$BlackBoxService {
     final isFlying = next.isFlying;
 
     if (isFlying && !wasFlying) {
-      _startFlight(next);
+      _startFlight();
     } else if (!isFlying && wasFlying) {
       unawaited(_endFlight());
-    } else if (isFlying) {
-      _bufferTelemetry(next);
     }
+    _bufferTelemetry(next);
   }
 
-  void _startFlight(TelemetryState state) {
-    if (_activeFlightUuid != null || _flightCreationFuture != null) return;
-
+  void _startFlight() {
     final uuid = _uuidGen.v4();
     final now = DateTime.now().toUtc();
     final flightName =
@@ -110,59 +108,57 @@ class BlackBoxService extends _$BlackBoxService {
     );
     _activeFlightUuid = uuid;
     _flightStartedAt = now;
-    _lastKeyframeTime = now;
     _lastBufferedState = null;
-    _buffer.clear();
 
-    // Record the initial keyframe immediately in the memory buffer
-    _bufferTelemetry(state);
     for (final entry in ref.read(mapAlertHistoryProvider)) {
       if (entry.endedAt == null) _bufferAlert(entry);
     }
 
     // Persist flight metadata asynchronously
     final repo = ref.read(blackBoxRepositoryProvider);
-    _flightCreationFuture = repo
-        .saveFlight(flight)
+    final previousCreation = _flightCreationFuture;
+    late final Future<void> creation;
+    creation = (previousCreation ?? Future<void>.value())
+        .then((_) => repo.saveFlight(flight))
         .then((_) {
-          // Reset the creation future now that the flight is persisted
-          _flightCreationFuture = null;
-          // Refresh flight records – handle errors separately so they don't clear flight state
+          if (!ref.mounted) return;
           try {
             ref.read(flightRecordsProvider.notifier).refresh();
           } catch (e) {
             debugPrint('Error refreshing flight records after save: $e');
           }
-          // Setup periodic database flusher (every 1 second) – isolated error handling
-          try {
-            if (_activeFlightUuid == uuid) {
-              _flushTimer?.cancel();
-              _flushTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
-            }
-          } catch (e) {
-            debugPrint('Error initializing flush timer after save: $e');
-          }
         })
         .catchError((e) {
-          // Only handle errors from saveFlight itself
-          _flightCreationFuture = null;
-          _activeFlightUuid = null;
-          _flightStartedAt = null;
+          if (_activeFlightUuid == uuid) {
+            _activeFlightUuid = null;
+            _flightStartedAt = null;
+            _lastBufferedState = null;
+          }
           _alertBuffer.removeWhere((key, _) => key.$1 == uuid);
-          _buffer
-              .clear(); // Clear memory buffer on database initialization failure
+          // Keep the telemetry even if its flight could not be created.
+          for (var i = 0; i < _buffer.length; i++) {
+            final entry = _buffer[i];
+            if (entry.flightUuid == uuid) {
+              _buffer[i] = TelemetryEntry(
+                flightUuid: null,
+                timestamp: entry.timestamp,
+                isSnapshot: entry.isSnapshot,
+                data: entry.data,
+              );
+            }
+          }
           debugPrint('Error starting flight in database: $e');
-          throw e;
+        })
+        .whenComplete(() {
+          if (identical(_flightCreationFuture, creation)) {
+            _flightCreationFuture = null;
+          }
         });
+    _flightCreationFuture = creation;
   }
 
-  void _onTick(Timer timer) {
-    if (_activeFlushFuture != null) return;
-    if (_activeFlightUuid == null && _alertBuffer.isEmpty && _buffer.isEmpty) {
-      timer.cancel();
-      if (identical(timer, _flushTimer)) _flushTimer = null;
-      return;
-    }
+  void _onTick(Timer _) {
+    if (_activeFlushFuture != null || _flightCreationFuture != null) return;
     unawaited(
       _flush().catchError((e) {
         debugPrint('Error during periodic flush: $e');
@@ -174,38 +170,30 @@ class BlackBoxService extends _$BlackBoxService {
     final uuid = _activeFlightUuid;
     if (uuid == null) return;
 
-    _activeFlightUuid = null; // Set null synchronously
+    _activeFlightUuid = null;
     _flightStartedAt = null;
+    _lastBufferedState = null;
     final now = DateTime.now().toUtc();
-
-    _flushTimer?.cancel();
-    _flushTimer = null;
+    final repo = ref.read(blackBoxRepositoryProvider);
 
     // Flush any remaining entries in the buffer
     try {
       await _flush();
     } catch (e) {
       debugPrint('Error flushing telemetry at end of flight: $e');
-      if (ref.mounted && _alertBuffer.isNotEmpty && _activeFlightUuid == null) {
-        _flushTimer ??= Timer.periodic(const Duration(seconds: 1), _onTick);
-      }
     }
 
-    final repo = ref.read(blackBoxRepositoryProvider);
     try {
       await repo.updateFlightEndTime(uuid, now);
       await repo.calculateAndSaveFlightStatistics(uuid);
-      ref.read(flightRecordsProvider.notifier).refresh();
+      if (ref.mounted) ref.read(flightRecordsProvider.notifier).refresh();
     } catch (e) {
       debugPrint('Error updating flight end time: $e');
     }
-
-    if (_activeFlightUuid == null) _lastBufferedState = null;
   }
 
   void _bufferTelemetry(TelemetryState next) {
     final uuid = _activeFlightUuid;
-    if (uuid == null) return;
 
     final now = DateTime.now().toUtc();
 
@@ -285,12 +273,8 @@ class BlackBoxService extends _$BlackBoxService {
     }
 
     final repo = forceRepo ?? ref.read(blackBoxRepositoryProvider);
-    final creation = _flightCreationFuture;
-    if (creation != null) await creation;
-    while (_activeFlushFuture != null) {
-      try {
-        await _activeFlushFuture;
-      } catch (_) {}
+    while (_activeFlushFuture != null || _flightCreationFuture != null) {
+      await (_activeFlushFuture ?? _flightCreationFuture);
     }
 
     if (_buffer.isEmpty && _alertBuffer.isEmpty) return;

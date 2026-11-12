@@ -182,6 +182,84 @@ void main() {
   });
 
   group('BlackBoxService Provider Tests', () {
+    test('records telemetry without GPS and across flight boundaries', () {
+      fakeAsync((async) {
+        final database = FakeDelayingBlackBoxDatabase()
+          ..database = db
+          ..runStatsSynchronously = true;
+        final container = ProviderContainer(
+          overrides: [blackBoxDatabaseProvider.overrideWithValue(database)],
+        );
+        container.listen(blackBoxServiceProvider, (_, _) {});
+        final telemetry = container.read(telemetryProvider.notifier);
+
+        telemetry.updateEngineRPM(1800);
+        async.elapse(const Duration(seconds: 1));
+        final ground = db.select('SELECT * FROM flight_telemetry').single;
+        expect(ground['flight_uuid'], isNull);
+        expect(ground['latitude'], isNull);
+        expect(ground['ground_speed'], isNull);
+        expect(ground['engine_rpm'], 1800);
+        expect(db.select('SELECT * FROM flights'), isEmpty);
+
+        // This sample is still buffered when takeoff is detected.
+        telemetry.updateEngineRPM(2000);
+        telemetry.updateGPS(latitude: 48.0, longitude: 17.0, groundSpeed: 10.0);
+        async.elapse(const Duration(seconds: 1));
+        final uuid = db.select('SELECT uuid FROM flights').single['uuid'];
+
+        telemetry.updateGPS(groundSpeed: 0.0);
+        telemetry.updateEngineRPM(1600);
+        async.elapse(const Duration(seconds: 1));
+
+        final rows = db.select('SELECT * FROM flight_telemetry ORDER BY id');
+        expect(rows[1]['flight_uuid'], isNull);
+        expect(rows[1]['engine_rpm'], 2000);
+
+        final firstInFlight = rows.indexWhere(
+          (row) => row['flight_uuid'] == uuid,
+        );
+        expect(firstInFlight, greaterThan(1));
+        expect(rows[firstInFlight]['is_snapshot'], 1);
+        expect(rows[firstInFlight]['engine_rpm'], 2000);
+
+        final afterLanding = rows
+            .skip(firstInFlight)
+            .skipWhile((row) => row['flight_uuid'] == uuid)
+            .toList();
+        expect(afterLanding.map((row) => row['flight_uuid']), [null, null]);
+        expect(afterLanding.first['is_snapshot'], 1);
+        expect(afterLanding.first['ground_speed'], 0);
+        expect(afterLanding.last['engine_rpm'], 1600);
+        container.dispose();
+      });
+    });
+
+    test('keeps telemetry when saving flight metadata fails', () {
+      fakeAsync((async) {
+        final database = FakeDelayingBlackBoxDatabase()
+          ..database = db
+          ..failSaveFlight = true;
+        final container = ProviderContainer(
+          overrides: [blackBoxDatabaseProvider.overrideWithValue(database)],
+        );
+        container.listen(blackBoxServiceProvider, (_, _) {});
+        final telemetry = container.read(telemetryProvider.notifier);
+
+        telemetry.updateEngineRPM(1800);
+        telemetry.updateGPS(latitude: 48.0, longitude: 17.0, groundSpeed: 10.0);
+        async.elapse(const Duration(seconds: 1));
+        telemetry.updateEngineRPM(2400);
+        async.elapse(const Duration(seconds: 1));
+
+        expect(db.select('SELECT * FROM flights'), isEmpty);
+        final rows = db.select('SELECT * FROM flight_telemetry ORDER BY id');
+        expect(rows.map((row) => row['flight_uuid']), everyElement(isNull));
+        expect(rows.map((row) => row['engine_rpm']), [1800, 1800, 1800, 2400]);
+        container.dispose();
+      });
+    });
+
     test(
       'records alert episodes with the flight and removes them on deletion',
       () {
@@ -388,7 +466,8 @@ void main() {
 
           // Check DB rows
           final rows = db.select(
-            'SELECT * FROM flight_telemetry ORDER BY timestamp ASC',
+            'SELECT * FROM flight_telemetry WHERE flight_uuid = ? ORDER BY id',
+            [activeUuid],
           );
           expect(rows.length, equals(4)); // 1 initial keyframe + 3 RPM changes
 
@@ -582,7 +661,7 @@ void main() {
                       .select('SELECT COUNT(*) as count FROM flight_telemetry')
                       .first['count']
                   as int;
-          expect(initialCount, equals(1));
+          expect(initialCount, greaterThan(0));
 
           // Enable failure for telemetry inserts
           mockDb.failInsertTelemetry = true;
@@ -606,13 +685,13 @@ void main() {
           // Trigger flush (will fail)
           async.elapse(const Duration(milliseconds: 800));
 
-          // DB count should remain 1 (initial keyframe) because inserts failed
+          // The failed batch should leave the stored row count unchanged.
           final countDuringFailure =
               db
                       .select('SELECT COUNT(*) as count FROM flight_telemetry')
                       .first['count']
                   as int;
-          expect(countDuringFailure, equals(1));
+          expect(countDuringFailure, equals(initialCount));
 
           // Disable failure
           mockDb.failInsertTelemetry = false;

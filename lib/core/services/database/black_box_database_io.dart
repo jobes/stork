@@ -114,30 +114,7 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
       );
     ''');
 
-    final telemetryColumns = [
-      'id INTEGER PRIMARY KEY AUTOINCREMENT',
-      'flight_uuid TEXT NOT NULL',
-      'timestamp TEXT NOT NULL',
-      'is_snapshot INTEGER NOT NULL DEFAULT 0',
-    ];
-
-    for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
-      telemetryColumns.add('${field.dbColumnName} ${field.dbType}');
-    }
-
-    db.execute('''
-      CREATE TABLE IF NOT EXISTS flight_telemetry (
-          ${telemetryColumns.join(', ')},
-          FOREIGN KEY (flight_uuid) REFERENCES flights(uuid) ON DELETE CASCADE
-      );
-    ''');
-
-    db.execute(
-      'CREATE INDEX IF NOT EXISTS idx_telemetry_flight_id ON flight_telemetry (flight_uuid, id);',
-    );
-    db.execute(
-      'CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON flight_telemetry (timestamp);',
-    );
+    _setupTelemetryTable(db);
     db.execute(
       'CREATE INDEX IF NOT EXISTS idx_flights_start_time ON flights (start_time DESC);',
     );
@@ -181,24 +158,68 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
           FOREIGN KEY (flight_uuid) REFERENCES flights(uuid) ON DELETE CASCADE
       );
     ''');
-
-    _migrateSchema(db);
   }
 
-  void _migrateSchema(Database db) {
-    // Telemetry columns migration
-    final pragmaResults = db.select('PRAGMA table_info(flight_telemetry)');
-    final existingColumns = pragmaResults
-        .map((row) => row['name'] as String)
-        .toSet();
+  void _setupTelemetryTable(Database db) {
+    final columns = {
+      'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+      'flight_uuid': 'TEXT',
+      'timestamp': 'TEXT NOT NULL',
+      'is_snapshot': 'INTEGER NOT NULL DEFAULT 0',
+      for (final field in TelemetryField.blackBoxFields)
+        field.dbColumnName: field.dbType,
+    };
 
-    for (final field in TelemetryField.values.where((f) => f.isBlackBoxField)) {
-      final colName = field.dbColumnName;
-      if (!existingColumns.contains(colName)) {
+    db.execute('BEGIN IMMEDIATE');
+    try {
+      final existingColumns = {
+        for (final row in db.select('PRAGMA table_info(flight_telemetry)'))
+          row['name'] as String: row,
+      };
+      // SQLite requires a table rebuild to remove a NOT NULL constraint.
+      final needsRebuild = existingColumns['flight_uuid']?['notnull'] == 1;
+      if (needsRebuild) {
         db.execute(
-          'ALTER TABLE flight_telemetry ADD COLUMN $colName ${field.dbType}',
+          'ALTER TABLE flight_telemetry RENAME TO flight_telemetry_old',
         );
       }
+
+      final definitions = columns.entries.map((c) => '${c.key} ${c.value}');
+      db.execute('''
+        CREATE TABLE IF NOT EXISTS flight_telemetry (
+            ${definitions.join(', ')},
+            FOREIGN KEY (flight_uuid) REFERENCES flights(uuid) ON DELETE CASCADE
+        );
+      ''');
+
+      if (needsRebuild) {
+        final sharedColumns = columns.keys.where(existingColumns.containsKey);
+        final names = sharedColumns.join(', ');
+        db.execute('''
+          INSERT INTO flight_telemetry ($names)
+          SELECT $names FROM flight_telemetry_old
+        ''');
+        db.execute('DROP TABLE flight_telemetry_old');
+      } else if (existingColumns.isNotEmpty) {
+        for (final column in columns.entries) {
+          if (!existingColumns.containsKey(column.key)) {
+            db.execute(
+              'ALTER TABLE flight_telemetry ADD COLUMN ${column.key} ${column.value}',
+            );
+          }
+        }
+      }
+
+      db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_telemetry_flight_id ON flight_telemetry (flight_uuid, id);',
+      );
+      db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON flight_telemetry (timestamp);',
+      );
+      db.execute('COMMIT');
+    } catch (_) {
+      db.execute('ROLLBACK');
+      rethrow;
     }
   }
 
@@ -243,11 +264,11 @@ class IoBlackBoxDatabase implements BlackBoxDatabase {
   @override
   Future<void> insertTelemetryEntries(List<TelemetryEntry> entries) async {
     if (entries.isEmpty) return;
+    final db = await database;
 
     // In unit tests, run synchronously to prevent conflicts with fakeAsync
     // and to support pre-injected mocked/in-memory database connections.
     if (Platform.environment.containsKey('FLUTTER_TEST')) {
-      final db = await database;
       _insertTelemetryEntriesSync(db, entries);
       return;
     }

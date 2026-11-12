@@ -2,7 +2,7 @@ import 'telemetry_state.dart';
 
 class TelemetryEntry {
   final int? id;
-  final String flightUuid;
+  final String? flightUuid;
   final DateTime timestamp;
   final bool isSnapshot;
   final Map<String, dynamic> data;
@@ -49,7 +49,7 @@ class TelemetryEntry {
   factory TelemetryEntry.fromMap(Map<String, dynamic> map) {
     final {
       'id': int? id,
-      'flight_uuid': String flightUuid,
+      'flight_uuid': String? flightUuid,
       'timestamp': String timestamp,
       'is_snapshot': int? isSnapshotInt,
     } = map;

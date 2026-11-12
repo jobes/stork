@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
+import 'package:sqlite3/sqlite3.dart';
 import 'package:stork/core/services/database/black_box_database_io.dart';
 import 'package:stork/features/telemetry/domain/models/flight.dart';
 import 'package:stork/features/telemetry/domain/models/telemetry_entry.dart';
@@ -55,6 +56,58 @@ void main() {
         expect(db1, isNot(same(db2)));
       },
     );
+  });
+
+  test('migrates telemetry without losing existing flight data', () async {
+    final legacyDb = sqlite3.open(dbPath);
+    try {
+      legacyDb.execute('''
+        CREATE TABLE flights (
+          uuid TEXT PRIMARY KEY, name TEXT NOT NULL, start_time TEXT NOT NULL,
+          end_time TEXT, pilot_id TEXT, airplane_id TEXT, notes TEXT
+        );
+        CREATE TABLE flight_telemetry (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          flight_uuid TEXT NOT NULL,
+          timestamp TEXT NOT NULL,
+          is_snapshot INTEGER NOT NULL DEFAULT 0,
+          engine_rpm INTEGER,
+          FOREIGN KEY (flight_uuid) REFERENCES flights(uuid) ON DELETE CASCADE
+        );
+        CREATE INDEX idx_telemetry_timestamp ON flight_telemetry (timestamp);
+        INSERT INTO flights (uuid, name, start_time)
+        VALUES ('legacy', 'Legacy flight', '2026-01-01T00:00:00Z');
+        INSERT INTO flight_telemetry (id, flight_uuid, timestamp, is_snapshot, engine_rpm)
+        VALUES (42, 'legacy', '2026-01-01T00:00:00Z', 1, 2300);
+      ''');
+    } finally {
+      legacyDb.close();
+    }
+
+    final db = await blackBoxDb.database;
+    blackBoxDb.setupTables(db); // Opening an already migrated schema is safe.
+    await blackBoxDb.insertTelemetryEntries([
+      TelemetryEntry(
+        flightUuid: null,
+        timestamp: DateTime.utc(2026, 1, 2),
+        isSnapshot: true,
+        data: {'engine_rpm': 1900},
+      ),
+    ]);
+
+    final flightEntry = (await blackBoxDb.getTelemetryForFlight(
+      'legacy',
+    )).single;
+    expect(flightEntry.id, 42);
+    expect(flightEntry.isSnapshot, isTrue);
+    expect(flightEntry.data['engine_rpm'], 2300);
+
+    await blackBoxDb.deleteFlight('legacy');
+    final remaining = db.select('SELECT * FROM flight_telemetry').single;
+    expect(remaining['flight_uuid'], isNull);
+    expect(remaining['engine_rpm'], 1900);
+    expect(remaining['id'], greaterThan(42));
+    expect(db.select('PRAGMA foreign_key_check'), isEmpty);
   });
 
   group('IoBlackBoxDatabase saveFlight Tests', () {
