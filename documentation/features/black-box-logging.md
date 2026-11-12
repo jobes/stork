@@ -6,7 +6,7 @@ This document describes the design, database schema, performance optimizations, 
 
 ## 1. System Overview
 
-Stork integrates an automated flight recording system ("Black Box") that runs continuously in the background while the application is active. The system monitors live flight telemetry to detect when the aircraft takes off and lands, automatically recording high-density telemetry packets into a local SQLite database without requiring any user interaction.
+Stork's Black Box records telemetry changes in a local SQLite database while the application is active. Takeoff and landing detection controls the flight ID attached to each entry. Telemetry recorded without an active flight has a `NULL` flight ID.
 
 ```mermaid
 graph TD
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS flights (
 
 CREATE TABLE IF NOT EXISTS flight_telemetry (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    flight_uuid TEXT NOT NULL,
+    flight_uuid TEXT,
     timestamp TEXT NOT NULL,
     is_snapshot INTEGER NOT NULL DEFAULT 0,
     -- Dynamic fields mapped from TelemetryField e.g.:
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS flight_statistics (
 ```
 
 ### 3.1. Dynamic Schema Evolution
-To adapt the database schema to future additions of telemetry fields without requiring manual migrations, Stork maps the database columns dynamically from the [TelemetryField](../../lib/features/telemetry/domain/models/telemetry_state.dart) enum. On database initialization, `_migrateSchema` queries `PRAGMA table_info(flight_telemetry)` to verify existing columns, executing `ALTER TABLE flight_telemetry ADD COLUMN` commands for any newly added telemetry fields.
+On database initialization, Stork checks `PRAGMA table_info(flight_telemetry)` and adds missing columns defined by [TelemetryField](../../lib/features/telemetry/domain/models/telemetry_state.dart). For older databases that required a flight ID, it rebuilds the telemetry table in a transaction and copies the existing entries with their IDs.
 
 ### 3.2. Indexing Optimizations
 To support rapid paging of logs and efficient retrieval, three compound indices are created:
@@ -112,22 +112,19 @@ A naive recording system that logs every state update generates massive quantiti
 
 ```mermaid
 graph TD
-    A[Telemetry Update] --> B{Is Flight Active?}
-    B -->|No| C[Ignore]
-    B -->|Yes| D{Is Keyframe Needed?}
-    D -->|Yes: 10s passed OR Sensor state changed| E[Save Keyframe: Store all fields]
-    D -->|No| F{Has telemetry changed?}
-    F -->|No| G[Discard/Skip]
-    F -->|Yes| H[Save Delta Frame: Store changed columns only]
-    E --> I[Buffer entry]
-    H --> I
-    I --> J{Flush interval elapsed? 1s}
-    J -->|Yes| K[Batch transaction INSERT]
+    A[Telemetry update] --> B{Telemetry changed or flight boundary?}
+    B -->|No| C[Skip update]
+    B -->|Yes| D{Keyframe needed?}
+    D -->|Yes| E[Store all available fields]
+    D -->|No| F[Store changed fields]
+    E --> G[Buffer entry with current flight ID or NULL]
+    F --> G
+    G --> H[Flush batch every second]
 ```
 
 ### 4.1. Keyframes vs. Delta Frames
 The telemetry data is stored as a series of frames:
-- **Keyframe (Snapshot)**: Emitted when a flight starts, every **10 seconds**, or when a sensor connection status changes (e.g. coordinates changing from `null` to a valid coordinate). Keyframes store the full state of all non-null telemetry fields (`is_snapshot = 1`).
+- **Keyframe (Snapshot)**: Emitted at the start of recording, at takeoff and landing, when sensor data becomes available or unavailable, and on the next telemetry change after **10 seconds**. Keyframes store the full state of all non-null telemetry fields (`is_snapshot = 1`).
 - **Delta Frame**: Emitted when the telemetry state changes. Only fields whose values have *mutated* since the last buffered state are written to the database column; unchanged fields are inserted as `NULL` (`is_snapshot = 0`). This significantly reduces database size during stable, steady flights.
 
 ### 4.2. Buffering, Batch Flush & Background Offloading
