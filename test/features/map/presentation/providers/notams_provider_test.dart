@@ -62,16 +62,17 @@ class _Catalogs extends NotamCatalogRepository {
   }
 }
 
-class _RejectingPreferencesStore extends InMemorySharedPreferencesStore {
-  _RejectingPreferencesStore(super.data) : super.withData();
+class _PendingPreferencesStore extends InMemorySharedPreferencesStore {
+  _PendingPreferencesStore(super.data) : super.withData();
 
   final writeStarted = Completer<void>();
   final writeResult = Completer<bool>();
 
   @override
-  Future<bool> setValue(String valueType, String key, Object value) {
+  Future<bool> setValue(String valueType, String key, Object value) async {
     writeStarted.complete();
-    return writeResult.future;
+    if (!await writeResult.future) return false;
+    return super.setValue(valueType, key, value);
   }
 }
 
@@ -96,13 +97,12 @@ void main() {
     },
   );
 
-  test(
-    'a failed hide stays visible across refreshes and restores preferences',
-    () async {
+  void testPendingHide(String description, {required bool succeeds}) {
+    test(description, () async {
       const key = 'hidden_notam_expirations';
       const committed = '{"A0002/26":"PERM"}';
       final originalStore = SharedPreferencesStorePlatform.instance;
-      final store = _RejectingPreferencesStore({'flutter.$key': committed});
+      final store = _PendingPreferencesStore({'flutter.$key': committed});
       SharedPreferences.resetStatic();
       SharedPreferencesStorePlatform.instance = store;
       addTearDown(() {
@@ -150,12 +150,31 @@ void main() {
       container.invalidate(notamsProvider);
       expect((await container.read(notamsProvider.future)).notams, [notam]);
 
-      store.writeResult.complete(false);
-      expect(await hide, isFalse);
-      expect(prefs.getString(key), committed);
-      container.invalidate(notamsProvider);
-      expect((await container.read(notamsProvider.future)).notams, [notam]);
-    },
+      store.writeResult.complete(succeeds);
+      expect(await hide, succeeds);
+      final active = await container.read(notamsProvider.future);
+      expect(active.notams, succeeds ? isEmpty : [notam]);
+      if (succeeds) {
+        await prefs.reload();
+        expect(jsonDecode(prefs.getString(key)!), {
+          'A0002/26': 'PERM',
+          notam.key: 'PERM',
+        });
+      } else {
+        expect(prefs.getString(key), committed);
+        container.invalidate(notamsProvider);
+        expect((await container.read(notamsProvider.future)).notams, [notam]);
+      }
+    });
+  }
+
+  testPendingHide(
+    'a failed hide stays visible across refreshes and restores preferences',
+    succeeds: false,
+  );
+  testPendingHide(
+    'a successful hide persists and updates the replacement provider',
+    succeeds: true,
   );
 
   test(

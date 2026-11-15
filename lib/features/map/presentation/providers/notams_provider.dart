@@ -195,11 +195,16 @@ class Notams extends _$Notams {
 
   Future<bool> hideNotam(Notam notam) async {
     final owner = ref;
+    final container = owner.container;
     final repository = owner.read(notamRepositoryProvider);
     await repository.loadHiddenNotams();
     if (!owner.mounted) return false;
     final saved = await repository.hideNotam(notam);
-    if (!saved || !owner.mounted) return false;
+    if (!saved) return false;
+    if (!owner.mounted) {
+      container.invalidate(notamsProvider);
+      return true;
+    }
     if (state case AsyncData(:final value)) {
       state = AsyncData(
         value.copyWith(
