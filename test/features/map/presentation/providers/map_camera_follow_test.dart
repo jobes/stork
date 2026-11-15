@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart' as ml;
 import 'package:stork/core/services/location_provider.dart';
+import 'package:stork/core/theme/stork_colors.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:stork/features/map/presentation/providers/airspace_activity_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
 import 'package:stork/features/map/presentation/providers/notams_provider.dart';
+import 'package:stork/features/map/presentation/providers/traffic_colors.dart';
 import 'package:stork/features/map/domain/models/notam.dart';
 import 'package:stork/features/map/domain/repositories/notam_repository.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
@@ -84,6 +86,8 @@ class _Favorites extends FavoritesNotifier {
 
 class _Style extends Fake implements ml.StyleController {
   final updates = <String, List<String>>{};
+  final layers = <String, ml.StyleLayer>{};
+  bool failNextNotamWrite = false;
 
   @override
   Future<void> addSource(ml.Source source) async {}
@@ -94,7 +98,9 @@ class _Style extends Fake implements ml.StyleController {
     String? belowLayerId,
     String? aboveLayerId,
     int? atIndex,
-  }) async {}
+  }) async {
+    layers[layer.id] = layer;
+  }
 
   @override
   Future<void> removeLayer(String id) async {}
@@ -105,6 +111,10 @@ class _Style extends Fake implements ml.StyleController {
     required String data,
   }) async {
     (updates[id] ??= []).add(data);
+    if (id == 'notams-source' && failNextNotamWrite) {
+      failNextNotamWrite = false;
+      throw StateError('NOTAM source unavailable');
+    }
   }
 }
 
@@ -198,6 +208,41 @@ _setupFollow(WidgetTester tester, {_Notams? notams}) async {
 }
 
 void main() {
+  testWidgets('NOTAM fill and outline use the shared colour', (tester) async {
+    final setup = await _setupFollow(tester);
+    final layers = setup.map.style.layers;
+    final fill = layers['notams-fill-layer']!.paint;
+    final outline = layers['notams-line-layer']!.paint;
+    expect(fill['fill-color'], mapColorHex(StorkColors.notam));
+    expect(outline['line-color'], fill['fill-color']);
+    expect(fill['fill-opacity'], 0.25);
+    expect(outline['line-width'], 2.0);
+    expect(outline['line-dasharray'], [2.0, 2.0]);
+  });
+
+  testWidgets('retries a failed NOTAM source write after one second', (
+    tester,
+  ) async {
+    final notams = _Notams();
+    final setup = await _setupFollow(tester, notams: notams);
+    final style = setup.map.style;
+    style.failNextNotamWrite = true;
+
+    notams.publish([
+      Notam(id: 'A1234/26', from: DateTime.utc(2026), radius: 1852),
+    ]);
+
+    final writes = style.updates['notams-source']!;
+    await tester.pump(const Duration(milliseconds: 999));
+    expect(writes, hasLength(1));
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(writes, hasLength(2));
+    expect(writes.last, writes.first);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(writes, hasLength(2));
+  });
+
   testWidgets('batches NOTAM layer writes and uses the latest snapshot', (
     tester,
   ) async {

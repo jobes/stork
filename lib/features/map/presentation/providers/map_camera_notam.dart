@@ -87,6 +87,7 @@ extension MapCameraNotam on MapCamera {
     } catch (error) {
       if (refAccess.mounted && identical(style, _notamStyle)) {
         _lastNotamMapFeatures = null;
+        _notamLayerDirty = true;
       }
       debugPrint('NOTAM map layer update failed: $error');
     } finally {

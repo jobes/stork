@@ -82,11 +82,12 @@ extension MapCameraStyle on MapCamera {
       );
       if (!refAccess.mounted) return;
 
+      final notamColor = mapColorHex(StorkColors.notam);
       await style.addLayer(
         FillStyleLayer(
           id: 'notams-fill-layer',
           sourceId: 'notams-source',
-          paint: {'fill-color': '#FF5722', 'fill-opacity': 0.25},
+          paint: {'fill-color': notamColor, 'fill-opacity': 0.25},
         ),
       );
       if (!refAccess.mounted) return;
@@ -96,7 +97,7 @@ extension MapCameraStyle on MapCamera {
           id: 'notams-line-layer',
           sourceId: 'notams-source',
           paint: {
-            'line-color': '#FF5722',
+            'line-color': notamColor,
             'line-width': 2.0,
             'line-dasharray': [2.0, 2.0],
           },

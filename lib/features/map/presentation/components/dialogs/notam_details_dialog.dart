@@ -11,6 +11,9 @@ class NotamDetailsDialog extends ConsumerWidget {
 
   const NotamDetailsDialog({super.key, required this.notams});
 
+  Iterable<Notam> _selectedNotams(Iterable<Notam> current) =>
+      current.where((n) => notams.any((selected) => selected.key == n.key));
+
   String _formatDateTime(DateTime dt, String locale) {
     try {
       final localDt = dt.toLocal();
@@ -30,9 +33,7 @@ class NotamDetailsDialog extends ConsumerWidget {
     // by the user (tracked in [notamsProvider]), allowing the dialog to reactively update
     // when a NOTAM is hidden.
     final allNotams = ref.watch(notamsProvider).value?.notams ?? [];
-    final visibleNotams = allNotams
-        .where((n) => notams.any((selected) => selected.key == n.key))
-        .toList();
+    final visibleNotams = _selectedNotams(allNotams).toList();
 
     final String titleText = visibleNotams.length == 1
         ? '${l10n.notamDetails} ${visibleNotams.first.id}'
@@ -51,7 +52,7 @@ class NotamDetailsDialog extends ConsumerWidget {
               context,
               ref,
               visibleNotams[i],
-              visibleNotams,
+              visibleNotams.length > 1,
               isDark,
               l10n,
             ),
@@ -65,7 +66,7 @@ class NotamDetailsDialog extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Notam notam,
-    List<Notam> visibleNotams,
+    bool showId,
     bool isDark,
     AppLocalizations l10n,
   ) {
@@ -76,7 +77,7 @@ class NotamDetailsDialog extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            if (visibleNotams.length > 1)
+            if (showId)
               Text(
                 notam.id,
                 style: TextStyle(
@@ -193,11 +194,15 @@ class NotamDetailsDialog extends ConsumerWidget {
                 final saved = await ref
                     .read(notamsProvider.notifier)
                     .hideNotam(notam);
-                if (!saved || !context.mounted) return;
-                final remaining = visibleNotams
-                    .where((n) => n.key != notam.key)
-                    .toList();
-                if (remaining.isEmpty) {
+                if (!context.mounted) return;
+                if (!saved) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.settingsPreferenceSaveFailed)),
+                  );
+                  return;
+                }
+                final current = ref.read(notamsProvider).value?.notams ?? [];
+                if (_selectedNotams(current).isEmpty) {
                   Navigator.of(context).pop();
                 }
               },

@@ -12,6 +12,7 @@ class StorkColors {
   static const Color lightSurface = Color(0xFFF6F9FB);
   static const Color darkSurface = Color(0xFF000000);
   static const Color darkSurfaceContainer = Color(0xFF121212);
+  static const Color notam = Color(0xFF4A5BC0);
 
   static ColorScheme scheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;

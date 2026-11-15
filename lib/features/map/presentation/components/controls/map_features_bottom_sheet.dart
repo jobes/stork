@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:maplibre/maplibre.dart';
+import '../../../../../core/theme/stork_colors.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../../favorites/presentation/dialogs/add_favorite_dialog.dart';
@@ -283,7 +284,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
             ListTile(
               leading: const Icon(
                 Icons.warning_amber_rounded,
-                color: Colors.orange,
+                color: StorkColors.notam,
               ),
               title: Text(
                 notamFeatures.length > 1
