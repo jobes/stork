@@ -16,6 +16,7 @@ import '../../../../telemetry/presentation/providers/instrument_status_provider.
 import '../../../../telemetry/presentation/providers/temperature_trend_provider.dart';
 import '../../providers/map_alert_history_provider.dart';
 import '../../providers/map_alerts_provider.dart';
+import '../../providers/notams_provider.dart';
 import '../dialogs/base_details_dialog.dart';
 
 const _alertBadgeDiameter = 44.0;
@@ -364,6 +365,9 @@ class _MapAlertDialog extends ConsumerWidget {
     );
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final notams = ref.watch(notamsProvider);
+    final notamSummary = notams.value;
+    final hasNotamError = notams.hasError || (notamSummary?.hasIssue ?? false);
     final primary = alerts.firstOrNull;
     final multiple = alerts.length > 1;
     final color = primary == null
@@ -425,6 +429,32 @@ class _MapAlertDialog extends ConsumerWidget {
               const SizedBox(height: 8),
             ],
             _AlertDetails(key: ValueKey(alert.kind), alert: alert),
+          ],
+          if (notamSummary?.isRefreshing == true) ...[
+            const SizedBox(height: 14),
+            Text(l10n.notamRefreshing, style: theme.textTheme.bodySmall),
+          ],
+          if (hasNotamError || notamSummary?.oldestFetch != null) ...[
+            const SizedBox(height: 14),
+            if (notamSummary?.oldestFetch case final fetched?)
+              Text(
+                l10n.notamOldestUpdate(
+                  MaterialLocalizations.of(
+                    context,
+                  ).formatShortDate(fetched.toLocal()),
+                  _formatTime(context, fetched),
+                ),
+                style: theme.textTheme.bodySmall,
+              ),
+            if (hasNotamError)
+              OutlinedButton.icon(
+                onPressed:
+                    notams.isLoading || (notamSummary?.isRefreshing ?? false)
+                    ? null
+                    : () => ref.read(notamsProvider.notifier).refresh(),
+                icon: const Icon(Icons.refresh),
+                label: Text(l10n.notamRefresh),
+              ),
           ],
         ],
       ),
@@ -528,6 +558,9 @@ class _AlertDetails extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final instrument = alert.kind.instrument;
+    final notamStatus = alert.kind == MapAlertKind.notamDataUnavailable
+        ? ref.watch(notamsProvider).value
+        : null;
     final readings =
         instrument == null || instrument == TelemetryInstrument.radio
         ? const <InstrumentAlertReading>[]
@@ -546,6 +579,18 @@ class _AlertDetails extends ConsumerWidget {
               reading: reading,
             ),
           ],
+        if (notamStatus != null) ...[
+          if (notamStatus.failedLocations.isNotEmpty)
+            Text(
+              l10n.notamFailedLocations(notamStatus.failedLocations.join(', ')),
+            ),
+          if (notamStatus.partialLocations.isNotEmpty)
+            Text(
+              l10n.notamPartialLocations(
+                notamStatus.partialLocations.join(', '),
+              ),
+            ),
+        ],
         const SizedBox(height: 14),
         Text(
           l10n.mapAlertSince(_formatTime(context, alert.since)),
@@ -711,6 +756,7 @@ IconData mapAlertIcon(MapAlertKind kind) {
     MapAlertKind.trafficSourceOffline => Icons.wifi_tethering_off,
     MapAlertKind.internetUnavailable => Icons.wifi_off,
     MapAlertKind.airspaceDataUnavailable => Icons.layers_clear,
+    MapAlertKind.notamDataUnavailable => Icons.warning_amber_rounded,
     MapAlertKind.terrainUnavailable => Icons.landscape_outlined,
     MapAlertKind.radarUnavailable ||
     MapAlertKind.radarHistoryUnavailable => Icons.thunderstorm_outlined,
@@ -749,6 +795,7 @@ String _alertTitle(AppLocalizations l10n, MapAlert alert) {
     MapAlertKind.trafficSourceOffline => l10n.mapAlertTrafficOfflineTitle,
     MapAlertKind.internetUnavailable => l10n.mapAlertInternetTitle,
     MapAlertKind.airspaceDataUnavailable => l10n.mapAlertAirspaceTitle,
+    MapAlertKind.notamDataUnavailable => l10n.notamUnavailableTitle,
     MapAlertKind.terrainUnavailable => l10n.mapAlertTerrainTitle,
     MapAlertKind.offlineMapsError => l10n.mapAlertOfflineMapsTitle,
     MapAlertKind.droneCanGpsFallback => l10n.mapAlertDroneCanGpsTitle,
@@ -785,6 +832,7 @@ String _alertBody(AppLocalizations l10n, MapAlert alert) {
     MapAlertKind.trafficSourceOffline => l10n.mapAlertTrafficOfflineBody,
     MapAlertKind.internetUnavailable => l10n.mapAlertInternetBody,
     MapAlertKind.airspaceDataUnavailable => l10n.mapAlertAirspaceBody,
+    MapAlertKind.notamDataUnavailable => l10n.notamUnavailableBody,
     MapAlertKind.terrainUnavailable => l10n.mapAlertTerrainBody,
     MapAlertKind.offlineMapsError => l10n.mapAlertOfflineMapsBody,
     MapAlertKind.droneCanGpsFallback => l10n.mapAlertDroneCanGpsBody,

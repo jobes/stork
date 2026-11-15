@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stork/features/map/domain/repositories/notam_repository.dart';
 import 'package:stork/features/map/presentation/components/controls/map_alert_indicator.dart';
 import 'package:stork/features/map/presentation/components/controls/map_controls.dart';
 import 'package:stork/features/map/presentation/providers/map_alert_history_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
+import 'package:stork/features/map/presentation/providers/notams_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/domain/models/range_thresholds.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
@@ -41,17 +43,30 @@ class _Settings extends AppSettingsNotifier {
   AppSettings build() => const AppSettings();
 }
 
+class _Notams extends Notams {
+  _Notams(this.result);
+
+  final NotamFetchResult result;
+
+  @override
+  Future<NotamFetchResult> build() async => result;
+
+  void emit(AsyncValue<NotamFetchResult> next) => state = next;
+}
+
 Widget _app({
   required MapAlert? alert,
   List<MapAlert> otherAlerts = const [],
   bool disableAnimations = true,
   TelemetryState telemetry = const TelemetryState(),
+  _Notams? notams,
   Widget body = const Center(child: MapAlertIndicator()),
 }) {
   return ProviderScope(
     overrides: [
       telemetryProvider.overrideWith(() => _Telemetry(telemetry)),
       appSettingsProvider.overrideWith(_Settings.new),
+      if (notams != null) notamsProvider.overrideWith(() => notams),
       mapAlertsProvider.overrideWith(
         () => _StubMapAlerts([?alert, ...otherAlerts]),
       ),
@@ -86,6 +101,48 @@ double _badgeScale(WidgetTester tester) {
 }
 
 void main() {
+  testWidgets('offers NOTAM refresh only while NOTAM data has an error', (
+    tester,
+  ) async {
+    final fetched = DateTime.utc(2026, 11, 15, 12);
+    final result = NotamFetchResult(
+      [],
+      oldestFetch: fetched,
+      nextRefresh: fetched.add(const Duration(hours: 1)),
+    );
+    final notams = _Notams(result);
+    await tester.pumpWidget(
+      _app(
+        alert: MapAlert(kind: MapAlertKind.gpsFixLost, since: fetched),
+        notams: notams,
+      ),
+    );
+    await tester.tap(find.byType(MapAlertIndicator));
+    await tester.pumpAndSettle();
+
+    final refresh = find.text('Refresh NOTAMs');
+    expect(find.textContaining('Oldest NOTAM update'), findsOneWidget);
+    expect(refresh, findsNothing);
+
+    notams.emit(AsyncData(result.copyWith(failedLocations: ['LKAA'])));
+    await tester.pump();
+    expect(refresh, findsOneWidget);
+
+    notams.emit(AsyncData(result.copyWith(partialLocations: ['LZIB'])));
+    await tester.pump();
+    expect(refresh, findsOneWidget);
+
+    notams.emit(
+      AsyncError(StateError('Catalog unavailable'), StackTrace.empty),
+    );
+    await tester.pump();
+    expect(refresh, findsOneWidget);
+
+    notams.emit(AsyncData(result));
+    await tester.pump();
+    expect(refresh, findsNothing);
+  });
+
   testWidgets('shows stored flight alerts with channel and duration', (
     tester,
   ) async {

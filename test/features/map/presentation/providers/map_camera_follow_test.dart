@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
@@ -5,9 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart' as ml;
 import 'package:stork/core/services/location_provider.dart';
+import 'package:stork/core/theme/stork_colors.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:stork/features/map/presentation/providers/airspace_activity_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
+import 'package:stork/features/map/presentation/providers/notams_provider.dart';
+import 'package:stork/features/map/presentation/providers/traffic_colors.dart';
+import 'package:stork/features/map/domain/models/notam.dart';
+import 'package:stork/features/map/domain/repositories/notam_repository.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
@@ -65,6 +71,15 @@ class _Navigation extends NavigationNotifier {
   NavigationState build() => const NavigationState();
 }
 
+class _Notams extends Notams {
+  @override
+  Future<NotamFetchResult> build() async => const NotamFetchResult([]);
+
+  void publish(List<Notam> notams) {
+    state = AsyncData(NotamFetchResult(notams));
+  }
+}
+
 class _Favorites extends FavoritesNotifier {
   @override
   Future<List<FavoritePoint>> build() async => [];
@@ -72,6 +87,9 @@ class _Favorites extends FavoritesNotifier {
 
 class _Style extends Fake implements ml.StyleController {
   final updates = <String, List<String>>{};
+  final layers = <String, ml.StyleLayer>{};
+  bool failNextNotamWrite = false;
+  Future<void>? nextFavoritesLayerDelay;
 
   @override
   Future<void> addSource(ml.Source source) async {}
@@ -82,7 +100,14 @@ class _Style extends Fake implements ml.StyleController {
     String? belowLayerId,
     String? aboveLayerId,
     int? atIndex,
-  }) async {}
+  }) async {
+    layers[layer.id] = layer;
+    if (layer.id == 'favorites-layer') {
+      final delay = nextFavoritesLayerDelay;
+      nextFavoritesLayerDelay = null;
+      if (delay != null) await delay;
+    }
+  }
 
   @override
   Future<void> removeLayer(String id) async {}
@@ -93,12 +118,16 @@ class _Style extends Fake implements ml.StyleController {
     required String data,
   }) async {
     (updates[id] ??= []).add(data);
+    if (id == 'notams-source' && failNextNotamWrite) {
+      failNextNotamWrite = false;
+      throw StateError('NOTAM source unavailable');
+    }
   }
 }
 
 class _Map extends Fake implements ml.MapController {
   @override
-  final _Style style = _Style();
+  _Style style = _Style();
 
   @override
   ml.MapCamera camera = const ml.MapCamera(
@@ -144,7 +173,7 @@ class _Map extends Fake implements ml.MapController {
 Future<
   ({MapCamera camera, _Map map, _Telemetry telemetry, _FilteredTraffic traffic})
 >
-_setupFollow(WidgetTester tester) async {
+_setupFollow(WidgetTester tester, {_Notams? notams}) async {
   final telemetry = _Telemetry();
   final traffic = _FilteredTraffic();
   await tester.pumpWidget(
@@ -156,6 +185,7 @@ _setupFollow(WidgetTester tester) async {
         appSettingsProvider.overrideWith(_Settings.new),
         currentLocationProvider.overrideWithValue(const AsyncData(null)),
         navigationProvider.overrideWith(_Navigation.new),
+        if (notams != null) notamsProvider.overrideWith(() => notams),
         favoritesProvider.overrideWith(_Favorites.new),
         airspaceActivityProvider.overrideWithValue(const {}),
         resolvedAltitudeProvider.overrideWithValue(
@@ -185,6 +215,103 @@ _setupFollow(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('a late style load leaves NOTAM updates on the current style', (
+    tester,
+  ) async {
+    final notams = _Notams();
+    final (:map, :camera, telemetry: _, traffic: _) = await _setupFollow(
+      tester,
+      notams: notams,
+    );
+    final previousStyle = map.style;
+    final finishPreviousLoad = Completer<void>();
+    previousStyle.nextFavoritesLayerDelay = finishPreviousLoad.future;
+    final previousLoad = camera.handleStyleLoaded(previousStyle);
+    await tester.pump();
+
+    map.style = _Style();
+    await camera.handleStyleLoaded(map.style);
+    finishPreviousLoad.complete();
+    await previousLoad;
+
+    notams.publish([
+      Notam(id: 'A1234/26', from: DateTime.utc(2026), radius: 1852),
+    ]);
+    expect(map.style.updates['notams-source'], hasLength(1));
+    expect(previousStyle.updates['notams-source'], isNull);
+  });
+
+  testWidgets('NOTAM fill and outline use the shared colour', (tester) async {
+    final setup = await _setupFollow(tester);
+    final layers = setup.map.style.layers;
+    final fill = layers['notams-fill-layer']!.paint;
+    final outline = layers['notams-line-layer']!.paint;
+    expect(fill['fill-color'], mapColorHex(StorkColors.notam));
+    expect(outline['line-color'], fill['fill-color']);
+    expect(fill['fill-opacity'], 0.25);
+    expect(outline['line-width'], 2.0);
+    expect(outline['line-dasharray'], [2.0, 2.0]);
+  });
+
+  testWidgets('retries a failed NOTAM source write after one second', (
+    tester,
+  ) async {
+    final notams = _Notams();
+    final setup = await _setupFollow(tester, notams: notams);
+    final style = setup.map.style;
+    style.failNextNotamWrite = true;
+
+    notams.publish([
+      Notam(id: 'A1234/26', from: DateTime.utc(2026), radius: 1852),
+    ]);
+
+    final writes = style.updates['notams-source']!;
+    await tester.pump(const Duration(milliseconds: 999));
+    expect(writes, hasLength(1));
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(writes, hasLength(2));
+    expect(writes.last, writes.first);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(writes, hasLength(2));
+  });
+
+  testWidgets('batches NOTAM layer writes and uses the latest snapshot', (
+    tester,
+  ) async {
+    final notams = _Notams();
+    final (:map, :camera, telemetry: _, traffic: _) = await _setupFollow(
+      tester,
+      notams: notams,
+    );
+    final writes = map.style.updates;
+    Notam notice(String id) => Notam(
+      id: id,
+      from: DateTime.utc(2026),
+      radius: 1852,
+      latitude: 48,
+      longitude: 17,
+    );
+
+    notams.publish([notice('first')]);
+    expect(writes['notams-source'], hasLength(1));
+    notams.publish([notice('second')]);
+    await tester.pump(const Duration(milliseconds: 500));
+    notams.publish([notice('latest')]);
+    await tester.pump(const Duration(milliseconds: 499));
+    expect(writes['notams-source'], hasLength(1));
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(writes['notams-source'], hasLength(2));
+    expect(writes['notams-source']!.last, contains('latest'));
+    expect(writes['notams-source']!.last, isNot(contains('second')));
+
+    notams.publish([notice('latest')]);
+    await tester.pump(const Duration(seconds: 1));
+    expect(writes['notams-source'], hasLength(2));
+    await camera.handleStyleLoaded(map.style);
+    expect(writes['notams-source'], hasLength(3));
+  });
+
   testWidgets('follow applies a saved pitch change without a new GPS fix', (
     tester,
   ) async {

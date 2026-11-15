@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:maplibre/maplibre.dart';
+import '../../../../../core/theme/stork_colors.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../../favorites/presentation/dialogs/add_favorite_dialog.dart';
@@ -10,7 +11,9 @@ import '../../../../favorites/presentation/providers/favorites_provider.dart';
 import '../../providers/airport_metadata_provider.dart';
 import '../dialogs/airport_details_dialog.dart';
 import '../dialogs/airspace_details_dialog.dart';
+import '../dialogs/notam_details_dialog.dart';
 import '../dialogs/traffic_details_dialog.dart';
+import '../../providers/notams_provider.dart';
 
 class MapFeaturesBottomSheet extends ConsumerWidget {
   final List<dynamic> features;
@@ -51,6 +54,20 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
       }
     }
     return null;
+  }
+
+  /// Helper method to find NOTAM features in the features list
+  List<Map<dynamic, dynamic>> _findNotamFeatures() {
+    final list = <Map<dynamic, dynamic>>[];
+    for (final f in features) {
+      if (f case {
+        'layerType': 'notam',
+        'properties': {'key': String _, 'id': String _, 'title': String _},
+      }) {
+        list.add(f);
+      }
+    }
+    return list;
   }
 
   /// Helper method to find a favourite point feature in the features list
@@ -119,6 +136,30 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
     );
   }
 
+  void _showNotamsDetails(
+    BuildContext context,
+    List<Map<dynamic, dynamic>> notamFeatures,
+    WidgetRef ref,
+  ) {
+    final notamsState = ref.read(notamsProvider).value?.notams ?? [];
+    final notamIds = notamFeatures
+        .map((f) => f['properties']?['key']?.toString())
+        .whereType<String>()
+        .toSet();
+    final matchedNotams = notamsState
+        .where((n) => notamIds.contains(n.key))
+        .toList();
+
+    if (matchedNotams.isEmpty) {
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => NotamDetailsDialog(notams: matchedNotams),
+    );
+  }
+
   String _getPointName(BuildContext context) {
     final airport = _findAirportFeature();
     if (airport != null) {
@@ -158,6 +199,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final airportFeature = _findAirportFeature();
     final airspaceFeatures = _findAirspaceFeatures();
+    final notamFeatures = _findNotamFeatures();
     final trafficFeatures = _findTrafficFeatures();
     final favoriteFeature = _findFavoriteFeature();
     final l10n = AppLocalizations.of(context)!;
@@ -236,6 +278,29 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
               onTap: () {
                 Navigator.pop(context); // Close bottom sheet
                 _showTrafficDetails(context, trafficFeatures);
+              },
+            ),
+          if (notamFeatures.isNotEmpty)
+            ListTile(
+              leading: const Icon(
+                Icons.warning_amber_rounded,
+                color: StorkColors.notam,
+              ),
+              title: Text(
+                notamFeatures.length > 1
+                    ? '${l10n.notamsTitle} (${notamFeatures.length})'
+                    : '${l10n.notamDetails} ${notamFeatures.first['properties']['id']}',
+              ),
+              subtitle: Text(
+                notamFeatures.length > 1
+                    ? notamFeatures.map((n) => n['properties']['id']).join(', ')
+                    : (notamFeatures.first['properties']['title'] ?? ''),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () {
+                Navigator.pop(context); // Close bottom sheet
+                _showNotamsDetails(context, notamFeatures, ref);
               },
             ),
           // 'Add to favourites' is hidden when tapping an airport or any

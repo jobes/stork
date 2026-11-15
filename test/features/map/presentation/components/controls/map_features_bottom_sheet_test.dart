@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
+import 'package:stork/core/theme/stork_colors.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/map/domain/models/poi_type.dart';
@@ -19,6 +20,40 @@ import 'package:stork/features/map/domain/airport_metadata.dart';
 import 'package:stork/l10n/app_localizations.dart';
 
 void main() {
+  testWidgets('NOTAM icon uses the same colour in both themes', (tester) async {
+    for (final brightness in Brightness.values) {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: ThemeData(brightness: brightness),
+            themeAnimationDuration: Duration.zero,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(
+              body: MapFeaturesBottomSheet(
+                features: [
+                  {
+                    'layerType': 'notam',
+                    'properties': {
+                      'key': 'A1234/26',
+                      'id': 'A1234/26',
+                      'title': 'NOTAM',
+                    },
+                  },
+                ],
+                coordinate: Geographic(lat: 0, lon: 0),
+              ),
+            ),
+          ),
+        ),
+      );
+      final icon = tester.widget<Icon>(
+        find.byIcon(Icons.warning_amber_rounded),
+      );
+      expect(icon.color, StorkColors.notam);
+    }
+  });
+
   testWidgets(
     'MapFeaturesBottomSheet passes correct fallbackName - null name_label',
     (WidgetTester tester) async {

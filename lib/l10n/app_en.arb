@@ -1463,5 +1463,48 @@
         "type": "int"
       }
     }
+  },
+  "notamsTitle": "NOTAMs",
+  "notamDetails": "NOTAM Details",
+  "notamStart": "Start Time",
+  "notamEnd": "End Time",
+  "notamFir": "FIR",
+  "notamLimits": "Vertical Limits",
+  "hideNotam": "Hide",
+  "notamSchedule": "Schedule (UTC)",
+  "notamRaw": "Original ICAO message",
+  "notamSource": "Data from notams.online",
+  "notamMessage": "NOTAM message",
+  "notamMapArea": "The circle on the map shows the approximate area from the Q line.",
+  "notamUnavailableTitle": "NOTAM data unavailable",
+  "notamUnavailableBody": "Stork could not load all NOTAM data for this area or route.",
+  "notamRefresh": "Refresh NOTAMs",
+  "notamOldestUpdate": "Oldest NOTAM update {date} at {time}",
+  "@notamOldestUpdate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notamFailedLocations": "Download failed for {codes}.",
+  "notamPartialLocations": "Some records could not be read for {codes}.",
+  "notamRefreshing": "Loading NOTAMs. Results are still incomplete.",
+  "@notamFailedLocations": {
+    "placeholders": {
+      "codes": {
+        "type": "String"
+      }
+    }
+  },
+  "@notamPartialLocations": {
+    "placeholders": {
+      "codes": {
+        "type": "String"
+      }
+    }
   }
 }

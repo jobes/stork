@@ -1,12 +1,15 @@
 class ApiConstants {
-  static const openAipMetadataBaseUrl =
-      'https://huggingface.co/datasets/jobes666/openaip-mptiles/resolve/main/geojsons';
+  static const openAipDatasetBaseUrl =
+      'https://huggingface.co/datasets/jobes666/openaip-mptiles/resolve/main';
+  static const openAipMetadataBaseUrl = '$openAipDatasetBaseUrl/geojsons';
   static const openAipImageBaseUrl =
       'https://api.core.openaip.net/api/files/images';
   static const openAipWebBaseUrl = 'https://www.openaip.net/data/airports';
 
   /// CORS proxy used by Web builds for sources that do not send CORS headers.
   static const webProxyUrl = 'https://www.stork-nav.app/nocors.php?url=';
+
+  static const notamSearchUrl = 'https://notams.online/api/notams.php';
 
   // AUP/UUP (Airspace Use Plan / Updated Use Plan) sources.
   /// Slovak LzPS (AIS SR) — public ArcGIS FeatureServer with currently active

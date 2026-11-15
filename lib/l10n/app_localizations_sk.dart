@@ -2921,4 +2921,70 @@ class AppLocalizationsSk extends AppLocalizations {
   String clockCountdownHoursMinutes(int hours, int minutes) {
     return '$hours h $minutes min';
   }
+
+  @override
+  String get notamsTitle => 'NOTAMy';
+
+  @override
+  String get notamDetails => 'Detaily NOTAMu';
+
+  @override
+  String get notamStart => 'Začiatok platnosti';
+
+  @override
+  String get notamEnd => 'Koniec platnosti';
+
+  @override
+  String get notamFir => 'FIR';
+
+  @override
+  String get notamLimits => 'Vertikálne limity';
+
+  @override
+  String get hideNotam => 'Skryť';
+
+  @override
+  String get notamSchedule => 'Rozvrh (UTC)';
+
+  @override
+  String get notamRaw => 'Pôvodná správa ICAO';
+
+  @override
+  String get notamSource => 'Údaje z notams.online';
+
+  @override
+  String get notamMessage => 'Správa NOTAM';
+
+  @override
+  String get notamMapArea =>
+      'Kruh na mape zobrazuje približnú oblasť podľa riadka Q.';
+
+  @override
+  String get notamUnavailableTitle => 'Údaje NOTAM sú nedostupné';
+
+  @override
+  String get notamUnavailableBody =>
+      'Storku sa nepodarilo načítať všetky údaje NOTAM pre túto oblasť alebo trasu.';
+
+  @override
+  String get notamRefresh => 'Obnoviť NOTAM';
+
+  @override
+  String notamOldestUpdate(String date, String time) {
+    return 'Najstaršia aktualizácia NOTAM $date o $time';
+  }
+
+  @override
+  String notamFailedLocations(String codes) {
+    return 'Sťahovanie zlyhalo pre $codes.';
+  }
+
+  @override
+  String notamPartialLocations(String codes) {
+    return 'Niektoré záznamy sa nepodarilo spracovať pre $codes.';
+  }
+
+  @override
+  String get notamRefreshing =>
+      'NOTAM sa načítavajú. Výsledky sú zatiaľ neúplné.';
 }

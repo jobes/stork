@@ -22,6 +22,23 @@ class _SeededOfflineMapsNotifier extends OfflineMapsNotifier {
   OfflineMapsState build() => initial;
 }
 
+class _OfflineMapsWithDownloadedTiles extends _SeededOfflineMapsNotifier {
+  _OfflineMapsWithDownloadedTiles(super.initial);
+
+  late OfflineMapsState tileProgress;
+
+  @override
+  Future<void> updateProgress() async {
+    final tiles = await DatabaseService.getEmptyTiles();
+    await DatabaseService.updateTilesData([
+      for (final tile in tiles) {...tile, 'data': Uint8List(1), 'type': 'none'},
+    ]);
+    await super.updateProgress();
+    tileProgress = state;
+    await cancelDownload();
+  }
+}
+
 void main() {
   group('TileUtils', () {
     test('getTilesForRegion should return zoom 0 tile', () {
@@ -137,6 +154,39 @@ void main() {
       try {
         tempDir.deleteSync(recursive: true);
       } catch (_) {}
+    });
+
+    test('a new run clears the last completion date before polling', () async {
+      final previousDate = DateTime(2026, 1, 1);
+      final initial = OfflineMapsState(
+        regions: [
+          OfflineMapArea(
+            id: 'test',
+            northwest: Geographic(lon: 17, lat: 48),
+            southeast: Geographic(lon: 17, lat: 48),
+          ),
+        ],
+        downloadDate: previousDate,
+        isDownloaded: true,
+      );
+      expect(initial.copyWith().downloadDate, previousDate);
+
+      final notifier = _OfflineMapsWithDownloadedTiles(initial);
+      final container = ProviderContainer.test(
+        overrides: [offlineMapsProvider.overrideWith(() => notifier)],
+      );
+      container.listen(offlineMapsProvider, (_, _) {});
+
+      final download = notifier.startDownload();
+      expect(container.read(offlineMapsProvider).downloadDate, isNull);
+      expect(container.read(offlineMapsProvider).isDownloaded, isFalse);
+      await download;
+
+      final progress = notifier.tileProgress;
+      expect(progress.totalTiles, greaterThan(0));
+      expect(progress.downloadedTiles, progress.totalTiles);
+      expect(progress.downloadDate, isNull);
+      expect(progress.isDownloaded, isFalse);
     });
 
     test('startDownload clears airport and airspace metadata caches', () async {

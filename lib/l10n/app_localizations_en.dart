@@ -2907,4 +2907,69 @@ class AppLocalizationsEn extends AppLocalizations {
   String clockCountdownHoursMinutes(int hours, int minutes) {
     return '$hours h $minutes min';
   }
+
+  @override
+  String get notamsTitle => 'NOTAMs';
+
+  @override
+  String get notamDetails => 'NOTAM Details';
+
+  @override
+  String get notamStart => 'Start Time';
+
+  @override
+  String get notamEnd => 'End Time';
+
+  @override
+  String get notamFir => 'FIR';
+
+  @override
+  String get notamLimits => 'Vertical Limits';
+
+  @override
+  String get hideNotam => 'Hide';
+
+  @override
+  String get notamSchedule => 'Schedule (UTC)';
+
+  @override
+  String get notamRaw => 'Original ICAO message';
+
+  @override
+  String get notamSource => 'Data from notams.online';
+
+  @override
+  String get notamMessage => 'NOTAM message';
+
+  @override
+  String get notamMapArea =>
+      'The circle on the map shows the approximate area from the Q line.';
+
+  @override
+  String get notamUnavailableTitle => 'NOTAM data unavailable';
+
+  @override
+  String get notamUnavailableBody =>
+      'Stork could not load all NOTAM data for this area or route.';
+
+  @override
+  String get notamRefresh => 'Refresh NOTAMs';
+
+  @override
+  String notamOldestUpdate(String date, String time) {
+    return 'Oldest NOTAM update $date at $time';
+  }
+
+  @override
+  String notamFailedLocations(String codes) {
+    return 'Download failed for $codes.';
+  }
+
+  @override
+  String notamPartialLocations(String codes) {
+    return 'Some records could not be read for $codes.';
+  }
+
+  @override
+  String get notamRefreshing => 'Loading NOTAMs. Results are still incomplete.';
 }

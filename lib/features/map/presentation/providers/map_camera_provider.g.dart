@@ -40,7 +40,7 @@ final class MapCameraProvider extends $NotifierProvider<MapCamera, void> {
   }
 }
 
-String _$mapCameraHash() => r'1d907fd6cb9e2b03d5a7851993ffe8ff15d83527';
+String _$mapCameraHash() => r'e7e116c342b03cc6b71116e4fb317aa5d466fb0f';
 
 abstract class _$MapCamera extends $Notifier<void> {
   void build();
