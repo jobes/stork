@@ -83,8 +83,9 @@ void main() {
     final first = await repository.fetchNotamsByLocations(['LZBB', 'LZIB']);
     expect(first.notams, hasLength(1));
     expect(first.failedLocations, ['LZIB']);
+    expect(repository.cachedNotams(['lzbb', 'lzib', 'LzIb']), first);
 
-    final second = await repository.fetchNotamsByLocations(['LZBB', 'LZIB']);
+    final second = await repository.fetchNotamsByLocations(['lzbb', 'lzib']);
     expect(second.notams, hasLength(1));
     expect(second.failedLocations, ['LZIB']);
     expect(requests, ['LZBB', 'LZIB']);

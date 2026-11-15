@@ -5,8 +5,10 @@ import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/providers/shared_preferences_provider.dart';
 import '../../domain/models/notam.dart';
 import '../../domain/repositories/notam_repository.dart';
 import '../utils/notam_decoder.dart';
@@ -14,9 +16,18 @@ import '../utils/notam_decoder.dart';
 part 'notam_repository.g.dart';
 
 class HttpNotamRepository implements NotamRepository {
-  HttpNotamRepository({required this._client});
+  HttpNotamRepository({
+    required this._client,
+    this._loadPreferences = SharedPreferences.getInstance,
+  });
 
   final http.Client _client;
+  final Future<SharedPreferences> Function() _loadPreferences;
+
+  static const _hiddenNotamExpirationsKey = 'hidden_notam_expirations';
+  SharedPreferences? _preferences;
+  Map<String, String> _committedHiddenNotams = {};
+  Future<void> _hideQueue = Future.value();
 
   // The public NOTAM Viewer browser client uses this value to unpack responses.
   static const _responseKey = 'NotamViewer@1.0.0-OZ_2026!#';
@@ -30,14 +41,87 @@ class HttpNotamRepository implements NotamRepository {
   Future<void> _requestQueue = Future.value();
 
   @override
-  NotamFetchResult cachedNotams(Iterable<String> locations) {
+  Future<void> loadHiddenNotams() async {
+    if (_preferences != null) return;
+    final prefs = await _loadPreferences();
+    if (_preferences != null) return;
+    final encoded = prefs.getString(_hiddenNotamExpirationsKey);
+    if (encoded != null) {
+      try {
+        final decoded = jsonDecode(encoded);
+        if (decoded is Map<String, dynamic>) {
+          _committedHiddenNotams = {
+            for (final MapEntry(:key, :value) in decoded.entries)
+              if (value is String) key: value,
+          };
+        }
+      } on FormatException catch (error) {
+        debugPrint('Invalid saved NOTAM expirations: ${error.message}');
+      }
+    }
+    _preferences = prefs;
+  }
+
+  static bool _isHidden(String expiration, DateTime now) =>
+      expiration == 'PERM' ||
+      DateTime.tryParse(expiration)?.isAfter(now) == true;
+
+  @override
+  Set<String> hiddenNotamKeys(DateTime now) => {
+    for (final MapEntry(:key, value: expiration)
+        in _committedHiddenNotams.entries)
+      if (_isHidden(expiration, now)) key,
+  };
+
+  @override
+  Future<bool> hideNotam(Notam notam) {
+    final save = _hideQueue.then((_) async {
+      await loadHiddenNotams();
+      final prefs = _preferences!;
+      final now = clock.now();
+      final hidden = Map.of(_committedHiddenNotams)
+        ..removeWhere((_, expiration) => !_isHidden(expiration, now));
+      hidden[notam.key] = notam.to?.toIso8601String() ?? 'PERM';
+
+      // SharedPreferences updates its cache before the platform confirms the
+      // write. Visibility reads only the committed snapshot during this time.
+      try {
+        if (await prefs.setString(
+          _hiddenNotamExpirationsKey,
+          jsonEncode(hidden),
+        )) {
+          _committedHiddenNotams = hidden;
+          return true;
+        }
+      } catch (error) {
+        debugPrint('Could not save hidden NOTAM: $error');
+      }
+      try {
+        await prefs.reload();
+      } catch (error) {
+        debugPrint('Could not reload hidden NOTAM preferences: $error');
+      }
+      return false;
+    });
+    _hideQueue = save.then<void>((_) {}, onError: (Object _, StackTrace _) {});
+    return save;
+  }
+
+  static Set<String> _locationCodes(Iterable<String> locations) =>
+      locations.map((code) => code.toUpperCase()).toSet();
+
+  @override
+  NotamFetchResult cachedNotams(Iterable<String> locations) =>
+      _cachedNotams(_locationCodes(locations));
+
+  NotamFetchResult _cachedNotams(Set<String> codes) {
     final now = clock.now();
     final notams = <String, Notam>{};
     final failed = <String>[];
     final partial = <String>[];
     DateTime? oldestFetch;
     DateTime? nextRefresh;
-    for (final location in locations) {
+    for (final location in codes) {
       final cached = _cache[location];
       final retry = _retryAfter[location];
       if (cached != null) {
@@ -70,7 +154,7 @@ class HttpNotamRepository implements NotamRepository {
     bool Function()? isCurrent,
     void Function(NotamFetchResult)? onProgress,
   }) async {
-    final codes = locations.map((code) => code.toUpperCase()).toSet();
+    final codes = _locationCodes(locations);
     // Keep fresh data for codes that can re-enter the selection, and retain
     // stale responses for selected codes so they can be shown during outages.
     final now = clock.now();
@@ -86,9 +170,9 @@ class HttpNotamRepository implements NotamRepository {
       if (isCurrent?.call() == false) break;
       if (!force && !_isDue(location)) continue;
       await _queueFetch(location, force: force, isCurrent: isCurrent);
-      if (isCurrent?.call() != false) onProgress?.call(cachedNotams(codes));
+      if (isCurrent?.call() != false) onProgress?.call(_cachedNotams(codes));
     }
-    return cachedNotams(codes);
+    return _cachedNotams(codes);
   }
 
   bool _isDue(String location) {
@@ -188,5 +272,8 @@ class HttpNotamRepository implements NotamRepository {
 NotamRepository notamRepository(Ref ref) {
   final client = http.Client();
   ref.onDispose(client.close);
-  return HttpNotamRepository(client: client);
+  return HttpNotamRepository(
+    client: client,
+    loadPreferences: () => ref.read(sharedPreferencesProvider.future),
+  );
 }

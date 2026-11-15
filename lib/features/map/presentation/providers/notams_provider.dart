@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/providers/shared_preferences_provider.dart';
 import '../../../../core/utils/geo_utils.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../offline_maps/presentation/providers/offline_maps_provider.dart';
@@ -81,8 +78,6 @@ Geographic? _gpsPosition(double? latitude, double? longitude) {
   return Geographic(lat: latitude, lon: longitude);
 }
 
-const _hiddenNotamExpirationsKey = 'hidden_notam_expirations';
-
 @riverpod
 class Notams extends _$Notams {
   bool _forceNextRefresh = false;
@@ -112,7 +107,7 @@ class Notams extends _$Notams {
 
     final locations = await locationsFuture;
     if (!current || locations.isEmpty) return const NotamFetchResult([]);
-    final prefs = await owner.read(sharedPreferencesProvider.future);
+    await repository.loadHiddenNotams();
     if (!current) return const NotamFetchResult([]);
 
     final force = _forceNextRefresh;
@@ -126,7 +121,7 @@ class Notams extends _$Notams {
 
     NotamFetchResult visible() {
       final now = clock.now();
-      final hidden = prefs.getString(_hiddenNotamExpirationsKey);
+      final hidden = repository.hiddenNotamKeys(now);
       final notams = _visibleNotams(result.notams, hidden, now);
       expiryTimer?.cancel();
       final expiry = notams
@@ -186,51 +181,25 @@ class Notams extends _$Notams {
 
   List<Notam> _visibleNotams(
     List<Notam> notams,
-    String? hiddenExpirations,
+    Set<String> hidden,
     DateTime now,
   ) {
-    final hidden = _hiddenNotams(hiddenExpirations, now);
     return notams.where((notam) {
       final end = notam.to;
       return notam.type != 'NOTAMC' &&
           (end == null || end.isAfter(now)) &&
-          !hidden.containsKey(notam.key) &&
-          !hidden.containsKey(notam.id);
+          !hidden.contains(notam.key) &&
+          !hidden.contains(notam.id);
     }).toList();
   }
 
-  Map<String, String> _hiddenNotams(String? encoded, DateTime now) {
-    if (encoded == null) return {};
-    try {
-      final decoded = jsonDecode(encoded);
-      if (decoded is Map<String, dynamic>) {
-        return {
-          for (final MapEntry(:key, :value) in decoded.entries)
-            if (value is String &&
-                (value == 'PERM' ||
-                    DateTime.tryParse(value)?.isAfter(now) == true))
-              key: value,
-        };
-      }
-    } on FormatException catch (error) {
-      debugPrint('Invalid saved NOTAM expirations: ${error.message}');
-    }
-    return {};
-  }
-
   Future<bool> hideNotam(Notam notam) async {
-    final prefs = await ref.read(sharedPreferencesProvider.future);
-    if (!ref.mounted) return false;
-    final hidden = _hiddenNotams(
-      prefs.getString(_hiddenNotamExpirationsKey),
-      clock.now(),
-    );
-    hidden[notam.key] = notam.to?.toIso8601String() ?? 'PERM';
-    final saved = await prefs.setString(
-      _hiddenNotamExpirationsKey,
-      jsonEncode(hidden),
-    );
-    if (!saved || !ref.mounted) return false;
+    final owner = ref;
+    final repository = owner.read(notamRepositoryProvider);
+    await repository.loadHiddenNotams();
+    if (!owner.mounted) return false;
+    final saved = await repository.hideNotam(notam);
+    if (!saved || !owner.mounted) return false;
     if (state case AsyncData(:final value)) {
       state = AsyncData(
         value.copyWith(

@@ -191,6 +191,7 @@ class NotamDetailsDialog extends ConsumerWidget {
           children: [
             ElevatedButton.icon(
               onPressed: () async {
+                final route = ModalRoute.of(context);
                 final saved = await ref
                     .read(notamsProvider.notifier)
                     .hideNotam(notam);
@@ -202,8 +203,10 @@ class NotamDetailsDialog extends ConsumerWidget {
                   return;
                 }
                 final current = ref.read(notamsProvider).value?.notams ?? [];
-                if (_selectedNotams(current).isEmpty) {
-                  Navigator.of(context).pop();
+                if (_selectedNotams(current).isEmpty &&
+                    route != null &&
+                    route.isCurrent) {
+                  route.navigator?.pop();
                 }
               },
               icon: const Icon(Icons.visibility_off_outlined, size: 16),

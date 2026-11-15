@@ -49,4 +49,4 @@ final class NotamRepositoryProvider
   }
 }
 
-String _$notamRepositoryHash() => r'c4fe6a139b73a87f0cd1813fa1f04fad102d8cd3';
+String _$notamRepositoryHash() => r'a9bfd88541557c81e08a6e9bf3bef9df84efae5f';

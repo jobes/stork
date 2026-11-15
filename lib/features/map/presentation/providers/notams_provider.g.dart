@@ -72,7 +72,7 @@ final class NotamsProvider
   Notams create() => Notams();
 }
 
-String _$notamsHash() => r'a4a96c1c177302ffd5f7b0c9d603e3679f945c9b';
+String _$notamsHash() => r'42b3b27974ac27560b7d075ab8ce8c4a16bfcbc7';
 
 abstract class _$Notams extends $AsyncNotifier<NotamFetchResult> {
   FutureOr<NotamFetchResult> build();

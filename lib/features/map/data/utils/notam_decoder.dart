@@ -92,10 +92,11 @@ class NotamDecoder {
     );
   }
 
-  static Notam _decodeTextOnly(Map<String, dynamic> raw, String location) {
-    final rawMessage = _plainText(
-      (raw['text'] ?? raw['traditionalMessage'] ?? '').toString(),
-    );
+  static Notam _decodeTextOnly(
+    Map<String, dynamic> raw,
+    String location,
+    String rawMessage,
+  ) {
     final id = (raw['number'] ?? raw['id'] ?? '').toString().trim();
     final start = raw['startDate']?.toString() ?? '';
     final end = raw['endDate']?.toString() ?? '';
@@ -129,7 +130,7 @@ class NotamDecoder {
             rawNotam['type'] == 'F' ||
             rawNotam['type'] == 'LTA') &&
         !_fields.allMatches(rawMessage).any((field) => field[1] == 'Q')) {
-      return _decodeTextOnly(rawNotam, location);
+      return _decodeTextOnly(rawNotam, location, rawMessage);
     }
 
     final parts = separateToParts(rawMessage);

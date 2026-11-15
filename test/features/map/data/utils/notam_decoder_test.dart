@@ -20,6 +20,38 @@ void main() {
       expect(NotamDecoder.decodeMessage('XFI/P FI/T123'), 'XFI/P FI/T123');
     });
 
+    const textOnlyFields = {
+      'type': 'D',
+      'number': '10/514',
+      'startDate': '10/29/2026 0400',
+      'endDate': 'PERM',
+    };
+
+    test('text-only decoding prefers the normalized ICAO message', () {
+      final notam = NotamDecoder.decode({
+        ...textOnlyFields,
+        'icaoMessage': ' <b>TWY A13</b><br> LGT U/S ',
+        'text': 'Different message',
+      }, location: 'KJFK');
+
+      expect(notam.msg, 'TWY A13\n LGT U/S');
+      expect(notam.icaoMessage, notam.msg);
+    });
+
+    test(
+      'text-only decoding uses the traditional message when text is empty',
+      () {
+        final notam = NotamDecoder.decode({
+          ...textOnlyFields,
+          'text': ' <p><br/></p> ',
+          'traditionalMessage': '<p>TWY A13 LGT U/S</p>',
+        }, location: 'KJFK');
+
+        expect(notam.msg, 'TWY A13 LGT U/S');
+        expect(notam.icaoMessage, notam.msg);
+      },
+    );
+
     test('separateToParts parses standard parts correctly', () {
       const raw =
           'A1234/26 NOTAMN\n'

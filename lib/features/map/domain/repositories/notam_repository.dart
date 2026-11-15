@@ -22,6 +22,12 @@ sealed class NotamFetchResult with _$NotamFetchResult {
 }
 
 abstract class NotamRepository {
+  Future<void> loadHiddenNotams();
+
+  Set<String> hiddenNotamKeys(DateTime now);
+
+  Future<bool> hideNotam(Notam notam);
+
   NotamFetchResult cachedNotams(Iterable<String> locations);
 
   Future<NotamFetchResult> fetchNotamsByLocations(

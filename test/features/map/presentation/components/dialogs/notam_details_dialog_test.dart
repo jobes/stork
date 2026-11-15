@@ -113,6 +113,26 @@ void main() {
     expect(find.byType(NotamDetailsDialog), findsNothing);
   });
 
+  testWidgets('duplicate Hide completions only close the NOTAM dialog', (
+    tester,
+  ) async {
+    final save = Completer<bool>();
+    final notams = _Notams([first], save: save);
+    await _openDialog(tester, notams, [first]);
+
+    final hide = find.widgetWithText(ElevatedButton, 'Hide');
+    await tester.ensureVisible(hide);
+    await tester.tap(hide);
+    await tester.tap(hide);
+    expect(notams.attempts, 2);
+
+    save.complete(true);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NotamDetailsDialog), findsNothing);
+    expect(find.text('Open NOTAM'), findsOneWidget);
+  });
+
   testWidgets('stays open when another selected NOTAM appears during save', (
     tester,
   ) async {

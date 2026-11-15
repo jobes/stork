@@ -32,19 +32,27 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
 
   @override
   OfflineMapsState build() {
-    Future.microtask(() => loadFromDatabase());
+    Future.microtask(() async {
+      if (ref.mounted && _downloadToken == null) await loadFromDatabase();
+    });
     return OfflineMapsState();
   }
 
   Future<void> loadFromDatabase() async {
-    if (kIsWeb) return;
+    if (kIsWeb || !ref.mounted) return;
+    final token = _downloadToken;
+    final wasDownloading = state.isDownloading;
 
     final regions = await DatabaseService.getRegions();
     final counts = await DatabaseService.getTileCounts();
     final metadataSize = await DatabaseService.getMetadataSize();
     final lastDate = await DatabaseService.getLastDownloadDate();
 
-    if (!ref.mounted) return;
+    if (!ref.mounted ||
+        !identical(token, _downloadToken) ||
+        wasDownloading != state.isDownloading) {
+      return;
+    }
     _updateStateFromCounts(regions, counts, metadataSize, lastDate);
   }
 
@@ -117,6 +125,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     state = state.copyWith(
       isDownloading: true,
       isDownloaded: false,
+      downloadDate: null,
       downloadedTiles: 0,
       totalTiles: 0,
       hasError: false,
@@ -218,6 +227,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
       if (!isCurrent()) return;
 
       await DatabaseService.updateLastDownloadDate();
+      if (!isCurrent()) return;
       await loadFromDatabase();
       if (!isCurrent()) return;
 
@@ -428,8 +438,11 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
   }
 
   Future<void> updateProgress() async {
+    final token = _downloadToken;
+    if (token == null || !_isCurrent(token)) return;
     final counts = await DatabaseService.getTileCounts();
     final metadataSize = await DatabaseService.getMetadataSize();
+    if (!_isCurrent(token)) return;
     _updateStateFromCounts(
       state.regions,
       counts,

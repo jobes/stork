@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,7 +8,8 @@ import 'package:http/http.dart' show Response;
 import 'package:http/testing.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:stork/core/providers/shared_preferences_provider.dart';
+// ignore: depend_on_referenced_packages
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 import 'package:stork/features/map/data/repositories/notam_catalog_repository.dart';
 import 'package:stork/features/map/data/repositories/notam_repository.dart';
 import 'package:stork/features/map/presentation/providers/notams_provider.dart';
@@ -58,6 +62,19 @@ class _Catalogs extends NotamCatalogRepository {
   }
 }
 
+class _RejectingPreferencesStore extends InMemorySharedPreferencesStore {
+  _RejectingPreferencesStore(super.data) : super.withData();
+
+  final writeStarted = Completer<void>();
+  final writeResult = Completer<bool>();
+
+  @override
+  Future<bool> setValue(String valueType, String key, Object value) {
+    writeStarted.complete();
+    return writeResult.future;
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -80,6 +97,68 @@ void main() {
   );
 
   test(
+    'a failed hide stays visible across refreshes and restores preferences',
+    () async {
+      const key = 'hidden_notam_expirations';
+      const committed = '{"A0002/26":"PERM"}';
+      final originalStore = SharedPreferencesStorePlatform.instance;
+      final store = _RejectingPreferencesStore({'flutter.$key': committed});
+      SharedPreferences.resetStatic();
+      SharedPreferencesStorePlatform.instance = store;
+      addTearDown(() {
+        SharedPreferencesStorePlatform.instance = originalStore;
+        SharedPreferences.resetStatic();
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final repository = HttpNotamRepository(
+        loadPreferences: () async => prefs,
+        client: MockClient(
+          (_) async => Response(
+            jsonEncode({
+              'success': true,
+              'notams': [
+                for (final id in ['A0001/26', 'A0002/26'])
+                  {
+                    'location': 'LZBB',
+                    'number': id,
+                    'text':
+                        '$id NOTAMN\n'
+                        'Q) LZBB/QFAXX/IV/NBO/A/000/999/4810N01710E025\n'
+                        'A) LZBB B) 2611130000 C) PERM\nE) WIP ON APRON',
+                  },
+              ],
+            }),
+            200,
+          ),
+        ),
+      );
+      await repository.fetchNotamsByLocations(['LZBB']);
+      final container = ProviderContainer.test(
+        overrides: [
+          notamLocationsProvider.overrideWith((_) async => {'LZBB'}),
+          notamRepositoryProvider.overrideWithValue(repository),
+        ],
+      );
+      container.listen(notamsProvider, (_, _) {});
+      final initial = await container.read(notamsProvider.future);
+      final notam = initial.notams.single;
+      expect(notam.id, 'A0001/26');
+
+      final hide = container.read(notamsProvider.notifier).hideNotam(notam);
+      await store.writeStarted.future;
+      expect(prefs.getString(key), contains(notam.key));
+      container.invalidate(notamsProvider);
+      expect((await container.read(notamsProvider.future)).notams, [notam]);
+
+      store.writeResult.complete(false);
+      expect(await hide, isFalse);
+      expect(prefs.getString(key), committed);
+      container.invalidate(notamsProvider);
+      expect((await container.read(notamsProvider.future)).notams, [notam]);
+    },
+  );
+
+  test(
     '10 NM and route changes recalculate ICAOs, hourly refresh only fetches NOTAMs',
     () async {
       SharedPreferences.setMockInitialValues({});
@@ -88,6 +167,7 @@ void main() {
         final catalogs = _Catalogs();
         var requests = 0;
         final repository = HttpNotamRepository(
+          loadPreferences: () async => prefs,
           client: MockClient((_) async {
             requests++;
             return Response('{"success":true,"notams":[]}', 200);
@@ -95,7 +175,6 @@ void main() {
         );
         final container = ProviderContainer.test(
           overrides: [
-            sharedPreferencesProvider.overrideWith((_) async => prefs),
             telemetryProvider.overrideWith(_Telemetry.new),
             navigationProvider.overrideWith(_Navigation.new),
             offlineMapsProvider.overrideWith(_OfflineMaps.new),

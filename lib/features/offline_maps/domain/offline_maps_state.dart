@@ -30,6 +30,8 @@ class OfflineMapArea {
 }
 
 class OfflineMapsState {
+  static const _unchanged = Object();
+
   final List<OfflineMapArea> regions;
   final DateTime? downloadDate;
   final bool isDownloaded;
@@ -68,7 +70,7 @@ class OfflineMapsState {
 
   OfflineMapsState copyWith({
     List<OfflineMapArea>? regions,
-    DateTime? downloadDate,
+    Object? downloadDate = _unchanged,
     bool? isDownloaded,
     int? downloadedTiles,
     int? totalTiles,
@@ -85,7 +87,9 @@ class OfflineMapsState {
   }) {
     return OfflineMapsState(
       regions: regions ?? this.regions,
-      downloadDate: downloadDate ?? this.downloadDate,
+      downloadDate: identical(downloadDate, _unchanged)
+          ? this.downloadDate
+          : downloadDate as DateTime?,
       isDownloaded: isDownloaded ?? this.isDownloaded,
       downloadedTiles: downloadedTiles ?? this.downloadedTiles,
       totalTiles: totalTiles ?? this.totalTiles,
