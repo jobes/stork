@@ -9,6 +9,11 @@ const double kPoiIconSize = 0.64; // 64px frame
 
 extension MapCameraStyle on MapCamera {
   Future<void> handleStyleLoaded(StyleController style) async {
+    bool isCurrentStyle() =>
+        refAccess.mounted && identical(style, _mapController?.style);
+
+    if (!isCurrentStyle()) return;
+    final generation = ++_styleLoadGeneration;
     _notamStyle = null;
     try {
       // All map icons come from the app sprite (`assets/map_sprites/`, sprite
@@ -250,7 +255,7 @@ extension MapCameraStyle on MapCamera {
           paint: {'text-color': '#000000', 'text-halo-width': 0},
         ),
       );
-      if (!refAccess.mounted) return;
+      if (generation != _styleLoadGeneration || !isCurrentStyle()) return;
 
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();

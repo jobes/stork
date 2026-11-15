@@ -22,7 +22,7 @@ const Map<String, String> notamTranslations = {
   'AMOS': 'Automatic Meteorological Observing System',
   'AP': 'Airport',
   'APCH': 'Approach',
-  'AP LGT': 'LGT Airport Lighting',
+  'AP LGT': 'Airport Lighting',
   'APP': 'Approach Control',
   'ARFF': 'Aircraft Rescue and Fire Fighting',
   'ARR': 'Arrive, Arrival',

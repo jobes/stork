@@ -2,10 +2,20 @@ import '../../domain/models/notam.dart';
 import 'notam_translations.dart';
 
 class NotamDecoder {
+  static final _compoundAbbreviations = notamTranslations.keys
+      .where((key) => key.contains(' ') || key.contains('/'))
+      .map((key) => key.split(' ').map(RegExp.escape).join(r'\s+'))
+      .join('|');
+  static final _abbreviation = RegExp(
+    '\\b(?:($_compoundAbbreviations)|[A-Z]+)\\b',
+  );
+  static final _whitespace = RegExp(r'\s+');
+
   static String decodeMessage(String msg) {
-    return msg.replaceAllMapped(RegExp(r'\b[A-Z]+\b'), (match) {
-      final key = match.group(0)!;
-      return notamTranslations[key] ?? key;
+    return msg.replaceAllMapped(_abbreviation, (match) {
+      final abbreviation = match[0]!;
+      final key = match[1]?.replaceAll(_whitespace, ' ') ?? abbreviation;
+      return notamTranslations[key] ?? abbreviation;
     });
   }
 

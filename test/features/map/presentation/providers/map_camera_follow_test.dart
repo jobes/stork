@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
@@ -88,6 +89,7 @@ class _Style extends Fake implements ml.StyleController {
   final updates = <String, List<String>>{};
   final layers = <String, ml.StyleLayer>{};
   bool failNextNotamWrite = false;
+  Future<void>? nextFavoritesLayerDelay;
 
   @override
   Future<void> addSource(ml.Source source) async {}
@@ -100,6 +102,11 @@ class _Style extends Fake implements ml.StyleController {
     int? atIndex,
   }) async {
     layers[layer.id] = layer;
+    if (layer.id == 'favorites-layer') {
+      final delay = nextFavoritesLayerDelay;
+      nextFavoritesLayerDelay = null;
+      if (delay != null) await delay;
+    }
   }
 
   @override
@@ -120,7 +127,7 @@ class _Style extends Fake implements ml.StyleController {
 
 class _Map extends Fake implements ml.MapController {
   @override
-  final _Style style = _Style();
+  _Style style = _Style();
 
   @override
   ml.MapCamera camera = const ml.MapCamera(
@@ -208,6 +215,32 @@ _setupFollow(WidgetTester tester, {_Notams? notams}) async {
 }
 
 void main() {
+  testWidgets('a late style load leaves NOTAM updates on the current style', (
+    tester,
+  ) async {
+    final notams = _Notams();
+    final (:map, :camera, telemetry: _, traffic: _) = await _setupFollow(
+      tester,
+      notams: notams,
+    );
+    final previousStyle = map.style;
+    final finishPreviousLoad = Completer<void>();
+    previousStyle.nextFavoritesLayerDelay = finishPreviousLoad.future;
+    final previousLoad = camera.handleStyleLoaded(previousStyle);
+    await tester.pump();
+
+    map.style = _Style();
+    await camera.handleStyleLoaded(map.style);
+    finishPreviousLoad.complete();
+    await previousLoad;
+
+    notams.publish([
+      Notam(id: 'A1234/26', from: DateTime.utc(2026), radius: 1852),
+    ]);
+    expect(map.style.updates['notams-source'], hasLength(1));
+    expect(previousStyle.updates['notams-source'], isNull);
+  });
+
   testWidgets('NOTAM fill and outline use the shared colour', (tester) async {
     final setup = await _setupFollow(tester);
     final layers = setup.map.style.layers;

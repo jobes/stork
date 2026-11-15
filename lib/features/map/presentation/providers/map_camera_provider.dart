@@ -52,6 +52,7 @@ class MapCamera extends _$MapCamera {
   int _programmaticMoveCount = 0;
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
+  int _styleLoadGeneration = 0;
   ({StyleController style, String data})? _lastCourseLineUpdate;
   Timer? _notamLayerTimer;
   bool _notamLayerDirty = false;

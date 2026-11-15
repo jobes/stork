@@ -8,6 +8,18 @@ void main() {
       expect(decoded, equals('Aerodrome Closed DUE TO Work in progress'));
     });
 
+    test('decodeMessage translates compound abbreviations before words', () {
+      expect(
+        NotamDecoder.decodeMessage('AP LGT INOP; (FI/T), FI/P.\nBA\n  FAIR.'),
+        'Airport Lighting Inoperative; (Flight Inspection Temporary), '
+        'Flight Inspection Permanent.\nBraking action fair.',
+      );
+    });
+
+    test('decodeMessage leaves partial compound abbreviations alone', () {
+      expect(NotamDecoder.decodeMessage('XFI/P FI/T123'), 'XFI/P FI/T123');
+    });
+
     test('separateToParts parses standard parts correctly', () {
       const raw =
           'A1234/26 NOTAMN\n'

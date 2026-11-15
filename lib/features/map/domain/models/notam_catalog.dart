@@ -63,7 +63,13 @@ abstract class NotamCatalog with _$NotamCatalog {
       'type': 'FeatureCollection',
       'features': List<dynamic> features,
     }) {
-      return features.cast<Map<String, dynamic>>();
+      return [
+        for (final feature in features)
+          if (feature is Map<String, dynamic>)
+            feature
+          else
+            throw const FormatException('Invalid GeoJSON feature'),
+      ];
     }
     throw const FormatException('Expected a GeoJSON FeatureCollection');
   }
