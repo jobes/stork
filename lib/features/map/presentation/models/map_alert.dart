@@ -52,7 +52,8 @@ enum MapAlertKind {
   droneCanGpsFallback(MapAlertSeverity.warning),
   altitudeSourceChanged(MapAlertSeverity.info),
   radarUnavailable(MapAlertSeverity.info),
-  radarHistoryUnavailable(MapAlertSeverity.info);
+  radarHistoryUnavailable(MapAlertSeverity.info),
+  notamDataUnavailable(MapAlertSeverity.warning);
 
   const MapAlertKind(this.severity, {this.instrument});
 

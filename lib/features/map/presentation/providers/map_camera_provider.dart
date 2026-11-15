@@ -22,6 +22,7 @@ import '../../../telemetry/presentation/providers/traffic_provider.dart';
 import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
+import 'notams_provider.dart';
 import 'airspace_activity_provider.dart';
 import 'airspace_highlight_layers.dart';
 import 'traffic_colors.dart';
@@ -32,13 +33,14 @@ part 'map_camera_provider.g.dart';
 part 'map_camera_interpolation.dart';
 part 'map_camera_style.dart';
 part 'map_camera_airspace.dart';
+part 'map_camera_notam.dart';
 
 const double kTrafficLookaheadPeriodSeconds = 10.0;
 const double kTrafficBaseIconSizePx = 64.0;
 
 @riverpod
 class MapCamera extends _$MapCamera {
-  dynamic get refAccess => ref;
+  Ref get refAccess => ref;
 
   MapController? _mapController;
   final _controllerCompleter = Completer<MapController>();
@@ -50,6 +52,11 @@ class MapCamera extends _$MapCamera {
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
   ({StyleController style, String data})? _lastCourseLineUpdate;
+  Timer? _notamLayerTimer;
+  bool _notamLayerDirty = false;
+  bool _notamLayerWriting = false;
+  StyleController? _notamStyle;
+  List<_NotamMapFeature>? _lastNotamMapFeatures = const [];
 
   List<String>? _lastActiveAirspaceIds;
   List<String>? _lastInactiveAirspaceIds;
@@ -256,6 +263,10 @@ class MapCamera extends _$MapCamera {
       _updateNavigationRouteOnMap(force: true);
     });
 
+    ref.listen(notamsProvider, (_, next) {
+      if (!next.isLoading) updateNotamsOnMap();
+    });
+
     ref.listen(favoritesProvider, (previous, next) {
       if (next.hasValue) {
         updateFavoritesOnMap();
@@ -285,6 +296,9 @@ class MapCamera extends _$MapCamera {
       trafficTimer.cancel();
       _moveThrottleTimer?.cancel();
       _followResumeTimer?.cancel();
+      _notamLayerTimer?.cancel();
+      _notamLayerTimer = null;
+      _notamLayerDirty = false;
       _cancelInterpolation();
     });
   }
@@ -781,6 +795,11 @@ class MapCamera extends _$MapCamera {
         layerIds: ['places_locality'],
       );
 
+      final notamFeatures = _mapController!.featuresAtPoint(
+        event.screenPoint,
+        layerIds: ['notams-fill-layer'],
+      );
+
       final favoriteFeatures = _mapController!.featuresAtPoint(
         event.screenPoint,
         layerIds: ['favorites-layer'],
@@ -811,6 +830,13 @@ class MapCamera extends _$MapCamera {
           'id': f.id,
           'properties': f.properties,
           'layerType': 'place',
+        });
+      }
+      for (final f in notamFeatures) {
+        featureMaps.add({
+          'id': f.id,
+          'properties': f.properties,
+          'layerType': 'notam',
         });
       }
       for (final f in favoriteFeatures) {

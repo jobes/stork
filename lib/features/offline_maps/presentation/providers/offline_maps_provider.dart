@@ -14,6 +14,7 @@ import '../../../../core/services/database/database_service.dart';
 import '../../../../core/services/tile_download_service.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../domain/tile_utils.dart';
+import '../../../map/data/repositories/notam_catalog_repository.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
 import '../../../map/presentation/providers/airspace_metadata_provider.dart';
 
@@ -27,6 +28,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
   static const _metaDataTypes = ['asp', 'apt'];
 
   Timer? _progressTimer;
+  Object? _downloadToken;
 
   @override
   OfflineMapsState build() {
@@ -65,7 +67,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
       terrainBytes: counts['terrainSize'] ?? 0,
       metadataBytes: metadataSize,
       downloadDate: lastDate,
-      isDownloaded: total > 0 && downloaded == total,
+      isDownloaded: total > 0 && downloaded == total && lastDate != null,
     );
   }
 
@@ -101,6 +103,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
   }
 
   Future<void> clearAll() async {
+    if (state.isDownloading) await cancelDownload();
     state = OfflineMapsState(regions: []);
     if (!kIsWeb) {
       await DatabaseService.resetDatabase();
@@ -108,7 +111,8 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
   }
 
   Future<void> startDownload() async {
-    if (kIsWeb || state.regions.isEmpty || state.isDownloading) return;
+    if (kIsWeb || state.regions.isEmpty || _downloadToken != null) return;
+    final token = _downloadToken = Object();
 
     state = state.copyWith(
       isDownloading: true,
@@ -121,18 +125,27 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     ref.read(airportMetadataCacheProvider.notifier).clearCache();
     ref.read(airspaceMetadataCacheProvider.notifier).clearCache();
 
-    await DatabaseService.resetDatabase();
-    await DatabaseService.insertRegions(state.regions);
+    try {
+      await DatabaseService.resetDatabase();
+      if (!_isCurrent(token)) return;
+      await DatabaseService.insertRegions(state.regions);
 
-    final allTiles = _generateTileSet();
-    final totalInserted = await DatabaseService.insertEmptyTiles(allTiles);
-    state = state.copyWith(totalTiles: totalInserted);
+      if (!_isCurrent(token)) return;
+      final allTiles = _generateTileSet();
+      final totalInserted = await DatabaseService.insertEmptyTiles(allTiles);
+      if (!_isCurrent(token)) return;
+      state = state.copyWith(totalTiles: totalInserted);
 
-    await updateProgress();
-
-    _startProgressPolling();
-
-    unawaited(_runDownloadSequence());
+      await updateProgress();
+      if (!_isCurrent(token)) return;
+      _startProgressPolling();
+      unawaited(_runDownloadSequence(token));
+    } catch (error) {
+      if (!_isCurrent(token)) return;
+      debugPrint('OfflineMapsNotifier: Download setup error: $error');
+      _downloadToken = null;
+      state = state.copyWith(isDownloading: false, hasError: true);
+    }
   }
 
   Future<void> cancelDownload() async {
@@ -142,9 +155,13 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
 
     _progressTimer?.cancel();
 
-    await TileDownloadService.stopDownload();
-    await DatabaseService.clearMapData();
-    await loadFromDatabase();
+    try {
+      await TileDownloadService.stopDownload();
+      await DatabaseService.clearMapData();
+      await loadFromDatabase();
+    } finally {
+      _downloadToken = null;
+    }
   }
 
   Set<TileCoord> _generateTileSet() {
@@ -181,33 +198,40 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     );
   }
 
-  Future<void> _runDownloadSequence() async {
+  bool _isCurrent(Object token) =>
+      ref.mounted && identical(_downloadToken, token) && state.isDownloading;
+
+  Future<void> _runDownloadSequence(Object token) async {
+    bool isCurrent() => _isCurrent(token);
+
     try {
       await TileDownloadService.startDownload();
 
-      if (!state.isDownloading) return;
+      if (!isCurrent()) return;
 
       final countries = await _extractCountries();
 
-      if (!state.isDownloading) return;
+      if (!isCurrent()) return;
 
-      if (countries.isNotEmpty) {
-        await _downloadOpenAipMetadata(countries);
-      }
+      await _downloadOpenAipMetadata(countries, isCurrent);
 
-      if (!state.isDownloading) return;
+      if (!isCurrent()) return;
 
       await DatabaseService.updateLastDownloadDate();
       await loadFromDatabase();
+      if (!isCurrent()) return;
 
+      _downloadToken = null;
       state = state.copyWith(isDownloading: false, isDownloaded: true);
       _progressTimer?.cancel();
     } catch (e) {
+      if (!isCurrent()) return;
       debugPrint('OfflineMapsNotifier: Download error: $e');
       _progressTimer?.cancel();
       await TileDownloadService.stopDownload();
       await DatabaseService.clearMapData();
       await loadFromDatabase();
+      _downloadToken = null;
       state = state.copyWith(
         isDownloading: false,
         isDownloadingMetadata: false,
@@ -279,22 +303,38 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     return countries;
   }
 
-  Future<void> _downloadOpenAipMetadata(List<String> countries) async {
+  Future<void> _downloadOpenAipMetadata(
+    List<String> countries,
+    bool Function() isCurrent,
+  ) async {
+    final catalogs = ref.read(notamCatalogRepositoryProvider);
     state = state.copyWith(
       isDownloadingMetadata: true,
-      totalMetadataCountries: countries.length * _metaDataTypes.length,
+      totalMetadataCountries:
+          countries.length * _metaDataTypes.length +
+          NotamCatalogRepository.files.length,
       downloadedMetadataCountries: 0,
     );
 
-    int accumulatedBytes = 0;
+    await catalogs.downloadForOffline(
+      isCurrent: isCurrent,
+      onFileDownloaded: () {
+        state = state.copyWith(
+          downloadedMetadataCountries: state.downloadedMetadataCountries + 1,
+        );
+      },
+    );
+    if (!isCurrent()) return;
+
+    int accumulatedBytes = await DatabaseService.getMetadataSize();
+    if (!isCurrent()) return;
+    state = state.copyWith(metadataBytes: accumulatedBytes);
 
     for (final country in countries) {
-      if (!state.isDownloading) break;
-
       for (final type in _metaDataTypes) {
-        if (!state.isDownloading) break;
-
-        final bytes = await _downloadAndStoreMetadata(country, type);
+        if (!isCurrent()) return;
+        final bytes = await _downloadAndStoreMetadata(country, type, isCurrent);
+        if (!isCurrent()) return;
         accumulatedBytes += bytes;
         state = state.copyWith(
           downloadedMetadataCountries: state.downloadedMetadataCountries + 1,
@@ -306,12 +346,17 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
     state = state.copyWith(isDownloadingMetadata: false);
   }
 
-  Future<int> _downloadAndStoreMetadata(String country, String type) async {
+  Future<int> _downloadAndStoreMetadata(
+    String country,
+    String type,
+    bool Function() isCurrent,
+  ) async {
     final url =
         '${ApiConstants.openAipMetadataBaseUrl}/${country.toLowerCase()}_$type.geojson';
 
     try {
       final response = await http.get(Uri.parse(url));
+      if (!isCurrent()) return 0;
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
         final data = json.decode(decodedBody);

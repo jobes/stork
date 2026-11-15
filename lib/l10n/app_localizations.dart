@@ -5351,6 +5351,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{hours} h {minutes} min'**
   String clockCountdownHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @notamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTAMs'**
+  String get notamsTitle;
+
+  /// No description provided for @notamDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTAM Details'**
+  String get notamDetails;
+
+  /// No description provided for @notamStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Time'**
+  String get notamStart;
+
+  /// No description provided for @notamEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End Time'**
+  String get notamEnd;
+
+  /// No description provided for @notamFir.
+  ///
+  /// In en, this message translates to:
+  /// **'FIR'**
+  String get notamFir;
+
+  /// No description provided for @notamLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical Limits'**
+  String get notamLimits;
+
+  /// No description provided for @hideNotam.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get hideNotam;
+
+  /// No description provided for @notamSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule (UTC)'**
+  String get notamSchedule;
+
+  /// No description provided for @notamRaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Original ICAO message'**
+  String get notamRaw;
+
+  /// No description provided for @notamSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Data from notams.online'**
+  String get notamSource;
+
+  /// No description provided for @notamMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTAM message'**
+  String get notamMessage;
+
+  /// No description provided for @notamMapArea.
+  ///
+  /// In en, this message translates to:
+  /// **'The circle on the map shows the approximate area from the Q line.'**
+  String get notamMapArea;
+
+  /// No description provided for @notamUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTAM data unavailable'**
+  String get notamUnavailableTitle;
+
+  /// No description provided for @notamUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork could not load all NOTAM data for this area or route.'**
+  String get notamUnavailableBody;
+
+  /// No description provided for @notamRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh NOTAMs'**
+  String get notamRefresh;
+
+  /// No description provided for @notamOldestUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest NOTAM update {date} at {time}'**
+  String notamOldestUpdate(String date, String time);
+
+  /// No description provided for @notamFailedLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed for {codes}.'**
+  String notamFailedLocations(String codes);
+
+  /// No description provided for @notamPartialLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Some records could not be read for {codes}.'**
+  String notamPartialLocations(String codes);
+
+  /// No description provided for @notamRefreshing.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading NOTAMs. Results are still incomplete.'**
+  String get notamRefreshing;
 }
 
 class _AppLocalizationsDelegate

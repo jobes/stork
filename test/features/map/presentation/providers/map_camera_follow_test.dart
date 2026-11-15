@@ -8,6 +8,9 @@ import 'package:stork/core/services/location_provider.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:stork/features/map/presentation/providers/airspace_activity_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
+import 'package:stork/features/map/presentation/providers/notams_provider.dart';
+import 'package:stork/features/map/domain/models/notam.dart';
+import 'package:stork/features/map/domain/repositories/notam_repository.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
@@ -63,6 +66,15 @@ class _Settings extends AppSettingsNotifier {
 class _Navigation extends NavigationNotifier {
   @override
   NavigationState build() => const NavigationState();
+}
+
+class _Notams extends Notams {
+  @override
+  Future<NotamFetchResult> build() async => const NotamFetchResult([]);
+
+  void publish(List<Notam> notams) {
+    state = AsyncData(NotamFetchResult(notams));
+  }
 }
 
 class _Favorites extends FavoritesNotifier {
@@ -144,7 +156,7 @@ class _Map extends Fake implements ml.MapController {
 Future<
   ({MapCamera camera, _Map map, _Telemetry telemetry, _FilteredTraffic traffic})
 >
-_setupFollow(WidgetTester tester) async {
+_setupFollow(WidgetTester tester, {_Notams? notams}) async {
   final telemetry = _Telemetry();
   final traffic = _FilteredTraffic();
   await tester.pumpWidget(
@@ -156,6 +168,7 @@ _setupFollow(WidgetTester tester) async {
         appSettingsProvider.overrideWith(_Settings.new),
         currentLocationProvider.overrideWithValue(const AsyncData(null)),
         navigationProvider.overrideWith(_Navigation.new),
+        if (notams != null) notamsProvider.overrideWith(() => notams),
         favoritesProvider.overrideWith(_Favorites.new),
         airspaceActivityProvider.overrideWithValue(const {}),
         resolvedAltitudeProvider.overrideWithValue(
@@ -185,6 +198,42 @@ _setupFollow(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('batches NOTAM layer writes and uses the latest snapshot', (
+    tester,
+  ) async {
+    final notams = _Notams();
+    final (:map, :camera, telemetry: _, traffic: _) = await _setupFollow(
+      tester,
+      notams: notams,
+    );
+    final writes = map.style.updates;
+    Notam notice(String id) => Notam(
+      id: id,
+      from: DateTime.utc(2026),
+      radius: 1852,
+      latitude: 48,
+      longitude: 17,
+    );
+
+    notams.publish([notice('first')]);
+    expect(writes['notams-source'], hasLength(1));
+    notams.publish([notice('second')]);
+    await tester.pump(const Duration(milliseconds: 500));
+    notams.publish([notice('latest')]);
+    await tester.pump(const Duration(milliseconds: 499));
+    expect(writes['notams-source'], hasLength(1));
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(writes['notams-source'], hasLength(2));
+    expect(writes['notams-source']!.last, contains('latest'));
+    expect(writes['notams-source']!.last, isNot(contains('second')));
+
+    notams.publish([notice('latest')]);
+    await tester.pump(const Duration(seconds: 1));
+    expect(writes['notams-source'], hasLength(2));
+    await camera.handleStyleLoaded(map.style);
+    expect(writes['notams-source'], hasLength(3));
+  });
+
   testWidgets('follow applies a saved pitch change without a new GPS fix', (
     tester,
   ) async {

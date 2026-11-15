@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -13,37 +14,83 @@ import 'dart:convert';
 
 class DatabaseService {
   static Database? _db;
+  static String? _openedPath;
+  static Future<void> _fileOperations = Future.value();
 
-  static Future<Database> get database async {
-    if (_db != null) return _db!;
-    _db = await _initDatabase();
-    return _db!;
+  // A worker can hold a second connection to this file. Let it close the
+  // read-only connection before an offline map reset clears the database.
+  static Future<T> _withDatabaseFile<T>(Future<T> Function() operation) {
+    final result = _fileOperations.then((_) => operation());
+    _fileOperations = result.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return result;
   }
+
+  static Future<T?> readOfflineMetadata<T>(
+    Future<T?> Function(String path) read,
+  ) => _withDatabaseFile(() async {
+    final path = await _dbPath;
+    if (!await File(path).exists()) return null;
+    return read(path);
+  });
+
+  /// Read both rows in a single SQLite snapshot on the calling isolate.
+  static List<String>? readOfflineMetadataPair(
+    String path,
+    String type,
+    List<String> ids,
+  ) {
+    final db = sqlite3.open(path, mode: OpenMode.readOnly);
+    try {
+      final rows = db.select(
+        'SELECT id, json FROM openaip_features WHERE type = ? AND id IN (?, ?)',
+        [type, ...ids],
+      );
+      if (rows.length != ids.length) return null;
+      final documents = {
+        for (final row in rows) row['id']: row['json'] as String,
+      };
+      return [for (final id in ids) documents[id]!];
+    } finally {
+      db.close();
+    }
+  }
+
+  static Future<Database> get database async =>
+      _db ?? _openDatabase(await _dbPath);
 
   static Future<String> get _dbPath async {
     final docs = await getApplicationSupportDirectory();
     return p.join(docs.path, 'offline_maps.db');
   }
 
-  static Future<Database> _initDatabase() async {
-    final path = await _dbPath;
+  static Database _openDatabase(String path) {
+    if (_db case final db? when _openedPath == path) return db;
+    _db?.close();
+    _db = null;
     final db = sqlite3.open(path);
     _setupTables(db);
-    return db;
+    _openedPath = path;
+    return _db = db;
   }
 
-  static Future<void> resetDatabase() async {
-    if (_db != null) {
-      _db!.close();
-      _db = null;
+  static Future<void> resetDatabase() => _withDatabaseFile(() async {
+    final db = _openDatabase(await _dbPath);
+    // Keep existing handles valid for callers that have already obtained one.
+    db.execute('BEGIN TRANSACTION');
+    try {
+      db.execute('DELETE FROM map_tiles');
+      db.execute('DELETE FROM openaip_features');
+      db.execute('DELETE FROM offline_regions');
+      db.execute('COMMIT');
+    } catch (_) {
+      db.execute('ROLLBACK');
+      rethrow;
     }
-    final path = await _dbPath;
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
-    await database;
-  }
+    db.execute('VACUUM');
+  });
 
   static void _setupTables(Database db) {
     db.execute('''
@@ -274,9 +321,11 @@ class DatabaseService {
   }
 
   static Future<void> insertOpenAipFeatures(
-    List<Map<String, dynamic>> features,
-  ) async {
+    List<Map<String, dynamic>> features, {
+    bool Function()? shouldWrite,
+  }) async {
     final db = await database;
+    if (shouldWrite?.call() == false) return;
     db.execute('BEGIN TRANSACTION');
     try {
       final stmt = db.prepare(

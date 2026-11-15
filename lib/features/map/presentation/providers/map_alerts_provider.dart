@@ -22,6 +22,7 @@ import '../models/map_alert.dart';
 import 'airspace_data_status_provider.dart';
 import 'map_alert_history_provider.dart';
 import 'map_radar.dart';
+import 'notams_provider.dart';
 
 export '../models/map_alert.dart';
 
@@ -87,6 +88,12 @@ class MapAlerts extends _$MapAlerts {
     ref.listen(altitudeHealthProvider, (_, _) => _scheduleRecompute());
     ref.listen(networkLinkAvailabilityProvider, (_, _) => _scheduleRecompute());
     ref.listen(airspaceDataStatusProvider, (_, _) => _scheduleRecompute());
+    ref.listen(
+      notamsProvider.select(
+        (state) => state.hasError || (state.value?.hasIssue ?? false),
+      ),
+      (_, _) => _scheduleRecompute(),
+    );
     ref.listen(mapStyleProvider, (_, _) => _scheduleRecompute());
     ref.listen(offlineMapsProvider, (_, _) => _scheduleRecompute());
     ref.listen(
@@ -133,6 +140,7 @@ class MapAlerts extends _$MapAlerts {
     ref.read(trafficSourceHealthProvider.notifier).refresh();
     ref.read(altitudeHealthProvider.notifier).refresh();
     final radar = ref.read(mapRadarProvider).value;
+    final notams = ref.read(notamsProvider);
 
     final active = <MapAlertKind>{
       if (ref.read(activeCollisionAlertProvider) != null)
@@ -141,6 +149,8 @@ class MapAlerts extends _$MapAlerts {
       if (ref.read(offlineMapsProvider).hasError) MapAlertKind.offlineMapsError,
       if (ref.read(airspaceDataStatusProvider).hasError)
         MapAlertKind.airspaceDataUnavailable,
+      if (notams.hasError || (notams.value?.hasIssue ?? false))
+        MapAlertKind.notamDataUnavailable,
       if (radar.unavailable) MapAlertKind.radarUnavailable,
       if (radar.historyUnavailable) MapAlertKind.radarHistoryUnavailable,
       if (_isInternetUnavailable(now)) MapAlertKind.internetUnavailable,

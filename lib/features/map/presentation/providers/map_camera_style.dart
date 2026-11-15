@@ -9,6 +9,7 @@ const double kPoiIconSize = 0.64; // 64px frame
 
 extension MapCameraStyle on MapCamera {
   Future<void> handleStyleLoaded(StyleController style) async {
+    _notamStyle = null;
     try {
       // All map icons come from the app sprite (`assets/map_sprites/`, sprite
       // id "default"): `aircraft-icon` (aircraft-layer), `possibleLoc`
@@ -69,6 +70,36 @@ extension MapCameraStyle on MapCamera {
           id: 'navigation-route-line',
           sourceId: 'navigation-route-source',
           paint: {'line-color': '#FF9800', 'line-width': 3.5},
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addSource(
+        GeoJsonSource(
+          id: 'notams-source',
+          data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        FillStyleLayer(
+          id: 'notams-fill-layer',
+          sourceId: 'notams-source',
+          paint: {'fill-color': '#FF5722', 'fill-opacity': 0.25},
+        ),
+      );
+      if (!refAccess.mounted) return;
+
+      await style.addLayer(
+        LineStyleLayer(
+          id: 'notams-line-layer',
+          sourceId: 'notams-source',
+          paint: {
+            'line-color': '#FF5722',
+            'line-width': 2.0,
+            'line-dasharray': [2.0, 2.0],
+          },
         ),
       );
       if (!refAccess.mounted) return;
@@ -222,6 +253,9 @@ extension MapCameraStyle on MapCamera {
 
       _isAircraftSymbolInitialized = true;
       _updateNavigationRouteOnMap();
+      _notamStyle = style;
+      _lastNotamMapFeatures = const [];
+      updateNotamsOnMap();
       updateFavoritesOnMap();
       // The (re)loaded style wiped the runtime highlight layers, so clear the
       // diff cache to force updateAirspacesOnMap to re-apply them.

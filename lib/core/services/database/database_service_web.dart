@@ -3,6 +3,16 @@ import '../../../features/offline_maps/domain/offline_maps_state.dart';
 import '../../../features/offline_maps/domain/tile_utils.dart';
 
 class DatabaseService {
+  static Future<T?> readOfflineMetadata<T>(
+    Future<T?> Function(String path) read,
+  ) async => null;
+
+  static List<String>? readOfflineMetadataPair(
+    String path,
+    String type,
+    List<String> ids,
+  ) => null;
+
   static Future<void> get database async =>
       throw UnsupportedError('SQLite is not supported on web.');
 
@@ -62,8 +72,9 @@ class DatabaseService {
   }
 
   static Future<void> insertOpenAipFeatures(
-    List<Map<String, dynamic>> features,
-  ) async {
+    List<Map<String, dynamic>> features, {
+    bool Function()? shouldWrite,
+  }) async {
     // No-op on web
   }
 
