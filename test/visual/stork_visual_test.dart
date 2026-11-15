@@ -12,11 +12,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
 import 'package:stork/core/services/mdns_service.dart';
 import 'package:stork/core/theme/app_theme.dart';
+import 'package:stork/features/map/domain/repositories/notam_repository.dart';
 import 'package:stork/features/map/presentation/components/controls/map_alert_indicator.dart';
 import 'package:stork/features/map/presentation/components/controls/map_controls.dart';
 import 'package:stork/features/map/presentation/components/controls/map_drawer.dart';
 import 'package:stork/features/map/presentation/components/dialogs/base_details_dialog.dart';
 import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
+import 'package:stork/features/map/presentation/providers/notams_provider.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
@@ -227,6 +229,11 @@ class _AuthService implements PureTrackAuthService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _Notams extends Notams {
+  @override
+  Future<NotamFetchResult> build() async => const NotamFetchResult([]);
+}
+
 /// Keep a fresh capture even when the baseline comparison succeeds.
 class _CaptureComparator extends LocalFileComparator {
   _CaptureComparator(super.testFile);
@@ -282,6 +289,7 @@ Future<void> _pump(
           () => _Gateway(telemetry?.indicatedAirSpeed != null),
         ),
         mapAlertsProvider.overrideWith(() => _MapAlerts(mapAlert)),
+        notamsProvider.overrideWith(_Notams.new),
         if (telemetry != null) ...[
           telemetryProvider.overrideWith(() => _Telemetry(telemetry)),
           varioProvider.overrideWith(() => _Vario(telemetry.isFlying)),
