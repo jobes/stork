@@ -22,7 +22,9 @@
     "terrain": {
       "type": "raster-dem",
       "url": "pmtiles://https://download.mapterhorn.com/planet.pmtiles",
-      "tileSize": 256
+      "encoding": "terrarium",
+      "tileSize": 512,
+      "maxzoom": 12
     }
   },
   "terrain": {
@@ -8074,6 +8076,9 @@
           ""
         ],
         "icon-size": 0.7,
+        "icon-optional": true,
+        "text-allow-overlap": true,
+        "text-ignore-placement": true,
         "text-field": [
           "case",
           [

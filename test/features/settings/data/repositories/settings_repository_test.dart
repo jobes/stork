@@ -31,6 +31,19 @@ void main() {
       },
     );
 
+    test('Migrates the map scale and persists independent sizes', () async {
+      await prefs.setString('app_settings', '{"mapFontSize": 1.7}');
+      final repository = SettingsRepository(prefs);
+      final settings = await repository.getSettings();
+      expect(settings.mapFontSize, 1.7);
+      expect(settings.mapControlScale, 1.7);
+
+      await repository.saveSettings(settings.copyWith(mapControlScale: 0.9));
+      final reloaded = await SettingsRepository(prefs).getSettings();
+      expect(reloaded.mapFontSize, 1.7);
+      expect(reloaded.mapControlScale, 0.9);
+    });
+
     test('Loads and parses a valid AppSettings JSON correctly', () async {
       final repository = SettingsRepository(prefs);
       const originalSettings = AppSettings(

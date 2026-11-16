@@ -87,6 +87,14 @@ void main() {
         equals(1.5),
       );
       expect(mockRepository.currentSettings.mapFontSize, equals(1.5));
+      expect(mockRepository.currentSettings.mapControlScale, equals(1.0));
+
+      expect(
+        await notifier.updateMapControlScale(2.0),
+        isA<SettingsUpdateSuccess>(),
+      );
+      expect(mockRepository.currentSettings.mapControlScale, equals(2.0));
+      expect(mockRepository.currentSettings.mapFontSize, equals(1.5));
     });
 
     test(

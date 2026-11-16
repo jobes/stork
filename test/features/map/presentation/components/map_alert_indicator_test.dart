@@ -101,6 +101,42 @@ double _badgeScale(WidgetTester tester) {
 }
 
 void main() {
+  testWidgets('enlarged map controls fit and remain tappable on a phone', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    var taps = 0;
+    await tester.pumpWidget(
+      _app(
+        alert: null,
+        body: Align(
+          alignment: Alignment.topCenter,
+          child: MapControls(
+            mapViewState: MapViewState.follow,
+            buttonScale: MapControls.fitButtonScale(
+              3.0,
+              safeWidth: 320,
+              isEditing: true,
+            ),
+            onMenuPressed: () => taps++,
+            onGpsPressed: () => taps++,
+            onFinishEditing: () => taps++,
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getRect(find.byType(MapAlertIndicator)).width,
+      greaterThan(48),
+    );
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.tap(find.byIcon(Icons.navigation));
+    await tester.tap(find.byType(FilledButton));
+    expect(taps, 3);
+  });
+
   testWidgets('offers NOTAM refresh only while NOTAM data has an error', (
     tester,
   ) async {

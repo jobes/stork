@@ -65,7 +65,7 @@ class AltitudeTelemetryWidget extends ConsumerWidget {
 
     final fontScale = ref.watch(
       appSettingsProvider.select(
-        (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
+        (s) => (s.value?.mapControlScale ?? 1.0).toDouble(),
       ),
     );
     final activeUnit = ref.watch(

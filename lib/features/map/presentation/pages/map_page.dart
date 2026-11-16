@@ -178,12 +178,12 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
     final l10n = AppLocalizations.of(context)!;
     final cameraController = ref.watch(mapCameraProvider.notifier);
     final navigationAsync = ref.watch(navigationProvider);
-    final fontScale = ref.watch(
+    final controlScale = ref.watch(
       appSettingsProvider.select(
-        (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
+        (s) => (s.value?.mapControlScale ?? 1.0).toDouble(),
       ),
     );
-    final compassBarHeight = 40.0 * fontScale;
+    final compassBarHeight = 40.0 * controlScale;
     final showUtcClock = ref.watch(
       appSettingsProvider.select((s) => s.value?.showUtcClock ?? true),
     );
@@ -191,9 +191,22 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
       appSettingsProvider.select((s) => s.value?.areWidgetsDraggable ?? false),
     );
 
-    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final safePadding = MediaQuery.paddingOf(context);
+    final buttonScale = MapControls.fitButtonScale(
+      controlScale,
+      safeWidth: screenWidth - safePadding.horizontal,
+      isEditing: isEditingWidgets,
+    );
+    final controlsBottom =
+        safePadding.top +
+        MapControls.padding +
+        MapControls.buttonExtent * math.max(1.0, buttonScale);
+    final overlayTop = isEditingWidgets || controlScale > 1.0
+        ? math.max(compassBarHeight, controlsBottom + MapControls.padding)
+        : compassBarHeight;
     double currentX = 16.0;
-    double currentY = 50.0;
+    double currentY = controlScale > 1.0 ? overlayTop : 50.0;
     const double rightMargin = 16.0;
     const double itemGap = 9.0;
     const double rowHeight = 60.0;
@@ -244,6 +257,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
           key: _mapStackKey,
           children: [
             styleAsync.when(
+              skipLoadingOnReload: true,
               data: (style) {
                 // Keep the native MapLibre platform view inside its own
                 // compositing layer, as recommended by Flutter's guidance for
@@ -346,7 +360,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
             if (showUtcClock)
               buildWidget(
                 'utc_clock_widget',
-                120.0 * fontScale,
+                120.0 * controlScale,
                 const UtcClockWidget(),
               ),
             if ((mapViewState != MapViewState.init || isEditingWidgets) &&
@@ -366,6 +380,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
             Builder(
               builder: (context) => MapControls(
                 mapViewState: mapViewState,
+                buttonScale: buttonScale,
                 menuButtonKey: _menuButtonKey,
                 gpsButtonKey: _gpsButtonKey,
                 doneButtonKey: _doneButtonKey,
@@ -418,9 +433,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
               ),
             ),
             Positioned(
-              top: isEditingWidgets
-                  ? math.max(compassBarHeight, 80.0)
-                  : compassBarHeight,
+              top: overlayTop,
               left: 0,
               right: 0,
               child: const CollisionWarningBanner(),

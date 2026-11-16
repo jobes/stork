@@ -108,6 +108,7 @@
   "downloadError": "Chyba pri sťahovaní máp. Skontrolujte prosím internetové pripojenie.",
   "settings": "Nastavenia",
   "mapFontSize": "Veľkosť písma na mape",
+  "mapControlSize": "Veľkosť ovládacích prvkov",
   "mapDefaultZoom": "Predvolený zoom mapy",
   "mapOverviewZoom": "Zoom prehľadu mapy",
   "mapFollowZoom": "Zoom sledovania mapy",

@@ -27,7 +27,7 @@ class UtcClockWidget extends ConsumerWidget {
     );
     final fontScale = ref.watch(
       appSettingsProvider.select(
-        (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
+        (s) => (s.value?.mapControlScale ?? 1.0).toDouble(),
       ),
     );
     final l10n = AppLocalizations.of(context)!;

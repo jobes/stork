@@ -179,6 +179,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get mapFontSize => 'Veľkosť písma na mape';
 
   @override
+  String get mapControlSize => 'Veľkosť ovládacích prvkov';
+
+  @override
   String get mapDefaultZoom => 'Predvolený zoom mapy';
 
   @override

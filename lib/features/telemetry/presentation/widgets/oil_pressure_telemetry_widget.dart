@@ -25,7 +25,7 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
     );
     final settings = ref.watch(appSettingsProvider).value;
     final l10n = AppLocalizations.of(context)!;
-    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
+    final fontScale = (settings?.mapControlScale ?? 1.0).toDouble();
 
     final pressureUnit = settings?.pressureUnit ?? PressureUnit.bar;
     final thresholds = TelemetryInstrument.oilPressure.thresholds(settings);

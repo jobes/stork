@@ -18,7 +18,7 @@ class CollisionWarningBanner extends ConsumerWidget {
     if (threatTarget == null) return const SizedBox.shrink();
 
     final settings = ref.watch(appSettingsProvider).value;
-    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
+    final fontScale = (settings?.mapControlScale ?? 1.0).toDouble();
     final myAlt = ref.watch(resolvedAltitudeProvider.select((a) => a.mslValue));
     final heightUnit = settings?.heightUnit ?? AltitudeUnit.meters;
     final l10n = AppLocalizations.of(context)!;
