@@ -5471,6 +5471,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading NOTAMs. Results are still incomplete.'**
   String get notamRefreshing;
+
+  /// No description provided for @mapSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search the map'**
+  String get mapSearch;
+
+  /// No description provided for @mapSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Airport, favourite or town'**
+  String get mapSearchHint;
+
+  /// No description provided for @mapSearchClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get mapSearchClear;
+
+  /// No description provided for @mapSearchAirports.
+  ///
+  /// In en, this message translates to:
+  /// **'Airports'**
+  String get mapSearchAirports;
+
+  /// No description provided for @mapSearchMunicipalities.
+  ///
+  /// In en, this message translates to:
+  /// **'Towns and villages'**
+  String get mapSearchMunicipalities;
+
+  /// No description provided for @mapSearchLoadingLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading airports and favourites…'**
+  String get mapSearchLoadingLocal;
+
+  /// No description provided for @mapSearchLocalFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some airports or favourites could not be loaded.'**
+  String get mapSearchLocalFailed;
+
+  /// No description provided for @mapSearchLoadingMunicipalities.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for towns and villages…'**
+  String get mapSearchLoadingMunicipalities;
+
+  /// No description provided for @mapSearchNoMunicipalities.
+  ///
+  /// In en, this message translates to:
+  /// **'No towns or villages found.'**
+  String get mapSearchNoMunicipalities;
+
+  /// No description provided for @mapSearchMunicipalitiesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load towns and villages.'**
+  String get mapSearchMunicipalitiesFailed;
 }
 
 class _AppLocalizationsDelegate

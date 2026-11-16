@@ -47,6 +47,7 @@ class MapCamera extends _$MapCamera {
   final _controllerCompleter = Completer<MapController>();
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
+  bool _hasExplicitFocus = false;
   Object? _activeTransitionToken;
   bool get _isTransitionAnimating => _activeTransitionToken != null;
   int _programmaticMoveCount = 0;
@@ -135,6 +136,7 @@ class MapCamera extends _$MapCamera {
         );
 
         if (next.mapViewState == MapViewState.follow) {
+          _hasExplicitFocus = false;
           if (next.latitude != null &&
               next.longitude != null &&
               next.latitude != 0.0 &&
@@ -187,7 +189,8 @@ class MapCamera extends _$MapCamera {
           }
         } else {
           _cancelInterpolation();
-          if (next.mapViewState == MapViewState.overview) {
+          if (next.mapViewState == MapViewState.overview &&
+              !_hasExplicitFocus) {
             final stateChanged = previous?.mapViewState != next.mapViewState;
             final coordsBecameValid =
                 (previous?.latitude == null ||
@@ -313,7 +316,8 @@ class MapCamera extends _$MapCamera {
 
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
-    if (telemetry.latitude != null &&
+    if (!_hasExplicitFocus &&
+        telemetry.latitude != null &&
         telemetry.longitude != null &&
         telemetry.latitude != 0.0 &&
         telemetry.longitude != 0.0 &&
@@ -405,6 +409,7 @@ class MapCamera extends _$MapCamera {
   }) async {
     _followResumeTimer?.cancel();
     _isFollowPaused = false;
+    _hasExplicitFocus = true;
 
     ref.read(telemetryProvider.notifier).setMapViewState(MapViewState.overview);
 
@@ -472,10 +477,14 @@ class MapCamera extends _$MapCamera {
   }
 
   Future<void> handleGpsToggle() async {
+    final hasPermission = await LocationService.hasPermission();
+    if (!ref.mounted) return;
+
     final telemetry = ref.read(telemetryProvider);
     final mapViewState = telemetry.mapViewState;
 
-    if (mapViewState == MapViewState.init ||
+    if (!hasPermission ||
+        mapViewState == MapViewState.init ||
         mapViewState == MapViewState.waitingForGps) {
       ref
           .read(telemetryProvider.notifier)
@@ -484,9 +493,11 @@ class MapCamera extends _$MapCamera {
       final location = await LocationService.getGpsLocationOnly(
         requestPermission: true,
       );
-      final hasPermission = await LocationService.hasPermission();
+      if (!ref.mounted) return;
+      final permissionGranted = await LocationService.hasPermission();
+      if (!ref.mounted) return;
 
-      if (hasPermission) {
+      if (permissionGranted) {
         ref.read(geolocatorStreamProvider.notifier).start();
       }
 
@@ -494,8 +505,14 @@ class MapCamera extends _$MapCamera {
         ref
             .read(telemetryProvider.notifier)
             .updateGPS(latitude: location.lat, longitude: location.lon);
-      } else if (!hasPermission) {
-        ref.read(telemetryProvider.notifier).setMapViewState(MapViewState.init);
+      } else if (!permissionGranted &&
+          ref.read(telemetryProvider).mapViewState ==
+              MapViewState.waitingForGps) {
+        final previousView = switch (mapViewState) {
+          MapViewState.follow || MapViewState.overview => mapViewState,
+          _ => _hasExplicitFocus ? MapViewState.overview : MapViewState.init,
+        };
+        ref.read(telemetryProvider.notifier).setMapViewState(previousView);
       }
     } else {
       final nextState = mapViewState == MapViewState.follow
@@ -521,7 +538,10 @@ class MapCamera extends _$MapCamera {
         if (!ref.mounted) return;
       }
 
-      if (initialLocation != null && _mapController != null) {
+      if (!_hasExplicitFocus &&
+          initialLocation != null &&
+          _mapController != null &&
+          ref.read(telemetryProvider).mapViewState == MapViewState.init) {
         unawaited(
           moveCamera(
             center: initialLocation,
@@ -535,9 +555,11 @@ class MapCamera extends _$MapCamera {
       if (!ref.mounted) return;
 
       if (hasPermission) {
-        ref
-            .read(telemetryProvider.notifier)
-            .setMapViewState(MapViewState.waitingForGps);
+        if (ref.read(telemetryProvider).mapViewState == MapViewState.init) {
+          ref
+              .read(telemetryProvider.notifier)
+              .setMapViewState(MapViewState.waitingForGps);
+        }
 
         ref.read(geolocatorStreamProvider.notifier).start();
 

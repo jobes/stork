@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:maplibre/maplibre.dart' as ml;
 import 'package:stork/core/services/location_provider.dart';
 import 'package:stork/core/theme/stork_colors.dart';
@@ -23,6 +24,44 @@ import 'package:stork/features/telemetry/presentation/providers/agl_provider.dar
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/traffic_provider.dart';
 
+import '../../../../helpers/fake_geolocator_platform.dart';
+
+class _GpsPermissions extends FakeGeolocatorPlatform {
+  _GpsPermissions(super.controller);
+
+  var permission = LocationPermission.denied;
+  var grantOnRequest = false;
+  var permissionRequests = 0;
+  Future<Position?>? lastKnownPosition;
+
+  @override
+  Future<bool> isLocationServiceEnabled() async => true;
+
+  @override
+  Future<LocationPermission> checkPermission() async => permission;
+
+  @override
+  Future<LocationPermission> requestPermission() async {
+    permissionRequests++;
+    if (grantOnRequest) permission = LocationPermission.whileInUse;
+    return permission;
+  }
+
+  @override
+  Future<Position?> getLastKnownPosition({
+    bool forceLocationManager = false,
+  }) async {
+    final pending = lastKnownPosition;
+    lastKnownPosition = null;
+    return pending;
+  }
+
+  @override
+  Future<Position> getCurrentPosition({
+    LocationSettings? locationSettings,
+  }) async => makePosition();
+}
+
 class _Telemetry extends TelemetryNotifier {
   @override
   TelemetryState build() => const TelemetryState(
@@ -32,6 +71,8 @@ class _Telemetry extends TelemetryNotifier {
     isFlying: true,
     mapViewState: MapViewState.follow,
   );
+
+  MapViewState get view => state.mapViewState;
 
   void changeLatitude(double latitude) {
     state = state.copyWith(latitude: TelemetryValue(latitude));
@@ -139,6 +180,7 @@ class _Map extends Fake implements ml.MapController {
 
   void Function(ml.MapEvent)? onEvent;
   int viewportReads = 0;
+  final animatedCenters = <ml.Geographic?>[];
 
   @override
   Future<void> moveCamera({
@@ -156,6 +198,27 @@ class _Map extends Fake implements ml.MapController {
     );
     onEvent?.call(ml.MapEventMoveCamera(camera: camera));
     onEvent?.call(const ml.MapEventCameraIdle());
+  }
+
+  @override
+  Future<void> animateCamera({
+    ml.Geographic? center,
+    double? zoom,
+    double? bearing,
+    double? pitch,
+    Duration nativeDuration = const Duration(seconds: 2),
+    double webSpeed = 1.2,
+    Duration? webMaxDuration,
+    EdgeInsets padding = EdgeInsets.zero,
+  }) {
+    animatedCenters.add(center);
+    return moveCamera(
+      center: center,
+      zoom: zoom,
+      bearing: bearing,
+      pitch: pitch,
+      padding: padding,
+    );
   }
 
   @override
@@ -215,6 +278,103 @@ _setupFollow(WidgetTester tester, {_Notams? notams}) async {
 }
 
 void main() {
+  testWidgets(
+    'focusing a point stops following and keeps the selected center',
+    (tester) async {
+      final setup = await _setupFollow(tester);
+      const point = ml.Geographic(lat: 47.8566, lon: 18.1257);
+      final focus = setup.camera.focusOnPoint(
+        latitude: point.lat,
+        longitude: point.lon,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await focus;
+
+      setup.telemetry.changeLatitude(0);
+      setup.telemetry.changeLatitude(49);
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(setup.map.animatedCenters, [point]);
+      expect(setup.map.camera.center, point);
+    },
+  );
+
+  testWidgets('GPS can request permission after focusing a search result', (
+    tester,
+  ) async {
+    final controller = StreamController<Position>.broadcast();
+    final previousPlatform = GeolocatorPlatform.instance;
+    final gps = _GpsPermissions(controller);
+    GeolocatorPlatform.instance = gps;
+    addTearDown(() async {
+      GeolocatorPlatform.instance = previousPlatform;
+      await controller.close();
+    });
+    final setup = await _setupFollow(tester);
+    setup.telemetry.setMapViewState(MapViewState.init);
+    const point = ml.Geographic(lat: 47.8566, lon: 18.1257);
+    final focus = setup.camera.focusOnPoint(
+      latitude: point.lat,
+      longitude: point.lon,
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+    await focus;
+
+    await setup.camera.handleGpsToggle();
+    expect(gps.permissionRequests, 1);
+    expect(gps.getPositionStreamCallCount, 0);
+    expect(setup.telemetry.view, MapViewState.overview);
+    expect(setup.map.camera.center, point);
+
+    gps.grantOnRequest = true;
+    await setup.camera.handleGpsToggle();
+    expect(gps.permissionRequests, 2);
+    expect(gps.getPositionStreamCallCount, 1);
+    expect(setup.telemetry.view, MapViewState.overview);
+    expect(setup.map.camera.center, point);
+
+    await setup.camera.handleGpsToggle();
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(gps.permissionRequests, 2);
+    expect(setup.telemetry.view, MapViewState.follow);
+  });
+
+  testWidgets('late startup location leaves the camera in its current mode', (
+    tester,
+  ) async {
+    final controller = StreamController<Position>.broadcast();
+    final previousPlatform = GeolocatorPlatform.instance;
+    final initialPosition = Completer<Position?>();
+    final gps = _GpsPermissions(controller)
+      ..permission = LocationPermission.whileInUse
+      ..lastKnownPosition = initialPosition.future;
+    GeolocatorPlatform.instance = gps;
+    addTearDown(() async {
+      GeolocatorPlatform.instance = previousPlatform;
+      await controller.close();
+    });
+
+    final setup = await _setupFollow(tester);
+    setup.telemetry.setMapViewState(MapViewState.init);
+    final startup = setup.camera.autoStartGps();
+    await tester.pump();
+    expect(gps.lastKnownPosition, isNull);
+
+    setup.telemetry.setMapViewState(MapViewState.waitingForGps);
+    final currentCenter = setup.map.camera.center;
+    final currentZoom = setup.map.camera.zoom;
+    initialPosition.complete(makePosition(lat: 47.8566, lon: 18.1257));
+    await startup;
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(setup.map.camera.center, currentCenter);
+    expect(setup.map.camera.zoom, currentZoom);
+    expect(setup.telemetry.view, MapViewState.waitingForGps);
+    expect(gps.getPositionStreamCallCount, 1);
+  });
+
   testWidgets('a late style load leaves NOTAM updates on the current style', (
     tester,
   ) async {

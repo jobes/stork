@@ -1507,5 +1507,15 @@
         "type": "String"
       }
     }
-  }
+  },
+  "mapSearch": "Search the map",
+  "mapSearchHint": "Airport, favourite or town",
+  "mapSearchClear": "Clear search",
+  "mapSearchAirports": "Airports",
+  "mapSearchMunicipalities": "Towns and villages",
+  "mapSearchLoadingLocal": "Loading airports and favourites…",
+  "mapSearchLocalFailed": "Some airports or favourites could not be loaded.",
+  "mapSearchLoadingMunicipalities": "Searching for towns and villages…",
+  "mapSearchNoMunicipalities": "No towns or villages found.",
+  "mapSearchMunicipalitiesFailed": "Could not load towns and villages."
 }

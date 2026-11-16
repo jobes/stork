@@ -88,6 +88,15 @@ void main() {
     expect(await DatabaseService.getMetadataSize(), 0);
   });
 
+  test('shares one airport download with map search', () async {
+    final airports = repository.loadOnlineAirports();
+    final locations = repository.selectLocations(points, isCurrent: () => true);
+
+    expect(await locations, {'LZIB', 'LZBB'});
+    expect(await airports, isNotEmpty);
+    expect(requests, unorderedEquals(NotamCatalogRepository.files));
+  });
+
   test(
     'offline download fetches fresh files and selection reads SQLite',
     () async {

@@ -22,12 +22,26 @@ NotamCatalogRepository notamCatalogRepository(Ref ref) {
 class NotamCatalogRepository {
   NotamCatalogRepository(this._client);
 
-  static const files = ['airports.geojson', 'notam-areas.json'];
+  static const _airportFile = 'airports.geojson';
+  static const _areaFile = 'notam-areas.json';
+  static const files = [_airportFile, _areaFile];
   static const _metadataType = 'notam_catalog';
 
   final http.Client _client;
+  Future<Uint8List>? _onlineAirports;
   Future<List<Uint8List>>? _onlineDocuments;
   Future<void> _selectionQueue = Future.value();
+
+  /// Shares the in-memory airport download between NOTAM and map search.
+  Future<Uint8List> loadOnlineAirports() async {
+    final loading = _onlineAirports ??= _download(_airportFile);
+    try {
+      return await loading;
+    } catch (_) {
+      if (identical(_onlineAirports, loading)) _onlineAirports = null;
+      rethrow;
+    }
+  }
 
   Future<Set<String>> selectLocations(
     List<Geographic> points, {
@@ -60,7 +74,10 @@ class NotamCatalogRepository {
       return offline;
     }
 
-    final loading = _onlineDocuments ??= Future.wait(files.map(_download));
+    final loading = _onlineDocuments ??= Future.wait([
+      loadOnlineAirports(),
+      _download(_areaFile),
+    ]);
     try {
       final documents = await loading;
       if (!isCurrent()) return const {};
@@ -69,7 +86,10 @@ class NotamCatalogRepository {
         points: points,
       ));
     } catch (_) {
-      if (identical(_onlineDocuments, loading)) _onlineDocuments = null;
+      if (identical(_onlineDocuments, loading)) {
+        _onlineDocuments = null;
+        _onlineAirports = null;
+      }
       rethrow;
     }
   }
@@ -101,7 +121,10 @@ class NotamCatalogRepository {
           'type': _metadataType,
         },
     ], shouldWrite: isCurrent);
-    if (isCurrent()) _onlineDocuments = null;
+    if (isCurrent()) {
+      _onlineDocuments = null;
+      _onlineAirports = null;
+    }
   }
 
   Future<Uint8List> _download(String file) async {

@@ -7,10 +7,12 @@ import 'map_alert_indicator.dart';
 class MapControls extends StatelessWidget {
   final MapViewState mapViewState;
   final VoidCallback onMenuPressed;
+  final VoidCallback onSearchPressed;
   final VoidCallback onGpsPressed;
   final VoidCallback? onFinishEditing;
   final double buttonScale;
   final Key? menuButtonKey;
+  final Key? searchButtonKey;
   final Key? gpsButtonKey;
   final Key? doneButtonKey;
   final Key? alertIndicatorKey;
@@ -19,10 +21,12 @@ class MapControls extends StatelessWidget {
     super.key,
     required this.mapViewState,
     required this.onMenuPressed,
+    required this.onSearchPressed,
     required this.onGpsPressed,
     this.onFinishEditing,
     this.buttonScale = 1.0,
     this.menuButtonKey,
+    this.searchButtonKey,
     this.gpsButtonKey,
     this.doneButtonKey,
     this.alertIndicatorKey,
@@ -30,16 +34,16 @@ class MapControls extends StatelessWidget {
 
   static const padding = 16.0;
   static const buttonExtent = 48.0;
-  static const _alertGap = 8.0;
+  static const _buttonGap = 8.0;
 
   static double fitButtonScale(
     double scale, {
     required double safeWidth,
     required bool isEditing,
   }) {
-    // Leave space for all three buttons and the edit-mode action on phones.
-    final rowWidth = 3 * buttonExtent + (isEditing ? 112 : 0);
-    final availableWidth = safeWidth - 2 * padding - _alertGap;
+    // Leave space for all four controls and the edit-mode action on phones.
+    final rowWidth = 4 * buttonExtent + (isEditing ? 112 : 0);
+    final availableWidth = safeWidth - 2 * padding - 2 * _buttonGap;
     return (availableWidth / rowWidth).clamp(0.0, scale);
   }
 
@@ -50,6 +54,14 @@ class MapControls extends StatelessWidget {
     final iconSize = 24.0 * buttonScale;
     final buttonSize = Size.square(40.0 * buttonScale);
     final iconPadding = EdgeInsets.all(8.0 * buttonScale);
+
+    final leftButtonStyle = IconButton.styleFrom(
+      elevation: 4,
+      shadowColor: Colors.black.withAlpha(76),
+      minimumSize: buttonSize,
+      iconSize: iconSize,
+      padding: iconPadding,
+    );
 
     final gpsTooltip = mapViewState == MapViewState.waitingForGps
         ? l10n.gpsWaiting
@@ -65,20 +77,29 @@ class MapControls extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            PointerInterceptor(
-              child: IconButton.filled(
-                key: menuButtonKey,
-                style: IconButton.styleFrom(
-                  elevation: 4,
-                  shadowColor: Colors.black.withAlpha(76),
-                  minimumSize: buttonSize,
-                  iconSize: iconSize,
-                  padding: iconPadding,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                PointerInterceptor(
+                  child: IconButton.filled(
+                    key: menuButtonKey,
+                    style: leftButtonStyle,
+                    icon: const Icon(Icons.menu),
+                    tooltip: l10n.menu,
+                    onPressed: onMenuPressed,
+                  ),
                 ),
-                icon: const Icon(Icons.menu),
-                tooltip: l10n.menu,
-                onPressed: onMenuPressed,
-              ),
+                const SizedBox(width: _buttonGap),
+                PointerInterceptor(
+                  child: IconButton.filled(
+                    key: searchButtonKey,
+                    style: leftButtonStyle,
+                    icon: const Icon(Icons.search),
+                    tooltip: l10n.mapSearch,
+                    onPressed: onSearchPressed,
+                  ),
+                ),
+              ],
             ),
             if (onFinishEditing != null)
               Flexible(
@@ -107,7 +128,7 @@ class MapControls extends StatelessWidget {
                   dimension: buttonExtent * buttonScale,
                   child: const FittedBox(child: MapAlertIndicator()),
                 ),
-                const SizedBox(width: _alertGap),
+                const SizedBox(width: _buttonGap),
                 PointerInterceptor(
                   child: IconButton.filled(
                     key: gpsButtonKey,

@@ -2990,4 +2990,35 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String get notamRefreshing =>
       'NOTAM sa načítavajú. Výsledky sú zatiaľ neúplné.';
+
+  @override
+  String get mapSearch => 'Hľadať na mape';
+
+  @override
+  String get mapSearchHint => 'Letisko, obľúbené miesto alebo obec';
+
+  @override
+  String get mapSearchClear => 'Vymazať vyhľadávanie';
+
+  @override
+  String get mapSearchAirports => 'Letiská';
+
+  @override
+  String get mapSearchMunicipalities => 'Obce';
+
+  @override
+  String get mapSearchLoadingLocal => 'Načítavam letiská a obľúbené miesta…';
+
+  @override
+  String get mapSearchLocalFailed =>
+      'Niektoré letiská alebo obľúbené miesta sa nepodarilo načítať.';
+
+  @override
+  String get mapSearchLoadingMunicipalities => 'Hľadám obce…';
+
+  @override
+  String get mapSearchNoMunicipalities => 'Žiadne obce sa nenašli.';
+
+  @override
+  String get mapSearchMunicipalitiesFailed => 'Obce sa nepodarilo načítať.';
 }
