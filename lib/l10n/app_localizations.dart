@@ -398,6 +398,12 @@ abstract class AppLocalizations {
   /// **'Map Font Size'**
   String get mapFontSize;
 
+  /// No description provided for @mapControlSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Control Size'**
+  String get mapControlSize;
+
   /// No description provided for @mapDefaultZoom.
   ///
   /// In en, this message translates to:

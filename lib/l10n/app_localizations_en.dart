@@ -180,6 +180,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapFontSize => 'Map Font Size';
 
   @override
+  String get mapControlSize => 'Control Size';
+
+  @override
   String get mapDefaultZoom => 'Map Default Zoom';
 
   @override

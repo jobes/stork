@@ -17,6 +17,7 @@ abstract class AppSettings with _$AppSettings {
 
   const factory AppSettings({
     @Default(1.0) double mapFontSize,
+    @Default(1.0) double mapControlScale,
     @Default(true) bool showUtcClock,
     @Default(60) int sunsetWarningMinutes,
     @Default(6.0) double mapDefaultZoom,
@@ -126,7 +127,11 @@ abstract class AppSettings with _$AppSettings {
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) =>
-      _$AppSettingsFromJson(json);
+      _$AppSettingsFromJson({
+        // The previous map font setting also scaled the map overlays.
+        'mapControlScale': json['mapFontSize'],
+        ...json,
+      });
 
   AppSettings copyWithValidatedQnh(double qnhValue) {
     double validatedQnh = qnhValue;

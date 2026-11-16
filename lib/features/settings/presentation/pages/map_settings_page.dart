@@ -68,6 +68,19 @@ class MapSettingsPage extends ConsumerWidget {
               title: l10n.settingsMapAppearance,
               children: [
                 SliderSetting(
+                  label: l10n.mapControlSize,
+                  value: settings.mapControlScale,
+                  min: 0.5,
+                  max: 3.0,
+                  divisions: 25,
+                  onChanged: (val) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .updateMapControlScale(val);
+                  },
+                ),
+                const Divider(indent: 16, endIndent: 16),
+                SliderSetting(
                   label: l10n.mapFontSize,
                   value: settings.mapFontSize,
                   min: 0.5,

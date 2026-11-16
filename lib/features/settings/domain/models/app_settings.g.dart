@@ -8,6 +8,7 @@ part of 'app_settings.dart';
 
 _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   mapFontSize: (json['mapFontSize'] as num?)?.toDouble() ?? 1.0,
+  mapControlScale: (json['mapControlScale'] as num?)?.toDouble() ?? 1.0,
   showUtcClock: json['showUtcClock'] as bool? ?? true,
   sunsetWarningMinutes: (json['sunsetWarningMinutes'] as num?)?.toInt() ?? 60,
   mapDefaultZoom: (json['mapDefaultZoom'] as num?)?.toDouble() ?? 6.0,
@@ -156,6 +157,7 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
     <String, dynamic>{
       'mapFontSize': instance.mapFontSize,
+      'mapControlScale': instance.mapControlScale,
       'showUtcClock': instance.showUtcClock,
       'sunsetWarningMinutes': instance.sunsetWarningMinutes,
       'mapDefaultZoom': instance.mapDefaultZoom,

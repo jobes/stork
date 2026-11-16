@@ -17,7 +17,7 @@ class FlightTimeTelemetryWidget extends ConsumerWidget {
     final isFlying = ref.watch(telemetryProvider.select((s) => s.isFlying));
     final flightSummary = ref.watch(flightDurationProvider);
     final settings = ref.watch(appSettingsProvider).value;
-    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
+    final fontScale = (settings?.mapControlScale ?? 1.0).toDouble();
 
     final palette = MapTelemetryPalette.of(context);
     final timeColor = isFlying ? palette.value : palette.label;

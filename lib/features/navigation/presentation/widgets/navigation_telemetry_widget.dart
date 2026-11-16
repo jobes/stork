@@ -28,7 +28,7 @@ class NavigationTelemetryWidget extends ConsumerWidget {
     final telemetry = ref.watch(throttledTelemetryProvider);
     final settings = ref.watch(appSettingsProvider).value;
     final navigationAsync = ref.watch(navigationProvider);
-    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
+    final fontScale = (settings?.mapControlScale ?? 1.0).toDouble();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultTextColor = isDark

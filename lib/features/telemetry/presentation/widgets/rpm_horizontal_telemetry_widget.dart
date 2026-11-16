@@ -27,7 +27,7 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
     const double minVisualValue = 0.0;
 
     final l10n = AppLocalizations.of(context)!;
-    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
+    final fontScale = (settings?.mapControlScale ?? 1.0).toDouble();
 
     final palette = MapTelemetryPalette.of(context);
     final isDark = palette.isDark;

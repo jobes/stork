@@ -124,6 +124,7 @@
   "downloadError": "Error downloading maps. Please check your internet connection.",
   "settings": "Settings",
   "mapFontSize": "Map Font Size",
+  "mapControlSize": "Control Size",
   "mapDefaultZoom": "Map Default Zoom",
   "mapOverviewZoom": "Map Overview Zoom",
   "mapFollowZoom": "Map Follow Zoom",

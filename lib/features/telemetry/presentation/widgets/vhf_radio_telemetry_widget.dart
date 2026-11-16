@@ -47,7 +47,7 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
     );
 
     final settings = ref.watch(appSettingsProvider).value;
-    final fontScale = (settings?.mapFontSize ?? 1.0).toDouble();
+    final fontScale = (settings?.mapControlScale ?? 1.0).toDouble();
 
     final palette = MapTelemetryPalette.of(context);
     final isDisconnected = radioActiveFreq == null;

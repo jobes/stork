@@ -85,9 +85,9 @@ const _device = CannelloniDevice(
 // Replace external services at the provider boundary. Never use saved user
 // preferences, credentials, live GPS, sockets or online map tiles in goldens.
 class _Settings extends AppSettingsNotifier {
-  _Settings(this.mapFontSize);
+  _Settings(this.mapControlScale);
 
-  final double mapFontSize;
+  final double mapControlScale;
 
   @override
   AppSettings build() => AppSettings(
@@ -95,7 +95,7 @@ class _Settings extends AppSettingsNotifier {
     selectedDevice: _device,
     pilotId: 'demo-pilot',
     airplaneId: 'demo-aircraft',
-    mapFontSize: mapFontSize,
+    mapControlScale: mapControlScale,
     widgetPositions: const {'speed_widget': WidgetPosition(top: 100, left: 30)},
   );
 }
@@ -264,7 +264,7 @@ Future<void> _pump(
   Widget page,
   Brightness brightness,
   Size size, {
-  double mapFontSize = 1,
+  double mapControlScale = 1,
   double? collisionDistance,
   TelemetryState? telemetry,
   MapAlert? mapAlert,
@@ -277,7 +277,7 @@ Future<void> _pump(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        appSettingsProvider.overrideWith(() => _Settings(mapFontSize)),
+        appSettingsProvider.overrideWith(() => _Settings(mapControlScale)),
         pilotStateProvider.overrideWith(_Pilots.new),
         navigationProvider.overrideWith(_Navigation.new),
         offlineMapsProvider.overrideWith(_OfflineMaps.new),
@@ -376,7 +376,7 @@ Future<void> _checkCollisionBanner(
   WidgetTester tester,
   Brightness brightness,
   Size size, {
-  required double mapFontSize,
+  required double mapControlScale,
   required double distance,
   required String expectedDistance,
   required String screenshot,
@@ -387,7 +387,7 @@ Future<void> _checkCollisionBanner(
       body: Stack(
         children: [
           Positioned(
-            top: 40 * mapFontSize,
+            top: 40 * mapControlScale,
             left: 0,
             right: 0,
             child: const CollisionWarningBanner(),
@@ -397,7 +397,7 @@ Future<void> _checkCollisionBanner(
     ),
     brightness,
     size,
-    mapFontSize: mapFontSize,
+    mapControlScale: mapControlScale,
     collisionDistance: distance,
   );
   expect(find.text(expectedDistance), findsOneWidget);
@@ -416,7 +416,7 @@ Future<void> _checkMapWidgets(
   Size size, {
   required String screenshot,
   TelemetryState telemetry = _liveTelemetry,
-  double mapFontSize = 1,
+  double mapControlScale = 1,
   bool flightOnly = false,
 }) async {
   await _pump(
@@ -450,7 +450,7 @@ Future<void> _checkMapWidgets(
     brightness,
     size,
     telemetry: telemetry,
-    mapFontSize: mapFontSize,
+    mapControlScale: mapControlScale,
   );
   final instruments = find.byType(TelemetryCard);
   expect(instruments, findsNWidgets(flightOnly ? 5 : 12));
@@ -556,7 +556,7 @@ void main() {
           tester,
           brightness,
           device.value,
-          mapFontSize: 1,
+          mapControlScale: 1,
           distance: landscape ? 1000 : 1200,
           expectedDistance: landscape ? '1.0 km' : '1.2 km',
           screenshot: 'collision_$suffix',
@@ -569,7 +569,7 @@ void main() {
             tester,
             brightness,
             device.value,
-            mapFontSize: 3,
+            mapControlScale: 3,
             distance: landscape ? 999 : 1200,
             expectedDistance: landscape ? '999 m' : '1.2 km',
             screenshot: name,
@@ -695,7 +695,7 @@ void main() {
             brightness,
             device.value,
             screenshot: 'map_widgets_large_$suffix',
-            mapFontSize: 2,
+            mapControlScale: 2,
             flightOnly: true,
           );
         });

@@ -45,7 +45,7 @@ class _CompassBarState extends ConsumerState<CompassBar> {
     final colorScheme = theme.colorScheme;
     final fontScale = ref.watch(
       appSettingsProvider.select(
-        (s) => (s.value?.mapFontSize ?? 1.0).toDouble(),
+        (s) => (s.value?.mapControlScale ?? 1.0).toDouble(),
       ),
     );
 
