@@ -1215,5 +1215,15 @@
   "notamOldestUpdate": "Najstaršia aktualizácia NOTAM {date} o {time}",
   "notamFailedLocations": "Sťahovanie zlyhalo pre {codes}.",
   "notamPartialLocations": "Niektoré záznamy sa nepodarilo spracovať pre {codes}.",
-  "notamRefreshing": "NOTAM sa načítavajú. Výsledky sú zatiaľ neúplné."
+  "notamRefreshing": "NOTAM sa načítavajú. Výsledky sú zatiaľ neúplné.",
+  "mapSearch": "Hľadať na mape",
+  "mapSearchHint": "Letisko, obľúbené miesto alebo obec",
+  "mapSearchClear": "Vymazať vyhľadávanie",
+  "mapSearchAirports": "Letiská",
+  "mapSearchMunicipalities": "Obce",
+  "mapSearchLoadingLocal": "Načítavam letiská a obľúbené miesta…",
+  "mapSearchLocalFailed": "Niektoré letiská alebo obľúbené miesta sa nepodarilo načítať.",
+  "mapSearchLoadingMunicipalities": "Hľadám obce…",
+  "mapSearchNoMunicipalities": "Žiadne obce sa nenašli.",
+  "mapSearchMunicipalitiesFailed": "Obce sa nepodarilo načítať."
 }

@@ -104,7 +104,7 @@ void main() {
   testWidgets('enlarged map controls fit and remain tappable on a phone', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(320, 600));
+    await tester.binding.setSurfaceSize(const Size(360, 600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     var taps = 0;
     await tester.pumpWidget(
@@ -116,10 +116,11 @@ void main() {
             mapViewState: MapViewState.follow,
             buttonScale: MapControls.fitButtonScale(
               3.0,
-              safeWidth: 320,
+              safeWidth: 360,
               isEditing: true,
             ),
             onMenuPressed: () => taps++,
+            onSearchPressed: () => taps++,
             onGpsPressed: () => taps++,
             onFinishEditing: () => taps++,
           ),
@@ -132,9 +133,10 @@ void main() {
       greaterThan(48),
     );
     await tester.tap(find.byIcon(Icons.menu));
+    await tester.tap(find.byIcon(Icons.search));
     await tester.tap(find.byIcon(Icons.navigation));
     await tester.tap(find.byType(FilledButton));
-    expect(taps, 3);
+    expect(taps, 4);
   });
 
   testWidgets('offers NOTAM refresh only while NOTAM data has an error', (
@@ -255,6 +257,7 @@ void main() {
             child: MapControls(
               mapViewState: MapViewState.follow,
               onMenuPressed: () {},
+              onSearchPressed: () {},
               onGpsPressed: () {},
               gpsButtonKey: gpsKey,
               menuButtonKey: menuKey,

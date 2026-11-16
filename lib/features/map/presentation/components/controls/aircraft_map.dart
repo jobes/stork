@@ -5,6 +5,7 @@ import '../../../../../core/constants/map_constants.dart';
 
 class AircraftMap extends StatefulWidget {
   final String style;
+  final Geographic? searchPin;
   final Function(MapController) onMapCreated;
   final Function(StyleController) onStyleLoaded;
   final Function(MapEvent) onEvent;
@@ -13,6 +14,7 @@ class AircraftMap extends StatefulWidget {
   const AircraftMap({
     super.key,
     required this.style,
+    this.searchPin,
     required this.onMapCreated,
     required this.onStyleLoaded,
     required this.onEvent,
@@ -80,6 +82,23 @@ class _AircraftMapState extends State<AircraftMap> {
           }
         },
         onEvent: widget.onEvent,
+        children: [
+          if (widget.searchPin case final point?)
+            WidgetLayer(
+              markers: [
+                Marker(
+                  point: point,
+                  size: const Size.square(40),
+                  alignment: Alignment.bottomCenter,
+                  child: const Icon(
+                    Icons.location_on,
+                    size: 40,
+                    color: Colors.red,
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }

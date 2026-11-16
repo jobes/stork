@@ -1,22 +1,31 @@
 @Tags(['visual'])
 library;
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:maplibre/maplibre.dart' show Geographic;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
 import 'package:stork/core/services/mdns_service.dart';
 import 'package:stork/core/theme/app_theme.dart';
+import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
+import 'package:stork/features/map/data/services/map_search.dart';
+import 'package:stork/features/map/domain/models/poi_type.dart';
 import 'package:stork/features/map/domain/repositories/notam_repository.dart';
 import 'package:stork/features/map/presentation/components/controls/map_alert_indicator.dart';
 import 'package:stork/features/map/presentation/components/controls/map_controls.dart';
 import 'package:stork/features/map/presentation/components/controls/map_drawer.dart';
 import 'package:stork/features/map/presentation/components/dialogs/base_details_dialog.dart';
+import 'package:stork/features/map/presentation/components/dialogs/map_search_dialog.dart';
 import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
 import 'package:stork/features/map/presentation/providers/notams_provider.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
@@ -234,6 +243,19 @@ class _Notams extends Notams {
   Future<NotamFetchResult> build() async => const NotamFetchResult([]);
 }
 
+class _SearchFavorites extends FavoritesNotifier {
+  @override
+  Future<List<FavoritePoint>> build() async => const [
+    FavoritePoint(
+      id: 'martov-favorite',
+      name: 'Martovce riverside',
+      latitude: 47.854,
+      longitude: 18.122,
+      icon: PoiType.viewpoint,
+    ),
+  ];
+}
+
 /// Keep a fresh capture even when the baseline comparison succeeds.
 class _CaptureComparator extends LocalFileComparator {
   _CaptureComparator(super.testFile);
@@ -269,6 +291,7 @@ Future<void> _pump(
   TelemetryState? telemetry,
   MapAlert? mapAlert,
   bool disableAnimations = false,
+  List<Override> overrides = const [],
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
@@ -315,6 +338,7 @@ Future<void> _pump(
         pureTrackProvider.overrideWith(_Auth.new),
         pureTrackAuthServiceProvider.overrideWithValue(_AuthService()),
         gdl90HeartbeatActiveProvider.overrideWith((ref) => Stream.value(false)),
+        ...overrides,
         if (collisionDistance != null) ...[
           activeCollisionAlertProvider.overrideWith(
             (ref) => TrafficAircraft(
@@ -486,6 +510,7 @@ Future<void> _checkMapAlert(
             child: MapControls(
               mapViewState: MapViewState.follow,
               onMenuPressed: () {},
+              onSearchPressed: () {},
               onGpsPressed: () {},
             ),
           ),
@@ -519,6 +544,109 @@ Future<void> _checkMapAlert(
   await _shot(tester, screenshot);
 }
 
+Future<void> _openMapSearch(
+  WidgetTester tester, {
+  required Brightness brightness,
+  required String device,
+  required MockClient photon,
+  int airportCount = 1,
+}) async {
+  await _pump(
+    tester,
+    Scaffold(
+      body: Stack(
+        children: [
+          const Positioned.fill(child: ColoredBox(color: _mapBackdrop)),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Builder(
+              builder: (context) => MapControls(
+                mapViewState: MapViewState.follow,
+                onMenuPressed: () {},
+                onGpsPressed: () {},
+                onSearchPressed: () => showMapSearchDialog(
+                  context,
+                  latitude: 48.15,
+                  longitude: 17.11,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+    brightness,
+    _devices[device]!,
+    disableAnimations: true,
+    overrides: [
+      airportSearchRecordsProvider.overrideWith(
+        (_) => [
+          const {
+            'name': 'MARTIN',
+            'icaoCode': 'LZMA',
+            'latitude': 49.0665,
+            'longitude': 18.9504,
+          },
+          for (var i = 1; i < airportCount; i++)
+            {
+              'name': 'Martin airfield $i',
+              'latitude': 49.068,
+              'longitude': 18.951,
+            },
+        ],
+      ),
+      favoritesProvider.overrideWith(_SearchFavorites.new),
+      photonSearchProvider.overrideWithValue(PhotonSearch(photon)),
+    ],
+  );
+
+  await tester.tap(find.byIcon(Icons.search));
+  await tester.pumpAndSettle();
+  expect(find.byType(TextField), findsOneWidget);
+}
+
+http.Response _mapSearchResponse({required bool hasResults}) => http.Response(
+  jsonEncode({
+    'features': [
+      if (hasResults)
+        {
+          'properties': {
+            'name': 'Martovce',
+            'county': 'Komárno district',
+            'country': 'Slovakia',
+          },
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [18.1257, 47.8566],
+          },
+        },
+    ],
+  }),
+  200,
+  headers: {'content-type': 'application/json; charset=utf-8'},
+);
+
+Future<void> _enterMapSearchQuery(WidgetTester tester, String query) async {
+  await tester.enterText(find.byType(TextField), query);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 350));
+}
+
+void _expectMapSearchGroups(WidgetTester tester, List<String> labels) {
+  final rows = labels.map((label) => find.text(label)).toList();
+  for (final row in rows) {
+    expect(row.hitTestable(), findsOneWidget);
+  }
+  for (var i = 1; i < rows.length; i++) {
+    expect(
+      tester.getTopLeft(rows[i]).dy,
+      greaterThan(tester.getTopLeft(rows[i - 1]).dy),
+    );
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
@@ -545,6 +673,89 @@ void main() {
     goldenFileComparator = _CaptureComparator(
       File('test/visual/stork_visual_test.dart').absolute.uri,
     );
+  });
+
+  testWidgets('map_search_phone_portrait_en_light', (tester) async {
+    await _openMapSearch(
+      tester,
+      brightness: Brightness.light,
+      device: 'phone_portrait',
+      photon: MockClient(
+        (request) async => _mapSearchResponse(
+          hasResults: request.url.queryParameters['q'] == 'mart',
+        ),
+      ),
+    );
+
+    expect(find.text('Airport, favourite or town'), findsOneWidget);
+    await _shot(tester, 'map_search_open_phone_portrait_en_light');
+
+    await _enterMapSearchQuery(tester, 'mart');
+    await tester.pumpAndSettle();
+    _expectMapSearchGroups(tester, [
+      'Airports',
+      'Favourites',
+      'Towns and villages',
+    ]);
+    await _shot(tester, 'map_search_results_phone_portrait_en_light');
+
+    await _enterMapSearchQuery(tester, 'zzqq');
+    await tester.pumpAndSettle();
+    expect(find.text('No towns or villages found.'), findsOneWidget);
+    await _shot(tester, 'map_search_empty_phone_portrait_en_light');
+  });
+
+  testWidgets('map_search_phone_landscape_en_dark', (tester) async {
+    tester.view.viewInsets = const FakeViewPadding(bottom: 165);
+    addTearDown(tester.view.resetViewInsets);
+    final response = Completer<http.Response>();
+    await _openMapSearch(
+      tester,
+      brightness: Brightness.dark,
+      device: 'phone_landscape',
+      airportCount: 19,
+      photon: MockClient((_) => response.future),
+    );
+
+    await _enterMapSearchQuery(tester, 'martin');
+    // Capture the spinner at a fixed point in its indeterminate animation.
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(
+      find.text('Searching for towns and villages…').hitTestable(),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.flight).hitTestable(), findsWidgets);
+    await _shot(tester, 'map_search_loading_phone_landscape_en_dark');
+
+    response.complete(http.Response('', 503));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Could not load towns and villages.').hitTestable(),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.flight).hitTestable(), findsWidgets);
+    await _shot(tester, 'map_search_error_phone_landscape_en_dark');
+  });
+
+  testWidgets('map_search_tablet_landscape_en_dark', (tester) async {
+    await _openMapSearch(
+      tester,
+      brightness: Brightness.dark,
+      device: 'tablet_landscape',
+      photon: MockClient((_) async => _mapSearchResponse(hasResults: true)),
+    );
+
+    await _enterMapSearchQuery(tester, 'mart');
+    await tester.pumpAndSettle();
+    _expectMapSearchGroups(tester, [
+      'Airports',
+      'Favourites',
+      'Towns and villages',
+    ]);
+    final field = tester.getRect(find.byType(TextField));
+    expect(field.left, lessThan(100));
+    expect(field.right, lessThan(500));
+    await _shot(tester, 'map_search_results_tablet_landscape_en_dark');
   });
 
   for (final device in _devices.entries) {

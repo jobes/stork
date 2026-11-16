@@ -7,6 +7,7 @@ import 'package:stork/core/services/cannelloni_service_io.dart';
 import 'package:stork/core/services/mdns_service.dart';
 import 'package:stork/core/services/style_provider.dart';
 import 'package:stork/core/widgets/stork_navigation_tile.dart';
+import 'package:stork/features/map/data/services/map_search.dart';
 import 'package:stork/features/map/presentation/components/controls/compass_bar.dart';
 import 'package:stork/features/map/presentation/components/controls/draggable_widget.dart';
 import 'package:stork/features/map/presentation/components/controls/map_controls.dart';
@@ -110,6 +111,12 @@ class _Navigation extends NavigationNotifier {
 
   @override
   NavigationState build() => navigation;
+
+  @override
+  Future<void> addPoint(NavigationPoint point) async {
+    final current = state.requireValue;
+    state = AsyncData(current.copyWith(points: [...current.points, point]));
+  }
 }
 
 class _OfflineMaps extends OfflineMapsNotifier {
@@ -127,11 +134,22 @@ class _DisconnectedGateway extends CannelloniService {
 }
 
 class _MapCamera extends MapCamera {
+  final focusPoints = <Geographic>[];
+
   @override
   void build() {}
 
   @override
   Future<void> autoStartGps() async {}
+
+  @override
+  Future<void> focusOnPoint({
+    required double latitude,
+    required double longitude,
+    double zoom = 10,
+  }) async {
+    focusPoints.add(Geographic(lat: latitude, lon: longitude));
+  }
 }
 
 class _Telemetry extends TelemetryNotifier {
@@ -154,6 +172,7 @@ Future<ProviderContainer> _pumpDrawer(
   double textScale = 1,
   Locale locale = const Locale('en'),
   bool useMapPage = false,
+  List<Map<String, dynamic>>? airportRecords,
   Map<String, WidgetPosition> widgetPositions = const {},
 }) async {
   final router = GoRouter(
@@ -186,6 +205,8 @@ Future<ProviderContainer> _pumpDrawer(
       ),
       cannelloniServiceProvider.overrideWith(_DisconnectedGateway.new),
       discoveredDevicesProvider.overrideWith((ref) => Stream.value([])),
+      if (airportRecords != null)
+        airportSearchRecordsProvider.overrideWith((_) => airportRecords),
       if (useMapPage) ...[
         mapStyleProvider.overrideWith((ref) => throw StateError('Test map')),
         mapCameraProvider.overrideWith(_MapCamera.new),
@@ -344,6 +365,75 @@ void main() {
     expect(find.text('Downloaded Nov 6, 2026'), findsNothing);
   });
 
+  testWidgets(
+    'search offers map and navigation actions before moving the map',
+    (tester) async {
+      final container = await _pumpDrawer(
+        tester,
+        useMapPage: true,
+        airportRecords: [
+          {
+            'name': 'Martin',
+            'icaoCode': 'LZMA',
+            'latitude': 49.06,
+            'longitude': 18.95,
+          },
+          for (var index = 1; index < 20; index++)
+            {
+              'name': 'Test airfield $index',
+              'icaoCode': 'LZMA$index',
+              'latitude': 48.0,
+              'longitude': 17.0,
+            },
+        ],
+      );
+      tester.state<ScaffoldState>(find.byType(Scaffold)).closeDrawer();
+      await tester.pumpAndSettle();
+
+      final camera = container.read(mapCameraProvider.notifier) as _MapCamera;
+
+      Future<void> selectAirport() async {
+        await tester.tap(find.byIcon(Icons.search));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'lzma');
+        await tester.pumpAndSettle();
+        await tester.tap(find.textContaining('Martin', findRichText: true));
+        await tester.pumpAndSettle();
+        expect(find.byType(BottomSheet), findsOneWidget);
+        expect(find.text('Martin (LZMA)'), findsOneWidget);
+        expect(camera.focusPoints, isEmpty);
+      }
+
+      await selectAirport();
+      Navigator.pop(tester.element(find.byType(BottomSheet)));
+      await tester.pumpAndSettle();
+      expect(container.read(navigationProvider).requireValue.points, isEmpty);
+
+      await selectAirport();
+      await tester.tap(find.text('Add point to navigation'));
+      await tester.pumpAndSettle();
+      final point = container
+          .read(navigationProvider)
+          .requireValue
+          .points
+          .single;
+      expect(point.name, 'Martin (LZMA)');
+      expect(point.latitude, 49.06);
+      expect(point.longitude, 18.95);
+      expect(point.isAirport, isTrue);
+      expect(camera.focusPoints, isEmpty);
+
+      await selectAirport();
+      await tester.tap(find.text('Show on map'));
+      await tester.pumpAndSettle();
+      expect(camera.focusPoints, [const Geographic(lat: 49.06, lon: 18.95)]);
+      expect(
+        container.read(navigationProvider).requireValue.points,
+        hasLength(1),
+      );
+    },
+  );
+
   testWidgets('dragging stops at instruments, compass and map buttons', (
     tester,
   ) async {
@@ -378,7 +468,7 @@ void main() {
     await drag(const Offset(500, 0));
     expect(tester.getRect(speed).right, closeTo(altitude.left, 0.01));
 
-    await drag(const Offset(-100, 0));
+    await drag(const Offset(-70, 0));
     await drag(const Offset(0, -300));
     final compass = tester.getRect(find.byType(CompassBar));
     expect(tester.getRect(speed).top, closeTo(compass.bottom, 0.01));
@@ -389,11 +479,19 @@ void main() {
       matching: find.byType(IconButton),
     );
     final menu = tester.getRect(buttons.first);
+    final search = tester.getRect(
+      find.widgetWithIcon(IconButton, Icons.search),
+    );
     final gps = tester.getRect(buttons.last);
     await drag(const Offset(0, 140));
     await drag(const Offset(-500, 0));
     await drag(const Offset(0, -300));
     expect(tester.getRect(speed).top, closeTo(menu.bottom, 0.01));
+
+    await drag(const Offset(0, 140));
+    await drag(const Offset(60, 0));
+    await drag(const Offset(0, -300));
+    expect(tester.getRect(speed).top, closeTo(search.bottom, 0.01));
 
     await drag(const Offset(0, 220));
     await drag(const Offset(800, 0));

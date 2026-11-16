@@ -139,6 +139,7 @@ class _Map extends Fake implements ml.MapController {
 
   void Function(ml.MapEvent)? onEvent;
   int viewportReads = 0;
+  final animatedCenters = <ml.Geographic?>[];
 
   @override
   Future<void> moveCamera({
@@ -156,6 +157,27 @@ class _Map extends Fake implements ml.MapController {
     );
     onEvent?.call(ml.MapEventMoveCamera(camera: camera));
     onEvent?.call(const ml.MapEventCameraIdle());
+  }
+
+  @override
+  Future<void> animateCamera({
+    ml.Geographic? center,
+    double? zoom,
+    double? bearing,
+    double? pitch,
+    Duration nativeDuration = const Duration(seconds: 2),
+    double webSpeed = 1.2,
+    Duration? webMaxDuration,
+    EdgeInsets padding = EdgeInsets.zero,
+  }) {
+    animatedCenters.add(center);
+    return moveCamera(
+      center: center,
+      zoom: zoom,
+      bearing: bearing,
+      pitch: pitch,
+      padding: padding,
+    );
   }
 
   @override
@@ -215,6 +237,28 @@ _setupFollow(WidgetTester tester, {_Notams? notams}) async {
 }
 
 void main() {
+  testWidgets(
+    'focusing a point stops following and keeps the selected center',
+    (tester) async {
+      final setup = await _setupFollow(tester);
+      const point = ml.Geographic(lat: 47.8566, lon: 18.1257);
+      final focus = setup.camera.focusOnPoint(
+        latitude: point.lat,
+        longitude: point.lon,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await focus;
+
+      setup.telemetry.changeLatitude(0);
+      setup.telemetry.changeLatitude(49);
+      await tester.pump(const Duration(seconds: 6));
+
+      expect(setup.map.animatedCenters, [point]);
+      expect(setup.map.camera.center, point);
+    },
+  );
+
   testWidgets('a late style load leaves NOTAM updates on the current style', (
     tester,
   ) async {

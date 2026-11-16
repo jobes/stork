@@ -2975,4 +2975,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notamRefreshing => 'Loading NOTAMs. Results are still incomplete.';
+
+  @override
+  String get mapSearch => 'Search the map';
+
+  @override
+  String get mapSearchHint => 'Airport, favourite or town';
+
+  @override
+  String get mapSearchClear => 'Clear search';
+
+  @override
+  String get mapSearchAirports => 'Airports';
+
+  @override
+  String get mapSearchMunicipalities => 'Towns and villages';
+
+  @override
+  String get mapSearchLoadingLocal => 'Loading airports and favourites…';
+
+  @override
+  String get mapSearchLocalFailed =>
+      'Some airports or favourites could not be loaded.';
+
+  @override
+  String get mapSearchLoadingMunicipalities =>
+      'Searching for towns and villages…';
+
+  @override
+  String get mapSearchNoMunicipalities => 'No towns or villages found.';
+
+  @override
+  String get mapSearchMunicipalitiesFailed =>
+      'Could not load towns and villages.';
 }

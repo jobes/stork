@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:maplibre/maplibre.dart' show Geographic;
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
@@ -13,6 +15,8 @@ import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../components/controls/map_drawer.dart';
 import '../components/controls/map_controls.dart';
+import '../components/dialogs/map_search_dialog.dart';
+import '../../domain/models/map_search_result.dart';
 import '../components/controls/aircraft_map.dart';
 import '../components/controls/compass_bar.dart';
 import '../../../telemetry/presentation/widgets/speed_telemetry_widget.dart';
@@ -36,6 +40,8 @@ import '../../../navigation/presentation/widgets/navigation_telemetry_widget.dar
 import '../components/controls/map_features_bottom_sheet.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 
+enum _MapSearchAction { showOnMap, addToNavigation }
+
 class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});
 
@@ -52,6 +58,9 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   final _mapStackKey = GlobalKey();
   final _compassKey = GlobalKey();
   final _menuButtonKey = GlobalKey();
+  final _searchButtonKey = GlobalKey();
+  Geographic? _municipalityPin;
+  Timer? _municipalityPinTimer;
   final _gpsButtonKey = GlobalKey();
   final _doneButtonKey = GlobalKey();
   final _alertIndicatorKey = GlobalKey();
@@ -64,6 +73,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
     for (final key in [
       _compassKey,
       _menuButtonKey,
+      _searchButtonKey,
       _gpsButtonKey,
       _doneButtonKey,
       _alertIndicatorKey,
@@ -98,9 +108,127 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _radarRefresh?.cancel();
+    _municipalityPinTimer?.cancel();
     // Restore normal system UI mode when leaving the map page
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
+  }
+
+  Future<void> _openMapSearch() async {
+    final camera = ref.read(mapCameraProvider.notifier);
+    final center = camera.mapController?.camera?.center;
+    final result = await showMapSearchDialog(
+      context,
+      latitude: center?.lat ?? 48.15,
+      longitude: center?.lon ?? 17.11,
+    );
+    if (!mounted || result == null) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final name = result.icaoCode.isEmpty || result.icaoCode == result.name
+        ? result.name
+        : '${result.name} (${result.icaoCode})';
+    final action = await showModalBottomSheet<_MapSearchAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => PointerInterceptor(
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(
+                  name,
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+                subtitle: result.area.isEmpty ? null : Text(result.area),
+              ),
+              ListTile(
+                leading: const Icon(Icons.place_outlined),
+                title: Text(l10n.showOnMap),
+                onTap: () =>
+                    Navigator.pop(sheetContext, _MapSearchAction.showOnMap),
+              ),
+              ListTile(
+                leading: const Icon(Icons.add_location_alt_outlined),
+                title: Text(l10n.addPointToNavigation),
+                onTap: () => Navigator.pop(
+                  sheetContext,
+                  _MapSearchAction.addToNavigation,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted) return;
+
+    switch (action) {
+      case _MapSearchAction.showOnMap:
+        await _showSearchResultOnMap(result);
+      case _MapSearchAction.addToNavigation:
+        await _addSearchResultToNavigation(result, name);
+      case null:
+        return;
+    }
+  }
+
+  Future<void> _addSearchResultToNavigation(
+    MapSearchResult result,
+    String name,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(navigationProvider.notifier)
+          .addPoint(
+            NavigationPoint(
+              latitude: result.latitude,
+              longitude: result.longitude,
+              name: name,
+              isAirport: result.type == MapSearchResultType.airport,
+            ),
+          );
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.favoriteAddedToNavigation)),
+      );
+    } catch (error) {
+      debugPrint('Failed to add search result to navigation: $error');
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.failedToAddNavigationPoint)),
+      );
+    }
+  }
+
+  Future<void> _showSearchResultOnMap(MapSearchResult result) async {
+    _municipalityPinTimer?.cancel();
+    final point = Geographic(lon: result.longitude, lat: result.latitude);
+    setState(() {
+      _municipalityPin = result.type == MapSearchResultType.municipality
+          ? point
+          : null;
+    });
+    if (_municipalityPin != null) {
+      _municipalityPinTimer = Timer(const Duration(seconds: 20), () {
+        setState(() => _municipalityPin = null);
+      });
+    }
+
+    await ref
+        .read(mapCameraProvider.notifier)
+        .focusOnPoint(
+          latitude: result.latitude,
+          longitude: result.longitude,
+          zoom: math.max(
+            10.0,
+            ref.read(appSettingsProvider).value?.mapOverviewZoom ?? 10.0,
+          ),
+        );
   }
 
   @override
@@ -272,6 +400,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 return RepaintBoundary(
                   child: AircraftMap(
                     style: style,
+                    searchPin: _municipalityPin,
                     onUserInteraction: cameraController.handleUserInteraction,
                     onMapCreated: cameraController.attachController,
                     onStyleLoaded: (style) {
@@ -382,11 +511,13 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 mapViewState: mapViewState,
                 buttonScale: buttonScale,
                 menuButtonKey: _menuButtonKey,
+                searchButtonKey: _searchButtonKey,
                 gpsButtonKey: _gpsButtonKey,
                 doneButtonKey: _doneButtonKey,
                 alertIndicatorKey: _alertIndicatorKey,
                 onMenuPressed: () => Scaffold.of(context).openDrawer(),
                 onGpsPressed: cameraController.handleGpsToggle,
+                onSearchPressed: _openMapSearch,
                 onFinishEditing: isEditingWidgets ? _finishEditing : null,
               ),
             ),

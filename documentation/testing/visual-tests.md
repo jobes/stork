@@ -19,8 +19,7 @@ The runner exits nonzero on test failure and preserves the Flutter log.
 | Tablet portrait | 800 x 1280 |
 | Tablet landscape | 1280 x 800 |
 
-All 80 scenarios run in English and create 112 PNGs. They cover both themes and all
-four sizes for the map drawer, Settings, Map, Units and limits, Traffic and alerts,
+The English-language scenarios cover both themes and all four sizes for the map drawer, Settings, Map, Units and limits, Traffic and alerts,
 Instruments and connection, bottom scroll positions
 on Map/Flight/Traffic, the map-layout reset confirmation, TelemetryCard states,
 and the collision banner. Four additional phone cases cover the collision
@@ -32,6 +31,12 @@ flight widgets (2× map font size) on a portrait phone. These are component
 captures without the live map or the user's saved widget positions. Top/bottom
 captures do not cover every intermediate scroll position of the long Flight
 settings page.
+
+Map search captures the open panel, grouped results, and empty and failed town
+searches on phones and a tablet in English. The loading and error
+captures simulate the space occupied by the keyboard on a landscape phone
+with 19 airport matches. The tests verify that the Photon status and local
+results remain visible together.
 
 The fixtures replace profile, settings, discovery, gateway, authentication
 and collision inputs. They never read real preferences or use GPS, network,
