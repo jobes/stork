@@ -13,8 +13,8 @@ The system is built on top of MapLibre and uses a custom tile management engine 
 
 ### 1. Map Layers
 The system downloads and manages three distinct layers to provide a comprehensive mapping experience:
-- **Protomaps**: Vector tiles providing the base map (roads, buildings, natural features). Max zoom: 14.
-- **OpenAIP**: Vector tiles containing aviation-specific data such as airspaces, airports, and navigational aids. Max zoom: 14.
+- **Protomaps**: Vector tiles providing the base map (roads, buildings, natural features). Max zoom: 13.
+- **OpenAIP**: Vector tiles containing aviation-specific data such as airspaces, airports, and navigational aids. Max zoom: 13.
 - **Terrain**: Raster tiles providing elevation and topographic data. Max zoom: 12.
 
 ### 2. State Management

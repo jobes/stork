@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/constants/map_constants.dart';
 import '../../../../core/widgets/stork_navigation_tile.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
@@ -85,8 +86,8 @@ class MapSettingsPage extends ConsumerWidget {
                   label: l10n.mapDefaultZoom,
                   value: settings.mapDefaultZoom,
                   min: 0.0,
-                  max: 14.0,
-                  divisions: 14,
+                  max: kMaxMapZoom.toDouble(),
+                  divisions: kMaxMapZoom,
                   onChanged: (val) {
                     ref
                         .read(appSettingsProvider.notifier)
@@ -98,8 +99,8 @@ class MapSettingsPage extends ConsumerWidget {
                   label: l10n.mapOverviewZoom,
                   value: settings.mapOverviewZoom,
                   min: 0.0,
-                  max: 14.0,
-                  divisions: 14,
+                  max: kMaxMapZoom.toDouble(),
+                  divisions: kMaxMapZoom,
                   onChanged: (val) {
                     ref
                         .read(appSettingsProvider.notifier)
@@ -111,8 +112,8 @@ class MapSettingsPage extends ConsumerWidget {
                   label: l10n.mapFollowZoom,
                   value: settings.mapFollowZoom,
                   min: 0.0,
-                  max: 18.0,
-                  divisions: 18,
+                  max: kMaxMapZoom.toDouble(),
+                  divisions: kMaxMapZoom,
                   onChanged: (val) {
                     ref
                         .read(appSettingsProvider.notifier)

@@ -13,6 +13,7 @@ import 'package:vector_tile/vector_tile.dart';
 import '../../../../core/services/database/database_service.dart';
 import '../../../../core/services/tile_download_service.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/constants/map_constants.dart';
 import '../../domain/tile_utils.dart';
 import '../../../map/data/repositories/notam_catalog_repository.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
@@ -182,7 +183,7 @@ class OfflineMapsNotifier extends _$OfflineMapsNotifier {
       final maxLon = max(region.northwest.lon, region.southeast.lon);
 
       for (final kind in ['openaip', 'protomaps', 'terrain']) {
-        final maxZ = kind == 'terrain' ? 12 : 14;
+        final maxZ = kind == 'terrain' ? kTerrainTileZoom : kMaxMapZoom;
         allTiles.addAll(
           getTilesForRegion(
             minLat: minLat,

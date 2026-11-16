@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pmtiles/pmtiles.dart';
+import '../constants/map_constants.dart';
 import 'database/database_service.dart';
 import 'map_assets_server.dart';
 
@@ -144,7 +145,7 @@ TerrainElevationService terrainElevationService(Ref ref) {
 }
 
 class TerrainElevationService {
-  static const int zoomLevel = 12;
+  static const int zoomLevel = kTerrainTileZoom;
   static const int _numTiles = 1 << zoomLevel; // 4096
   static const double _degToRad = pi / 180;
 
