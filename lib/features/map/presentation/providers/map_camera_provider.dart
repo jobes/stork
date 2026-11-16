@@ -477,10 +477,14 @@ class MapCamera extends _$MapCamera {
   }
 
   Future<void> handleGpsToggle() async {
+    final hasPermission = await LocationService.hasPermission();
+    if (!ref.mounted) return;
+
     final telemetry = ref.read(telemetryProvider);
     final mapViewState = telemetry.mapViewState;
 
-    if (mapViewState == MapViewState.init ||
+    if (!hasPermission ||
+        mapViewState == MapViewState.init ||
         mapViewState == MapViewState.waitingForGps) {
       ref
           .read(telemetryProvider.notifier)
@@ -489,9 +493,11 @@ class MapCamera extends _$MapCamera {
       final location = await LocationService.getGpsLocationOnly(
         requestPermission: true,
       );
-      final hasPermission = await LocationService.hasPermission();
+      if (!ref.mounted) return;
+      final permissionGranted = await LocationService.hasPermission();
+      if (!ref.mounted) return;
 
-      if (hasPermission) {
+      if (permissionGranted) {
         ref.read(geolocatorStreamProvider.notifier).start();
       }
 
@@ -499,8 +505,14 @@ class MapCamera extends _$MapCamera {
         ref
             .read(telemetryProvider.notifier)
             .updateGPS(latitude: location.lat, longitude: location.lon);
-      } else if (!hasPermission && !_hasExplicitFocus) {
-        ref.read(telemetryProvider.notifier).setMapViewState(MapViewState.init);
+      } else if (!permissionGranted &&
+          ref.read(telemetryProvider).mapViewState ==
+              MapViewState.waitingForGps) {
+        final previousView = switch (mapViewState) {
+          MapViewState.follow || MapViewState.overview => mapViewState,
+          _ => _hasExplicitFocus ? MapViewState.overview : MapViewState.init,
+        };
+        ref.read(telemetryProvider.notifier).setMapViewState(previousView);
       }
     } else {
       final nextState = mapViewState == MapViewState.follow
@@ -528,7 +540,8 @@ class MapCamera extends _$MapCamera {
 
       if (!_hasExplicitFocus &&
           initialLocation != null &&
-          _mapController != null) {
+          _mapController != null &&
+          ref.read(telemetryProvider).mapViewState == MapViewState.init) {
         unawaited(
           moveCamera(
             center: initialLocation,

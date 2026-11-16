@@ -75,11 +75,14 @@ Future<void> _openSearch(
   required List<Map<String, dynamic>> airports,
   required MockClient client,
   List<FavoritePoint> favorites = const [],
+  Future<List<Map<String, dynamic>>> Function()? loadAirports,
   ValueChanged<MapSearchResult?>? onSelected,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        if (loadAirports != null)
+          airportSearchRecordsProvider.overrideWith((_) => loadAirports()),
         mapMetadataRepositoryProvider.overrideWithValue(
           _OfflineMetadata(airports),
         ),
@@ -227,6 +230,45 @@ void main() {
     );
     expect(find.textContaining('Old Martin', findRichText: true), findsNothing);
     await tester.pump(const Duration(milliseconds: 350));
+  });
+
+  testWidgets('retries failed airport loading on the next query', (
+    tester,
+  ) async {
+    final firstLoad = Completer<List<Map<String, dynamic>>>();
+    var loads = 0;
+    await _openSearch(
+      tester,
+      airports: [],
+      client: MockClient((_) async => http.Response('{"features":[]}', 200)),
+      loadAirports: () async {
+        loads++;
+        return loads == 1 ? firstLoad.future : [_airport('Martin', 'LZMA')];
+      },
+    );
+
+    await _type(tester, 'lz');
+    firstLoad.completeError(http.ClientException('Network unavailable'));
+    await tester.pump();
+    await tester.pumpAndSettle(const Duration(milliseconds: 350));
+    expect(
+      find.text('Some airports or favourites could not be loaded.'),
+      findsOneWidget,
+    );
+    expect(loads, 1);
+
+    await _type(tester, 'lzma');
+    await tester.pumpAndSettle(const Duration(milliseconds: 350));
+    expect(find.textContaining('Martin', findRichText: true), findsOneWidget);
+    expect(
+      find.text('Some airports or favourites could not be loaded.'),
+      findsNothing,
+    );
+
+    await _type(tester, 'martin');
+    await tester.pumpAndSettle(const Duration(milliseconds: 350));
+    expect(find.textContaining('Martin', findRichText: true), findsOneWidget);
+    expect(loads, 2);
   });
 
   for (final (airportCount, favorites) in [

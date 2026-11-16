@@ -69,6 +69,10 @@ class _MapSearchDialogState extends ConsumerState<_MapSearchDialog> {
     var favorites = <MapSearchResult>[];
     var localFailed = false;
     try {
+      final airportRecords = ref.read(airportSearchRecordsProvider);
+      if (airportRecords.hasError && !airportRecords.isLoading) {
+        ref.invalidate(airportSearchRecordsProvider);
+      }
       final records = await ref.read(airportSearchRecordsProvider.future);
       if (!isCurrent()) return;
       airports = searchAirportRecords(records, query);

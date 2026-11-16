@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../../../../../core/constants/map_constants.dart';
+import '../../../../../core/theme/stork_colors.dart';
 
 class AircraftMap extends StatefulWidget {
   final String style;
@@ -93,7 +94,7 @@ class _AircraftMapState extends State<AircraftMap> {
                   child: const Icon(
                     Icons.location_on,
                     size: 40,
-                    color: Colors.red,
+                    color: StorkColors.lightPrimary,
                   ),
                 ),
               ],
