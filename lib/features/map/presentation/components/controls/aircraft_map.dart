@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
+import '../../../../../core/constants/map_constants.dart';
+
 class AircraftMap extends StatelessWidget {
   final String style;
   final Function(MapController) onMapCreated;
@@ -26,7 +28,7 @@ class AircraftMap extends StatelessWidget {
         options: MapOptions(
           initCenter: Geographic(lon: 0, lat: 0),
           initZoom: 2,
-          maxZoom: 18,
+          maxZoom: kMaxMapZoom.toDouble(),
           initStyle: style,
           gestures: MapGestures(
             rotate: false,

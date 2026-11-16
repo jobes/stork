@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/constants/map_constants.dart';
 import '../../domain/models/app_settings.dart';
 
 import '../../../../core/providers/shared_preferences_provider.dart';
@@ -173,7 +174,14 @@ class SettingsRepository {
             ),
           );
         }
-        return AppSettings.fromJson(document);
+        final settings = AppSettings.fromJson(document);
+        final maxZoom = kMaxMapZoom.toDouble();
+        // Older settings can contain zooms outside the slider range.
+        return settings.copyWith(
+          mapDefaultZoom: settings.mapDefaultZoom.clamp(0.0, maxZoom),
+          mapOverviewZoom: settings.mapOverviewZoom.clamp(0.0, maxZoom),
+          mapFollowZoom: settings.mapFollowZoom.clamp(0.0, maxZoom),
+        );
       } on FormatException catch (e) {
         debugPrint('SettingsRepository: Failed to parse settings JSON: $e');
         try {

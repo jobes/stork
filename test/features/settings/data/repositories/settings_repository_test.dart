@@ -47,6 +47,24 @@ void main() {
       expect(settings.autoSelectDevice, isFalse);
     });
 
+    test('Caps zooms saved by earlier app versions', () async {
+      final repository = SettingsRepository(prefs);
+      await prefs.setString(
+        'app_settings',
+        json.encode({
+          'mapDefaultZoom': 14,
+          'mapOverviewZoom': 14,
+          'mapFollowZoom': 18,
+        }),
+      );
+
+      final settings = await repository.getSettings();
+
+      expect(settings.mapDefaultZoom, 13);
+      expect(settings.mapOverviewZoom, 13);
+      expect(settings.mapFollowZoom, 13);
+    });
+
     test(
       'Falls back to default AppSettings and updates storage on FormatException (invalid JSON syntax)',
       () async {

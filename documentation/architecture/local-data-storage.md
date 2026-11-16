@@ -78,8 +78,8 @@ Stores geographical boundaries (bounding boxes defined by Northwest and Southeas
 Caches base vector map tiles, aeronautical vector tiles, and terrain elevation raster tiles.
 - `z`, `x`, `y`: The standard Web Mercator coordinates of the tile.
 - `kind`: The map source layer class:
-  - `protomaps`: Vector base map tiles (max zoom 14).
-  - `openaip`: Vector aeronautical metadata tiles (max zoom 14).
+  - `protomaps`: Vector base map tiles (max zoom 13).
+  - `openaip`: Vector aeronautical metadata tiles (max zoom 13).
   - `terrain`: Raster terrain elevation tiles in Mapzen Terrarium PNG format (max zoom 12).
 - `tile_id`: Calculated PMTiles-specific unique index (`ZXY.toTileId()`) corresponding to the tile position.
 - `tile_type`: The content type extension (`pbf` for vector tiles, `png` for terrain raster tiles).
