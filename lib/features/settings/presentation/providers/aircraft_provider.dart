@@ -1,12 +1,12 @@
-import 'settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../../telemetry/presentation/providers/black_box_repository_provider.dart';
-import '../../../telemetry/domain/models/time_based_stats.dart';
-import '../../data/repositories/aircraft_repository.dart';
-
 import 'package:uuid/uuid.dart';
+
+import '../../../telemetry/domain/models/time_based_stats.dart';
+import '../../../telemetry/presentation/providers/black_box_repository_provider.dart';
+import '../../data/repositories/aircraft_repository.dart';
 import '../../domain/models/aircraft.dart';
+import 'settings_provider.dart';
 
 part 'aircraft_provider.g.dart';
 

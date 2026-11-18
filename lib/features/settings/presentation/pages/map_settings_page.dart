@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -164,9 +166,11 @@ class MapSettingsPage extends ConsumerWidget {
                   subtitle: Text(l10n.flightWeatherSettingsDescription),
                   value: settings.showFlightWeather,
                   onChanged: (enabled) {
-                    ref
-                        .read(appSettingsProvider.notifier)
-                        .updateShowFlightWeather(enabled);
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateShowFlightWeather(enabled),
+                    );
                   },
                 ),
               ],

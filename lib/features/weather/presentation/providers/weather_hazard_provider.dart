@@ -2,16 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import './navigation_eta_provider.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../domain/flight_forecast.dart';
 import '../../domain/forecast_profile.dart';
 import '../../domain/forecast_query.dart';
 import '../../domain/forecast_route.dart';
 import '../../domain/weather_hazard.dart';
 import 'flight_weather_provider.dart';
+import 'navigation_eta_provider.dart';
 
 part 'weather_hazard_provider.g.dart';
 
@@ -88,8 +88,8 @@ Future<List<WeatherHazardDetail>> weatherHazardDetails(Ref ref) async {
   if (profiles == null || (points.length > 1 && route?.isActive != true)) {
     return const [];
   }
-  final references = await ref.watch(routeForecastReferencesProvider.future);
   final locations = ref.watch(flightWeatherProfileLocationsProvider);
+  final references = await ref.watch(routeForecastReferencesProvider.future);
   final input = (
     windLimit: aircraft?.dangerousWindMs,
     gustLimit: aircraft?.dangerousGustMs,

@@ -9,7 +9,6 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
 import '../../../route/presentation/providers/navigation_provider.dart';
-import '../providers/navigation_eta_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/domain/models/temperature_unit.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
@@ -23,6 +22,7 @@ import '../../domain/weather_hazard.dart';
 import '../../domain/wind_route_timing.dart';
 import '../components/weather_attribution_link.dart';
 import '../providers/flight_weather_provider.dart';
+import '../providers/navigation_eta_provider.dart';
 import 'waypoint_altitude_dialog.dart';
 
 void showFlightWeatherDetails(
@@ -412,55 +412,52 @@ class _MetricCard extends StatelessWidget {
     final colors = theme.colorScheme;
     return StorkDetailSurface(
       padding: const EdgeInsets.all(12),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (onTap != null)
-                  Icon(
-                    Icons.edit_outlined,
-                    size: 16,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.labelMedium?.copyWith(
                     color: colors.onSurfaceVariant,
                   ),
-              ],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (onTap != null)
+                Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: colors.onSurfaceVariant,
+                ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+              color: highlighted ? colors.primary : colors.onSurface,
             ),
-            const SizedBox(height: 2),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (note case final note?)
             Text(
-              value,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontFamily: 'monospace',
-                fontWeight: FontWeight.bold,
-                color: highlighted ? colors.primary : colors.onSurface,
+              note,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            if (note case final note?)
-              Text(
-                note,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }

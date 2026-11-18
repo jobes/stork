@@ -10,6 +10,7 @@ import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../settings/domain/models/app_settings.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -20,10 +21,9 @@ import '../../../weather/domain/forecast_query.dart';
 import '../../../weather/presentation/dialogs/flight_weather_details_dialog.dart';
 import '../../../weather/presentation/dialogs/waypoint_altitude_dialog.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
+import '../../../weather/presentation/providers/navigation_eta_provider.dart';
 import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
 import '../dialogs/departure_dialog.dart';
-import '../../../weather/presentation/providers/navigation_eta_provider.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
 import '../utils/navigation_formatters.dart';
 import '../widgets/route_waypoint_tile.dart';
 import '../widgets/route_weather_strip.dart';
@@ -622,8 +622,9 @@ class _RouteActionBar extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                onPressed: () =>
-                    ref.read(navigationProvider.notifier).toggleActive(),
+                onPressed: () => unawaited(
+                  ref.read(navigationProvider.notifier).toggleActive(),
+                ),
               ),
             ),
             const SizedBox(width: 8),

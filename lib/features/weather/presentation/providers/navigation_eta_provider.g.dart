@@ -128,7 +128,7 @@ final class RouteWindTimingNotifierProvider
 }
 
 String _$routeWindTimingNotifierHash() =>
-    r'5c8f60f725140a391e901e9ef3627a28b3b2d090';
+    r'af6569d654c96229f42a50cde0d59d82156ac841';
 
 abstract class _$RouteWindTimingNotifier
     extends $AsyncNotifier<WindTimingResult?> {

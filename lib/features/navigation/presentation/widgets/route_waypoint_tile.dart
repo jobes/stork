@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../route/domain/models/navigation_leg.dart';
+import '../../../route/domain/models/navigation_point.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
 import '../../../weather/domain/weather_hazard.dart';
 import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
-import '../../../route/domain/models/navigation_leg.dart';
-import '../../../route/domain/models/navigation_point.dart';
 import '../utils/navigation_formatters.dart';
 
 /// One row of the route list: ETA, leg totals, planned altitude and wind.
@@ -190,7 +190,7 @@ class RouteWaypointTile extends StatelessWidget {
                                 text:
                                     ' · ${l10n.leg} '
                                     '${legDistanceKm == null ? l10n.placeholderDash : '${context.formatNumber(legDistanceKm, 1)} km'}'
-                                    ' · ${formatNavigationDuration(context, leg?.legDuration)}',
+                                    ' · ${leg?.eta == null ? l10n.placeholderDash : formatNavigationDuration(context, leg?.legDuration)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colors.onSurfaceVariant,
                                 ),
@@ -203,7 +203,7 @@ class RouteWaypointTile extends StatelessWidget {
                         Text(
                           '${l10n.total} '
                           '${cumulativeDistanceKm == null ? l10n.placeholderDash : '${context.formatNumber(cumulativeDistanceKm, 1)} km'}'
-                          ' · ${formatNavigationDuration(context, leg?.cumulativeDuration)}',
+                          ' · ${leg?.eta == null ? l10n.placeholderDash : formatNavigationDuration(context, leg?.cumulativeDuration)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontSize: 11,
                             color: colors.onSurfaceVariant,

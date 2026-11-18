@@ -5,6 +5,7 @@ import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
@@ -16,9 +17,8 @@ import '../../../weather/domain/wind_route_timing.dart';
 import '../../../weather/presentation/components/weather_attribution_link.dart';
 import '../../../weather/presentation/components/weather_warning_summary.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
-import '../../../weather/presentation/providers/weather_hazard_provider.dart';
 import '../../../weather/presentation/providers/navigation_eta_provider.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../../../weather/presentation/providers/weather_hazard_provider.dart';
 import '../utils/navigation_formatters.dart';
 import '../windy_route.dart';
 

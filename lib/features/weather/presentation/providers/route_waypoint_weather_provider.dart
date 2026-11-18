@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import './navigation_eta_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/flight_forecast.dart';
@@ -11,6 +10,7 @@ import '../../domain/forecast_route.dart';
 import '../../domain/weather_hazard.dart';
 import '../../domain/wind_route_timing.dart';
 import 'flight_weather_provider.dart';
+import 'navigation_eta_provider.dart';
 
 part 'route_waypoint_weather_provider.g.dart';
 

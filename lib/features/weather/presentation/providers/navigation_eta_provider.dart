@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/utils/geo_utils.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/resolved_altitude.dart';
@@ -14,7 +15,6 @@ import '../../domain/forecast_query.dart';
 import '../../domain/forecast_route.dart';
 import '../../domain/wind_route_timing.dart';
 import 'flight_weather_provider.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
 
 part 'navigation_eta_provider.g.dart';
 
@@ -192,8 +192,8 @@ class RouteWindTimingNotifier extends _$RouteWindTimingNotifier {
             isGpsDroneCan: telemetry.isGpsDroneCan,
             qnh: qnh,
           ).mslValue;
-    final references = await ref.watch(routeForecastReferencesProvider.future);
     final locations = ref.watch(flightWeatherProfileLocationsProvider);
+    final references = await ref.watch(routeForecastReferencesProvider.future);
 
     // While an isolate is running, intermediate requests can be superseded.
     final running = _running;
