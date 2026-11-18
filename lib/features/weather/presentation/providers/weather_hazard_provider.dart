@@ -121,7 +121,13 @@ List<WeatherHazardDetail> activeWeatherHazardDetails(Ref ref) {
     appSettingsProvider.select((s) => s.value?.showFlightWeather ?? false),
   );
   if (!enabled) return const [];
-  return ref.watch(weatherHazardDetailsProvider).value ?? const [];
+  final details = ref.watch(weatherHazardDetailsProvider);
+  if (details.hasError) {
+    debugPrint(
+      'Could not evaluate route weather hazards: ${details.error.runtimeType}',
+    );
+  }
+  return details.value ?? const [];
 }
 
 /// Hazards currently reported by the active plan, already filtered by the

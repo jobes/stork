@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../l10n/app_localizations.dart';
 import '../providers/navigation_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -9,20 +8,10 @@ import '../../../telemetry/presentation/widgets/telemetry_card.dart';
 import '../../../weather/presentation/providers/weather_hazard_provider.dart';
 import '../dialogs/navigation_details_dialog.dart';
 import '../providers/navigation_eta_provider.dart';
+import '../utils/navigation_formatters.dart';
 
 class NavigationTelemetryWidget extends ConsumerWidget {
   const NavigationTelemetryWidget({super.key});
-
-  String _formatDurationNoSeconds(BuildContext context, Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final minStr = minutes.toString().padLeft(2, '0');
-    if (hours > 0) {
-      return '$hours:$minStr';
-    } else {
-      return '$minutes ${AppLocalizations.of(context)!.minutesAbbrev}';
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,13 +47,11 @@ class NavigationTelemetryWidget extends ConsumerWidget {
 
         final hasMultiplePoints = points.length > 1;
 
-        final l10n = AppLocalizations.of(context)!;
-        final timeToNearestStr = timeToNearest != null
-            ? _formatDurationNoSeconds(context, timeToNearest)
-            : l10n.placeholderDash;
-        final timeToDestStr = timeToDest != null
-            ? _formatDurationNoSeconds(context, timeToDest)
-            : l10n.placeholderDash;
+        final timeToNearestStr = formatNavigationDuration(
+          context,
+          timeToNearest,
+        );
+        final timeToDestStr = formatNavigationDuration(context, timeToDest);
 
         return TelemetryCard(
           state: weatherWarning

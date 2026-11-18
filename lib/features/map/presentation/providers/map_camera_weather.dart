@@ -4,7 +4,6 @@ const _forecastSource = 'flight-weather-source';
 const _forecastHitLayer = 'flight-weather-hit';
 const _forecastWindLayer = 'flight-weather-wind';
 const _forecastLabelLayer = 'flight-weather-label';
-const _emptyForecastGeoJson = '{"type":"FeatureCollection","features":[]}';
 // MapLibre paint values use the map style palette, like the other camera
 // layers; the white halo keeps the labels readable on light and dark styles.
 const _forecastTextColor = '#152E43';
@@ -12,59 +11,6 @@ const _forecastHaloColor = '#FFFFFF';
 const _forecastMarkerColor = '#FFFFFF';
 const _forecastWaypointColor = '#D66900';
 const _forecastSampleColor = '#34576C';
-
-typedef _WindMarker = ({String arrow, double direction, String label});
-
-typedef _ForecastMapInput = ({
-  bool enabled,
-  List<ForecastRoutePoint> points,
-  List<NavigationPoint> route,
-  List<FavoritePoint> favorites,
-  Map<String, _WindMarker> winds,
-});
-
-String _buildFlightWeatherGeoJson(_ForecastMapInput input) {
-  final favoriteIds = input.favorites.map((point) => point.id).toSet();
-  final favoriteLocations = input.favorites
-      .map((point) => (point.latitude, point.longitude))
-      .toSet();
-  final features = <Map<String, Object?>>[];
-  for (final point in input.points) {
-    final index = point.waypointIndex;
-    final waypoint = index != null && index < input.route.length
-        ? input.route[index]
-        : null;
-    final String kind;
-    if (waypoint != null) {
-      final mapped =
-          waypoint.isAirport ||
-          favoriteIds.contains(waypoint.favoriteId) ||
-          favoriteLocations.contains((waypoint.latitude, waypoint.longitude));
-      kind = mapped ? 'mapped' : 'waypoint';
-    } else {
-      if (!input.enabled) continue;
-      kind = isAircraftForecastPoint(point.id) ? 'aircraft' : 'sample';
-    }
-    final wind = input.winds[point.id];
-    features.add({
-      'type': 'Feature',
-      'geometry': {
-        'type': 'Point',
-        'coordinates': [point.location.longitude, point.location.latitude],
-      },
-      'properties': {
-        'forecastId': point.id,
-        'kind': kind,
-        if (wind != null) ...{
-          'arrow': wind.arrow,
-          'direction': wind.direction,
-          'label': wind.label,
-        },
-      },
-    });
-  }
-  return jsonEncode({'type': 'FeatureCollection', 'features': features});
-}
 
 extension on MapCamera {
   Future<void> _addFlightWeatherLayers(StyleController style) async {
@@ -77,7 +23,7 @@ extension on MapCamera {
     final pointArrowOffsetX = 22.0 * fontScale;
     final pointLabelOffsetX = 38.0 * fontScale;
     await style.addSource(
-      const GeoJsonSource(id: _forecastSource, data: _emptyForecastGeoJson),
+      const GeoJsonSource(id: _forecastSource, data: emptyFlightWeatherGeoJson),
     );
     await style.addLayer(
       const CircleStyleLayer(
@@ -232,11 +178,10 @@ extension on MapCamera {
         final revision = _flightWeatherRevision;
         try {
           final input = _flightWeatherInput();
-          final geoJson =
-              input.points.isEmpty || (!input.enabled && input.route.isEmpty)
-              ? _emptyForecastGeoJson
+          final geoJson = input.points.isEmpty || !input.enabled
+              ? emptyFlightWeatherGeoJson
               : await compute(
-                  _buildFlightWeatherGeoJson,
+                  buildFlightWeatherGeoJson,
                   input,
                   debugLabel: 'Prepare flight forecast GeoJSON',
                 );
@@ -262,7 +207,7 @@ extension on MapCamera {
     }
   }
 
-  _ForecastMapInput _flightWeatherInput() {
+  FlightWeatherMapInput _flightWeatherInput() {
     final settings = refAccess.read(appSettingsProvider).value;
     final enabled = settings?.showFlightWeather ?? false;
     final points = refAccess.read(flightWeatherPlanProvider);
@@ -286,7 +231,7 @@ extension on MapCamera {
     final l10n = lookupAppLocalizations(language.resolvedLocale);
     final unitLabel = unit.getAbbreviation(l10n);
     final pointWinds = refAccess.read(routePointWindsProvider);
-    final winds = <String, _WindMarker>{};
+    final winds = <String, ForecastWindMarker>{};
     for (final point in points) {
       final data = pointWinds[point.id];
       final isAircraft = isAircraftForecastPoint(point.id);

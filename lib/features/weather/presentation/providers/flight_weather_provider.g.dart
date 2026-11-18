@@ -131,7 +131,7 @@ final class FlightWeatherPlanNotifierProvider
 }
 
 String _$flightWeatherPlanNotifierHash() =>
-    r'8ec5c3fea59bc80803fd8dc570b337462fa21f8e';
+    r'030127446bc42a55275a229d38ed55303cd497a5';
 
 abstract class _$FlightWeatherPlanNotifier
     extends $Notifier<List<ForecastRoutePoint>> {
@@ -607,7 +607,7 @@ final class RouteForecastReferenceProvider
 }
 
 String _$routeForecastReferenceHash() =>
-    r'bcb4956bfb381524a304000c25a590a7b79d3fb2';
+    r'553ddf47b8f4b3987f3d8497e91da8d82489b354';
 
 /// Terrain and airport reference for one forecast point. Resolving it per
 /// point keeps the route list, map markers, navigation details and hazard

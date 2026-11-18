@@ -98,7 +98,7 @@ final class ActiveWeatherHazardDetailsProvider
 }
 
 String _$activeWeatherHazardDetailsHash() =>
-    r'901f484179bc6e386e77d1bf8dec3ceb84cbdc87';
+    r'db46db97a429d73174f5a97c06de30cfaa07d7ca';
 
 /// Hazards currently reported by the active plan, already filtered by the
 /// flight forecast setting.

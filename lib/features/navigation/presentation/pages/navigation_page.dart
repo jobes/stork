@@ -149,9 +149,7 @@ Future<void> _confirmClearRoute(BuildContext context, WidgetRef ref) async {
             children: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
-                child: Text(
-                  MaterialLocalizations.of(dialogContext).cancelButtonLabel,
-                ),
+                child: Text(l10n.cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(dialogContext, true),

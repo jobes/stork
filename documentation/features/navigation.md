@@ -33,7 +33,7 @@ graph TD
     Calc -->|Expose calculations| NavUI[NavigationPage & Map Widget]
 ```
 
-Route state, models, persistence and the navigation UI form one feature in `lib/features/navigation/`: the domain models and the `SharedPreferences` repository sit in `domain/` and `data/`, while pages, dialogs, widgets and the Riverpod notifiers sit in `presentation/`. Weather planning reads the route state from the navigation domain without importing navigation UI and owns the wind-adjusted timing (`route_timing_provider.dart`) in the weather feature. The navigation-facing `NavigationCalculations` aggregate is produced by `navigation_eta_provider.dart`, which joins the route state with that timing.
+Route state, models, persistence and the navigation UI form one feature in `lib/features/navigation/`: the domain models and the `SharedPreferences` repository sit in `domain/` and `data/`, while pages, dialogs, widgets and the Riverpod notifiers sit in `presentation/`. Weather planning reads the route state through `navigationProvider` and the navigation domain models without importing navigation widgets, and owns the wind-adjusted timing (`route_timing_provider.dart`) in the weather feature. The navigation-facing `NavigationCalculations` aggregate is produced by `navigation_eta_provider.dart`, which joins the route state with that timing.
 
 ### 2.1. Domain Models
 The navigation domain is built on three core classes:
@@ -62,7 +62,7 @@ When navigation is active, the system continuously calculates flight parameters 
 ### 3.1. Speed Source Resolution
 The speed used to calculate travel times is resolved dynamically:
 - **In-flight (Ground Speed)**: If the aircraft is flying (`telemetry.isFlying == true`) and GPS ground speed is available (`telemetry.groundSpeed != null && telemetry.groundSpeed > 0`), the system uses the real-time ground speed.
-- **Pre-flight / Fallback (Average Speed)**: If the aircraft is stationary or GPS speed is unavailable, it falls back to the selected aircraft's cruising speed (the default is 100 km/h). The same default is used when no aircraft is selected.
+- **Pre-flight / Fallback (Aircraft Cruising Speed)**: If the aircraft is stationary or GPS speed is unavailable, it falls back to the selected aircraft's cruising speed (the default is 100 km/h). The same default is used when no aircraft is selected.
 
 ### 3.2. Calculations Sequence
 1.  **Start Reference**: The calculations start from the aircraft's current coordinates (`currentLatitude`, `currentLongitude`).
