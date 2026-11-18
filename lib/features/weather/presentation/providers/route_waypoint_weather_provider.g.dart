@@ -67,29 +67,30 @@ final class RouteWaypointWeatherProvider
 }
 
 String _$routeWaypointWeatherHash() =>
-    r'b0cc4ccfeb7f94c9538aeaa62f0bd2f531916ced';
+    r'0ac129adc3174e186cc403821f2085dec6b77333';
 
 /// Wind and surface gusts at every forecast point for its estimated arrival
-/// time. Uses the same wind-adjusted timing as the route list.
+/// time. Uses the same wind-adjusted timing and forecast reference as the
+/// route list and the details dialog.
 
 @ProviderFor(routePointWinds)
 final routePointWindsProvider = RoutePointWindsProvider._();
 
 /// Wind and surface gusts at every forecast point for its estimated arrival
-/// time. Uses the same wind-adjusted timing as the route list.
+/// time. Uses the same wind-adjusted timing and forecast reference as the
+/// route list and the details dialog.
 
 final class RoutePointWindsProvider
     extends
         $FunctionalProvider<
-          AsyncValue<Map<String, RoutePointWind>>,
           Map<String, RoutePointWind>,
-          FutureOr<Map<String, RoutePointWind>>
+          Map<String, RoutePointWind>,
+          Map<String, RoutePointWind>
         >
-    with
-        $FutureModifier<Map<String, RoutePointWind>>,
-        $FutureProvider<Map<String, RoutePointWind>> {
+    with $Provider<Map<String, RoutePointWind>> {
   /// Wind and surface gusts at every forecast point for its estimated arrival
-  /// time. Uses the same wind-adjusted timing as the route list.
+  /// time. Uses the same wind-adjusted timing and forecast reference as the
+  /// route list and the details dialog.
   RoutePointWindsProvider._()
     : super(
         from: null,
@@ -106,14 +107,22 @@ final class RoutePointWindsProvider
 
   @$internal
   @override
-  $FutureProviderElement<Map<String, RoutePointWind>> $createElement(
+  $ProviderElement<Map<String, RoutePointWind>> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $ProviderElement(pointer);
 
   @override
-  FutureOr<Map<String, RoutePointWind>> create(Ref ref) {
+  Map<String, RoutePointWind> create(Ref ref) {
     return routePointWinds(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, RoutePointWind> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, RoutePointWind>>(value),
+    );
   }
 }
 
-String _$routePointWindsHash() => r'1941b34bd59bc2a35d4dbc446405f51ba3ee51c1';
+String _$routePointWindsHash() => r'cf2605f1a4088676fb7d347a356b7903bef73ae2';

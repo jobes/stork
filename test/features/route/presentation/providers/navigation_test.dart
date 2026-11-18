@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
 import '../../../../helpers/sensors_mock.dart';
 
 void main() {
@@ -132,54 +132,6 @@ void main() {
         expect(stateEmpty.isActive, isFalse);
       },
     );
-
-    test('NavigationCalculations computes legs and totals correctly', () {
-      const points = [
-        NavigationPoint(latitude: 48.0, longitude: 17.0, name: 'Point 1'),
-        NavigationPoint(latitude: 48.0, longitude: 18.0, name: 'Point 2'),
-      ];
-
-      // Test with null coordinates
-      final emptyCalc = NavigationCalculations.calculate(
-        points: points,
-        currentLatitude: null,
-        currentLongitude: null,
-        activeSpeedMs: 10.0,
-      );
-      expect(emptyCalc.legs, isEmpty);
-      expect(emptyCalc.totalDistanceMeters, 0.0);
-      expect(emptyCalc.totalDuration, Duration.zero);
-
-      // Test with valid coordinates
-      final now = DateTime(2026, 6, 13, 12, 0, 0);
-      final calc = NavigationCalculations.calculate(
-        points: points,
-        currentLatitude: 48.0,
-        currentLongitude: 17.0,
-        activeSpeedMs: 10.0,
-        now: now,
-      );
-
-      expect(calc.legs, hasLength(2));
-      expect(calc.legs[0].legDistanceMeters, closeTo(0.0, 1.0));
-      expect(calc.legs[0].legDuration, Duration.zero);
-
-      final expectedDist = points[0].distanceTo(
-        points[1].latitude,
-        points[1].longitude,
-      );
-      expect(calc.legs[1].legDistanceMeters, closeTo(expectedDist, 1.0));
-      expect(
-        calc.legs[1].legDuration.inSeconds,
-        equals((expectedDist / 10.0).round()),
-      );
-      expect(calc.totalDistanceMeters, closeTo(expectedDist, 1.0));
-      expect(
-        calc.totalDuration.inSeconds,
-        equals((expectedDist / 10.0).round()),
-      );
-      expect(calc.legs[1].eta, now.add(calc.totalDuration));
-    });
 
     test('reorderPoints moves points correctly', () async {
       final notifier = container.read(navigationProvider.notifier);

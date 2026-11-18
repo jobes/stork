@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../../../../core/utils/aviation_math.dart';
 import '../../domain/flight_forecast.dart';
+import '../../domain/forecast_profile.dart';
 
 /// Open-Meteo request field names used by the forecast profiles.
 const forecastModel = 'dwd_icon_eu_native';
@@ -27,7 +28,7 @@ double _interpolate(double a, double b, double fraction) =>
 /// Parsed Open-Meteo hourly profile: model elevation, timestamps and the raw
 /// hourly columns. Interpolates wind, temperature, pressure and precipitation
 /// for a requested time and altitude.
-class ForecastSeries {
+class ForecastSeries implements ForecastProfile {
   final double modelElevationMeters;
   final DateTime downloadedAt;
   final List<DateTime> times;
@@ -47,6 +48,7 @@ class ForecastSeries {
               )
               .toList(growable: false);
 
+  @override
   bool covers(DateTime time) =>
       times.isNotEmpty &&
       !time.isBefore(times.first) &&
@@ -59,6 +61,7 @@ class ForecastSeries {
     return value is num && value.isFinite ? value.toDouble() : null;
   }
 
+  @override
   ForecastWind? windAt(
     DateTime time,
     double altitudeMeters, {
@@ -80,6 +83,7 @@ class ForecastSeries {
     return a.interpolate(b, fraction);
   }
 
+  @override
   FlightForecast? at(
     DateTime time, {
     double? altitudeMeters,

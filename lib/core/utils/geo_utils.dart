@@ -56,6 +56,22 @@ class GeoUtils {
     );
   }
 
+  /// Calculates the destination point as plain coordinates. Used by domain
+  /// code that should not depend on a map rendering package.
+  static ({double latitude, double longitude}) destinationPoint(
+    double latitude,
+    double longitude,
+    double headingDegrees,
+    double distanceMeters,
+  ) {
+    final point = calculateDestination(
+      Geographic(lat: latitude, lon: longitude),
+      headingDegrees,
+      distanceMeters,
+    );
+    return (latitude: point.lat, longitude: point.lon);
+  }
+
   /// Calculates the distance in meters between two geographical points
   /// using the Haversine formula.
   static double distanceBetween(

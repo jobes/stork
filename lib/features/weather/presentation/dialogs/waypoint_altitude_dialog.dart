@@ -6,11 +6,10 @@ import 'package:intl/intl.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
-import '../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../data/models/forecast_series.dart';
-import '../../domain/flight_forecast.dart';
+import '../../domain/forecast_profile.dart';
 import '../../domain/forecast_route.dart';
 
 typedef _AltitudeResult = ({int? altitude});
@@ -21,10 +20,12 @@ Future<void> showWaypointAltitudeDialog(
   BuildContext context,
   WidgetRef ref, {
   required NavigationPoint waypoint,
+  required int waypointIndex,
   required int? defaultFeet,
   ForecastRoutePoint? forecastPoint,
   DateTime? eta,
-  ForecastSeries? series,
+  ForecastProfile? series,
+  ForecastReference? reference,
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final result = await showDialog<_AltitudeResult>(
@@ -36,13 +37,14 @@ Future<void> showWaypointAltitudeDialog(
       forecastPoint: forecastPoint,
       eta: eta,
       series: series,
+      reference: reference,
     ),
   );
   if (result == null) return;
   try {
     await ref
         .read(navigationProvider.notifier)
-        .updatePointWeatherAltitude(waypoint, result.altitude);
+        .updatePointWeatherAltitude(waypointIndex, result.altitude);
   } catch (_) {
     if (context.mounted) {
       ScaffoldMessenger.of(
@@ -60,6 +62,7 @@ class _WaypointAltitudeDialog extends ConsumerStatefulWidget {
     required this.forecastPoint,
     required this.eta,
     required this.series,
+    required this.reference,
   });
 
   final String waypointName;
@@ -67,7 +70,8 @@ class _WaypointAltitudeDialog extends ConsumerStatefulWidget {
   final int? defaultFeet;
   final ForecastRoutePoint? forecastPoint;
   final DateTime? eta;
-  final ForecastSeries? series;
+  final ForecastProfile? series;
+  final ForecastReference? reference;
 
   @override
   ConsumerState<_WaypointAltitudeDialog> createState() =>
@@ -123,7 +127,11 @@ class _WaypointAltitudeDialogState
     final eta = widget.eta ?? point?.eta;
     final series = widget.series;
     final forecast = series != null && eta != null && feet != null
-        ? series.at(eta, altitudeMeters: feet * feetInMeters)
+        ? series.atReference(
+            eta,
+            altitudeFeet: feet.toDouble(),
+            reference: widget.reference,
+          )
         : null;
     final wind = forecast?.wind;
     final presets = <int>{?widget.defaultFeet, 1000, 2000, 3000, 5000};
@@ -231,7 +239,7 @@ class _WaypointAltitudeDialogState
               children: [
                 for (final preset in presets)
                   ChoiceChip(
-                    label: Text('${number.format(preset)} ft'),
+                    label: Text(l10n.altitudeChipValue(number.format(preset))),
                     selected: feet == preset,
                     showCheckmark: false,
                     onSelected: (_) => _selectPreset(preset),

@@ -21,7 +21,7 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_provid
 import 'package:stork/features/telemetry/presentation/providers/traffic_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/traffic_source_health_provider.dart';
 import 'package:stork/features/weather/data/models/forecast_series.dart';
-import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
+import 'package:stork/features/weather/domain/forecast_profile.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
 
 class _Telemetry extends TelemetryNotifier {

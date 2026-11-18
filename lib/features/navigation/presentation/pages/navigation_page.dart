@@ -14,14 +14,16 @@ import '../../../settings/domain/models/app_settings.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
-import '../../../weather/data/repositories/flight_forecast_repository.dart';
+import '../../../weather/domain/flight_forecast.dart';
+import '../../../weather/domain/forecast_profile.dart';
+import '../../../weather/domain/forecast_query.dart';
 import '../../../weather/presentation/dialogs/flight_weather_details_dialog.dart';
 import '../../../weather/presentation/dialogs/waypoint_altitude_dialog.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
 import '../dialogs/departure_dialog.dart';
-import '../providers/navigation_eta_provider.dart';
-import '../providers/navigation_provider.dart';
+import '../../../weather/presentation/providers/navigation_eta_provider.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../utils/navigation_formatters.dart';
 import '../widgets/route_waypoint_tile.dart';
 import '../widgets/route_weather_strip.dart';
@@ -180,6 +182,13 @@ class _RouteBody extends ConsumerWidget {
     final weather = ref.watch(routeWaypointWeatherProvider);
     final plan = ref.watch(flightWeatherPlanProvider);
     final profiles = ref.watch(flightForecastProfilesProvider).value;
+    final references = settings.showFlightWeather
+        ? ref.watch(routeForecastReferencesProvider).value ??
+              const <String, ForecastReference>{}
+        : const <String, ForecastReference>{};
+    final locations = settings.showFlightWeather
+        ? ref.watch(flightWeatherProfileLocationsProvider)
+        : const <String, ForecastLocation>{};
     final selectedDeparture = ref.watch(flightDepartureProvider);
     final defaultAltitude = ref
         .watch(selectedAircraftProvider)
@@ -260,7 +269,9 @@ class _RouteBody extends ConsumerWidget {
             .firstOrNull;
         final series = planPoint == null
             ? null
-            : profiles?.series[forecastLocationKey(planPoint.location)];
+            : profiles?.series[forecastLocationKey(
+                locations[planPoint.id] ?? planPoint.location,
+              )];
         return RouteWaypointTile(
           key: ValueKey(
             '${point.latitude}_${point.longitude}_${point.name}_$index',
@@ -275,16 +286,19 @@ class _RouteBody extends ConsumerWidget {
           onTap: planPoint == null
               ? null
               : () => showFlightWeatherDetails(context, planPoint.id),
-          onRemove: () => unawaited(_removeWaypoint(context, index, point)),
+          onRemove: () =>
+              unawaited(_removeWaypoint(ref, context, index, point)),
           onAltitude: () => unawaited(
             showWaypointAltitudeDialog(
               context,
               ref,
               waypoint: point,
+              waypointIndex: index,
               defaultFeet: defaultAltitude,
               forecastPoint: planPoint,
               eta: weather[index]?.eta,
               series: series,
+              reference: planPoint == null ? null : references[planPoint.id],
             ),
           ),
         );
@@ -294,14 +308,16 @@ class _RouteBody extends ConsumerWidget {
 }
 
 Future<void> _removeWaypoint(
+  WidgetRef ref,
   BuildContext context,
   int index,
   NavigationPoint point,
 ) async {
   final l10n = AppLocalizations.of(context)!;
-  final container = ProviderScope.containerOf(context, listen: false);
-  final plannedDeparture = container.read(flightDepartureProvider);
-  await container.read(navigationProvider.notifier).removePoint(index);
+  final navigation = ref.read(navigationProvider.notifier);
+  final departure = ref.read(flightDepartureProvider.notifier);
+  final plannedDeparture = ref.read(flightDepartureProvider);
+  await navigation.removePoint(index);
   if (!context.mounted) return;
   final messenger = ScaffoldMessenger.of(context);
   messenger.hideCurrentSnackBar();
@@ -311,14 +327,8 @@ Future<void> _removeWaypoint(
       action: SnackBarAction(
         label: l10n.undo,
         onPressed: () async {
-          await container
-              .read(navigationProvider.notifier)
-              .insertPoint(index, point);
-          if (container.read(flightDepartureProvider) == null) {
-            container
-                .read(flightDepartureProvider.notifier)
-                .select(plannedDeparture);
-          }
+          await navigation.insertPoint(index, point);
+          if (plannedDeparture != null) departure.select(plannedDeparture);
         },
       ),
     ),

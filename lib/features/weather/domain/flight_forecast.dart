@@ -6,8 +6,24 @@ part 'flight_forecast.freezed.dart';
 
 const forecastPointInterval = Duration(minutes: 10);
 const forecastWaypointMargin = Duration(minutes: 2);
-const forecastRefreshInterval = Duration(minutes: 30);
+
+/// ICON-EU runs every three hours. A two-hour refresh keeps the data current
+/// without re-requesting the same model run.
+const forecastRefreshInterval = Duration(hours: 2);
+
+/// The moving aircraft keeps one profile until it has moved this far. The
+/// previous profile is still interpolated locally in the meantime.
+const forecastOriginRefreshDistanceMeters = 10000.0;
+
+/// Route samples stay between five and twenty kilometres apart. The lower
+/// bound avoids excessive samples for slow aircraft, the upper bound keeps
+/// fast aircraft from skipping model grid cells.
+const forecastMinSampleDistanceMeters = 5000.0;
+const forecastMaxSampleDistanceMeters = 20000.0;
+
 const forecastTimeReserve = Duration(hours: 1);
+
+/// On the ground a moved origin rebuilds the route geometry.
 const forecastNearbyRefreshDistanceMeters = 3000.0;
 const feetInMeters = 0.3048;
 

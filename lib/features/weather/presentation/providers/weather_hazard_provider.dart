@@ -2,24 +2,24 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../navigation/presentation/providers/navigation_eta_provider.dart';
+import './navigation_eta_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../../navigation/presentation/providers/navigation_provider.dart';
-import '../../data/models/forecast_series.dart';
-import '../../data/repositories/flight_forecast_repository.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../domain/flight_forecast.dart';
-import '../../domain/weather_hazard.dart';
+import '../../domain/forecast_profile.dart';
+import '../../domain/forecast_query.dart';
 import '../../domain/forecast_route.dart';
+import '../../domain/weather_hazard.dart';
 import 'flight_weather_provider.dart';
 
 part 'weather_hazard_provider.g.dart';
 
 typedef _HazardSample = ({
-  ForecastSeries series,
+  ForecastProfile series,
   ForecastRoutePoint point,
+  ForecastReference reference,
   DateTime time,
-  double? altitude,
 });
 typedef _HazardInput = ({
   List<_HazardSample> samples,
@@ -44,9 +44,10 @@ typedef WeatherHazardDetail = ({
 List<WeatherHazardDetail> _evaluateHazards(_HazardInput input) {
   final details = <WeatherHazardDetail>[];
   for (final sample in input.samples) {
-    final forecast = sample.series.at(
+    final forecast = sample.series.atReference(
       sample.time,
-      altitudeMeters: sample.altitude,
+      altitudeFeet: sample.point.altitudeFeet,
+      reference: sample.reference,
     );
     if (forecast == null) continue;
     final hazards = forecastHazards(
@@ -87,21 +88,24 @@ Future<List<WeatherHazardDetail>> weatherHazardDetails(Ref ref) async {
   if (profiles == null || (points.length > 1 && route?.isActive != true)) {
     return const [];
   }
+  final references = await ref.watch(routeForecastReferencesProvider.future);
+  final locations = ref.watch(flightWeatherProfileLocationsProvider);
   final input = (
     windLimit: aircraft?.dangerousWindMs,
     gustLimit: aircraft?.dangerousGustMs,
     samples: [
       for (final point in points)
-        if (profiles.series[forecastLocationKey(forecastProfileLocation(point))]
+        if (profiles.series[forecastLocationKey(
+              locations[point.id] ?? point.location,
+            )]
             case final series?)
-          (
-            series: series,
-            point: point,
-            time: timing[point.id]?.eta ?? point.eta,
-            altitude: point.altitudeFeet == null
-                ? null
-                : point.altitudeFeet! * feetInMeters,
-          ),
+          if (references[point.id] case final reference?)
+            (
+              series: series,
+              point: point,
+              reference: reference,
+              time: timing[point.id]?.eta ?? point.eta,
+            ),
     ],
   );
   return compute(

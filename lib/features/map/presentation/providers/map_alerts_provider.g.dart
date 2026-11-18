@@ -62,7 +62,7 @@ final class MapAlertsProvider
   }
 }
 
-String _$mapAlertsHash() => r'700fb35ddc91eb9fdd93fa9758c90dff2a7c99f6';
+String _$mapAlertsHash() => r'a8d0a941b4afaa1d60ca4c54dc5db17ae3e1aec3';
 
 /// Aggregates active health signals in priority order.
 ///

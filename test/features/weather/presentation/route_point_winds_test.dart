@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_eta_provider.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/weather/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/weather/data/models/forecast_series.dart';
-import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
+import 'package:stork/features/weather/domain/forecast_query.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/domain/wind_route_timing.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
@@ -28,7 +28,7 @@ class _Navigation extends NavigationNotifier {
   NavigationState build() => const NavigationState(isActive: true);
 }
 
-class _Plan extends FlightWeatherPlan {
+class _Plan extends FlightWeatherPlanNotifier {
   @override
   List<ForecastRoutePoint> build() => [
     ForecastRoutePoint(
@@ -134,8 +134,9 @@ void main() {
     final container = _container();
     addTearDown(container.dispose);
     await container.read(flightForecastProfilesProvider.future);
+    await container.read(routeForecastReferencesProvider.future);
 
-    final winds = await container.read(routePointWindsProvider.future);
+    final winds = container.read(routePointWindsProvider);
 
     expect(winds.keys, unorderedEquals(['origin', 'waypoint-0', 'sample-0']));
     expect(winds['origin']!.wind!.speedMs, closeTo(10, 0.1));
@@ -148,16 +149,18 @@ void main() {
     final container = _container(enabled: false);
     addTearDown(container.dispose);
     await container.read(flightForecastProfilesProvider.future);
+    await container.read(routeForecastReferencesProvider.future);
 
-    expect(await container.read(routePointWindsProvider.future), isEmpty);
+    expect(container.read(routePointWindsProvider), isEmpty);
   });
 
   test('uses the terrain reference above the planned altitude', () async {
     final container = _container(terrain: 1000);
     addTearDown(container.dispose);
     await container.read(flightForecastProfilesProvider.future);
+    await container.read(routeForecastReferencesProvider.future);
 
-    final winds = await container.read(routePointWindsProvider.future);
+    final winds = container.read(routePointWindsProvider);
 
     expect(winds['origin']!.wind, isNull);
     expect(winds['origin']!.gustMs, closeTo(20, 0.001));
@@ -174,8 +177,9 @@ void main() {
     final container = _container(timing: timing);
     addTearDown(container.dispose);
     await container.read(flightForecastProfilesProvider.future);
+    await container.read(routeForecastReferencesProvider.future);
 
-    final winds = await container.read(routePointWindsProvider.future);
+    final winds = container.read(routePointWindsProvider);
 
     expect(winds.keys, unorderedEquals(['origin', 'sample-0']));
   });

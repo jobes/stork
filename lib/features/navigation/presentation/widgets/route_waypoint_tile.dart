@@ -8,8 +8,8 @@ import '../../../settings/domain/models/speed_unit.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
 import '../../../weather/domain/weather_hazard.dart';
 import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
-import '../../domain/models/navigation_leg.dart';
-import '../../domain/models/navigation_point.dart';
+import '../../../route/domain/models/navigation_leg.dart';
+import '../../../route/domain/models/navigation_point.dart';
 import '../utils/navigation_formatters.dart';
 
 /// One row of the route list: ETA, leg totals, planned altitude and wind.
@@ -263,7 +263,7 @@ class RouteWaypointTile extends StatelessWidget {
                                   '${minutes > 0 ? '+' : '−'}${context.formatNumber(minutes.abs().toDouble(), 0)}',
                                 ),
                                 child: Text(
-                                  '${minutes > 0 ? '+' : '−'}${context.formatNumber(minutes.abs().toDouble(), 0)} min',
+                                  '${minutes > 0 ? '+' : '−'}${context.formatNumber(minutes.abs().toDouble(), 0)} ${l10n.minutesAbbrev}',
                                 ),
                               ),
                             if (index == 0 && count > 1)

@@ -5,7 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
-import 'package:stork/features/weather/domain/forecast_route.dart';
+import 'package:stork/features/weather/domain/flight_forecast.dart';
+import 'package:stork/features/weather/domain/forecast_query.dart';
 
 void main() {
   test(
@@ -67,11 +68,16 @@ void main() {
         expect(requestCount, 1);
 
         offline = true;
-        now = start.add(const Duration(minutes: 35));
+        now = start.add(forecastRefreshInterval);
         final refreshed = await repository.load(query);
         expect(requestCount, 2);
         expect(refreshed.refreshFailed, isTrue);
-        expect(refreshed.series.values.first.at(now)!.gustMs, 10);
+        expect(
+          refreshed.series.values.first
+              .at(start.add(const Duration(minutes: 30)))!
+              .gustMs,
+          10,
+        );
         expect(
           refreshed.series.values.first.at(start.add(const Duration(hours: 2))),
           isNull,
@@ -194,34 +200,55 @@ void main() {
     },
   );
 
-  test('reuses one profile location within a ~3 km grid cell', () {
+  test('quantizes nearby positions into one profile key', () {
     const base = (latitude: 48.17, longitude: 17.21);
     const nearby = (latitude: 48.171, longitude: 17.211);
     const distant = (latitude: 48.24, longitude: 17.21);
-    final eta = DateTime.utc(2026, 11, 16, 14);
 
     expect(quantizeForecastLocation(nearby), quantizeForecastLocation(base));
     expect(
       quantizeForecastLocation(distant),
       isNot(quantizeForecastLocation(base)),
     );
+  });
 
-    ForecastRoutePoint point(
-      String id,
-      ({double latitude, double longitude}) location,
-    ) => ForecastRoutePoint(
-      id: id,
-      location: location,
-      eta: eta,
-      duration: Duration.zero,
-      distanceMeters: 0,
-      altitudeFeet: null,
-    );
+  test('drops profiles that are no longer part of the plan', () async {
+    final start = DateTime.utc(2026, 11, 16, 14);
+    final client = MockClient((request) async {
+      final count = request.url.queryParameters['latitude']!.split(',').length;
+      return http.Response(
+        jsonEncode([
+          for (var i = 0; i < count; i++)
+            {
+              'elevation': 165,
+              'hourly': {
+                'time': [start.millisecondsSinceEpoch ~/ 1000],
+                'wind_gusts_10m': [18],
+              },
+            },
+        ]),
+        200,
+      );
+    });
+    addTearDown(client.close);
+    final repository = FlightForecastRepository(client);
 
-    expect(
-      forecastProfileLocation(point('origin', base)),
-      quantizeForecastLocation(base),
+    await repository.load(
+      ForecastQuery(
+        [
+          (latitude: 48.17, longitude: 17.21),
+          (latitude: 48.878, longitude: 19.226),
+        ],
+        start,
+        start,
+      ),
     );
-    expect(forecastProfileLocation(point('waypoint-0', nearby)), nearby);
+    expect(repository.cachedProfileCount, 2);
+
+    final result = await repository.load(
+      ForecastQuery([(latitude: 48.17, longitude: 17.21)], start, start),
+    );
+    expect(repository.cachedProfileCount, 1);
+    expect(result.series, hasLength(1));
   });
 }

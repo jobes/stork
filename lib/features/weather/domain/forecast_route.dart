@@ -1,10 +1,9 @@
 import 'dart:math' as math;
 
-import 'package:maplibre/maplibre.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../core/utils/geo_utils.dart';
-import '../../navigation/domain/models/navigation_point.dart';
+import '../../route/domain/models/navigation_point.dart';
 import 'flight_forecast.dart';
 
 part 'forecast_route.freezed.dart';
@@ -82,7 +81,9 @@ class ForecastRoute {
       start = end;
     }
     final samples = <_RouteSample>[];
-    final step = forecastPointInterval.inSeconds * speed;
+    final step = (forecastPointInterval.inSeconds * speed)
+        .clamp(forecastMinSampleDistanceMeters, forecastMaxSampleDistanceMeters)
+        .toDouble();
     final margin = forecastWaypointMargin.inSeconds * speed;
     var nextDistance = step;
     for (final (index, leg) in legs.indexed) {
@@ -90,15 +91,16 @@ class ForecastRoute {
       while (step > 0 && nextDistance < leg.cumulative) {
         final fromStart = nextDistance - legStart;
         if (fromStart > margin && leg.cumulative - nextDistance > margin) {
-          final position = GeoUtils.calculateDestination(
-            Geographic(lat: leg.start.latitude, lon: leg.start.longitude),
+          final position = GeoUtils.destinationPoint(
+            leg.start.latitude,
+            leg.start.longitude,
             leg.bearing,
             fromStart,
           );
           samples.add((
             leg: index,
             fraction: fromStart / leg.distance,
-            location: (latitude: position.lat, longitude: position.lon),
+            location: position,
           ));
         }
         nextDistance += step;

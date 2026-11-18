@@ -15,7 +15,7 @@ import 'package:stork/features/map/presentation/providers/notams_provider.dart';
 import 'package:stork/features/map/presentation/providers/traffic_colors.dart';
 import 'package:stork/features/map/domain/models/notam.dart';
 import 'package:stork/features/map/domain/repositories/notam_repository.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/telemetry/domain/models/map_view_state.dart';

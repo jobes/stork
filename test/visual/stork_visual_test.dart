@@ -18,10 +18,10 @@ import 'package:stork/features/settings/presentation/dialogs/aircraft_settings_d
 import 'package:stork/features/navigation/presentation/dialogs/navigation_details_dialog.dart';
 import 'package:stork/features/navigation/presentation/pages/navigation_page.dart';
 import 'package:stork/features/map/presentation/components/controls/map_features_bottom_sheet.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/weather/presentation/providers/navigation_eta_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import 'package:stork/features/weather/data/models/forecast_series.dart';
-import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
+import 'package:stork/features/weather/domain/forecast_query.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/domain/wind_route_timing.dart';
 import 'package:stork/features/weather/domain/weather_hazard.dart';
@@ -42,7 +42,7 @@ import 'package:stork/features/map/presentation/components/dialogs/base_details_
 import 'package:stork/features/map/presentation/components/dialogs/map_search_dialog.dart';
 import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
 import 'package:stork/features/map/presentation/providers/notams_provider.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
@@ -440,7 +440,7 @@ class _WeatherVisualTelemetry extends ThrottledTelemetry {
   );
 }
 
-class _WeatherVisualPlan extends FlightWeatherPlan {
+class _WeatherVisualPlan extends FlightWeatherPlanNotifier {
   @override
   List<ForecastRoutePoint> build() => [
     ForecastRoutePoint(

@@ -35,7 +35,7 @@ import '../components/controls/map_widget_wrapper.dart';
 import '../components/controls/utc_clock_widget.dart';
 import '../providers/map_camera_provider.dart';
 import '../providers/map_radar.dart';
-import '../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import '../components/controls/map_features_bottom_sheet.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';

@@ -7,7 +7,7 @@ import '../../../../../l10n/app_localizations.dart';
 import '../../../../favorites/presentation/dialogs/add_favorite_dialog.dart';
 import '../../../../favorites/presentation/dialogs/favorite_details_dialog.dart';
 import '../../../../favorites/presentation/providers/favorites_provider.dart';
-import '../../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../../route/presentation/providers/navigation_provider.dart';
 import '../../../../weather/presentation/dialogs/flight_weather_details_dialog.dart';
 import '../../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../providers/airport_metadata_provider.dart';

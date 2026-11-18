@@ -5,7 +5,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:maplibre/maplibre.dart' hide SpeedUnit;
+import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -17,7 +17,7 @@ import '../../../settings/presentation/providers/display_preferences_provider.da
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/aircraft_type.dart';
 import '../../../settings/domain/models/altitude_unit.dart';
-import '../../../settings/domain/models/speed_unit.dart';
+import '../../../settings/domain/models/speed_unit.dart' as app;
 import '../../../weather/domain/forecast_route.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
@@ -25,7 +25,7 @@ import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/presentation/providers/traffic_provider.dart';
 import '../../../telemetry/presentation/providers/agl_provider.dart';
-import '../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
 import 'notams_provider.dart';
 import 'airspace_activity_provider.dart';

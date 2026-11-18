@@ -6,7 +6,7 @@ import '../../../../core/widgets/sprite_icon.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../../map/presentation/providers/map_camera_provider.dart';
-import '../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../dialogs/add_favorite_dialog.dart';
 import '../dialogs/favorite_details_dialog.dart';

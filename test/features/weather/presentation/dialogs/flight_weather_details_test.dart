@@ -8,8 +8,8 @@ import 'package:maplibre/maplibre.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/features/map/presentation/components/controls/map_features_bottom_sheet.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/weather/presentation/providers/navigation_eta_provider.dart';
 import 'package:stork/features/navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import 'package:stork/features/settings/domain/models/aircraft.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
@@ -18,7 +18,7 @@ import 'package:stork/features/settings/presentation/providers/settings_provider
 import 'package:stork/features/telemetry/domain/models/telemetry_state.dart';
 import 'package:stork/features/telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import 'package:stork/features/weather/data/models/forecast_series.dart';
-import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
+import 'package:stork/features/weather/domain/forecast_query.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/presentation/dialogs/flight_weather_details_dialog.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
@@ -29,7 +29,7 @@ const _location = (latitude: 48.17, longitude: 17.21);
 const _origin = (latitude: 48.35, longitude: 17.21);
 const _destination = (latitude: 48.25, longitude: 17.21);
 
-class _Plan extends FlightWeatherPlan {
+class _Plan extends FlightWeatherPlanNotifier {
   @override
   List<ForecastRoutePoint> build() {
     final point = ref.watch(navigationProvider).value?.points.firstOrNull;
@@ -76,7 +76,7 @@ class _WeatherTelemetry extends ThrottledTelemetry {
   TelemetryState build() => const TelemetryState();
 }
 
-class _HazardPlan extends FlightWeatherPlan {
+class _HazardPlan extends FlightWeatherPlanNotifier {
   @override
   List<ForecastRoutePoint> build() => [
     ForecastRoutePoint(

@@ -119,16 +119,11 @@ class NavigationNotifier extends _$NavigationNotifier {
     await _save(updated);
   }
 
-  Future<void> updatePointWeatherAltitude(
-    NavigationPoint point,
-    int? feet,
-  ) async {
+  Future<void> updatePointWeatherAltitude(int index, int? feet) async {
     final current = state.value;
-    if (current == null) return;
-    final index = current.points.indexOf(point);
-    if (index < 0) return;
+    if (current == null || index < 0 || index >= current.points.length) return;
     final points = [...current.points];
-    points[index] = point.withWeatherAltitude(feet);
+    points[index] = points[index].withWeatherAltitude(feet);
     final updated = current.copyWith(points: points, wasAutoAdvanced: false);
     state = AsyncData(updated);
     try {

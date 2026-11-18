@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/weather/data/models/forecast_series.dart';
-import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
+import 'package:stork/features/weather/domain/flight_forecast.dart';
+import 'package:stork/features/weather/domain/forecast_query.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
 
@@ -15,7 +16,7 @@ class _Settings extends AppSettingsNotifier {
   AppSettings build() => const AppSettings(showFlightWeather: true);
 }
 
-class _AircraftPlan extends FlightWeatherPlan {
+class _AircraftPlan extends FlightWeatherPlanNotifier {
   @override
   List<ForecastRoutePoint> build() => [
     ForecastRoutePoint(
@@ -29,7 +30,23 @@ class _AircraftPlan extends FlightWeatherPlan {
   ];
 }
 
-class _RoutePlan extends FlightWeatherPlan {
+class _MovablePlan extends FlightWeatherPlanNotifier {
+  static ForecastLocation location = _location;
+
+  @override
+  List<ForecastRoutePoint> build() => [
+    ForecastRoutePoint(
+      id: 'aircraft',
+      location: location,
+      eta: _now,
+      duration: Duration.zero,
+      distanceMeters: 0,
+      altitudeFeet: 2000,
+    ),
+  ];
+}
+
+class _RoutePlan extends FlightWeatherPlanNotifier {
   @override
   List<ForecastRoutePoint> build() => [
     ForecastRoutePoint(
@@ -71,7 +88,7 @@ ForecastSeries _series() => ForecastSeries.fromJson({
   },
 }, _now);
 
-ProviderContainer _container(FlightWeatherPlan Function() plan) {
+ProviderContainer _container(FlightWeatherPlanNotifier Function() plan) {
   final series = _series();
   return ProviderContainer(
     overrides: [
@@ -112,5 +129,37 @@ void main() {
 
     expect(forecast?.wind, isNotNull);
     expect(forecast?.gustMs, closeTo(20, 0.001));
+  });
+
+  test('reuses the aircraft profile until it moves ten kilometres', () {
+    _MovablePlan.location = _location;
+    final container = _container(_MovablePlan.new);
+    addTearDown(container.dispose);
+
+    final first = container.read(flightWeatherOriginProvider);
+    expect(first, _location);
+    final firstQuery = container.read(flightWeatherQueryProvider);
+    expect(firstQuery!.locations.keys, [
+      forecastLocationKey(quantizeForecastLocation(_location)),
+    ]);
+
+    _MovablePlan.location = (
+      latitude: _location.latitude + 0.08,
+      longitude: _location.longitude,
+    );
+    container.invalidate(flightWeatherPlanProvider);
+    expect(container.read(flightWeatherOriginProvider), first);
+    expect(container.read(flightWeatherQueryProvider), firstQuery);
+
+    _MovablePlan.location = (
+      latitude: _location.latitude + 0.1,
+      longitude: _location.longitude,
+    );
+    container.invalidate(flightWeatherPlanProvider);
+    final moved = container.read(flightWeatherOriginProvider);
+    expect(moved, isNot(first));
+    expect(container.read(flightWeatherQueryProvider)!.locations.keys, [
+      forecastLocationKey(quantizeForecastLocation(moved!)),
+    ]);
   });
 }

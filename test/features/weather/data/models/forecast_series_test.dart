@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/weather/data/models/forecast_series.dart';
+import 'package:stork/features/weather/domain/forecast_profile.dart';
 
 void main() {
   final time = DateTime.utc(2026, 11, 16, 14);
@@ -76,5 +77,22 @@ void main() {
     expect(series.at(time)!.gustMs, 10);
     expect(series.at(time.add(const Duration(hours: 1)))!.gustMs, 20);
     expect(series.at(time.add(const Duration(hours: 2)))!.gustMs, isNull);
+  });
+
+  test('resolves terrain and airport references with one shared rule', () {
+    final blockedByTerrain = series.atReference(
+      time,
+      altitudeFeet: 3609,
+      reference: (terrainMeters: 1150, airportMeters: 1000),
+    )!;
+    expect(blockedByTerrain.wind, isNull);
+
+    final airportReference = series.atReference(
+      time,
+      altitudeFeet: 3609,
+      reference: (terrainMeters: null, airportMeters: 1000),
+    )!;
+    expect(airportReference.wind, isNotNull);
+    expect(airportReference.qfeHpa, isNotNull);
   });
 }

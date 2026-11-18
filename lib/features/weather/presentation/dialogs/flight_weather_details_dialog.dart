@@ -8,15 +8,16 @@ import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
-import '../../../navigation/presentation/providers/navigation_provider.dart';
-import '../../../navigation/presentation/providers/navigation_eta_provider.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
+import '../providers/navigation_eta_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/domain/models/temperature_unit.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
-import '../../data/repositories/flight_forecast_repository.dart';
 import '../../domain/flight_forecast.dart';
+import '../../domain/forecast_profile.dart';
+import '../../domain/forecast_query.dart';
 import '../../domain/forecast_reference.dart';
 import '../../domain/weather_hazard.dart';
 import '../../domain/wind_route_timing.dart';
@@ -93,10 +94,18 @@ class FlightWeatherDetailsDialog extends ConsumerWidget {
     final terrain = ref
         .watch(forecastPointTerrainProvider(point.location))
         .value;
-    final reference = airportMeters ?? terrain;
     final enabled = settings?.showFlightWeather ?? false;
+    final forecastReference = enabled
+        ? (ref.watch(routeForecastReferencesProvider).value?[point.id] ??
+              (terrainMeters: terrain, airportMeters: airportMeters))
+        : (terrainMeters: terrain, airportMeters: airportMeters);
+    final reference =
+        forecastReference.airportMeters ?? forecastReference.terrainMeters;
     final profiles = enabled ? ref.watch(flightForecastProfilesProvider) : null;
-    final location = enabled ? forecastProfileLocation(point) : point.location;
+    final locations = enabled
+        ? ref.watch(flightWeatherProfileLocationsProvider)
+        : const <String, ForecastLocation>{};
+    final location = locations[point.id] ?? point.location;
     final altitude = point.altitudeFeet;
     final altitudeMeters = altitude == null ? null : altitude * feetInMeters;
     final series = enabled
@@ -104,11 +113,10 @@ class FlightWeatherDetailsDialog extends ConsumerWidget {
         : null;
     final forecast = eta == null
         ? null
-        : series?.at(
+        : series?.atReference(
             eta,
-            altitudeMeters: altitudeMeters,
-            terrainMeters: terrain ?? airportMeters,
-            pressureReferenceMeters: reference,
+            altitudeFeet: altitude,
+            reference: forecastReference,
           );
     final speedUnit = settings?.windSpeedUnit ?? SpeedUnit.kmh;
     final temperatureUnit =
@@ -223,10 +231,12 @@ class FlightWeatherDetailsDialog extends ConsumerWidget {
                               context,
                               ref,
                               waypoint: waypoint,
+                              waypointIndex: index!,
                               defaultFeet: aircraft?.weatherAltitudeFeet,
                               forecastPoint: point,
                               eta: eta,
                               series: series,
+                              reference: forecastReference,
                             ),
                           ),
                   ),

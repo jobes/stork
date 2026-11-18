@@ -9,12 +9,12 @@ part of 'navigation_eta_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(NavigationGroundTrack)
-final navigationGroundTrackProvider = NavigationGroundTrackProvider._();
+@ProviderFor(NavigationGroundTrackNotifier)
+final navigationGroundTrackProvider = NavigationGroundTrackNotifierProvider._();
 
-final class NavigationGroundTrackProvider
-    extends $NotifierProvider<NavigationGroundTrack, GroundTrack?> {
-  NavigationGroundTrackProvider._()
+final class NavigationGroundTrackNotifierProvider
+    extends $NotifierProvider<NavigationGroundTrackNotifier, GroundTrack?> {
+  NavigationGroundTrackNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -26,11 +26,11 @@ final class NavigationGroundTrackProvider
       );
 
   @override
-  String debugGetCreateSourceHash() => _$navigationGroundTrackHash();
+  String debugGetCreateSourceHash() => _$navigationGroundTrackNotifierHash();
 
   @$internal
   @override
-  NavigationGroundTrack create() => NavigationGroundTrack();
+  NavigationGroundTrackNotifier create() => NavigationGroundTrackNotifier();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(GroundTrack? value) {
@@ -41,10 +41,10 @@ final class NavigationGroundTrackProvider
   }
 }
 
-String _$navigationGroundTrackHash() =>
-    r'544a57a2bad4138966d6b608f4471d3c30ed3066';
+String _$navigationGroundTrackNotifierHash() =>
+    r'a2964f15e15dd24fa52de75b92b94cf3ffbba5f9';
 
-abstract class _$NavigationGroundTrack extends $Notifier<GroundTrack?> {
+abstract class _$NavigationGroundTrackNotifier extends $Notifier<GroundTrack?> {
   GroundTrack? build();
   @$mustCallSuper
   @override
@@ -103,12 +103,12 @@ final class _WindTimingKeyProvider
 
 String _$_windTimingKeyHash() => r'ad19b8bbaf4a0a5510ba6a308fd29b4f9ed33191';
 
-@ProviderFor(RouteWindTiming)
-final routeWindTimingProvider = RouteWindTimingProvider._();
+@ProviderFor(RouteWindTimingNotifier)
+final routeWindTimingProvider = RouteWindTimingNotifierProvider._();
 
-final class RouteWindTimingProvider
-    extends $AsyncNotifierProvider<RouteWindTiming, WindTimingResult?> {
-  RouteWindTimingProvider._()
+final class RouteWindTimingNotifierProvider
+    extends $AsyncNotifierProvider<RouteWindTimingNotifier, WindTimingResult?> {
+  RouteWindTimingNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -120,16 +120,18 @@ final class RouteWindTimingProvider
       );
 
   @override
-  String debugGetCreateSourceHash() => _$routeWindTimingHash();
+  String debugGetCreateSourceHash() => _$routeWindTimingNotifierHash();
 
   @$internal
   @override
-  RouteWindTiming create() => RouteWindTiming();
+  RouteWindTimingNotifier create() => RouteWindTimingNotifier();
 }
 
-String _$routeWindTimingHash() => r'38f2f20683a1da8e456eec5cd1693dfa67b523db';
+String _$routeWindTimingNotifierHash() =>
+    r'5c8f60f725140a391e901e9ef3627a28b3b2d090';
 
-abstract class _$RouteWindTiming extends $AsyncNotifier<WindTimingResult?> {
+abstract class _$RouteWindTimingNotifier
+    extends $AsyncNotifier<WindTimingResult?> {
   FutureOr<WindTimingResult?> build();
   @$mustCallSuper
   @override

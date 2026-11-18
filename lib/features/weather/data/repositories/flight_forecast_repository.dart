@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:flutter/foundation.dart' show compute, debugPrint;
+import 'package:flutter/foundation.dart'
+    show compute, debugPrint, visibleForTesting;
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/flight_forecast.dart';
-import '../../domain/forecast_route.dart';
+import '../../domain/forecast_profile.dart';
+import '../../domain/forecast_query.dart';
 import '../models/forecast_series.dart';
 
 part 'flight_forecast_repository.g.dart';
@@ -36,58 +38,6 @@ final _hourlyVariables = [
     'geopotential_height_${level}hPa',
   ],
 ].join(',');
-
-String forecastLocationKey(ForecastLocation location) =>
-    '${location.latitude.toStringAsFixed(4)},${location.longitude.toStringAsFixed(4)}';
-
-/// The moving aircraft reuses one forecast profile per ~3 km grid cell so small
-/// movements do not invalidate the cached profile.
-const forecastLocationGrid = 0.03;
-
-ForecastLocation quantizeForecastLocation(ForecastLocation location) => (
-  latitude:
-      (location.latitude / forecastLocationGrid).round() * forecastLocationGrid,
-  longitude:
-      (location.longitude / forecastLocationGrid).round() *
-      forecastLocationGrid,
-);
-
-/// Profile lookup location for a forecast point. The live aircraft position is
-/// quantized; route points keep their own coordinates.
-ForecastLocation forecastProfileLocation(ForecastRoutePoint point) =>
-    point.id == 'origin' || point.id == 'aircraft'
-    ? quantizeForecastLocation(point.location)
-    : point.location;
-
-class ForecastQuery {
-  final Map<String, ForecastLocation> locations;
-  final DateTime start;
-  final DateTime end;
-
-  ForecastQuery(Iterable<ForecastLocation> locations, this.start, this.end)
-    : locations = {
-        for (final location in locations)
-          forecastLocationKey(location): location,
-      };
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ForecastQuery &&
-          start == other.start &&
-          end == other.end &&
-          locations.length == other.locations.length &&
-          locations.keys.every(other.locations.containsKey);
-
-  @override
-  int get hashCode =>
-      Object.hash(start, end, Object.hashAllUnordered(locations.keys));
-}
-
-typedef ForecastProfiles = ({
-  Map<String, ForecastSeries> series,
-  bool refreshFailed,
-});
 
 @Riverpod(keepAlive: true)
 FlightForecastRepository flightForecastRepository(Ref ref) {
@@ -127,6 +77,12 @@ class FlightForecastRepository {
 
   FlightForecastRepository(this._client);
 
+  @visibleForTesting
+  int get cachedProfileCount => _cache.length;
+
+  @visibleForTesting
+  int get outsideModelCount => _outsideModel.length;
+
   /// Requests a fresh profile for every location on the next load. A failed
   /// refresh keeps the profiles already held by this session.
   void requestRefresh() => _refreshAll = true;
@@ -141,6 +97,9 @@ class FlightForecastRepository {
     final now = clock.now().toUtc();
     final refreshAll = _refreshAll;
     _refreshAll = false;
+    final requested = query.locations.keys.toSet();
+    _cache.removeWhere((key, _) => !requested.contains(key));
+    _outsideModel.removeWhere((key) => !requested.contains(key));
     final missing = query.locations.keys.where((key) {
       if (_outsideModel.contains(key)) return false;
       if (refreshAll) return true;

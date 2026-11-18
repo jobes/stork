@@ -4,12 +4,12 @@ import 'package:stork/features/settings/domain/models/aircraft.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/aircraft_provider.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
-import 'package:stork/features/navigation/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/weather/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/weather/domain/forecast_query.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/domain/weather_hazard.dart';
 import 'package:stork/features/weather/data/models/forecast_series.dart';
-import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
 import 'package:stork/features/weather/presentation/providers/weather_hazard_provider.dart';
 
@@ -29,7 +29,7 @@ class _Navigation extends NavigationNotifier {
   NavigationState build() => const NavigationState(isActive: true);
 }
 
-class _Plan extends FlightWeatherPlan {
+class _Plan extends FlightWeatherPlanNotifier {
   @override
   List<ForecastRoutePoint> build() => [
     ForecastRoutePoint(

@@ -9,12 +9,12 @@ part of 'flight_weather_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(FlightDeparture)
-final flightDepartureProvider = FlightDepartureProvider._();
+@ProviderFor(FlightDepartureNotifier)
+final flightDepartureProvider = FlightDepartureNotifierProvider._();
 
-final class FlightDepartureProvider
-    extends $NotifierProvider<FlightDeparture, DateTime?> {
-  FlightDepartureProvider._()
+final class FlightDepartureNotifierProvider
+    extends $NotifierProvider<FlightDepartureNotifier, DateTime?> {
+  FlightDepartureNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -26,11 +26,11 @@ final class FlightDepartureProvider
       );
 
   @override
-  String debugGetCreateSourceHash() => _$flightDepartureHash();
+  String debugGetCreateSourceHash() => _$flightDepartureNotifierHash();
 
   @$internal
   @override
-  FlightDeparture create() => FlightDeparture();
+  FlightDepartureNotifier create() => FlightDepartureNotifier();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(DateTime? value) {
@@ -41,9 +41,10 @@ final class FlightDepartureProvider
   }
 }
 
-String _$flightDepartureHash() => r'a509a7d3b49b6a046a6526239f84f7ff4dbb0d0c';
+String _$flightDepartureNotifierHash() =>
+    r'77a2697088e83ef45464d342842f8712e67ab02a';
 
-abstract class _$FlightDeparture extends $Notifier<DateTime?> {
+abstract class _$FlightDepartureNotifier extends $Notifier<DateTime?> {
   DateTime? build();
   @$mustCallSuper
   @override
@@ -96,12 +97,13 @@ final class FlightWeatherClockProvider
 String _$flightWeatherClockHash() =>
     r'b9a4a783b71d2f7e90421354ea08d9a4704dbba8';
 
-@ProviderFor(FlightWeatherPlan)
-final flightWeatherPlanProvider = FlightWeatherPlanProvider._();
+@ProviderFor(FlightWeatherPlanNotifier)
+final flightWeatherPlanProvider = FlightWeatherPlanNotifierProvider._();
 
-final class FlightWeatherPlanProvider
-    extends $NotifierProvider<FlightWeatherPlan, List<ForecastRoutePoint>> {
-  FlightWeatherPlanProvider._()
+final class FlightWeatherPlanNotifierProvider
+    extends
+        $NotifierProvider<FlightWeatherPlanNotifier, List<ForecastRoutePoint>> {
+  FlightWeatherPlanNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -113,11 +115,11 @@ final class FlightWeatherPlanProvider
       );
 
   @override
-  String debugGetCreateSourceHash() => _$flightWeatherPlanHash();
+  String debugGetCreateSourceHash() => _$flightWeatherPlanNotifierHash();
 
   @$internal
   @override
-  FlightWeatherPlan create() => FlightWeatherPlan();
+  FlightWeatherPlanNotifier create() => FlightWeatherPlanNotifier();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(List<ForecastRoutePoint> value) {
@@ -128,9 +130,11 @@ final class FlightWeatherPlanProvider
   }
 }
 
-String _$flightWeatherPlanHash() => r'9bf0ca385817710fd06c762c078213792e574543';
+String _$flightWeatherPlanNotifierHash() =>
+    r'5801f226d1a8d447ee9989df4b20e4cf29bbd9e3';
 
-abstract class _$FlightWeatherPlan extends $Notifier<List<ForecastRoutePoint>> {
+abstract class _$FlightWeatherPlanNotifier
+    extends $Notifier<List<ForecastRoutePoint>> {
   List<ForecastRoutePoint> build();
   @$mustCallSuper
   @override
@@ -148,6 +152,128 @@ abstract class _$FlightWeatherPlan extends $Notifier<List<ForecastRoutePoint>> {
     return element.handleCreate(ref, build);
   }
 }
+
+/// Latches the profile location for the moving aircraft. Small movements reuse
+/// the previous profile instead of requesting a new one every grid cell.
+
+@ProviderFor(FlightWeatherOrigin)
+final flightWeatherOriginProvider = FlightWeatherOriginProvider._();
+
+/// Latches the profile location for the moving aircraft. Small movements reuse
+/// the previous profile instead of requesting a new one every grid cell.
+final class FlightWeatherOriginProvider
+    extends $NotifierProvider<FlightWeatherOrigin, ForecastLocation?> {
+  /// Latches the profile location for the moving aircraft. Small movements reuse
+  /// the previous profile instead of requesting a new one every grid cell.
+  FlightWeatherOriginProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'flightWeatherOriginProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$flightWeatherOriginHash();
+
+  @$internal
+  @override
+  FlightWeatherOrigin create() => FlightWeatherOrigin();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ForecastLocation? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ForecastLocation?>(value),
+    );
+  }
+}
+
+String _$flightWeatherOriginHash() =>
+    r'37bf28fec3b06abb464ea24da9f36457a9cb2156';
+
+/// Latches the profile location for the moving aircraft. Small movements reuse
+/// the previous profile instead of requesting a new one every grid cell.
+
+abstract class _$FlightWeatherOrigin extends $Notifier<ForecastLocation?> {
+  ForecastLocation? build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<ForecastLocation?, ForecastLocation?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ForecastLocation?, ForecastLocation?>,
+              ForecastLocation?,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
+/// Profile lookup location for every plan point. The aircraft uses the latched
+/// location so lookups keep working while the previous profile is reused.
+
+@ProviderFor(flightWeatherProfileLocations)
+final flightWeatherProfileLocationsProvider =
+    FlightWeatherProfileLocationsProvider._();
+
+/// Profile lookup location for every plan point. The aircraft uses the latched
+/// location so lookups keep working while the previous profile is reused.
+
+final class FlightWeatherProfileLocationsProvider
+    extends
+        $FunctionalProvider<
+          Map<String, ForecastLocation>,
+          Map<String, ForecastLocation>,
+          Map<String, ForecastLocation>
+        >
+    with $Provider<Map<String, ForecastLocation>> {
+  /// Profile lookup location for every plan point. The aircraft uses the latched
+  /// location so lookups keep working while the previous profile is reused.
+  FlightWeatherProfileLocationsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'flightWeatherProfileLocationsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$flightWeatherProfileLocationsHash();
+
+  @$internal
+  @override
+  $ProviderElement<Map<String, ForecastLocation>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  Map<String, ForecastLocation> create(Ref ref) {
+    return flightWeatherProfileLocations(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, ForecastLocation> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, ForecastLocation>>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$flightWeatherProfileLocationsHash() =>
+    r'9f71a35dcdba935ab0d2bc0134c74b77fb570391';
 
 @ProviderFor(FlightWeatherQuery)
 final flightWeatherQueryProvider = FlightWeatherQueryProvider._();
@@ -182,7 +308,7 @@ final class FlightWeatherQueryProvider
 }
 
 String _$flightWeatherQueryHash() =>
-    r'e4efb261d42a4cdcd2bf87baf35e3edbb8f64e66';
+    r'd0a7065c9a08c1a956fd761c909d8b2bf4b8f400';
 
 abstract class _$FlightWeatherQuery extends $Notifier<ForecastQuery?> {
   ForecastQuery? build();
@@ -239,16 +365,16 @@ String _$flightForecastRefreshHash() =>
 /// Manual refresh requested from the map alert. Profiles only live in memory,
 /// so the action re-requests every location of the current plan.
 
-@ProviderFor(FlightForecastSync)
-final flightForecastSyncProvider = FlightForecastSyncProvider._();
+@ProviderFor(FlightForecastSyncNotifier)
+final flightForecastSyncProvider = FlightForecastSyncNotifierProvider._();
 
 /// Manual refresh requested from the map alert. Profiles only live in memory,
 /// so the action re-requests every location of the current plan.
-final class FlightForecastSyncProvider
-    extends $NotifierProvider<FlightForecastSync, void> {
+final class FlightForecastSyncNotifierProvider
+    extends $NotifierProvider<FlightForecastSyncNotifier, void> {
   /// Manual refresh requested from the map alert. Profiles only live in memory,
   /// so the action re-requests every location of the current plan.
-  FlightForecastSyncProvider._()
+  FlightForecastSyncNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -260,11 +386,11 @@ final class FlightForecastSyncProvider
       );
 
   @override
-  String debugGetCreateSourceHash() => _$flightForecastSyncHash();
+  String debugGetCreateSourceHash() => _$flightForecastSyncNotifierHash();
 
   @$internal
   @override
-  FlightForecastSync create() => FlightForecastSync();
+  FlightForecastSyncNotifier create() => FlightForecastSyncNotifier();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(void value) {
@@ -275,13 +401,13 @@ final class FlightForecastSyncProvider
   }
 }
 
-String _$flightForecastSyncHash() =>
-    r'ac24aaa46e197ec92fd7dcfe68e6a0b5a54b86ef';
+String _$flightForecastSyncNotifierHash() =>
+    r'05b2ee028924771cb679cd9d5f43f31feaeb6cdc';
 
 /// Manual refresh requested from the map alert. Profiles only live in memory,
 /// so the action re-requests every location of the current plan.
 
-abstract class _$FlightForecastSync extends $Notifier<void> {
+abstract class _$FlightForecastSyncNotifier extends $Notifier<void> {
   void build();
   @$mustCallSuper
   @override
@@ -411,6 +537,56 @@ final class ForecastPointTerrainFamily extends $Family
   String toString() => r'forecastPointTerrainProvider';
 }
 
+/// Terrain and airport reference shared by the route list, map markers,
+/// navigation details and hazard evaluation.
+
+@ProviderFor(routeForecastReferences)
+final routeForecastReferencesProvider = RouteForecastReferencesProvider._();
+
+/// Terrain and airport reference shared by the route list, map markers,
+/// navigation details and hazard evaluation.
+
+final class RouteForecastReferencesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, ForecastReference>>,
+          Map<String, ForecastReference>,
+          FutureOr<Map<String, ForecastReference>>
+        >
+    with
+        $FutureModifier<Map<String, ForecastReference>>,
+        $FutureProvider<Map<String, ForecastReference>> {
+  /// Terrain and airport reference shared by the route list, map markers,
+  /// navigation details and hazard evaluation.
+  RouteForecastReferencesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'routeForecastReferencesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$routeForecastReferencesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, ForecastReference>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, ForecastReference>> create(Ref ref) {
+    return routeForecastReferences(ref);
+  }
+}
+
+String _$routeForecastReferencesHash() =>
+    r'7afb8518df4bad1c843a142291c59b62d295107e';
+
 @ProviderFor(nearbyFlightForecast)
 final nearbyFlightForecastProvider = NearbyFlightForecastProvider._();
 
@@ -452,4 +628,4 @@ final class NearbyFlightForecastProvider
 }
 
 String _$nearbyFlightForecastHash() =>
-    r'114ad2a9d1fdd01daa03d9fe724a3cf5150c27cf';
+    r'1f94eb41e5e55459feaedd356fe8556ee3dd1560';

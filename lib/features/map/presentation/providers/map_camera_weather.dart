@@ -275,15 +275,13 @@ extension on MapCamera {
         winds: const {},
       );
     }
-    final unit = settings?.windSpeedUnit ?? SpeedUnit.kmh;
+    final unit = settings?.windSpeedUnit ?? app.SpeedUnit.kmh;
     final language =
         refAccess.read(displayPreferencesProvider).value?.language ??
         AppLanguage.system;
     final l10n = lookupAppLocalizations(language.resolvedLocale);
     final unitLabel = unit.getAbbreviation(l10n);
-    final pointWinds =
-        refAccess.read(routePointWindsProvider).value ??
-        const <String, RoutePointWind>{};
+    final pointWinds = refAccess.read(routePointWindsProvider);
     final winds = <String, _WindMarker>{};
     for (final point in points) {
       final data = pointWinds[point.id];

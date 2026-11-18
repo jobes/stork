@@ -8,41 +8,28 @@ import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
-import '../../../weather/data/models/forecast_series.dart';
-import '../../../weather/data/repositories/flight_forecast_repository.dart';
 import '../../../weather/domain/flight_forecast.dart';
+import '../../../weather/domain/forecast_profile.dart';
+import '../../../weather/domain/forecast_query.dart';
 import '../../../weather/domain/forecast_route.dart';
 import '../../../weather/domain/wind_route_timing.dart';
 import '../../../weather/presentation/components/weather_attribution_link.dart';
 import '../../../weather/presentation/components/weather_warning_summary.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../../weather/presentation/providers/weather_hazard_provider.dart';
-import '../providers/navigation_eta_provider.dart';
-import '../providers/navigation_provider.dart';
+import '../../../weather/presentation/providers/navigation_eta_provider.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
+import '../utils/navigation_formatters.dart';
 import '../windy_route.dart';
 
 class NavigationDetailsDialog extends ConsumerWidget {
   const NavigationDetailsDialog({super.key});
 
-  String _formatEta(BuildContext context, DateTime? dateTime) {
-    final l10n = AppLocalizations.of(context)!;
-    if (dateTime == null) return l10n.placeholderDash;
-    final utc = dateTime.toUtc();
-    final hour = utc.hour.toString().padLeft(2, '0');
-    final minute = utc.minute.toString().padLeft(2, '0');
-    return '$hour:$minute ${l10n.clockUtc}';
-  }
+  String _formatEta(BuildContext context, DateTime? dateTime) =>
+      formatNavigationTimeUtc(context, dateTime);
 
-  String _formatDurationNoSeconds(BuildContext context, Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final minStr = minutes.toString().padLeft(2, '0');
-    if (hours > 0) {
-      return '$hours:$minStr';
-    } else {
-      return '$minutes ${AppLocalizations.of(context)!.minutesAbbrev}';
-    }
-  }
+  String _formatDurationNoSeconds(BuildContext context, Duration duration) =>
+      formatNavigationDuration(context, duration);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,6 +42,13 @@ class NavigationDetailsDialog extends ConsumerWidget {
     final forecastPoints = ref.watch(flightWeatherPlanProvider);
     final timing = ref.watch(routePointTimingProvider);
     final profiles = ref.watch(flightForecastProfilesProvider).value;
+    final references = settings?.showFlightWeather == true
+        ? ref.watch(routeForecastReferencesProvider).value ??
+              const <String, ForecastReference>{}
+        : const <String, ForecastReference>{};
+    final locations = settings?.showFlightWeather == true
+        ? ref.watch(flightWeatherProfileLocationsProvider)
+        : const <String, ForecastLocation>{};
     final speedUnit = settings?.windSpeedUnit ?? SpeedUnit.kmh;
     final hasWeatherWarnings = ref
         .watch(activeWeatherHazardDetailsProvider)
@@ -291,7 +285,10 @@ class NavigationDetailsDialog extends ConsumerWidget {
             context,
             point,
             timing[point.id],
-            profiles?.series[forecastLocationKey(point.location)],
+            profiles?.series[forecastLocationKey(
+              locations[point.id] ?? point.location,
+            )],
+            references[point.id],
             speedUnit,
             includeGust: includeGust,
           );
@@ -387,7 +384,8 @@ class NavigationDetailsDialog extends ConsumerWidget {
     BuildContext context,
     ForecastRoutePoint point,
     TimedRoutePoint? timing,
-    ForecastSeries? series,
+    ForecastProfile? series,
+    ForecastReference? reference,
     SpeedUnit speedUnit, {
     required bool includeGust,
   }) {
@@ -400,9 +398,10 @@ class NavigationDetailsDialog extends ConsumerWidget {
     final feet = point.altitudeFeet;
     final forecast = estimatedAt == null
         ? null
-        : series?.at(
+        : series?.atReference(
             estimatedAt,
-            altitudeMeters: feet == null ? null : feet * feetInMeters,
+            altitudeFeet: feet,
+            reference: reference,
           );
     final values = <String>[];
     String speed(double ms) =>

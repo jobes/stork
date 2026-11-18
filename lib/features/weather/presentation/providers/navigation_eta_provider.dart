@@ -4,25 +4,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/utils/geo_utils.dart';
-import '../../../../core/services/terrain_elevation_service.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/resolved_altitude.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
-import '../../../weather/data/models/forecast_series.dart';
-import '../../../weather/data/repositories/flight_forecast_repository.dart';
-import '../../../weather/domain/flight_forecast.dart';
-import '../../../weather/domain/forecast_route.dart';
-import '../../../weather/domain/wind_route_timing.dart';
-import '../../../weather/presentation/providers/flight_weather_provider.dart';
-import 'navigation_provider.dart';
+import '../../domain/flight_forecast.dart';
+import '../../domain/forecast_profile.dart';
+import '../../domain/forecast_query.dart';
+import '../../domain/forecast_route.dart';
+import '../../domain/wind_route_timing.dart';
+import 'flight_weather_provider.dart';
+import '../../../route/presentation/providers/navigation_provider.dart';
 
 part 'navigation_eta_provider.g.dart';
 
 typedef _GpsFix = ({ForecastLocation location, DateTime time});
 
 @riverpod
-class NavigationGroundTrack extends _$NavigationGroundTrack {
+class NavigationGroundTrackNotifier extends _$NavigationGroundTrackNotifier {
   _GpsFix? _previous;
   GroundTrack? _track;
 
@@ -105,7 +104,8 @@ typedef _WindTimingInput = ({
   double? gpsSpeed,
   GroundTrack? groundTrack,
   double? currentAltitudeMeters,
-  Map<String, ({ForecastSeries series, double? terrainMeters})> profiles,
+  Map<String, ({ForecastProfile series, ForecastReference? reference})>
+  profiles,
 });
 
 typedef WindTimingResult = ({
@@ -124,10 +124,11 @@ Map<String, TimedRoutePoint> _calculateWindTiming(_WindTimingInput input) =>
       windAt: (point, time, altitudeMeters) {
         final profile = input.profiles[point.id];
         if (altitudeMeters == null || profile == null) return null;
+        final reference = profile.reference;
         return profile.series.windAt(
           time,
           altitudeMeters,
-          terrainMeters: profile.terrainMeters,
+          terrainMeters: reference?.terrainMeters ?? reference?.airportMeters,
         );
       },
     );
@@ -143,7 +144,7 @@ WindTimingKey _windTimingKey(Ref ref) => (
 );
 
 @riverpod
-class RouteWindTiming extends _$RouteWindTiming {
+class RouteWindTimingNotifier extends _$RouteWindTimingNotifier {
   Future<Map<String, TimedRoutePoint>>? _running;
   int _revision = 0;
 
@@ -191,7 +192,8 @@ class RouteWindTiming extends _$RouteWindTiming {
             isGpsDroneCan: telemetry.isGpsDroneCan,
             qnh: qnh,
           ).mslValue;
-    final terrain = ref.watch(terrainElevationServiceProvider);
+    final references = await ref.watch(routeForecastReferencesProvider.future);
+    final locations = ref.watch(flightWeatherProfileLocationsProvider);
 
     // While an isolate is running, intermediate requests can be superseded.
     final running = _running;
@@ -213,16 +215,10 @@ class RouteWindTiming extends _$RouteWindTiming {
       profiles: {
         for (final point in points)
           if (profiles.series[forecastLocationKey(
-                forecastProfileLocation(point),
+                locations[point.id] ?? point.location,
               )]
               case final series?)
-            point.id: (
-              series: series,
-              terrainMeters: terrain.getCachedElevation(
-                point.location.latitude,
-                point.location.longitude,
-              ),
-            ),
+            point.id: (series: series, reference: references[point.id]),
       },
     );
     final job = compute(
