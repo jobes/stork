@@ -55,6 +55,7 @@ class FavoritesPage extends ConsumerWidget {
               latitude: point.latitude,
               longitude: point.longitude,
               name: point.name,
+              favoriteId: point.id,
             ),
           );
       messenger.showSnackBar(

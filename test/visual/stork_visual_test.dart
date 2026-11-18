@@ -14,6 +14,20 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:maplibre/maplibre.dart' show Geographic;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stork/features/settings/presentation/dialogs/aircraft_settings_dialog.dart';
+import 'package:stork/features/navigation/presentation/dialogs/navigation_details_dialog.dart';
+import 'package:stork/features/navigation/presentation/pages/navigation_page.dart';
+import 'package:stork/features/map/presentation/components/controls/map_features_bottom_sheet.dart';
+import 'package:stork/features/navigation/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/telemetry/presentation/providers/throttled_telemetry_provider.dart';
+import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
+import 'package:stork/features/weather/domain/flight_forecast.dart';
+import 'package:stork/features/weather/domain/forecast_route.dart';
+import 'package:stork/features/weather/domain/wind_route_timing.dart';
+import 'package:stork/features/weather/domain/weather_hazard.dart';
+import 'package:stork/features/weather/presentation/providers/weather_hazard_provider.dart';
+import 'package:stork/features/weather/presentation/dialogs/flight_weather_details_dialog.dart';
+import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
 import 'package:stork/core/services/mdns_service.dart';
 import 'package:stork/core/theme/app_theme.dart';
@@ -33,6 +47,7 @@ import 'package:stork/features/navigation/presentation/widgets/navigation_teleme
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
 import 'package:stork/features/settings/domain/models/aircraft.dart';
+import 'package:stork/features/settings/domain/models/speed_unit.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/domain/models/cannelloni_device.dart';
 import 'package:stork/features/settings/domain/models/pilot.dart';
@@ -126,7 +141,12 @@ class _Navigation extends NavigationNotifier {
   NavigationState build() => const NavigationState(
     isActive: true,
     points: [
-      NavigationPoint(latitude: 48.6, longitude: 17.8, name: 'Piešťany'),
+      NavigationPoint(
+        latitude: 48.6,
+        longitude: 17.8,
+        name: 'Piešťany',
+        weatherAltitudeFeet: 2500,
+      ),
     ],
   );
 }
@@ -291,6 +311,8 @@ Future<void> _pump(
   TelemetryState? telemetry,
   MapAlert? mapAlert,
   bool disableAnimations = false,
+  bool flightWeather = false,
+  SpeedUnit windUnit = SpeedUnit.kmh,
   List<Override> overrides = const [],
 }) async {
   tester.view.devicePixelRatio = 1;
@@ -300,7 +322,11 @@ Future<void> _pump(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        appSettingsProvider.overrideWith(() => _Settings(mapControlScale)),
+        appSettingsProvider.overrideWith(
+          () => flightWeather
+              ? _WeatherVisualSettings(windUnit)
+              : _Settings(mapControlScale),
+        ),
         pilotStateProvider.overrideWith(_Pilots.new),
         navigationProvider.overrideWith(_Navigation.new),
         offlineMapsProvider.overrideWith(_OfflineMaps.new),
@@ -389,6 +415,189 @@ Future<void> _pump(
   );
   await tester.pumpAndSettle();
   expect(tester.takeException(), isNull);
+}
+
+final _weatherTime = DateTime.utc(2026, 11, 16, 14);
+const _weatherLocation = (latitude: 48.6, longitude: 17.8);
+
+class _WeatherVisualSettings extends _Settings {
+  _WeatherVisualSettings(this.windUnit) : super(1);
+
+  final SpeedUnit windUnit;
+
+  @override
+  AppSettings build() =>
+      super.build().copyWith(showFlightWeather: true, windSpeedUnit: windUnit);
+}
+
+class _WeatherVisualTelemetry extends ThrottledTelemetry {
+  @override
+  TelemetryState build() => const TelemetryState(
+    latitude: 48.2,
+    longitude: 17.2,
+    groundSpeed: 25,
+    isFlying: true,
+  );
+}
+
+class _WeatherVisualPlan extends FlightWeatherPlan {
+  @override
+  List<ForecastRoutePoint> build() => [
+    ForecastRoutePoint(
+      id: 'waypoint-0',
+      location: _weatherLocation,
+      eta: _weatherTime.add(const Duration(minutes: 30)),
+      duration: const Duration(minutes: 30),
+      distanceMeters: 45000,
+      altitudeFeet: 2500,
+      bearing: 30,
+      waypointIndex: 0,
+    ),
+  ];
+}
+
+ForecastSeries _visualWeatherSeries() => ForecastSeries.fromJson({
+  'elevation': 165,
+  'hourly': {
+    'time': [
+      for (var i = 0; i < 3; i++)
+        _weatherTime.add(Duration(hours: i)).millisecondsSinceEpoch ~/ 1000,
+    ],
+    'surface_pressure': [997, 996, 995],
+    'temperature_2m': [14, 15, 14],
+    'wind_speed_950hPa': [18, 22, 20],
+    'wind_direction_950hPa': [260, 270, 265],
+    'geopotential_height_950hPa': [500, 500, 500],
+    'wind_speed_900hPa': [28, 32, 30],
+    'wind_direction_900hPa': [280, 290, 285],
+    'geopotential_height_900hPa': [1000, 1000, 1000],
+    'temperature_950hPa': [12, 13, 12],
+    'temperature_900hPa': [8, 9, 8],
+    'wind_gusts_10m': [25, 38, 35],
+    'precipitation': [0, 0.4, 0],
+    'cloud_cover_low': [35, 55, 40],
+  },
+}, _weatherTime.subtract(const Duration(minutes: 15)));
+
+Future<void> _openWeatherVisual(
+  WidgetTester tester,
+  Brightness brightness,
+  Size size, {
+  bool unavailable = false,
+  double? terrain = 165,
+  bool navigation = false,
+  bool routePage = false,
+  bool widgetOnly = false,
+  bool pointMenu = false,
+  bool hazard = false,
+  SpeedUnit windUnit = SpeedUnit.kmh,
+}) async {
+  await _pump(
+    tester,
+    routePage
+        ? const NavigationPage()
+        : Scaffold(
+            body: widgetOnly
+                ? const Center(child: NavigationTelemetryWidget())
+                : Consumer(
+                    builder: (context, ref, _) => TextButton(
+                      onPressed: () {
+                        if (pointMenu) {
+                          showMapFeaturesBottomSheet(context, const [
+                            {
+                              'layerType': 'flight-weather',
+                              'properties': {'forecastId': 'waypoint-0'},
+                            },
+                          ], const Geographic(lat: 48.6, lon: 17.8));
+                        } else {
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => navigation
+                                ? const NavigationDetailsDialog()
+                                : const FlightWeatherDetailsDialog(
+                                    pointId: 'waypoint-0',
+                                  ),
+                          );
+                        }
+                      },
+                      child: const Text('Open forecast'),
+                    ),
+                  ),
+          ),
+    brightness,
+    size,
+    flightWeather: true,
+    windUnit: windUnit,
+    overrides: [
+      activeWeatherHazardDetailsProvider.overrideWith(
+        (ref) => hazard
+            ? [
+                (
+                  pointId: 'waypoint-0',
+                  location: _weatherLocation,
+                  time: _weatherTime.add(const Duration(minutes: 30)),
+                  altitudeFeet: 2500.0,
+                  hazards: {
+                    WeatherHazard.wind,
+                    WeatherHazard.gust,
+                    WeatherHazard.fog,
+                  },
+                  windMs: 25 / 3.6,
+                  gustMs: 38 / 3.6,
+                  windLimitMs: 20 / 3.6,
+                  gustLimitMs: 35 / 3.6,
+                  precipitationMm: 0.0,
+                  intervalEnd: _weatherTime.add(const Duration(hours: 1)),
+                ),
+              ]
+            : [],
+      ),
+      activeWeatherHazardsProvider.overrideWith(
+        (ref) => hazard ? {WeatherHazard.wind, WeatherHazard.fog} : {},
+      ),
+      throttledTelemetryProvider.overrideWith(_WeatherVisualTelemetry.new),
+      flightWeatherPlanProvider.overrideWith(_WeatherVisualPlan.new),
+      forecastPointTerrainProvider(
+        _weatherLocation,
+      ).overrideWith((ref) async => terrain),
+      flightForecastProfilesProvider.overrideWith(
+        (ref) async => (
+          series: unavailable
+              ? <String, ForecastSeries>{}
+              : {forecastLocationKey(_weatherLocation): _visualWeatherSeries()},
+          refreshFailed: !unavailable,
+        ),
+      ),
+      routePointTimingProvider.overrideWith(
+        (ref) => {
+          'waypoint-0': (
+            eta: _weatherTime.add(const Duration(minutes: 30)),
+            duration: const Duration(minutes: 30),
+            sources: {RouteTimingSource.gps, RouteTimingSource.wind},
+            windEffect: const Duration(minutes: 4),
+          ),
+        },
+      ),
+    ],
+  );
+  if (!routePage && !widgetOnly) {
+    await tester.tap(find.text('Open forecast'));
+    await tester.pumpAndSettle();
+  }
+}
+
+Future<void> _scrollDialogTo(WidgetTester tester, Finder target) async {
+  final scrollable = find
+      .descendant(
+        of: find.byType(BaseDetailsDialog).first,
+        matching: find.byType(Scrollable),
+      )
+      .first;
+  await tester.scrollUntilVisible(target, 160, scrollable: scrollable);
+  await tester.pumpAndSettle();
+  final rect = tester.getRect(target);
+  expect(rect.top, greaterThanOrEqualTo(0));
+  expect(rect.bottom, lessThanOrEqualTo(tester.view.physicalSize.height));
 }
 
 Future<void> _shot(WidgetTester tester, String name) async {
@@ -762,6 +971,218 @@ void main() {
     for (final brightness in Brightness.values) {
       final suffix = '${device.key}_en_${brightness.name}';
       final landscape = device.value.width > device.value.height;
+      testWidgets('weather_wind_units_$suffix', (tester) async {
+        await _openWeatherVisual(
+          tester,
+          brightness,
+          device.value,
+          navigation: true,
+          hazard: true,
+          windUnit: SpeedUnit.ms,
+        );
+        expect(
+          find.textContaining('Wind 7 m/s exceeds limit 6 m/s'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('Surface gusts 11 m/s exceed limit 10 m/s'),
+          findsOneWidget,
+        );
+        await _shot(tester, 'weather_wind_units_$suffix');
+      });
+      testWidgets('weather_warning_details_$suffix', (tester) async {
+        await _openWeatherVisual(
+          tester,
+          brightness,
+          device.value,
+          navigation: true,
+          hazard: true,
+        );
+        expect(find.text('Weather warnings on the route'), findsOneWidget);
+        expect(
+          find.textContaining('Wind 25 kph exceeds limit 20 kph'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('Surface gusts 38 kph exceed limit 35 kph'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('Fog forecast on the route'),
+          findsOneWidget,
+        );
+        await _shot(tester, 'weather_warning_details_$suffix');
+      });
+      testWidgets('weather_warning_widget_$suffix', (tester) async {
+        await _openWeatherVisual(
+          tester,
+          brightness,
+          device.value,
+          widgetOnly: true,
+          hazard: true,
+        );
+        expect(
+          tester.widget<TelemetryCard>(find.byType(TelemetryCard)).state,
+          ThresholdState.maxWarning,
+        );
+        await _shot(tester, 'weather_warning_widget_$suffix');
+      });
+      testWidgets('weather_warning_alert_$suffix', (tester) async {
+        await _checkMapAlert(
+          tester,
+          brightness,
+          device.value,
+          alert: MapAlert(kind: MapAlertKind.forecastFog, since: _alertSince),
+          screenshot: 'weather_warning_alert_$suffix',
+          openDialog: true,
+        );
+      });
+      testWidgets('weather_route_$suffix', (tester) async {
+        await _openWeatherVisual(
+          tester,
+          brightness,
+          device.value,
+          routePage: true,
+        );
+        expect(find.text('Piešťany'), findsOneWidget);
+        await _shot(tester, 'weather_route_$suffix');
+      });
+      testWidgets('weather_widget_$suffix', (tester) async {
+        await _openWeatherVisual(
+          tester,
+          brightness,
+          device.value,
+          widgetOnly: true,
+        );
+        expect(find.text('30 min'), findsOneWidget);
+        await _shot(tester, 'weather_widget_$suffix');
+      });
+      testWidgets('weather_point_menu_$suffix', (tester) async {
+        await _openWeatherVisual(
+          tester,
+          brightness,
+          device.value,
+          pointMenu: true,
+        );
+        expect(find.text('Route point details'), findsOneWidget);
+        await _shot(tester, 'weather_point_menu_$suffix');
+      });
+      testWidgets('weather_point_$suffix', (tester) async {
+        await _openWeatherVisual(tester, brightness, device.value);
+        expect(find.text('Piešťany'), findsOneWidget);
+        expect(find.text('Air and wind'), findsOneWidget);
+        expect(find.text('Wind at planned altitude'), findsOneWidget);
+        await _shot(tester, 'weather_point_$suffix');
+      });
+      testWidgets('weather_pressure_$suffix', (tester) async {
+        await _openWeatherVisual(tester, brightness, device.value);
+        await _scrollDialogTo(tester, find.text('Estimated QFE'));
+        expect(find.text('Estimated QNH'), findsOneWidget);
+        await _shot(tester, 'weather_pressure_$suffix');
+      });
+      testWidgets('weather_no_terrain_$suffix', (tester) async {
+        await _openWeatherVisual(
+          tester,
+          brightness,
+          device.value,
+          terrain: null,
+        );
+        expect(find.text('Estimated QFE'), findsNothing);
+        await _scrollDialogTo(tester, find.text('Estimated QNH'));
+        await _shot(tester, 'weather_no_terrain_$suffix');
+      });
+      testWidgets('weather_unavailable_$suffix', (tester) async {
+        await _openWeatherVisual(
+          tester,
+          brightness,
+          device.value,
+          unavailable: true,
+        );
+        await _scrollDialogTo(
+          tester,
+          find.text('Forecast unavailable for this time and location.'),
+        );
+        await _shot(tester, 'weather_unavailable_$suffix');
+      });
+      testWidgets('weather_altitude_$suffix', (tester) async {
+        await _openWeatherVisual(tester, brightness, device.value);
+        await _scrollDialogTo(tester, find.byIcon(Icons.edit_outlined));
+        await tester.tap(find.byIcon(Icons.edit_outlined));
+        await tester.pumpAndSettle();
+        tester.testTextInput.hide();
+        await tester.pumpAndSettle();
+        expect(find.text('2500'), findsOneWidget);
+        expect(find.text('Custom'), findsOneWidget);
+        await _shot(tester, 'weather_altitude_$suffix');
+      });
+      testWidgets('weather_navigation_$suffix', (tester) async {
+        await _openWeatherVisual(
+          tester,
+          brightness,
+          device.value,
+          navigation: true,
+        );
+        expect(find.textContaining('Forecast wind'), findsWidgets);
+        await _shot(tester, 'weather_navigation_$suffix');
+      });
+      testWidgets('weather_aircraft_$suffix', (tester) async {
+        await _pump(
+          tester,
+          Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => TextButton(
+                onPressed: () => showAircraftSettingsDialog(
+                  context,
+                  ref,
+                  const Aircraft(
+                    id: 'demo-aircraft',
+                    name: 'Stork Demo',
+                    cruiseSpeedMs: 100 / 3.6,
+                    weatherAltitudeFeet: 2500,
+                  ),
+                ),
+                child: const Text('Open aircraft'),
+              ),
+            ),
+          ),
+          brightness,
+          device.value,
+        );
+        await tester.tap(find.text('Open aircraft'));
+        await tester.pumpAndSettle();
+        await _scrollDialogTo(tester, find.text('Default weather altitude'));
+        expect(find.text('2500'), findsOneWidget);
+        await _shot(tester, 'weather_aircraft_$suffix');
+      });
+      testWidgets('weather_limits_$suffix', (tester) async {
+        await _pump(
+          tester,
+          Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) => TextButton(
+                onPressed: () => showAircraftSettingsDialog(
+                  context,
+                  ref,
+                  const Aircraft(
+                    id: 'demo-aircraft',
+                    name: 'Stork Demo',
+                    cruiseSpeedMs: 100 / 3.6,
+                    weatherAltitudeFeet: 2500,
+                  ),
+                ),
+                child: const Text('Open aircraft'),
+              ),
+            ),
+          ),
+          brightness,
+          device.value,
+        );
+        await tester.tap(find.text('Open aircraft'));
+        await tester.pumpAndSettle();
+        await _scrollDialogTo(tester, find.text('Dangerous surface gusts'));
+        expect(find.text('Dangerous wind'), findsOneWidget);
+        await _shot(tester, 'weather_limits_$suffix');
+      });
       testWidgets('collision_$suffix', (tester) async {
         await _checkCollisionBanner(
           tester,

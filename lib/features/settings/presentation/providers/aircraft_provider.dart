@@ -1,3 +1,5 @@
+import 'settings_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../telemetry/presentation/providers/black_box_repository_provider.dart';
 import '../../../telemetry/domain/models/time_based_stats.dart';
@@ -92,4 +94,26 @@ Future<TimeBasedStats> aircraftStats(Ref ref, String airplaneId) async {
     initialHours: initialHours,
     initialFlights: initialFlights,
   );
+}
+
+@riverpod
+Aircraft? selectedAircraft(Ref ref) {
+  final id = ref.watch(appSettingsProvider.select((s) => s.value?.airplaneId));
+  if (id == null) return null;
+  return ref
+      .watch(aircraftStateProvider)
+      .value
+      ?.where((a) => a.id == id)
+      .firstOrNull;
+}
+
+@riverpod
+double cruiseSpeed(Ref ref) {
+  final speed = ref.watch(selectedAircraftProvider)?.cruiseSpeedMs;
+  return speed != null &&
+          speed.isFinite &&
+          speed >= minCruiseSpeedMs &&
+          speed <= maxCruiseSpeedMs
+      ? speed
+      : defaultCruiseSpeedMs;
 }

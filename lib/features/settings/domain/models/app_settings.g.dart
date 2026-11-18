@@ -48,6 +48,9 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   speedUnit:
       $enumDecodeNullable(_$SpeedUnitEnumMap, json['speedUnit']) ??
       SpeedUnit.kmh,
+  windSpeedUnit:
+      $enumDecodeNullable(_$SpeedUnitEnumMap, json['windSpeedUnit']) ??
+      SpeedUnit.kmh,
   qnh: (json['qnh'] as num?)?.toDouble() ?? 1013.25,
   qfe: (json['qfe'] as num?)?.toDouble() ?? 1013.25,
   autoQnh: json['autoQnh'] as bool? ?? true,
@@ -57,7 +60,7 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   heightUnit:
       $enumDecodeNullable(_$AltitudeUnitEnumMap, json['heightUnit']) ??
       AltitudeUnit.meters,
-  averageSpeed: (json['averageSpeed'] as num?)?.toDouble() ?? 27.78,
+  showFlightWeather: json['showFlightWeather'] as bool? ?? true,
   pilotId: json['pilotId'] as String?,
   airplaneId: json['airplaneId'] as String?,
   temperatureUnit:
@@ -173,12 +176,13 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'areWidgetsDraggable': instance.areWidgetsDraggable,
       'widgetPositions': instance.widgetPositions,
       'speedUnit': _$SpeedUnitEnumMap[instance.speedUnit]!,
+      'windSpeedUnit': _$SpeedUnitEnumMap[instance.windSpeedUnit]!,
       'qnh': instance.qnh,
       'qfe': instance.qfe,
       'autoQnh': instance.autoQnh,
       'altitudeUnit': _$AltitudeUnitEnumMap[instance.altitudeUnit]!,
       'heightUnit': _$AltitudeUnitEnumMap[instance.heightUnit]!,
-      'averageSpeed': instance.averageSpeed,
+      'showFlightWeather': instance.showFlightWeather,
       'pilotId': instance.pilotId,
       'airplaneId': instance.airplaneId,
       'temperatureUnit': _$TemperatureUnitEnumMap[instance.temperatureUnit]!,

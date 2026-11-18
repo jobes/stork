@@ -190,6 +190,9 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
               longitude: result.longitude,
               name: name,
               isAirport: result.type == MapSearchResultType.airport,
+              icaoCode: result.icaoCode.isEmpty ? null : result.icaoCode,
+              airportId: result.airportId,
+              airportCountry: result.airportCountry,
             ),
           );
       if (!mounted) return;

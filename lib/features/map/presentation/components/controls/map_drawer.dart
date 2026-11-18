@@ -106,6 +106,18 @@ class MapDrawer extends ConsumerWidget {
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => open('/profile'),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 20, 12, 6),
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    l10n.menuFlightAndMap,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
               if (radar case final radar?)
                 ValueListenableBuilder(
                   valueListenable: radar,
@@ -126,18 +138,6 @@ class MapDrawer extends ConsumerWidget {
                     );
                   },
                 ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 20, 12, 6),
-                child: Semantics(
-                  header: true,
-                  child: Text(
-                    l10n.menuFlightAndMap,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
               StorkNavigationTile(
                 icon: Icons.route_outlined,
                 title: l10n.menuRoute,

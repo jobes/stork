@@ -1,3 +1,5 @@
+import '../../../../weather/presentation/dialogs/flight_weather_details_dialog.dart';
+import '../../../../weather/presentation/providers/flight_weather_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -205,7 +207,31 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
 
     final navigationAsync = ref.watch(navigationProvider);
-    final hasRoute = navigationAsync.value?.points.isNotEmpty ?? false;
+    final route = navigationAsync.value?.points ?? const <NavigationPoint>[];
+    final hasRoute = route.isNotEmpty;
+    final plan = ref.watch(flightWeatherPlanProvider);
+    final forecastIds = features
+        .whereType<Map>()
+        .where((feature) => feature['layerType'] == 'flight-weather')
+        .map((feature) => feature['properties']?['forecastId'])
+        .whereType<String>()
+        .toSet();
+    final selectedAirportId = airportFeature?['properties']?['source_id']
+        ?.toString();
+    final selectedAirportCountry = airportFeature?['properties']?['country']
+        ?.toString();
+    final selectedFavoriteId = favoriteFeature?['properties']?['id']
+        ?.toString();
+    final forecastPoints = plan.where((point) {
+      if (forecastIds.contains(point.id)) return true;
+      final index = point.waypointIndex;
+      if (index == null || index >= route.length) return false;
+      final waypoint = route[index];
+      return (selectedAirportId != null &&
+              waypoint.airportId == selectedAirportId) ||
+          (selectedFavoriteId != null &&
+              waypoint.favoriteId == selectedFavoriteId);
+    }).toList()..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
 
     FavoritePoint? favoritePoint;
     if (favoriteFeature != null) {
@@ -228,6 +254,34 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          for (final point in forecastPoints)
+            ListTile(
+              leading: const Icon(Icons.air_outlined),
+              title: Text(
+                point.waypointIndex == null
+                    ? l10n.weatherSampleDetails
+                    : l10n.weatherPointDetails,
+              ),
+              subtitle: point.waypointIndex == null
+                  ? null
+                  : Text(route[point.waypointIndex!].name),
+              onTap: () {
+                Navigator.pop(context);
+                final waypoint = point.waypointIndex == null
+                    ? null
+                    : route[point.waypointIndex!];
+                showFlightWeatherDetails(
+                  context,
+                  point.id,
+                  airportId: waypoint?.isAirport == true
+                      ? selectedAirportId
+                      : null,
+                  airportCountry: waypoint?.isAirport == true
+                      ? selectedAirportCountry
+                      : null,
+                );
+              },
+            ),
           if (favoritePoint case final FavoritePoint point)
             ListTile(
               leading: const Icon(Icons.star, color: Colors.amber),
@@ -375,14 +429,25 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
               double lat = coordinate.lat;
               double lon = coordinate.lon;
               bool isAirport = false;
+              String? airportId;
+              String? country;
+              String? icaoCode;
+              if (favoritePoint case final point?) {
+                lat = point.latitude;
+                lon = point.longitude;
+                name = point.name;
+              }
 
               if (airport != null) {
                 isAirport = true;
                 final properties = airport['properties'] as Map;
-                final airportId = properties['source_id']?.toString() ?? '';
-                final country = properties['country']?.toString() ?? '';
+                airportId = properties['source_id']?.toString();
+                country = properties['country']?.toString();
 
-                if (airportId.isNotEmpty) {
+                if (airportId != null &&
+                    airportId.isNotEmpty &&
+                    country != null &&
+                    country.isNotEmpty) {
                   try {
                     final metadata = await ref.read(
                       airportMetadataProvider(airportId, country).future,
@@ -394,6 +459,7 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
                         lon = metadata.longitude!;
                       }
                       final icao = metadata.icaoCode;
+                      icaoCode = icao;
                       if (metadata.name.isNotEmpty &&
                           icao != null &&
                           icao.isNotEmpty) {
@@ -421,6 +487,10 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
                         longitude: lon,
                         name: name,
                         isAirport: isAirport,
+                        airportId: airportId,
+                        airportCountry: country,
+                        icaoCode: icaoCode,
+                        favoriteId: isAirport ? null : favoritePoint?.id,
                       ),
                     );
               } catch (e) {
@@ -450,7 +520,8 @@ void showMapFeaturesBottomSheet(
 ) {
   showModalBottomSheet(
     context: context,
-    builder: (context) =>
-        MapFeaturesBottomSheet(features: features, coordinate: coordinate),
+    builder: (context) => SingleChildScrollView(
+      child: MapFeaturesBottomSheet(features: features, coordinate: coordinate),
+    ),
   );
 }

@@ -291,6 +291,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get speedUnitSettings => 'Jednotka rýchlosti';
 
   @override
+  String get windSpeedUnitSettings => 'Jednotka rýchlosti vetra';
+
+  @override
   String get speedUnitMs => 'm/s';
 
   @override
@@ -1007,6 +1010,141 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get etaLabel => 'ETA';
+
+  @override
+  String get undo => 'Späť';
+
+  @override
+  String get navigationEmptyTitle => 'Trasa zatiaľ nie je';
+
+  @override
+  String get navigationEmptyStepMap => 'Otvorte mapu šípkou späť.';
+
+  @override
+  String get navigationEmptyStepTap =>
+      'Kliknite na letisko, mesto alebo obľúbené miesto.';
+
+  @override
+  String get navigationEmptyStepAdd => 'Zvoľte „Pridať bod do navigácie“.';
+
+  @override
+  String get navigationEmptyTip => 'Body môžete neskôr preusporiadať.';
+
+  @override
+  String get navigationAddFromFavourites => 'Pridať z obľúbených';
+
+  @override
+  String get navigationWaitingForLocation => 'Čaká sa na GPS fix…';
+
+  @override
+  String get navigationWaitingForLocationHint =>
+      'Navigácia sa spustí automaticky, keď bude známa vaša poloha. Ak je to potrebné, povoľte prístup k polohe v systémovom nastavení.';
+
+  @override
+  String get navigationNextWaypoint => 'ĎALŠÍ';
+
+  @override
+  String get navigationDestination => 'CIEĽ';
+
+  @override
+  String get navigationWaypointDetails => 'Detaily bodu';
+
+  @override
+  String get navigationRemoveWaypoint => 'Odstrániť bod';
+
+  @override
+  String get navigationWaypointActions => 'Akcie bodu';
+
+  @override
+  String get navigationRouteActions => 'Akcie trasy';
+
+  @override
+  String navigationWaypointRemoved(String name) {
+    return 'Bod $name bol odstránený.';
+  }
+
+  @override
+  String routeWeatherWarnings(String count) {
+    return 'Upozornenia na počasie na trase ($count)';
+  }
+
+  @override
+  String get routeWeatherDestinationWind => 'Vietor v cieli';
+
+  @override
+  String get departureTimeTitle => 'Čas odletu';
+
+  @override
+  String get departureToday => 'Dnes';
+
+  @override
+  String get departureNowPreset => 'Teraz';
+
+  @override
+  String get departureIn30Min => '+30 min';
+
+  @override
+  String get departureIn1Hour => '+1 h';
+
+  @override
+  String departureForecastEta(String eta) {
+    return 'ETA v cieli: $eta';
+  }
+
+  @override
+  String get departureOutOfRange =>
+      'Vyberte čas v nasledujúcich štyroch dňoch.';
+
+  @override
+  String get departureLocalUtcHint =>
+      'Odlet je v miestnom čase. Časy trasy sa zobrazujú v UTC.';
+
+  @override
+  String get departureSet => 'Nastaviť odlet';
+
+  @override
+  String get departureInvalidTime => 'Zadajte čas v tvare HH:mm.';
+
+  @override
+  String get departureShiftEarlier => 'Skôr';
+
+  @override
+  String get departureShiftLater => 'Neskôr';
+
+  @override
+  String get altitudeDefaultOption => 'Predvolená';
+
+  @override
+  String get altitudeCustomOption => 'Vlastná';
+
+  @override
+  String altitudeAircraftDefault(String value) {
+    return 'Predvolená v lietadle $value ft';
+  }
+
+  @override
+  String get altitudeSetAction => 'Nastaviť výšku';
+
+  @override
+  String altitudeChipValue(String value) {
+    return '$value ft';
+  }
+
+  @override
+  String altitudeDefaultChip(String value) {
+    return 'Predvolená · $value ft';
+  }
+
+  @override
+  String altitudeWindPreview(String value) {
+    return 'Vietor v ETA: $value';
+  }
+
+  @override
+  String get altitudeDecrease => 'Znížiť výšku';
+
+  @override
+  String get altitudeIncrease => 'Zvýšiť výšku';
 
   @override
   String get flightRecords => 'Záznamy letov';
@@ -2483,6 +2621,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get settingsMapZoom => 'Priblíženie a náklon mapy';
 
   @override
+  String get settingsMapWeather => 'Počasie';
+
+  @override
   String get settingsWidgetSettings => 'Nastavenie widgetov';
 
   @override
@@ -2578,7 +2719,8 @@ class AppLocalizationsSk extends AppLocalizations {
   String get menuMap => 'Mapa';
 
   @override
-  String get menuMapSummary => 'Vzhľad, priblíženie a rozloženie widgetov';
+  String get menuMapSummary =>
+      'Vzhľad, priblíženie, počasie a rozloženie widgetov';
 
   @override
   String get menuUnitsAndLimits => 'Jednotky a limity';
@@ -3021,4 +3163,220 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get mapSearchMunicipalitiesFailed => 'Obce sa nepodarilo načítať.';
+
+  @override
+  String get flightWeather => 'Predpoveď letu';
+
+  @override
+  String get flightWeatherSettingsDescription =>
+      'Počasie na mape, korekcia ETA podľa vetra a výstrahy.';
+
+  @override
+  String get weatherAttribution => 'Údaje o počasí od Open-Meteo.com';
+
+  @override
+  String get weatherDefaultAltitude => 'Predvolená výška pre počasie';
+
+  @override
+  String get weatherAltitudeHelp =>
+      'Používa sa pri predpovedi vetra a teploty pri lietadle a v bodoch trasy s predvolenou výškou.';
+
+  @override
+  String get weatherAltitudeFt => 'ft AMSL';
+
+  @override
+  String get weatherMissingAltitude =>
+      'Nastav výšku pre počasie v profile lietadla alebo v tomto bode trasy.';
+
+  @override
+  String get weatherInvalidAltitude => 'Zadaj celé číslo v stopách nad morom.';
+
+  @override
+  String get aircraftInvalidCruiseSpeed => 'Zadaj platnú bežnú rýchlosť letu.';
+
+  @override
+  String get weatherSaveFailed => 'Nastavenie sa nepodarilo uložiť.';
+
+  @override
+  String get weatherPointDetails => 'Detaily bodu trasy';
+
+  @override
+  String get weatherSectionAir => 'Vzduch a vietor';
+
+  @override
+  String get weatherSectionPressure => 'Tlak';
+
+  @override
+  String get weatherSampleDetails => 'Predpoveď v tomto bode';
+
+  @override
+  String get weatherRouteStart => 'Začiatok trasy';
+
+  @override
+  String get weatherPlannedAltitude => 'Výška pre počasie';
+
+  @override
+  String get weatherUseDefaultAltitude => 'Použiť predvolenú výšku';
+
+  @override
+  String get weatherPlannedDeparture => 'Plánovaný odlet';
+
+  @override
+  String get weatherDepartureNow => 'Teraz';
+
+  @override
+  String get weatherForecastUnavailable =>
+      'Predpoveď pre tento čas a miesto nie je dostupná.';
+
+  @override
+  String get weatherWindUnavailable => 'Vietor pre túto výšku nie je dostupný.';
+
+  @override
+  String get weatherBelowTerrain => 'Zvolená výška je pod terénom.';
+
+  @override
+  String get weatherWindAtAltitude => 'Vietor v plánovanej výške';
+
+  @override
+  String get weatherCalm => 'Bezvetrie';
+
+  @override
+  String get weatherHeadwind => 'Protivietor';
+
+  @override
+  String get weatherTailwind => 'Zadný vietor';
+
+  @override
+  String get weatherCrosswindLeft => 'Bočný vietor zľava';
+
+  @override
+  String get weatherCrosswindRight => 'Bočný vietor sprava';
+
+  @override
+  String get weatherTemperature => 'Teplota v plánovanej výške';
+
+  @override
+  String get weatherSurfaceGusts => 'Prízemné nárazy (10 m nad terénom)';
+
+  @override
+  String get weatherGustShort => 'nárazy pri zemi';
+
+  @override
+  String get weatherGustMapLabel => 'nárazy';
+
+  @override
+  String get weatherPrecipitation => 'Zrážky';
+
+  @override
+  String get weatherLowCloud => 'Nízka oblačnosť';
+
+  @override
+  String get weatherModelQnh => 'Odhad QNH';
+
+  @override
+  String get weatherModelQfe => 'Odhad QFE';
+
+  @override
+  String get weatherQfeAirport => 'Výška letiska';
+
+  @override
+  String get weatherQfeTerrain => 'Výška terénu';
+
+  @override
+  String get weatherDownloaded => 'Predpoveď stiahnutá';
+
+  @override
+  String get weatherCached => 'Uložená predpoveď · obnova nedostupná';
+
+  @override
+  String get weatherDisabled =>
+      'Predpoveď letu je vypnutá. Zapni ju v Nastaveniach → Mapa.';
+
+  @override
+  String get navigationEtaGps => 'Postup podľa GPS';
+
+  @override
+  String get navigationEtaWind => 'Predpovedaný vietor';
+
+  @override
+  String get navigationEtaProfile => 'TAS lietadla';
+
+  @override
+  String get navigationEtaBlocked =>
+      'Pri odhadovanej TAS sa podľa predpovede vetra nedá pokračovať po trase.';
+
+  @override
+  String navigationWindTimeChange(String minutes) {
+    return 'Vplyv vetra na úsekoch s predpoveďou: $minutes min';
+  }
+
+  @override
+  String get weatherDangerousWind => 'Nebezpečný vietor';
+
+  @override
+  String get weatherDangerousGust => 'Nebezpečné prízemné nárazy';
+
+  @override
+  String get weatherWindLimitHelp =>
+      'Upozorniť pri prekročení tejto rýchlosti vetra v plánovanej výške. Prázdna hodnota vypne tento limit.';
+
+  @override
+  String get weatherGustLimitHelp =>
+      'Upozorniť pri prekročení tejto rýchlosti nárazov 10 m nad terénom. Prázdna hodnota vypne tento limit.';
+
+  @override
+  String get weatherInvalidLimit =>
+      'Zadaj kladnú rýchlosť alebo ponechaj limit prázdny.';
+
+  @override
+  String get weatherAlertWindTitle =>
+      'Predpovedaný vietor prekračuje limit lietadla';
+
+  @override
+  String get weatherAlertGustTitle =>
+      'Predpovedané nárazy prekračujú limit lietadla';
+
+  @override
+  String get weatherAlertPrecipitationTitle =>
+      'Na trase sú predpovedané zrážky';
+
+  @override
+  String get weatherAlertFogTitle => 'Na trase je predpovedaná hmla';
+
+  @override
+  String get weatherAlertFreezingTitle => 'Predpovedané mrznúce zrážky';
+
+  @override
+  String get weatherAlertSnowTitle => 'Na trase je predpovedané sneženie';
+
+  @override
+  String get weatherAlertThunderstormTitle => 'Na trase sú predpovedané búrky';
+
+  @override
+  String get weatherAlertWindBody =>
+      'Vietor v plánovanej výške prekračuje limit vybraného lietadla pri lietadle alebo v zostávajúcom bode trasy. Čas, výšku a vietor nájdeš v detaile bodu trasy.';
+
+  @override
+  String get weatherAlertGustBody =>
+      'Predpovedané hodinové maximum nárazov 10 m nad terénom prekračuje limit vybraného lietadla. Interval predpovede nájdeš v detaile bodu trasy.';
+
+  @override
+  String get weatherAlertConditionsBody =>
+      'Predpoveď pri lietadle alebo v zostávajúcom bode trasy uvádza nepriaznivé počasie v očakávanom čase preletu. Skontroluj detaily bodov trasy a letecký meteorologický brífing.';
+
+  @override
+  String get weatherRouteWarnings => 'Výstrahy počasia na trase';
+
+  @override
+  String get weatherRouteSampleLocation => 'Bod na trase';
+
+  @override
+  String weatherExceededWind(String value, String limit) {
+    return 'Vietor $value prekračuje limit $limit';
+  }
+
+  @override
+  String weatherExceededGust(String value, String limit) {
+    return 'Prízemné nárazy $value prekračujú limit $limit';
+  }
 }

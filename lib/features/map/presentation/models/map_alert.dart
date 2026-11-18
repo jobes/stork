@@ -53,7 +53,14 @@ enum MapAlertKind {
   altitudeSourceChanged(MapAlertSeverity.info),
   radarUnavailable(MapAlertSeverity.info),
   radarHistoryUnavailable(MapAlertSeverity.info),
-  notamDataUnavailable(MapAlertSeverity.warning);
+  notamDataUnavailable(MapAlertSeverity.warning),
+  forecastWind(MapAlertSeverity.warning),
+  forecastGust(MapAlertSeverity.warning),
+  forecastPrecipitation(MapAlertSeverity.warning),
+  forecastFog(MapAlertSeverity.warning),
+  forecastFreezing(MapAlertSeverity.warning),
+  forecastSnow(MapAlertSeverity.warning),
+  forecastThunderstorm(MapAlertSeverity.warning);
 
   const MapAlertKind(this.severity, {this.instrument});
 

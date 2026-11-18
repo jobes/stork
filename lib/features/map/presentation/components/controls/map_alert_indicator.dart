@@ -735,6 +735,11 @@ String _formatReading(
 
 IconData mapAlertIcon(MapAlertKind kind) {
   return switch (kind) {
+    MapAlertKind.forecastWind || MapAlertKind.forecastGust => Icons.air,
+    MapAlertKind.forecastFog => Icons.foggy,
+    MapAlertKind.forecastSnow || MapAlertKind.forecastFreezing => Icons.ac_unit,
+    MapAlertKind.forecastThunderstorm => Icons.thunderstorm_outlined,
+    MapAlertKind.forecastPrecipitation => Icons.water_drop_outlined,
     MapAlertKind.collisionThreat => Icons.warning_amber_rounded,
     MapAlertKind.oilTemperature ||
     MapAlertKind.cylinderTemperature ||
@@ -782,6 +787,13 @@ String _alertTitle(AppLocalizations l10n, MapAlert alert) {
     };
   }
   return switch (kind) {
+    MapAlertKind.forecastWind => l10n.weatherAlertWindTitle,
+    MapAlertKind.forecastGust => l10n.weatherAlertGustTitle,
+    MapAlertKind.forecastFog => l10n.weatherAlertFogTitle,
+    MapAlertKind.forecastFreezing => l10n.weatherAlertFreezingTitle,
+    MapAlertKind.forecastSnow => l10n.weatherAlertSnowTitle,
+    MapAlertKind.forecastThunderstorm => l10n.weatherAlertThunderstormTitle,
+    MapAlertKind.forecastPrecipitation => l10n.weatherAlertPrecipitationTitle,
     MapAlertKind.collisionThreat => l10n.mapAlertCollisionTitle,
     MapAlertKind.mapStyleUnavailable => l10n.mapAlertMapStyleTitle,
     MapAlertKind.gpsPermissionDenied => l10n.mapAlertGpsPermissionTitle,
@@ -819,6 +831,13 @@ String _alertBody(AppLocalizations l10n, MapAlert alert) {
         : '${l10n.mapAlertInstrumentCylinder(channel)}. $description';
   }
   return switch (kind) {
+    MapAlertKind.forecastWind => l10n.weatherAlertWindBody,
+    MapAlertKind.forecastGust => l10n.weatherAlertGustBody,
+    MapAlertKind.forecastPrecipitation ||
+    MapAlertKind.forecastFog ||
+    MapAlertKind.forecastSnow ||
+    MapAlertKind.forecastFreezing ||
+    MapAlertKind.forecastThunderstorm => l10n.weatherAlertConditionsBody,
     MapAlertKind.collisionThreat => l10n.mapAlertCollisionBody,
     MapAlertKind.mapStyleUnavailable => l10n.mapAlertMapStyleBody,
     MapAlertKind.gpsPermissionDenied => l10n.mapAlertGpsPermissionBody,

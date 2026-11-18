@@ -14,6 +14,7 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_link_h
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/traffic_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/traffic_source_health_provider.dart';
+import 'package:stork/features/weather/presentation/providers/weather_hazard_provider.dart';
 
 class _Telemetry extends TelemetryNotifier {
   @override
@@ -85,6 +86,9 @@ ProviderContainer _container() {
       networkLinkAvailabilityProvider.overrideWith(_OnlineLinks.new),
       offlineMapsProvider.overrideWith(_OfflineMaps.new),
       mapStyleProvider.overrideWith((ref) async => '{}'),
+      // Flight forecast is on by default; keep the async weather pipeline out
+      // so only the 1 Hz ticker drives health refreshes in this test.
+      activeWeatherHazardsProvider.overrideWith((ref) => const {}),
     ],
   );
 }

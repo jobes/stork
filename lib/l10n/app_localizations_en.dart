@@ -292,6 +292,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get speedUnitSettings => 'Speed Unit';
 
   @override
+  String get windSpeedUnitSettings => 'Wind speed unit';
+
+  @override
   String get speedUnitMs => 'm/s';
 
   @override
@@ -1007,6 +1010,139 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get etaLabel => 'ETA';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get navigationEmptyTitle => 'No route yet';
+
+  @override
+  String get navigationEmptyStepMap => 'Open the map with the back arrow.';
+
+  @override
+  String get navigationEmptyStepTap => 'Tap an airport, town or favourite.';
+
+  @override
+  String get navigationEmptyStepAdd => 'Choose \"Add point to navigation\".';
+
+  @override
+  String get navigationEmptyTip => 'Waypoints can be reordered later.';
+
+  @override
+  String get navigationAddFromFavourites => 'Add from favourites';
+
+  @override
+  String get navigationWaitingForLocation => 'Waiting for GPS fix…';
+
+  @override
+  String get navigationWaitingForLocationHint =>
+      'Navigation starts automatically once your position is known. Allow location access in system settings if needed.';
+
+  @override
+  String get navigationNextWaypoint => 'NEXT';
+
+  @override
+  String get navigationDestination => 'DEST';
+
+  @override
+  String get navigationWaypointDetails => 'Point details';
+
+  @override
+  String get navigationRemoveWaypoint => 'Remove point';
+
+  @override
+  String get navigationWaypointActions => 'Waypoint actions';
+
+  @override
+  String get navigationRouteActions => 'Route actions';
+
+  @override
+  String navigationWaypointRemoved(String name) {
+    return 'Removed $name.';
+  }
+
+  @override
+  String routeWeatherWarnings(String count) {
+    return 'Weather warnings on the route ($count)';
+  }
+
+  @override
+  String get routeWeatherDestinationWind => 'Wind at destination';
+
+  @override
+  String get departureTimeTitle => 'Departure time';
+
+  @override
+  String get departureToday => 'Today';
+
+  @override
+  String get departureNowPreset => 'Now';
+
+  @override
+  String get departureIn30Min => '+30 min';
+
+  @override
+  String get departureIn1Hour => '+1 h';
+
+  @override
+  String departureForecastEta(String eta) {
+    return 'Destination ETA: $eta';
+  }
+
+  @override
+  String get departureOutOfRange => 'Pick a time within the next four days.';
+
+  @override
+  String get departureLocalUtcHint =>
+      'Departure uses local time. Route times are shown in UTC.';
+
+  @override
+  String get departureSet => 'Set departure';
+
+  @override
+  String get departureInvalidTime => 'Enter a time as HH:mm.';
+
+  @override
+  String get departureShiftEarlier => 'Earlier';
+
+  @override
+  String get departureShiftLater => 'Later';
+
+  @override
+  String get altitudeDefaultOption => 'Default';
+
+  @override
+  String get altitudeCustomOption => 'Custom';
+
+  @override
+  String altitudeAircraftDefault(String value) {
+    return 'Aircraft default $value ft';
+  }
+
+  @override
+  String get altitudeSetAction => 'Set altitude';
+
+  @override
+  String altitudeChipValue(String value) {
+    return '$value ft';
+  }
+
+  @override
+  String altitudeDefaultChip(String value) {
+    return 'Default · $value ft';
+  }
+
+  @override
+  String altitudeWindPreview(String value) {
+    return 'Wind at ETA: $value';
+  }
+
+  @override
+  String get altitudeDecrease => 'Lower altitude';
+
+  @override
+  String get altitudeIncrease => 'Raise altitude';
 
   @override
   String get flightRecords => 'Flight Records';
@@ -2470,6 +2606,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMapZoom => 'Map zoom and tilt';
 
   @override
+  String get settingsMapWeather => 'Weather';
+
+  @override
   String get settingsWidgetSettings => 'Widget settings';
 
   @override
@@ -2565,7 +2704,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuMap => 'Map';
 
   @override
-  String get menuMapSummary => 'Appearance, zoom and widget layout';
+  String get menuMapSummary => 'Appearance, zoom, weather and widget layout';
 
   @override
   String get menuUnitsAndLimits => 'Units and limits';
@@ -3008,4 +3147,220 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mapSearchMunicipalitiesFailed =>
       'Could not load towns and villages.';
+
+  @override
+  String get flightWeather => 'Flight forecast';
+
+  @override
+  String get flightWeatherSettingsDescription =>
+      'Weather on the map, wind-adjusted ETA and alerts.';
+
+  @override
+  String get weatherAttribution => 'Weather data by Open-Meteo.com';
+
+  @override
+  String get weatherDefaultAltitude => 'Default weather altitude';
+
+  @override
+  String get weatherAltitudeHelp =>
+      'Used for the wind and temperature forecast at the aircraft and at route points using the default.';
+
+  @override
+  String get weatherAltitudeFt => 'ft AMSL';
+
+  @override
+  String get weatherMissingAltitude =>
+      'Set the forecast altitude in the aircraft profile or at this waypoint.';
+
+  @override
+  String get weatherInvalidAltitude => 'Enter a whole number in feet AMSL.';
+
+  @override
+  String get aircraftInvalidCruiseSpeed => 'Enter a valid cruising speed.';
+
+  @override
+  String get weatherSaveFailed => 'Could not save the settings.';
+
+  @override
+  String get weatherPointDetails => 'Route point details';
+
+  @override
+  String get weatherSectionAir => 'Air and wind';
+
+  @override
+  String get weatherSectionPressure => 'Pressure';
+
+  @override
+  String get weatherSampleDetails => 'Forecast at this point';
+
+  @override
+  String get weatherRouteStart => 'Start of route';
+
+  @override
+  String get weatherPlannedAltitude => 'Forecast altitude';
+
+  @override
+  String get weatherUseDefaultAltitude => 'Use default altitude';
+
+  @override
+  String get weatherPlannedDeparture => 'Planned departure';
+
+  @override
+  String get weatherDepartureNow => 'Now';
+
+  @override
+  String get weatherForecastUnavailable =>
+      'Forecast unavailable for this time and location.';
+
+  @override
+  String get weatherWindUnavailable => 'Wind unavailable at this altitude.';
+
+  @override
+  String get weatherBelowTerrain =>
+      'The selected altitude is below the terrain.';
+
+  @override
+  String get weatherWindAtAltitude => 'Wind at planned altitude';
+
+  @override
+  String get weatherCalm => 'Calm';
+
+  @override
+  String get weatherHeadwind => 'Headwind';
+
+  @override
+  String get weatherTailwind => 'Tailwind';
+
+  @override
+  String get weatherCrosswindLeft => 'Crosswind from left';
+
+  @override
+  String get weatherCrosswindRight => 'Crosswind from right';
+
+  @override
+  String get weatherTemperature => 'Temperature at planned altitude';
+
+  @override
+  String get weatherSurfaceGusts => 'Surface gusts (10 m above ground)';
+
+  @override
+  String get weatherGustShort => 'ground gusts';
+
+  @override
+  String get weatherGustMapLabel => 'gusts';
+
+  @override
+  String get weatherPrecipitation => 'Precipitation';
+
+  @override
+  String get weatherLowCloud => 'Low cloud cover';
+
+  @override
+  String get weatherModelQnh => 'Estimated QNH';
+
+  @override
+  String get weatherModelQfe => 'Estimated QFE';
+
+  @override
+  String get weatherQfeAirport => 'Aerodrome elevation';
+
+  @override
+  String get weatherQfeTerrain => 'Terrain elevation';
+
+  @override
+  String get weatherDownloaded => 'Forecast downloaded';
+
+  @override
+  String get weatherCached => 'Saved forecast · refresh unavailable';
+
+  @override
+  String get weatherDisabled =>
+      'Flight forecast is disabled. Enable it in Settings → Map.';
+
+  @override
+  String get navigationEtaGps => 'GPS progress';
+
+  @override
+  String get navigationEtaWind => 'Forecast wind';
+
+  @override
+  String get navigationEtaProfile => 'Aircraft TAS';
+
+  @override
+  String get navigationEtaBlocked =>
+      'The forecast wind prevents progress on this route at the estimated TAS.';
+
+  @override
+  String navigationWindTimeChange(String minutes) {
+    return 'Wind effect: $minutes min on forecast sections';
+  }
+
+  @override
+  String get weatherDangerousWind => 'Dangerous wind';
+
+  @override
+  String get weatherDangerousGust => 'Dangerous surface gusts';
+
+  @override
+  String get weatherWindLimitHelp =>
+      'Warn above this wind speed at planned altitude. Leave blank to disable this limit.';
+
+  @override
+  String get weatherGustLimitHelp =>
+      'Warn above this gust speed at 10 m above ground. Leave blank to disable this limit.';
+
+  @override
+  String get weatherInvalidLimit =>
+      'Enter a positive speed or leave the limit blank.';
+
+  @override
+  String get weatherAlertWindTitle => 'Forecast wind exceeds aircraft limit';
+
+  @override
+  String get weatherAlertGustTitle => 'Forecast gusts exceed aircraft limit';
+
+  @override
+  String get weatherAlertPrecipitationTitle =>
+      'Precipitation forecast on the route';
+
+  @override
+  String get weatherAlertFogTitle => 'Fog forecast on the route';
+
+  @override
+  String get weatherAlertFreezingTitle => 'Freezing precipitation forecast';
+
+  @override
+  String get weatherAlertSnowTitle => 'Snow forecast on the route';
+
+  @override
+  String get weatherAlertThunderstormTitle =>
+      'Thunderstorms forecast on the route';
+
+  @override
+  String get weatherAlertWindBody =>
+      'Forecast wind at planned altitude exceeds the selected aircraft limit at the aircraft or a remaining route point. Open route point details for time, altitude and wind.';
+
+  @override
+  String get weatherAlertGustBody =>
+      'Forecast hourly maximum gusts at 10 m above ground exceed the selected aircraft limit. Open route point details for the forecast interval.';
+
+  @override
+  String get weatherAlertConditionsBody =>
+      'The forecast at the aircraft or a remaining route point indicates adverse weather at the expected time of passage. Review route point details and the aviation weather briefing.';
+
+  @override
+  String get weatherRouteWarnings => 'Weather warnings on the route';
+
+  @override
+  String get weatherRouteSampleLocation => 'Route sample';
+
+  @override
+  String weatherExceededWind(String value, String limit) {
+    return 'Wind $value exceeds limit $limit';
+  }
+
+  @override
+  String weatherExceededGust(String value, String limit) {
+    return 'Surface gusts $value exceed limit $limit';
+  }
 }

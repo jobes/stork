@@ -93,7 +93,7 @@ List<MapSearchResult> searchAirportRecords(
     };
     if (matches == null || matches.length == mapSearchLimit) continue;
 
-    final result = _airportResult(record, name: name, code: code);
+    final result = _airportResult(record, fields, name: name, code: code);
     if (result == null) continue;
     matches.add(result);
     if (exactCodes.length == mapSearchLimit) return exactCodes;
@@ -107,7 +107,8 @@ List<MapSearchResult> searchAirportRecords(
 }
 
 MapSearchResult? _airportResult(
-  Map<String, dynamic> record, {
+  Map<String, dynamic> record,
+  Map<String, dynamic> fields, {
   required String name,
   required String code,
 }) {
@@ -134,6 +135,9 @@ MapSearchResult? _airportResult(
     type: MapSearchResultType.airport,
     name: name.isEmpty ? code : name,
     icaoCode: code,
+    airportId: (fields['source_id'] ?? fields['_id'] ?? fields['id'])
+        ?.toString(),
+    airportCountry: fields['country']?.toString(),
     latitude: lat.toDouble(),
     longitude: lon.toDouble(),
   );

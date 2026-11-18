@@ -196,3 +196,85 @@ final class AircraftStatsFamily extends $Family
   @override
   String toString() => r'aircraftStatsProvider';
 }
+
+@ProviderFor(selectedAircraft)
+final selectedAircraftProvider = SelectedAircraftProvider._();
+
+final class SelectedAircraftProvider
+    extends $FunctionalProvider<Aircraft?, Aircraft?, Aircraft?>
+    with $Provider<Aircraft?> {
+  SelectedAircraftProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'selectedAircraftProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$selectedAircraftHash();
+
+  @$internal
+  @override
+  $ProviderElement<Aircraft?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Aircraft? create(Ref ref) {
+    return selectedAircraft(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Aircraft? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Aircraft?>(value),
+    );
+  }
+}
+
+String _$selectedAircraftHash() => r'bd9b04dba979f932b14d8f37d48668fdacbdad26';
+
+@ProviderFor(cruiseSpeed)
+final cruiseSpeedProvider = CruiseSpeedProvider._();
+
+final class CruiseSpeedProvider
+    extends $FunctionalProvider<double, double, double>
+    with $Provider<double> {
+  CruiseSpeedProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'cruiseSpeedProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$cruiseSpeedHash();
+
+  @$internal
+  @override
+  $ProviderElement<double> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  double create(Ref ref) {
+    return cruiseSpeed(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(double value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<double>(value),
+    );
+  }
+}
+
+String _$cruiseSpeedHash() => r'98c7e38320bbf7614149c27910c1f40ce32e2b16';

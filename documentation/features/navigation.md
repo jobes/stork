@@ -60,7 +60,7 @@ When navigation is active, the system continuously calculates flight parameters 
 ### 3.1. Speed Source Resolution
 The speed used to calculate travel times is resolved dynamically:
 - **In-flight (Ground Speed)**: If the aircraft is flying (`telemetry.isFlying == true`) and GPS ground speed is available (`telemetry.groundSpeed != null && telemetry.groundSpeed > 0`), the system uses the real-time ground speed.
-- **Pre-flight / Fallback (Average Speed)**: If the aircraft is stationary or GPS speed is unavailable, it falls back to the `averageSpeed` specified in `AppSettings` (default is 100 km/h or 27.78 m/s).
+- **Pre-flight / Fallback (Average Speed)**: If the aircraft is stationary or GPS speed is unavailable, it falls back to the selected aircraft's cruising speed (the default is 100 km/h). The same default is used when no aircraft is selected.
 
 ### 3.2. Calculations Sequence
 1.  **Start Reference**: The calculations start from the aircraft's current coordinates (`currentLatitude`, `currentLongitude`).
@@ -119,10 +119,14 @@ The navigation feature is exposed across three main UI views:
 
 ### 5.1. Navigation Details Page ([NavigationPage](../../lib/features/navigation/presentation/pages/navigation_page.dart))
 Accessing this screen displays:
-- **Status Dashboard**: A gradient header summary cards showing total distance, estimated total flight duration, active speed source, and navigation status (Active/Stopped).
-- **Control Bar**: A play/stop action button to toggle active routing, and a sweep-delete button to clear the entire path.
-- **Windy Button**: A prominent full-width **Weather in Windy** button below the summary card that opens the Windy route planner for the whole route (starting from the current GPS position when available). Shares the `openWindyRoute`/`buildWindyRouteUrl` helpers with the details dialog (see `presentation/windy_route.dart`).
-- **Reorderable Waypoint Log**: Uses `ReorderableListView.builder` allowing users to drag waypoints to reorder the sequence. Individual waypoints can be deleted, and each list item displays its individual leg statistics alongside cumulative totals and ETAs.
+- **Route overview**: distance, flight time and the destination ETA in UTC. A status line shows Active/Stopped, the speed source and whether times use GPS progress, aircraft TAS or forecast wind.
+- **Planned departure**: a single tap opens one dialog with quick presets, a day strip limited to the four-day forecast horizon and an inline time field. The dialog previews the resulting destination ETA and shows both local departure and UTC.
+- **Route weather strip**: active weather warnings, destination wind with gusts and the wind time effect, or the reason data is unavailable (forecast disabled, missing altitude, loading).
+- **Control bar**: a large Start/Stop button and the **Weather in Windy** action. Clearing the route lives in the app-bar overflow menu with a confirmation dialog.
+- **Reorderable waypoint log**: each row shows the UTC ETA, leg and cumulative distance/time, a tappable planned-altitude chip (own altitude or aircraft default), wind at the planned altitude, a wind-effect chip and a hazard badge. The first row is marked NEXT and the last DEST. Removing a waypoint is available from the row overflow menu and can be undone from the snack bar.
+- **Empty and no-location states** explain how to add points from the map (via the back arrow) and offer **Add from favourites**. No separate "open map" action is needed because the map is the root screen.
+- **Weather in Windy** at the bottom opens the Windy route planner for the whole route (starting from the current GPS position when available). It shares the `openWindyRoute`/`buildWindyRouteUrl` helpers with the details dialog (see `presentation/windy_route.dart`).
+- Waypoints can be reordered by dragging the handle or by long-pressing a row; individual waypoints can be removed (with undo) and the whole route cleared.
 
 ### 5.2. Map Overlay Telemetry Widget ([NavigationTelemetryWidget](../../lib/features/navigation/presentation/widgets/navigation_telemetry_widget.dart))
 When navigation is active, a floating overlay card is drawn on the map:
@@ -138,3 +142,9 @@ A glassmorphic popup containing:
 - Active speed label.
 - Scrollable list showing the sequence of waypoints, complete with sub-leg distances, durations, and snap ETA timestamps.
 - A prominent full-width **Weather in Windy** button that opens the Windy route planner in an external app/browser for the whole route (`https://www.windy.com/route-planner/vfr/lat,lng;lat,lng;...`), starting from the current GPS position when available, followed by the waypoints.
+
+## 6. Flight forecast
+
+Tap a waypoint in the route list or select **Route point details** from the map's bottom sheet to inspect its forecast and edit its forecast altitude in ft AMSL. The selected aircraft supplies the default altitude. Between waypoints, the forecast uses interpolated altitudes and ETA-based samples. The route page provides a planned departure time for forecasts before takeoff. See [Flight forecast](flight-weather.md).
+
+When the forecast layer supplies usable winds, navigation times account for wind and track. The widget shows the shared time to the nearest point and destination. Its detail dialog identifies GPS and forecast inputs and shows waypoint wind and arrival gusts. See [Wind-adjusted arrival estimates](flight-weather.md#wind-adjusted-arrival-estimates).

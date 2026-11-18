@@ -5,7 +5,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:maplibre/maplibre.dart';
+import 'package:maplibre/maplibre.dart' hide SpeedUnit;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -17,6 +17,10 @@ import '../../../settings/presentation/providers/display_preferences_provider.da
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/domain/models/aircraft_type.dart';
 import '../../../settings/domain/models/altitude_unit.dart';
+import '../../../settings/domain/models/speed_unit.dart';
+import '../../../weather/domain/forecast_route.dart';
+import '../../../weather/presentation/providers/flight_weather_provider.dart';
+import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/presentation/providers/traffic_provider.dart';
@@ -35,6 +39,7 @@ part 'map_camera_interpolation.dart';
 part 'map_camera_style.dart';
 part 'map_camera_airspace.dart';
 part 'map_camera_notam.dart';
+part 'map_camera_weather.dart';
 
 const double kTrafficLookaheadPeriodSeconds = 10.0;
 const double kTrafficBaseIconSizePx = 64.0;
@@ -54,6 +59,10 @@ class MapCamera extends _$MapCamera {
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
   int _styleLoadGeneration = 0;
+  StyleController? _flightWeatherStyle;
+  String? _lastFlightWeatherGeoJson;
+  int _flightWeatherRevision = 0;
+  bool _flightWeatherWriting = false;
   ({StyleController style, String data})? _lastCourseLineUpdate;
   Timer? _notamLayerTimer;
   bool _notamLayerDirty = false;
@@ -268,6 +277,26 @@ class MapCamera extends _$MapCamera {
       _updateNavigationRouteOnMap(force: true);
     });
 
+    ref.listen(
+      flightWeatherPlanProvider,
+      (_, _) => _updateFlightWeatherOnMap(),
+    );
+    ref.listen(
+      nearbyFlightForecastProvider,
+      (_, _) => _updateFlightWeatherOnMap(),
+    );
+    ref.listen(routePointWindsProvider, (_, _) => _updateFlightWeatherOnMap());
+    ref.listen(
+      displayPreferencesProvider,
+      (_, _) => _updateFlightWeatherOnMap(),
+    );
+    ref.listen(
+      appSettingsProvider.select(
+        (s) => (s.value?.showFlightWeather, s.value?.windSpeedUnit),
+      ),
+      (_, _) => _updateFlightWeatherOnMap(),
+    );
+
     ref.listen(notamsProvider, (_, next) {
       if (!next.isLoading) updateNotamsOnMap();
     });
@@ -275,6 +304,7 @@ class MapCamera extends _$MapCamera {
     ref.listen(favoritesProvider, (previous, next) {
       if (next.hasValue) {
         updateFavoritesOnMap();
+        _updateFlightWeatherOnMap();
       }
     });
 
@@ -876,6 +906,24 @@ class MapCamera extends _$MapCamera {
           'properties': f.properties,
           'layerType': 'traffic',
         });
+      }
+
+      if (_flightWeatherStyle != null &&
+          identical(_flightWeatherStyle, _mapController?.style)) {
+        final forecastFeatures = _mapController!.featuresAtPoint(
+          event.screenPoint,
+          layerIds: [
+            _forecastHitLayer,
+            _forecastWindLayer,
+            _forecastLabelLayer,
+          ],
+        );
+        for (final f in forecastFeatures) {
+          featureMaps.add({
+            'properties': f.properties,
+            'layerType': 'flight-weather',
+          });
+        }
       }
 
       debugPrint('Tapped features: $featureMaps');

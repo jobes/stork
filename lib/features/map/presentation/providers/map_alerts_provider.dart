@@ -23,6 +23,8 @@ import 'airspace_data_status_provider.dart';
 import 'map_alert_history_provider.dart';
 import 'map_radar.dart';
 import 'notams_provider.dart';
+import '../../../weather/domain/weather_hazard.dart';
+import '../../../weather/presentation/providers/weather_hazard_provider.dart';
 
 export '../models/map_alert.dart';
 
@@ -82,6 +84,7 @@ class MapAlerts extends _$MapAlerts {
 
     radar.addListener(onRadarChanged);
     ref.onDispose(() => radar.removeListener(onRadarChanged));
+    ref.listen(activeWeatherHazardsProvider, (_, _) => _scheduleRecompute());
     ref.listen(gpsHealthProvider, (_, _) => _scheduleRecompute());
     ref.listen(telemetryLinkHealthProvider, (_, _) => _scheduleRecompute());
     ref.listen(trafficSourceHealthProvider, (_, _) => _scheduleRecompute());
@@ -142,7 +145,18 @@ class MapAlerts extends _$MapAlerts {
     final radar = ref.read(mapRadarProvider).value;
     final notams = ref.read(notamsProvider);
 
+    final hazards = ref.read(activeWeatherHazardsProvider);
     final active = <MapAlertKind>{
+      for (final hazard in hazards)
+        switch (hazard) {
+          WeatherHazard.wind => MapAlertKind.forecastWind,
+          WeatherHazard.gust => MapAlertKind.forecastGust,
+          WeatherHazard.precipitation => MapAlertKind.forecastPrecipitation,
+          WeatherHazard.fog => MapAlertKind.forecastFog,
+          WeatherHazard.freezingPrecipitation => MapAlertKind.forecastFreezing,
+          WeatherHazard.snow => MapAlertKind.forecastSnow,
+          WeatherHazard.thunderstorm => MapAlertKind.forecastThunderstorm,
+        },
       if (ref.read(activeCollisionAlertProvider) != null)
         MapAlertKind.collisionThreat,
       if (ref.read(mapStyleProvider).hasError) MapAlertKind.mapStyleUnavailable,

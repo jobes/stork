@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/repositories/navigation_repository.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
-import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../domain/models/navigation_point.dart';
 import '../../domain/models/navigation_state.dart';
 
@@ -62,18 +62,13 @@ class NavigationNotifier extends _$NavigationNotifier {
       return;
     }
 
-    final settingsAsync = ref.read(appSettingsProvider);
-    if (settingsAsync.isLoading || settingsAsync.hasError) return;
-    final settings = settingsAsync.value;
-    if (settings == null) return;
-
     final useRealSpeed =
         telemetry.isFlying &&
         telemetry.groundSpeed != null &&
         telemetry.groundSpeed! > 0;
     final activeSpeedMs = useRealSpeed
         ? telemetry.groundSpeed!
-        : settings.averageSpeed;
+        : ref.read(cruiseSpeedProvider);
 
     if (activeSpeedMs <= 0) return;
 
@@ -124,6 +119,26 @@ class NavigationNotifier extends _$NavigationNotifier {
     await _save(updated);
   }
 
+  Future<void> updatePointWeatherAltitude(
+    NavigationPoint point,
+    int? feet,
+  ) async {
+    final current = state.value;
+    if (current == null) return;
+    final index = current.points.indexOf(point);
+    if (index < 0) return;
+    final points = [...current.points];
+    points[index] = point.withWeatherAltitude(feet);
+    final updated = current.copyWith(points: points, wasAutoAdvanced: false);
+    state = AsyncData(updated);
+    try {
+      await _save(updated);
+    } catch (_) {
+      if (identical(state.value, updated)) state = AsyncData(current);
+      rethrow;
+    }
+  }
+
   Future<void> removePoints(int count, {bool isAutoAdvance = false}) async {
     final current = state.value ?? const NavigationState();
     if (count <= 0 || count > current.points.length) return;
@@ -146,6 +161,19 @@ class NavigationNotifier extends _$NavigationNotifier {
     final updated = current.copyWith(
       points: updatedPoints,
       isActive: updatedPoints.isEmpty ? false : current.isActive,
+      wasAutoAdvanced: false,
+    );
+    state = AsyncData(updated);
+    await _save(updated);
+  }
+
+  Future<void> insertPoint(int index, NavigationPoint point) async {
+    final current = state.value ?? const NavigationState();
+    final updatedPoints = List<NavigationPoint>.from(current.points)
+      ..insert(index.clamp(0, current.points.length).toInt(), point);
+    final updated = current.copyWith(
+      points: updatedPoints,
+      isActive: current.isActive || current.points.isEmpty,
       wasAutoAdvanced: false,
     );
     state = AsyncData(updated);

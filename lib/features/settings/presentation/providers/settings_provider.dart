@@ -223,6 +223,9 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
   Future<SettingsUpdateResult> updateFollowPitch(double pitch) =>
       _updateSettings((s) => s.copyWith(mapFollowPitch: pitch));
 
+  Future<SettingsUpdateResult> updateWindSpeedUnit(SpeedUnit newUnit) =>
+      _updateSettings((s) => s.copyWith(windSpeedUnit: newUnit));
+
   Future<SettingsUpdateResult> updateSpeedUnit(SpeedUnit newUnit) {
     return _updateSettings((s) => s.copyWith(speedUnit: newUnit));
   }
@@ -360,11 +363,8 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
 
   Future<SettingsUpdateResult> updateHeightUnit(AltitudeUnit heightUnit) =>
       _updateSettings((s) => s.copyWith(heightUnit: heightUnit));
-  Future<SettingsUpdateResult> updateAverageSpeed(double averageSpeed) {
-    return _updateSettings(
-      (s) => s.copyWithValidatedAverageSpeed(averageSpeed),
-    );
-  }
+  Future<SettingsUpdateResult> updateShowFlightWeather(bool visible) =>
+      _updateSettings((s) => s.copyWith(showFlightWeather: visible));
 
   /// Reserve the persistence queue before reading a profile. Edits made while
   /// a switch is pending join the same queue, in invocation order, so they can

@@ -6,6 +6,8 @@ class MapSearchResult {
     required this.name,
     required this.latitude,
     required this.longitude,
+    this.airportId,
+    this.airportCountry,
     this.icaoCode = '',
     this.area = '',
   });
@@ -14,6 +16,8 @@ class MapSearchResult {
   final String name;
   final double latitude;
   final double longitude;
+  final String? airportId;
+  final String? airportCountry;
   final String icaoCode;
   final String area;
 }

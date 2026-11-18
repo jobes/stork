@@ -614,6 +614,12 @@ abstract class AppLocalizations {
   /// **'Speed Unit'**
   String get speedUnitSettings;
 
+  /// No description provided for @windSpeedUnitSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind speed unit'**
+  String get windSpeedUnitSettings;
+
   /// No description provided for @speedUnitMs.
   ///
   /// In en, this message translates to:
@@ -2005,6 +2011,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ETA'**
   String get etaLabel;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @navigationEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No route yet'**
+  String get navigationEmptyTitle;
+
+  /// No description provided for @navigationEmptyStepMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the map with the back arrow.'**
+  String get navigationEmptyStepMap;
+
+  /// No description provided for @navigationEmptyStepTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an airport, town or favourite.'**
+  String get navigationEmptyStepTap;
+
+  /// No description provided for @navigationEmptyStepAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose \"Add point to navigation\".'**
+  String get navigationEmptyStepAdd;
+
+  /// No description provided for @navigationEmptyTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Waypoints can be reordered later.'**
+  String get navigationEmptyTip;
+
+  /// No description provided for @navigationAddFromFavourites.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from favourites'**
+  String get navigationAddFromFavourites;
+
+  /// No description provided for @navigationWaitingForLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for GPS fix…'**
+  String get navigationWaitingForLocation;
+
+  /// No description provided for @navigationWaitingForLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation starts automatically once your position is known. Allow location access in system settings if needed.'**
+  String get navigationWaitingForLocationHint;
+
+  /// No description provided for @navigationNextWaypoint.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT'**
+  String get navigationNextWaypoint;
+
+  /// No description provided for @navigationDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'DEST'**
+  String get navigationDestination;
+
+  /// No description provided for @navigationWaypointDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Point details'**
+  String get navigationWaypointDetails;
+
+  /// No description provided for @navigationRemoveWaypoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove point'**
+  String get navigationRemoveWaypoint;
+
+  /// No description provided for @navigationWaypointActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Waypoint actions'**
+  String get navigationWaypointActions;
+
+  /// No description provided for @navigationRouteActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Route actions'**
+  String get navigationRouteActions;
+
+  /// No description provided for @navigationWaypointRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {name}.'**
+  String navigationWaypointRemoved(String name);
+
+  /// No description provided for @routeWeatherWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather warnings on the route ({count})'**
+  String routeWeatherWarnings(String count);
+
+  /// No description provided for @routeWeatherDestinationWind.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind at destination'**
+  String get routeWeatherDestinationWind;
+
+  /// No description provided for @departureTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure time'**
+  String get departureTimeTitle;
+
+  /// No description provided for @departureToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get departureToday;
+
+  /// No description provided for @departureNowPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get departureNowPreset;
+
+  /// No description provided for @departureIn30Min.
+  ///
+  /// In en, this message translates to:
+  /// **'+30 min'**
+  String get departureIn30Min;
+
+  /// No description provided for @departureIn1Hour.
+  ///
+  /// In en, this message translates to:
+  /// **'+1 h'**
+  String get departureIn1Hour;
+
+  /// No description provided for @departureForecastEta.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination ETA: {eta}'**
+  String departureForecastEta(String eta);
+
+  /// No description provided for @departureOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a time within the next four days.'**
+  String get departureOutOfRange;
+
+  /// No description provided for @departureLocalUtcHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure uses local time. Route times are shown in UTC.'**
+  String get departureLocalUtcHint;
+
+  /// No description provided for @departureSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set departure'**
+  String get departureSet;
+
+  /// No description provided for @departureInvalidTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a time as HH:mm.'**
+  String get departureInvalidTime;
+
+  /// No description provided for @departureShiftEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get departureShiftEarlier;
+
+  /// No description provided for @departureShiftLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get departureShiftLater;
+
+  /// No description provided for @altitudeDefaultOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get altitudeDefaultOption;
+
+  /// No description provided for @altitudeCustomOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get altitudeCustomOption;
+
+  /// No description provided for @altitudeAircraftDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft default {value} ft'**
+  String altitudeAircraftDefault(String value);
+
+  /// No description provided for @altitudeSetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set altitude'**
+  String get altitudeSetAction;
+
+  /// No description provided for @altitudeChipValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} ft'**
+  String altitudeChipValue(String value);
+
+  /// No description provided for @altitudeDefaultChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Default · {value} ft'**
+  String altitudeDefaultChip(String value);
+
+  /// No description provided for @altitudeWindPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind at ETA: {value}'**
+  String altitudeWindPreview(String value);
+
+  /// No description provided for @altitudeDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower altitude'**
+  String get altitudeDecrease;
+
+  /// No description provided for @altitudeIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise altitude'**
+  String get altitudeIncrease;
 
   /// No description provided for @flightRecords.
   ///
@@ -4638,6 +4878,12 @@ abstract class AppLocalizations {
   /// **'Map zoom and tilt'**
   String get settingsMapZoom;
 
+  /// No description provided for @settingsMapWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get settingsMapWeather;
+
   /// No description provided for @settingsWidgetSettings.
   ///
   /// In en, this message translates to:
@@ -4803,7 +5049,7 @@ abstract class AppLocalizations {
   /// No description provided for @menuMapSummary.
   ///
   /// In en, this message translates to:
-  /// **'Appearance, zoom and widget layout'**
+  /// **'Appearance, zoom, weather and widget layout'**
   String get menuMapSummary;
 
   /// No description provided for @menuUnitsAndLimits.
@@ -5531,6 +5777,396 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load towns and villages.'**
   String get mapSearchMunicipalitiesFailed;
+
+  /// No description provided for @flightWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight forecast'**
+  String get flightWeather;
+
+  /// No description provided for @flightWeatherSettingsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather on the map, wind-adjusted ETA and alerts.'**
+  String get flightWeatherSettingsDescription;
+
+  /// No description provided for @weatherAttribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather data by Open-Meteo.com'**
+  String get weatherAttribution;
+
+  /// No description provided for @weatherDefaultAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Default weather altitude'**
+  String get weatherDefaultAltitude;
+
+  /// No description provided for @weatherAltitudeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for the wind and temperature forecast at the aircraft and at route points using the default.'**
+  String get weatherAltitudeHelp;
+
+  /// No description provided for @weatherAltitudeFt.
+  ///
+  /// In en, this message translates to:
+  /// **'ft AMSL'**
+  String get weatherAltitudeFt;
+
+  /// No description provided for @weatherMissingAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the forecast altitude in the aircraft profile or at this waypoint.'**
+  String get weatherMissingAltitude;
+
+  /// No description provided for @weatherInvalidAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number in feet AMSL.'**
+  String get weatherInvalidAltitude;
+
+  /// No description provided for @aircraftInvalidCruiseSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid cruising speed.'**
+  String get aircraftInvalidCruiseSpeed;
+
+  /// No description provided for @weatherSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the settings.'**
+  String get weatherSaveFailed;
+
+  /// No description provided for @weatherPointDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Route point details'**
+  String get weatherPointDetails;
+
+  /// No description provided for @weatherSectionAir.
+  ///
+  /// In en, this message translates to:
+  /// **'Air and wind'**
+  String get weatherSectionAir;
+
+  /// No description provided for @weatherSectionPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure'**
+  String get weatherSectionPressure;
+
+  /// No description provided for @weatherSampleDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast at this point'**
+  String get weatherSampleDetails;
+
+  /// No description provided for @weatherRouteStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start of route'**
+  String get weatherRouteStart;
+
+  /// No description provided for @weatherPlannedAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast altitude'**
+  String get weatherPlannedAltitude;
+
+  /// No description provided for @weatherUseDefaultAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Use default altitude'**
+  String get weatherUseDefaultAltitude;
+
+  /// No description provided for @weatherPlannedDeparture.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned departure'**
+  String get weatherPlannedDeparture;
+
+  /// No description provided for @weatherDepartureNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get weatherDepartureNow;
+
+  /// No description provided for @weatherForecastUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast unavailable for this time and location.'**
+  String get weatherForecastUnavailable;
+
+  /// No description provided for @weatherWindUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind unavailable at this altitude.'**
+  String get weatherWindUnavailable;
+
+  /// No description provided for @weatherBelowTerrain.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected altitude is below the terrain.'**
+  String get weatherBelowTerrain;
+
+  /// No description provided for @weatherWindAtAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind at planned altitude'**
+  String get weatherWindAtAltitude;
+
+  /// No description provided for @weatherCalm.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm'**
+  String get weatherCalm;
+
+  /// No description provided for @weatherHeadwind.
+  ///
+  /// In en, this message translates to:
+  /// **'Headwind'**
+  String get weatherHeadwind;
+
+  /// No description provided for @weatherTailwind.
+  ///
+  /// In en, this message translates to:
+  /// **'Tailwind'**
+  String get weatherTailwind;
+
+  /// No description provided for @weatherCrosswindLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Crosswind from left'**
+  String get weatherCrosswindLeft;
+
+  /// No description provided for @weatherCrosswindRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Crosswind from right'**
+  String get weatherCrosswindRight;
+
+  /// No description provided for @weatherTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature at planned altitude'**
+  String get weatherTemperature;
+
+  /// No description provided for @weatherSurfaceGusts.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface gusts (10 m above ground)'**
+  String get weatherSurfaceGusts;
+
+  /// No description provided for @weatherGustShort.
+  ///
+  /// In en, this message translates to:
+  /// **'ground gusts'**
+  String get weatherGustShort;
+
+  /// No description provided for @weatherGustMapLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'gusts'**
+  String get weatherGustMapLabel;
+
+  /// No description provided for @weatherPrecipitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation'**
+  String get weatherPrecipitation;
+
+  /// No description provided for @weatherLowCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Low cloud cover'**
+  String get weatherLowCloud;
+
+  /// No description provided for @weatherModelQnh.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated QNH'**
+  String get weatherModelQnh;
+
+  /// No description provided for @weatherModelQfe.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated QFE'**
+  String get weatherModelQfe;
+
+  /// No description provided for @weatherQfeAirport.
+  ///
+  /// In en, this message translates to:
+  /// **'Aerodrome elevation'**
+  String get weatherQfeAirport;
+
+  /// No description provided for @weatherQfeTerrain.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrain elevation'**
+  String get weatherQfeTerrain;
+
+  /// No description provided for @weatherDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast downloaded'**
+  String get weatherDownloaded;
+
+  /// No description provided for @weatherCached.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved forecast · refresh unavailable'**
+  String get weatherCached;
+
+  /// No description provided for @weatherDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight forecast is disabled. Enable it in Settings → Map.'**
+  String get weatherDisabled;
+
+  /// No description provided for @navigationEtaGps.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS progress'**
+  String get navigationEtaGps;
+
+  /// No description provided for @navigationEtaWind.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast wind'**
+  String get navigationEtaWind;
+
+  /// No description provided for @navigationEtaProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft TAS'**
+  String get navigationEtaProfile;
+
+  /// No description provided for @navigationEtaBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'The forecast wind prevents progress on this route at the estimated TAS.'**
+  String get navigationEtaBlocked;
+
+  /// No description provided for @navigationWindTimeChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind effect: {minutes} min on forecast sections'**
+  String navigationWindTimeChange(String minutes);
+
+  /// No description provided for @weatherDangerousWind.
+  ///
+  /// In en, this message translates to:
+  /// **'Dangerous wind'**
+  String get weatherDangerousWind;
+
+  /// No description provided for @weatherDangerousGust.
+  ///
+  /// In en, this message translates to:
+  /// **'Dangerous surface gusts'**
+  String get weatherDangerousGust;
+
+  /// No description provided for @weatherWindLimitHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Warn above this wind speed at planned altitude. Leave blank to disable this limit.'**
+  String get weatherWindLimitHelp;
+
+  /// No description provided for @weatherGustLimitHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Warn above this gust speed at 10 m above ground. Leave blank to disable this limit.'**
+  String get weatherGustLimitHelp;
+
+  /// No description provided for @weatherInvalidLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a positive speed or leave the limit blank.'**
+  String get weatherInvalidLimit;
+
+  /// No description provided for @weatherAlertWindTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast wind exceeds aircraft limit'**
+  String get weatherAlertWindTitle;
+
+  /// No description provided for @weatherAlertGustTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast gusts exceed aircraft limit'**
+  String get weatherAlertGustTitle;
+
+  /// No description provided for @weatherAlertPrecipitationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation forecast on the route'**
+  String get weatherAlertPrecipitationTitle;
+
+  /// No description provided for @weatherAlertFogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fog forecast on the route'**
+  String get weatherAlertFogTitle;
+
+  /// No description provided for @weatherAlertFreezingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freezing precipitation forecast'**
+  String get weatherAlertFreezingTitle;
+
+  /// No description provided for @weatherAlertSnowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Snow forecast on the route'**
+  String get weatherAlertSnowTitle;
+
+  /// No description provided for @weatherAlertThunderstormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thunderstorms forecast on the route'**
+  String get weatherAlertThunderstormTitle;
+
+  /// No description provided for @weatherAlertWindBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast wind at planned altitude exceeds the selected aircraft limit at the aircraft or a remaining route point. Open route point details for time, altitude and wind.'**
+  String get weatherAlertWindBody;
+
+  /// No description provided for @weatherAlertGustBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast hourly maximum gusts at 10 m above ground exceed the selected aircraft limit. Open route point details for the forecast interval.'**
+  String get weatherAlertGustBody;
+
+  /// No description provided for @weatherAlertConditionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The forecast at the aircraft or a remaining route point indicates adverse weather at the expected time of passage. Review route point details and the aviation weather briefing.'**
+  String get weatherAlertConditionsBody;
+
+  /// No description provided for @weatherRouteWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather warnings on the route'**
+  String get weatherRouteWarnings;
+
+  /// No description provided for @weatherRouteSampleLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Route sample'**
+  String get weatherRouteSampleLocation;
+
+  /// No description provided for @weatherExceededWind.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind {value} exceeds limit {limit}'**
+  String weatherExceededWind(String value, String limit);
+
+  /// No description provided for @weatherExceededGust.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface gusts {value} exceed limit {limit}'**
+  String weatherExceededGust(String value, String limit);
 }
 
 class _AppLocalizationsDelegate

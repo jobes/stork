@@ -153,3 +153,7 @@ The header in the side drawer displays:
 -   The current active pilot name and active aircraft name.
 -   Quick totals of pilot and aircraft flight hours.
 -   An interactive tap behavior that navigates directly to `/profile`.
+
+### Cruising speed and forecast altitude
+
+The aircraft editor stores a cruising speed and an optional default weather altitude in ft AMSL for each aircraft. Cruising speed defaults to 100 km/h. Navigation uses the selected aircraft's cruising speed before takeoff or when GPS groundspeed is unavailable. The aircraft's weather altitude applies to points without a waypoint override. See [Flight forecast](flight-weather.md).

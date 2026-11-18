@@ -13,6 +13,21 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SCREENS = {
+    'weather_wind_units': ('Wind units', 'Wind and limits in m/s with aircraft speeds in kph'),
+    'weather_warning_details': ('Navigation forecast', 'Where, when and why route weather is hazardous'),
+    'weather_limits': ('Aircraft settings', 'Dangerous wind and surface gust limits'),
+    'weather_warning_widget': ('Weather warning', 'Orange navigation widget'),
+    'weather_warning_alert': ('Weather warning', 'Map alert and forecast explanation'),
+    'weather_route': ('Route forecast', 'Route list with wind-adjusted times'),
+    'weather_widget': ('Navigation widget', 'Wind-adjusted remaining time'),
+    'weather_point_menu': ('Flight forecast', 'Route point menu on the map'),
+    'weather_point': ('Flight forecast', 'Route point and wind at planned altitude'),
+    'weather_pressure': ('Flight forecast', 'QNH, terrain QFE and saved forecast'),
+    'weather_no_terrain': ('Flight forecast', 'QNH with unavailable terrain'),
+    'weather_unavailable': ('Flight forecast', 'Forecast unavailable'),
+    'weather_altitude': ('Flight forecast', 'Waypoint altitude editor'),
+    'weather_navigation': ('Navigation forecast', 'ETA sources and arrival weather'),
+    'weather_aircraft': ('Aircraft settings', 'Cruising speed and default weather altitude'),
     'drawer': ('Map menu', 'Active route and offline map download date'),
     'settings': ('Settings overview', 'Settings menu'),
     'gateway': ('Instruments and connection', 'Gateway and DroneCAN instruments'),
