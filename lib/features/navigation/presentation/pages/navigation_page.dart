@@ -183,6 +183,7 @@ class _RouteBody extends ConsumerWidget {
     final telemetry = ref.watch(throttledTelemetryProvider);
     final weather = ref.watch(routeWaypointWeatherProvider);
     final plan = ref.watch(flightWeatherPlanProvider);
+    final planByWaypoint = forecastPointsByWaypoint(plan);
     final profiles = ref.watch(flightForecastProfilesProvider).value;
     final references = settings.showFlightWeather
         ? ref.watch(routeForecastReferencesProvider).value ??
@@ -266,9 +267,7 @@ class _RouteBody extends ConsumerWidget {
             ? calculations.legs[index]
             : null;
         final point = leg?.point ?? navState.points[index];
-        final planPoint = plan
-            .where((forecastPoint) => forecastPoint.waypointIndex == index)
-            .firstOrNull;
+        final planPoint = planByWaypoint[index];
         final series = planPoint == null
             ? null
             : profiles?.series[forecastLocationKey(

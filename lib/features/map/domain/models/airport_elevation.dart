@@ -1,4 +1,5 @@
 import 'openaip_unit.dart';
+import 'reference_datum.dart';
 
 class AirportElevation {
   final double value;
@@ -24,6 +25,22 @@ class AirportElevation {
       'value': value,
       'unit': unit.toInt(),
       'referenceDatum': referenceDatum,
+    };
+  }
+}
+
+extension AirportElevationConversion on AirportElevation {
+  /// Elevation in meters, available only when it is referenced to mean sea
+  /// level. Heights referenced to the ground or to standard pressure are not
+  /// usable as an airport reference.
+  double? get metersMsl {
+    if (ReferenceDatum.fromInt(referenceDatum) != ReferenceDatum.msl) {
+      return null;
+    }
+    return switch (unit) {
+      OpenAipUnit.meters => value,
+      OpenAipUnit.feet => value * 0.3048,
+      _ => null,
     };
   }
 }

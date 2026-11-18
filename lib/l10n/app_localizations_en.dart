@@ -995,11 +995,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get destinationPoint => 'Destination';
 
   @override
-  String activeSpeedLabel(String value, String unit) {
-    return 'Speed for ETA: $value $unit';
-  }
-
-  @override
   String get waypointsList => 'Waypoints List';
 
   @override
@@ -3198,9 +3193,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weatherPlannedAltitude => 'Forecast altitude';
-
-  @override
-  String get weatherUseDefaultAltitude => 'Use default altitude';
 
   @override
   String get weatherPlannedDeparture => 'Planned departure';

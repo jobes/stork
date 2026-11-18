@@ -995,11 +995,6 @@ class AppLocalizationsSk extends AppLocalizations {
   String get destinationPoint => 'Cieľ';
 
   @override
-  String activeSpeedLabel(String value, String unit) {
-    return 'Rýchlosť pre ETA: $value $unit';
-  }
-
-  @override
   String get waypointsList => 'Zoznam bodov';
 
   @override
@@ -3214,9 +3209,6 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get weatherPlannedAltitude => 'Výška pre počasie';
-
-  @override
-  String get weatherUseDefaultAltitude => 'Použiť predvolenú výšku';
 
   @override
   String get weatherPlannedDeparture => 'Plánovaný odlet';

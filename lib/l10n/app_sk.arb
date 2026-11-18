@@ -399,17 +399,6 @@
   "weatherInWindy": "Počasie vo Windy",
   "nearestPoint": "Najbližší bod",
   "destinationPoint": "Cieľ",
-  "activeSpeedLabel": "Rýchlosť pre ETA: {value} {unit}",
-  "@activeSpeedLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
   "waypointsList": "Zoznam bodov",
   "placeholderDash": "---",
   "minutesAbbrev": "min",
@@ -1283,7 +1272,6 @@
   "weatherSampleDetails": "Predpoveď v tomto bode",
   "weatherRouteStart": "Začiatok trasy",
   "weatherPlannedAltitude": "Výška pre počasie",
-  "weatherUseDefaultAltitude": "Použiť predvolenú výšku",
   "weatherPlannedDeparture": "Plánovaný odlet",
   "weatherDepartureNow": "Teraz",
   "weatherForecastUnavailable": "Predpoveď pre tento čas a miesto nie je dostupná.",

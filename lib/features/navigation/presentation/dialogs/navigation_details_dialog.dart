@@ -26,12 +26,6 @@ import '../utils/windy_route.dart';
 class NavigationDetailsDialog extends ConsumerWidget {
   const NavigationDetailsDialog({super.key});
 
-  String _formatEta(BuildContext context, DateTime? dateTime) =>
-      formatNavigationTimeUtc(context, dateTime);
-
-  String _formatDurationNoSeconds(BuildContext context, Duration duration) =>
-      formatNavigationDuration(context, duration);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final telemetry = ref.watch(throttledTelemetryProvider);
@@ -41,6 +35,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final calculations = ref.watch(navigationEtaProvider);
     final forecastPoints = ref.watch(flightWeatherPlanProvider);
+    final planByWaypoint = forecastPointsByWaypoint(forecastPoints);
     final timing = ref.watch(routePointTimingProvider);
     final profiles = ref.watch(flightForecastProfilesProvider).value;
     final references = settings?.showFlightWeather == true
@@ -110,7 +105,10 @@ class NavigationDetailsDialog extends ConsumerWidget {
             final legDuration = leg.legDuration;
             final cumulativeDistanceKm = leg.cumulativeDistanceMeters / 1000.0;
             final cumulativeDuration = leg.cumulativeDuration;
-            final etaWaypointFormatted = _formatEta(context, leg.eta);
+            final etaWaypointFormatted = formatNavigationTimeUtc(
+              context,
+              leg.eta,
+            );
 
             waypointWidgets.add(
               Container(
@@ -168,14 +166,14 @@ class NavigationDetailsDialog extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${l10n.leg}: ${context.formatNumber(legDistanceKm, 1)} km • ${leg.eta == null ? l10n.placeholderDash : _formatDurationNoSeconds(context, legDuration)}',
+                            '${l10n.leg}: ${context.formatNumber(legDistanceKm, 1)} km • ${leg.eta == null ? l10n.placeholderDash : formatNavigationDuration(context, legDuration)}',
                             style: TextStyle(
                               fontSize: 11,
                               color: defaultTextColor,
                             ),
                           ),
                           Text(
-                            '${l10n.total}: ${context.formatNumber(cumulativeDistanceKm, 1)} km • ${leg.eta == null ? l10n.placeholderDash : _formatDurationNoSeconds(context, cumulativeDuration)} (${l10n.etaLabel}: $etaWaypointFormatted)',
+                            '${l10n.total}: ${context.formatNumber(cumulativeDistanceKm, 1)} km • ${leg.eta == null ? l10n.placeholderDash : formatNavigationDuration(context, cumulativeDuration)} (${l10n.etaLabel}: $etaWaypointFormatted)',
                             style: TextStyle(
                               fontSize: 11,
                               color: defaultTextColor,
@@ -264,23 +262,21 @@ class NavigationDetailsDialog extends ConsumerWidget {
             : l10n.placeholderDash;
 
         final timeToNearestStr = timeToNearest != null
-            ? _formatDurationNoSeconds(context, timeToNearest)
+            ? formatNavigationDuration(context, timeToNearest)
             : l10n.placeholderDash;
         final timeToDestStr = timeToDest != null
-            ? _formatDurationNoSeconds(context, timeToDest)
+            ? formatNavigationDuration(context, timeToDest)
             : l10n.placeholderDash;
 
         final etaNearestStr = nearest?.eta != null
-            ? _formatEta(context, nearest?.eta)
+            ? formatNavigationTimeUtc(context, nearest?.eta)
             : null;
         final etaDestStr = destination?.eta != null
-            ? _formatEta(context, destination?.eta)
+            ? formatNavigationTimeUtc(context, destination?.eta)
             : null;
 
         Widget forecastSummary(int index, {required bool includeGust}) {
-          final point = forecastPoints
-              .where((p) => p.waypointIndex == index)
-              .firstOrNull;
+          final point = planByWaypoint[index];
           if (point == null) return const SizedBox.shrink();
           return _buildForecastSummary(
             context,

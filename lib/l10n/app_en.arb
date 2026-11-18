@@ -490,17 +490,6 @@
   "weatherInWindy": "Weather in Windy",
   "nearestPoint": "Nearest Point",
   "destinationPoint": "Destination",
-  "activeSpeedLabel": "Speed for ETA: {value} {unit}",
-  "@activeSpeedLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
   "waypointsList": "Waypoints List",
   "placeholderDash": "---",
   "minutesAbbrev": "min",
@@ -1627,7 +1616,6 @@
   "weatherSampleDetails": "Forecast at this point",
   "weatherRouteStart": "Start of route",
   "weatherPlannedAltitude": "Forecast altitude",
-  "weatherUseDefaultAltitude": "Use default altitude",
   "weatherPlannedDeparture": "Planned departure",
   "weatherDepartureNow": "Now",
   "weatherForecastUnavailable": "Forecast unavailable for this time and location.",

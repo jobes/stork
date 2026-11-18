@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 
 void main() {
@@ -8,18 +7,8 @@ void main() {
   test('places stable 10-minute route samples and interpolates climb', () {
     const origin = (latitude: 48.0, longitude: 17.0);
     const waypoints = [
-      NavigationPoint(
-        latitude: 48.18,
-        longitude: 17,
-        name: 'A',
-        weatherAltitudeFeet: 4000,
-      ),
-      NavigationPoint(
-        latitude: 48.43,
-        longitude: 17,
-        name: 'B',
-        weatherAltitudeFeet: 2000,
-      ),
+      (latitude: 48.18, longitude: 17.0, altitudeFeet: 4000),
+      (latitude: 48.43, longitude: 17.0, altitudeFeet: 2000),
     ];
     final plan = ForecastRoute.plan(origin, waypoints, 20);
     final before = plan.forecastPoints(
@@ -66,9 +55,7 @@ void main() {
 
   test('caps fast aircraft samples at twenty kilometres', () {
     const origin = (latitude: 48.0, longitude: 17.0);
-    const waypoints = [
-      NavigationPoint(latitude: 49.0, longitude: 17.0, name: 'Far'),
-    ];
+    const waypoints = [(latitude: 49.0, longitude: 17.0, altitudeFeet: null)];
 
     final plan = ForecastRoute.plan(origin, waypoints, 40);
     final points = plan.forecastPoints(
@@ -87,9 +74,7 @@ void main() {
 
   test('keeps slow aircraft samples at least five kilometres apart', () {
     const origin = (latitude: 48.0, longitude: 17.0);
-    const waypoints = [
-      NavigationPoint(latitude: 48.2, longitude: 17.0, name: 'Near'),
-    ];
+    const waypoints = [(latitude: 48.2, longitude: 17.0, altitudeFeet: null)];
 
     final plan = ForecastRoute.plan(origin, waypoints, 2);
     final points = plan.forecastPoints(

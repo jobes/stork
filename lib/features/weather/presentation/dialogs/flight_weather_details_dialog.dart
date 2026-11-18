@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../map/domain/models/airport_elevation.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
 import '../../../navigation/domain/models/navigation_point.dart';
@@ -16,7 +17,6 @@ import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
 import '../../domain/flight_forecast.dart';
-import '../../domain/forecast_airport_elevation.dart';
 import '../../domain/forecast_profile.dart';
 import '../../domain/forecast_query.dart';
 import '../../domain/weather_hazard.dart';
@@ -91,7 +91,7 @@ class FlightWeatherDetailsDialog extends ConsumerWidget {
         id != null && id.isNotEmpty && country != null && country.isNotEmpty
         ? ref.watch(airportMetadataProvider(id, country)).value
         : null;
-    final airportMeters = airportElevationMeters(airport);
+    final airportMeters = airport?.elevation?.metersMsl;
     final terrain = ref
         .watch(forecastPointTerrainProvider(point.location))
         .value;
@@ -412,7 +412,6 @@ class _MetricCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     return StorkDetailSurface(
-      padding: const EdgeInsets.all(12),
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

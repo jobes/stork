@@ -3,10 +3,18 @@ import 'dart:math' as math;
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../core/utils/geo_utils.dart';
-import '../../navigation/domain/models/navigation_point.dart';
 import 'flight_forecast.dart';
 
 part 'forecast_route.freezed.dart';
+
+/// Route input for the forecast plan. The weather feature only needs the
+/// position and the optional planned altitude of each waypoint, so the plan
+/// does not depend on the navigation feature's models.
+typedef ForecastWaypoint = ({
+  double latitude,
+  double longitude,
+  int? altitudeFeet,
+});
 
 @freezed
 abstract class ForecastRoutePoint with _$ForecastRoutePoint {
@@ -48,7 +56,7 @@ double forecastBearing(ForecastLocation a, ForecastLocation b) {
       360;
 }
 
-ForecastLocation waypointLocation(NavigationPoint point) =>
+ForecastLocation _waypointLocation(ForecastWaypoint point) =>
     (latitude: point.latitude, longitude: point.longitude);
 
 class ForecastRoute {
@@ -61,14 +69,14 @@ class ForecastRoute {
 
   factory ForecastRoute.plan(
     ForecastLocation origin,
-    List<NavigationPoint> points,
+    List<ForecastWaypoint> points,
     double speed,
   ) {
     final legs = <_RouteLeg>[];
     var start = origin;
     var cumulative = 0.0;
     for (final point in points) {
-      final end = waypointLocation(point);
+      final end = _waypointLocation(point);
       final distance = _distance(start, end);
       cumulative += distance;
       legs.add((
@@ -109,20 +117,20 @@ class ForecastRoute {
     return ForecastRoute._(origin, legs, samples, speed);
   }
 
-  bool matches(List<NavigationPoint> points) {
+  bool matches(List<ForecastWaypoint> points) {
     if (points.isEmpty || points.length > _legs.length) return false;
     final offset = _legs.length - points.length;
     for (final (i, point) in points.indexed) {
-      if (_legs[offset + i].end != waypointLocation(point)) return false;
+      if (_legs[offset + i].end != _waypointLocation(point)) return false;
     }
     return true;
   }
 
-  int offsetFor(List<NavigationPoint> points) => _legs.length - points.length;
+  int offsetFor(List<ForecastWaypoint> points) => _legs.length - points.length;
 
   List<ForecastRoutePoint> forecastPoints({
     required ForecastLocation position,
-    required List<NavigationPoint> points,
+    required List<ForecastWaypoint> points,
     required DateTime departure,
     required double groundSpeed,
     required bool flying,
@@ -171,7 +179,7 @@ class ForecastRoute {
     }
 
     double? altitude(int index) =>
-        (points[index].weatherAltitudeFeet ?? defaultAltitudeFeet)?.toDouble();
+        (points[index].altitudeFeet ?? defaultAltitudeFeet)?.toDouble();
 
     final firstStartHeight =
         (previousWaypointAltitudeFeet ?? defaultAltitudeFeet)?.toDouble();
@@ -200,7 +208,7 @@ class ForecastRoute {
       result.add(
         point(
           id: forecastWaypointPointId(index + offset),
-          location: waypointLocation(waypoint),
+          location: _waypointLocation(waypoint),
           distance: distance,
           feet: altitude(index),
           waypoint: index,

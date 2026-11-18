@@ -52,10 +52,9 @@ class RouteWeatherStrip extends ConsumerWidget {
           ? points[first.key].name
           : l10n.weatherRouteStart;
       final warnings = hazardLabels(l10n, first.value.hazards);
-      final planPoint = ref
-          .watch(flightWeatherPlanProvider)
-          .where((point) => point.waypointIndex == first.key)
-          .firstOrNull;
+      final planPoint = forecastPointsByWaypoint(
+        ref.watch(flightWeatherPlanProvider),
+      )[first.key];
       return _Notice(
         icon: Icons.warning_amber_rounded,
         warning: true,

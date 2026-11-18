@@ -1982,12 +1982,6 @@ abstract class AppLocalizations {
   /// **'Destination'**
   String get destinationPoint;
 
-  /// No description provided for @activeSpeedLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Speed for ETA: {value} {unit}'**
-  String activeSpeedLabel(String value, String unit);
-
   /// No description provided for @waypointsList.
   ///
   /// In en, this message translates to:
@@ -5873,12 +5867,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Forecast altitude'**
   String get weatherPlannedAltitude;
-
-  /// No description provided for @weatherUseDefaultAltitude.
-  ///
-  /// In en, this message translates to:
-  /// **'Use default altitude'**
-  String get weatherUseDefaultAltitude;
 
   /// No description provided for @weatherPlannedDeparture.
   ///

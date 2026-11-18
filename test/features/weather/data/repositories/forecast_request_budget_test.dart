@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:stork/core/utils/geo_utils.dart';
-import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
 import 'package:stork/features/weather/domain/flight_forecast.dart';
 import 'package:stork/features/weather/domain/forecast_query.dart';
@@ -56,12 +55,14 @@ Future<_Budget> _simulate({
     );
   });
 
-  final destination = NavigationPoint(
+  // A single destination keeps the plan geometry fixed while the simulated
+  // aircraft advances along the route.
+  final ForecastWaypoint destination = (
     latitude:
         _origin.latitude +
         _cruiseSpeedMs * 60 * minutes / _metersPerDegreeLatitude,
     longitude: _origin.longitude,
-    name: 'Destination',
+    altitudeFeet: null,
   );
   final waypoints = [destination];
   final plan = ForecastRoute.plan(_origin, waypoints, _cruiseSpeedMs);

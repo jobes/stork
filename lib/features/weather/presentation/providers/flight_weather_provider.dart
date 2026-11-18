@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/services/terrain_elevation_service.dart';
 import '../../../../core/utils/geo_utils.dart';
+import '../../../map/domain/models/airport_elevation.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
 import '../../../navigation/domain/models/navigation_point.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
@@ -15,7 +16,6 @@ import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import '../../data/repositories/flight_forecast_repository.dart';
 import '../../domain/flight_forecast.dart';
-import '../../domain/forecast_airport_elevation.dart';
 import '../../domain/forecast_profile.dart';
 import '../../domain/forecast_query.dart';
 import '../../domain/forecast_route.dart';
@@ -57,7 +57,7 @@ class _PlanCache {
   });
 
   final ForecastRoute? route;
-  final List<NavigationPoint> waypoints;
+  final List<ForecastWaypoint> waypoints;
   final List<ForecastRoutePoint>? plan;
   final int? previousWaypointAltitudeFeet;
   final bool wasFlying;
@@ -76,7 +76,7 @@ class _PlanCache {
 /// existing samples so they stay in place while flying.
 _PlanCache _advancePlan(
   _PlanCache previous, {
-  required List<NavigationPoint> waypoints,
+  required List<ForecastWaypoint> waypoints,
   required ForecastLocation position,
   required double cruiseSpeed,
   required bool flying,
@@ -105,7 +105,7 @@ _PlanCache _advancePlan(
     waypoints: waypoints,
     plan: previous.plan,
     previousWaypointAltitudeFeet: removedCount > 0
-        ? previous.waypoints[removedCount - 1].weatherAltitudeFeet
+        ? previous.waypoints[removedCount - 1].altitudeFeet
         : previous.previousWaypointAltitudeFeet,
     wasFlying: flying,
   );
@@ -118,7 +118,7 @@ class FlightWeatherPlanNotifier extends _$FlightWeatherPlanNotifier {
   @override
   List<ForecastRoutePoint> build() {
     final route = ref.watch(navigationProvider).value;
-    final waypoints = route?.points ?? const <NavigationPoint>[];
+    final waypoints = _forecastWaypoints(route?.points ?? const []);
     final telemetry = ref.watch(
       throttledTelemetryProvider.select(
         (s) => (
@@ -242,6 +242,22 @@ Map<String, ForecastLocation> flightWeatherProfileLocations(Ref ref) {
 ForecastRoutePoint? weatherPoint(List<ForecastRoutePoint> points, String id) =>
     points.where((point) => point.id == id).firstOrNull;
 
+/// Plan points keyed by their waypoint index, so route lists and dialogs can
+/// look a point up without scanning the plan for every row.
+Map<int, ForecastRoutePoint> forecastPointsByWaypoint(
+  List<ForecastRoutePoint> points,
+) => {for (final point in points) ?point.waypointIndex: point};
+
+/// Navigation waypoints projected into the weather plan's input type.
+List<ForecastWaypoint> _forecastWaypoints(List<NavigationPoint> points) => [
+  for (final point in points)
+    (
+      latitude: point.latitude,
+      longitude: point.longitude,
+      altitudeFeet: point.weatherAltitudeFeet,
+    ),
+];
+
 @riverpod
 class FlightWeatherQuery extends _$FlightWeatherQuery {
   @override
@@ -337,10 +353,7 @@ Future<ForecastReference> routeForecastReference(
           'Could not load airport elevation for $airportId',
         )
       : null;
-  return (
-    terrainMeters: terrain,
-    airportMeters: airportElevationMeters(airport),
-  );
+  return (terrainMeters: terrain, airportMeters: airport?.elevation?.metersMsl);
 }
 
 /// References for every plan point, resolved through
