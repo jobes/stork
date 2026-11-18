@@ -18,7 +18,7 @@ import 'package:stork/features/settings/presentation/dialogs/aircraft_settings_d
 import 'package:stork/features/navigation/presentation/dialogs/navigation_details_dialog.dart';
 import 'package:stork/features/navigation/presentation/pages/navigation_page.dart';
 import 'package:stork/features/map/presentation/components/controls/map_features_bottom_sheet.dart';
-import 'package:stork/features/weather/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/weather/presentation/providers/route_timing_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import 'package:stork/features/weather/data/models/forecast_series.dart';
 import 'package:stork/features/weather/domain/forecast_query.dart';

@@ -11,7 +11,7 @@ import '../../domain/forecast_query.dart';
 import '../../domain/forecast_route.dart';
 import '../../domain/weather_hazard.dart';
 import 'flight_weather_provider.dart';
-import 'navigation_eta_provider.dart';
+import 'route_timing_provider.dart';
 
 part 'weather_hazard_provider.g.dart';
 
@@ -116,12 +116,6 @@ Future<List<WeatherHazardDetail>> weatherHazardDetails(Ref ref) async {
 }
 
 @riverpod
-Future<Set<WeatherHazard>> weatherHazards(Ref ref) async {
-  final details = await ref.watch(weatherHazardDetailsProvider.future);
-  return {for (final detail in details) ...detail.hazards};
-}
-
-@riverpod
 List<WeatherHazardDetail> activeWeatherHazardDetails(Ref ref) {
   final enabled = ref.watch(
     appSettingsProvider.select((s) => s.value?.showFlightWeather ?? false),
@@ -130,12 +124,10 @@ List<WeatherHazardDetail> activeWeatherHazardDetails(Ref ref) {
   return ref.watch(weatherHazardDetailsProvider).value ?? const [];
 }
 
+/// Hazards currently reported by the active plan, already filtered by the
+/// flight forecast setting.
 @riverpod
-Set<WeatherHazard> activeWeatherHazards(Ref ref) {
-  final enabled = ref.watch(
-    appSettingsProvider.select((s) => s.value?.showFlightWeather ?? false),
-  );
-  if (!enabled) return const {};
-  final result = ref.watch(weatherHazardsProvider);
-  return result.value ?? const {};
-}
+Set<WeatherHazard> activeWeatherHazards(Ref ref) => {
+  for (final detail in ref.watch(activeWeatherHazardDetailsProvider))
+    ...detail.hazards,
+};

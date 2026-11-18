@@ -4,15 +4,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../navigation/presentation/utils/navigation_formatters.dart';
 import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
-import '../../../weather/domain/weather_hazard.dart';
+import '../../../weather/presentation/components/weather_hazard_labels.dart';
 import '../../../weather/presentation/dialogs/flight_weather_details_dialog.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
+import '../utils/navigation_formatters.dart';
 
 /// Compact weather state for the route: warnings, destination wind, or the
 /// reason why forecast data is not available.
@@ -51,7 +51,7 @@ class RouteWeatherStrip extends ConsumerWidget {
       final name = first.key < points.length
           ? points[first.key].name
           : l10n.weatherRouteStart;
-      final warnings = _hazardLabels(l10n, first.value.hazards);
+      final warnings = hazardLabels(l10n, first.value.hazards);
       final planPoint = ref
           .watch(flightWeatherPlanProvider)
           .where((point) => point.waypointIndex == first.key)
@@ -121,19 +121,6 @@ class RouteWeatherStrip extends ConsumerWidget {
     );
   }
 }
-
-String _hazardLabels(AppLocalizations l10n, Set<WeatherHazard> hazards) => [
-  for (final hazard in hazards)
-    switch (hazard) {
-      WeatherHazard.wind => l10n.weatherDangerousWind,
-      WeatherHazard.gust => l10n.weatherDangerousGust,
-      WeatherHazard.precipitation => l10n.weatherAlertPrecipitationTitle,
-      WeatherHazard.fog => l10n.weatherAlertFogTitle,
-      WeatherHazard.freezingPrecipitation => l10n.weatherAlertFreezingTitle,
-      WeatherHazard.snow => l10n.weatherAlertSnowTitle,
-      WeatherHazard.thunderstorm => l10n.weatherAlertThunderstormTitle,
-    },
-].join(' · ');
 
 class _Notice extends StatelessWidget {
   const _Notice({

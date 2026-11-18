@@ -5,8 +5,11 @@ import 'package:stork/features/settings/presentation/providers/settings_provider
 import 'package:stork/features/weather/data/models/forecast_series.dart';
 import 'package:stork/features/weather/domain/flight_forecast.dart';
 import 'package:stork/features/weather/domain/forecast_query.dart';
+import 'package:stork/features/weather/domain/forecast_profile.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
+import 'package:stork/features/weather/presentation/providers/route_timing_provider.dart';
+import 'package:stork/features/weather/presentation/providers/route_waypoint_weather_provider.dart';
 
 final _now = DateTime.utc(2026, 11, 16, 14);
 const _location = (latitude: 48.2, longitude: 17.2);
@@ -94,6 +97,10 @@ ProviderContainer _container(FlightWeatherPlanNotifier Function() plan) {
     overrides: [
       appSettingsProvider.overrideWith(_Settings.new),
       flightWeatherPlanProvider.overrideWith(plan),
+      routePointTimingProvider.overrideWith((ref) => const {}),
+      routeForecastReferencesProvider.overrideWith(
+        (ref) async => const <String, ForecastReference>{},
+      ),
       forecastPointTerrainProvider(_location).overrideWith((ref) async => null),
       flightForecastProfilesProvider.overrideWith(
         (ref) async => (
@@ -114,10 +121,10 @@ void main() {
     addTearDown(container.dispose);
     await container.read(flightForecastProfilesProvider.future);
 
-    final forecast = container.read(nearbyFlightForecastProvider);
+    final wind = container.read(routePointWindsProvider)['aircraft'];
 
-    expect(forecast?.wind, isNotNull);
-    expect(forecast?.gustMs, closeTo(20, 0.001));
+    expect(wind?.wind, isNotNull);
+    expect(wind?.gustMs, closeTo(20, 0.001));
   });
 
   test('provides wind next to the aircraft with an active route', () async {
@@ -125,10 +132,10 @@ void main() {
     addTearDown(container.dispose);
     await container.read(flightForecastProfilesProvider.future);
 
-    final forecast = container.read(nearbyFlightForecastProvider);
+    final wind = container.read(routePointWindsProvider)['origin'];
 
-    expect(forecast?.wind, isNotNull);
-    expect(forecast?.gustMs, closeTo(20, 0.001));
+    expect(wind?.wind, isNotNull);
+    expect(wind?.gustMs, closeTo(20, 0.001));
   });
 
   test('reuses the aircraft profile until it moves ten kilometres', () {

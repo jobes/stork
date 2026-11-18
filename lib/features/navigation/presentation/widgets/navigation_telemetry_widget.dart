@@ -6,9 +6,9 @@ import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
-import '../../../weather/presentation/providers/navigation_eta_provider.dart';
 import '../../../weather/presentation/providers/weather_hazard_provider.dart';
 import '../dialogs/navigation_details_dialog.dart';
+import '../providers/navigation_eta_provider.dart';
 
 class NavigationTelemetryWidget extends ConsumerWidget {
   const NavigationTelemetryWidget({super.key});

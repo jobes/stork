@@ -282,10 +282,6 @@ class MapCamera extends _$MapCamera {
       flightWeatherPlanProvider,
       (_, _) => _updateFlightWeatherOnMap(),
     );
-    ref.listen(
-      nearbyFlightForecastProvider,
-      (_, _) => _updateFlightWeatherOnMap(),
-    );
     ref.listen(routePointWindsProvider, (_, _) => _updateFlightWeatherOnMap());
     ref.listen(
       displayPreferencesProvider,

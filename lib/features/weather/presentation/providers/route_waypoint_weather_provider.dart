@@ -10,7 +10,7 @@ import '../../domain/forecast_route.dart';
 import '../../domain/weather_hazard.dart';
 import '../../domain/wind_route_timing.dart';
 import 'flight_weather_provider.dart';
-import 'navigation_eta_provider.dart';
+import 'route_timing_provider.dart';
 
 part 'route_waypoint_weather_provider.g.dart';
 

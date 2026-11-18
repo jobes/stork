@@ -5,7 +5,7 @@ import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/aircraft_provider.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
-import 'package:stork/features/weather/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/weather/presentation/providers/route_timing_provider.dart';
 import 'package:stork/features/weather/domain/forecast_query.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/domain/weather_hazard.dart';
@@ -92,11 +92,14 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      final subscription = container.listen(weatherHazardsProvider, (_, _) {});
+      final subscription = container.listen(
+        activeWeatherHazardsProvider,
+        (_, _) {},
+      );
       addTearDown(subscription.close);
       await container.read(flightForecastProfilesProvider.future);
-      final hazards = await container.read(weatherHazardsProvider.future);
       final details = await container.read(weatherHazardDetailsProvider.future);
+      final hazards = container.read(activeWeatherHazardsProvider);
       expect(details, hasLength(1));
       expect(details.single.location, _location);
       expect(details.single.time, _now.add(const Duration(minutes: 30)));

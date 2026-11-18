@@ -7,7 +7,6 @@ class NavigationPoint {
   final bool isAirport;
   final String? airportId;
   final String? airportCountry;
-  final String? icaoCode;
   final String? favoriteId;
   final int? weatherAltitudeFeet;
 
@@ -18,7 +17,6 @@ class NavigationPoint {
     this.isAirport = false,
     this.airportId,
     this.airportCountry,
-    this.icaoCode,
     this.favoriteId,
     this.weatherAltitudeFeet,
   });
@@ -30,7 +28,6 @@ class NavigationPoint {
     isAirport: isAirport,
     airportId: airportId,
     airportCountry: airportCountry,
-    icaoCode: icaoCode,
     favoriteId: favoriteId,
     weatherAltitudeFeet: feet,
   );
@@ -42,7 +39,6 @@ class NavigationPoint {
     'isAirport': isAirport,
     if (airportId != null) 'airportId': airportId,
     if (airportCountry != null) 'airportCountry': airportCountry,
-    if (icaoCode != null) 'icaoCode': icaoCode,
     if (favoriteId != null) 'favoriteId': favoriteId,
     if (weatherAltitudeFeet != null) 'weatherAltitudeFeet': weatherAltitudeFeet,
   };
@@ -60,7 +56,6 @@ class NavigationPoint {
         isAirport: json['isAirport'] == true,
         airportId: json['airportId'] as String?,
         airportCountry: json['airportCountry'] as String?,
-        icaoCode: json['icaoCode'] as String?,
         favoriteId: json['favoriteId'] as String?,
         weatherAltitudeFeet: (json['weatherAltitudeFeet'] as num?)?.toInt(),
       );

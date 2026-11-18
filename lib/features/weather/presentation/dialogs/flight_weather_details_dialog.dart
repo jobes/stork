@@ -15,14 +15,14 @@ import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
 import '../../domain/flight_forecast.dart';
+import '../../domain/forecast_airport_elevation.dart';
 import '../../domain/forecast_profile.dart';
 import '../../domain/forecast_query.dart';
-import '../../domain/forecast_reference.dart';
 import '../../domain/weather_hazard.dart';
 import '../../domain/wind_route_timing.dart';
 import '../components/weather_attribution_link.dart';
 import '../providers/flight_weather_provider.dart';
-import '../providers/navigation_eta_provider.dart';
+import '../providers/route_timing_provider.dart';
 import 'waypoint_altitude_dialog.dart';
 
 void showFlightWeatherDetails(

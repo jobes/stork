@@ -51,47 +51,6 @@ final class WeatherHazardDetailsProvider
 String _$weatherHazardDetailsHash() =>
     r'625c6d7503b1f67edf6fc64cd1cbe96d0d8defb4';
 
-@ProviderFor(weatherHazards)
-final weatherHazardsProvider = WeatherHazardsProvider._();
-
-final class WeatherHazardsProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<Set<WeatherHazard>>,
-          Set<WeatherHazard>,
-          FutureOr<Set<WeatherHazard>>
-        >
-    with
-        $FutureModifier<Set<WeatherHazard>>,
-        $FutureProvider<Set<WeatherHazard>> {
-  WeatherHazardsProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'weatherHazardsProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$weatherHazardsHash();
-
-  @$internal
-  @override
-  $FutureProviderElement<Set<WeatherHazard>> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<Set<WeatherHazard>> create(Ref ref) {
-    return weatherHazards(ref);
-  }
-}
-
-String _$weatherHazardsHash() => r'aa190e63361f8626710334c0b86350ec0180919b';
-
 @ProviderFor(activeWeatherHazardDetails)
 final activeWeatherHazardDetailsProvider =
     ActiveWeatherHazardDetailsProvider._();
@@ -141,8 +100,14 @@ final class ActiveWeatherHazardDetailsProvider
 String _$activeWeatherHazardDetailsHash() =>
     r'901f484179bc6e386e77d1bf8dec3ceb84cbdc87';
 
+/// Hazards currently reported by the active plan, already filtered by the
+/// flight forecast setting.
+
 @ProviderFor(activeWeatherHazards)
 final activeWeatherHazardsProvider = ActiveWeatherHazardsProvider._();
+
+/// Hazards currently reported by the active plan, already filtered by the
+/// flight forecast setting.
 
 final class ActiveWeatherHazardsProvider
     extends
@@ -152,6 +117,8 @@ final class ActiveWeatherHazardsProvider
           Set<WeatherHazard>
         >
     with $Provider<Set<WeatherHazard>> {
+  /// Hazards currently reported by the active plan, already filtered by the
+  /// flight forecast setting.
   ActiveWeatherHazardsProvider._()
     : super(
         from: null,
@@ -187,4 +154,4 @@ final class ActiveWeatherHazardsProvider
 }
 
 String _$activeWeatherHazardsHash() =>
-    r'3e800d5174dcc4d9b516ccc8df3a3c73e00793f8';
+    r'9efd16486baf367bc67d63a87ddf59bd60be852e';

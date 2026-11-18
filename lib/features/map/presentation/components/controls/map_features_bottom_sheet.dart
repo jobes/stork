@@ -432,7 +432,6 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
               bool isAirport = false;
               String? airportId;
               String? country;
-              String? icaoCode;
               if (favoritePoint case final point?) {
                 lat = point.latitude;
                 lon = point.longitude;
@@ -460,7 +459,6 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
                         lon = metadata.longitude!;
                       }
                       final icao = metadata.icaoCode;
-                      icaoCode = icao;
                       if (metadata.name.isNotEmpty &&
                           icao != null &&
                           icao.isNotEmpty) {
@@ -490,7 +488,6 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
                         isAirport: isAirport,
                         airportId: airportId,
                         airportCountry: country,
-                        icaoCode: icaoCode,
                         favoriteId: isAirport ? null : favoritePoint?.id,
                       ),
                     );

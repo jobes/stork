@@ -9,6 +9,7 @@ import '../../../route/domain/models/navigation_point.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
 import '../../../weather/domain/weather_hazard.dart';
+import '../../../weather/presentation/components/weather_hazard_labels.dart';
 import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
 import '../utils/navigation_formatters.dart';
 
@@ -125,7 +126,11 @@ class RouteWaypointTile extends StatelessWidget {
                                   if (hasHazard) ...[
                                     const SizedBox(width: 6),
                                     Tooltip(
-                                      message: _hazardLabels(l10n, hazards),
+                                      message: hazardLabels(
+                                        l10n,
+                                        hazards,
+                                        separator: '\n',
+                                      ),
                                       child: Icon(
                                         Icons.warning_amber_rounded,
                                         size: 18,
@@ -297,19 +302,6 @@ class RouteWaypointTile extends StatelessWidget {
     final minutes = (seconds / 60).round();
     return minutes == 0 ? null : minutes;
   }
-
-  String _hazardLabels(AppLocalizations l10n, Set<WeatherHazard> hazards) => [
-    for (final hazard in hazards)
-      switch (hazard) {
-        WeatherHazard.wind => l10n.weatherDangerousWind,
-        WeatherHazard.gust => l10n.weatherDangerousGust,
-        WeatherHazard.precipitation => l10n.weatherAlertPrecipitationTitle,
-        WeatherHazard.fog => l10n.weatherAlertFogTitle,
-        WeatherHazard.freezingPrecipitation => l10n.weatherAlertFreezingTitle,
-        WeatherHazard.snow => l10n.weatherAlertSnowTitle,
-        WeatherHazard.thunderstorm => l10n.weatherAlertThunderstormTitle,
-      },
-  ].join('\n');
 }
 
 class _NumberBadge extends StatelessWidget {

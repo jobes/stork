@@ -537,14 +537,112 @@ final class ForecastPointTerrainFamily extends $Family
   String toString() => r'forecastPointTerrainProvider';
 }
 
-/// Terrain and airport reference shared by the route list, map markers,
-/// navigation details and hazard evaluation.
+/// Terrain and airport reference for one forecast point. Resolving it per
+/// point keeps the route list, map markers, navigation details and hazard
+/// evaluation on the same terrain and pressure reference.
+
+@ProviderFor(routeForecastReference)
+final routeForecastReferenceProvider = RouteForecastReferenceFamily._();
+
+/// Terrain and airport reference for one forecast point. Resolving it per
+/// point keeps the route list, map markers, navigation details and hazard
+/// evaluation on the same terrain and pressure reference.
+
+final class RouteForecastReferenceProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<ForecastReference>,
+          ForecastReference,
+          FutureOr<ForecastReference>
+        >
+    with
+        $FutureModifier<ForecastReference>,
+        $FutureProvider<ForecastReference> {
+  /// Terrain and airport reference for one forecast point. Resolving it per
+  /// point keeps the route list, map markers, navigation details and hazard
+  /// evaluation on the same terrain and pressure reference.
+  RouteForecastReferenceProvider._({
+    required RouteForecastReferenceFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'routeForecastReferenceProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$routeForecastReferenceHash();
+
+  @override
+  String toString() {
+    return r'routeForecastReferenceProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<ForecastReference> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<ForecastReference> create(Ref ref) {
+    final argument = this.argument as String;
+    return routeForecastReference(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RouteForecastReferenceProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$routeForecastReferenceHash() =>
+    r'bcb4956bfb381524a304000c25a590a7b79d3fb2';
+
+/// Terrain and airport reference for one forecast point. Resolving it per
+/// point keeps the route list, map markers, navigation details and hazard
+/// evaluation on the same terrain and pressure reference.
+
+final class RouteForecastReferenceFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<ForecastReference>, String> {
+  RouteForecastReferenceFamily._()
+    : super(
+        retry: null,
+        name: r'routeForecastReferenceProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Terrain and airport reference for one forecast point. Resolving it per
+  /// point keeps the route list, map markers, navigation details and hazard
+  /// evaluation on the same terrain and pressure reference.
+
+  RouteForecastReferenceProvider call(String pointId) =>
+      RouteForecastReferenceProvider._(argument: pointId, from: this);
+
+  @override
+  String toString() => r'routeForecastReferenceProvider';
+}
+
+/// References for every plan point, resolved through
+/// [routeForecastReferenceProvider].
 
 @ProviderFor(routeForecastReferences)
 final routeForecastReferencesProvider = RouteForecastReferencesProvider._();
 
-/// Terrain and airport reference shared by the route list, map markers,
-/// navigation details and hazard evaluation.
+/// References for every plan point, resolved through
+/// [routeForecastReferenceProvider].
 
 final class RouteForecastReferencesProvider
     extends
@@ -556,8 +654,8 @@ final class RouteForecastReferencesProvider
     with
         $FutureModifier<Map<String, ForecastReference>>,
         $FutureProvider<Map<String, ForecastReference>> {
-  /// Terrain and airport reference shared by the route list, map markers,
-  /// navigation details and hazard evaluation.
+  /// References for every plan point, resolved through
+  /// [routeForecastReferenceProvider].
   RouteForecastReferencesProvider._()
     : super(
         from: null,
@@ -585,47 +683,4 @@ final class RouteForecastReferencesProvider
 }
 
 String _$routeForecastReferencesHash() =>
-    r'7afb8518df4bad1c843a142291c59b62d295107e';
-
-@ProviderFor(nearbyFlightForecast)
-final nearbyFlightForecastProvider = NearbyFlightForecastProvider._();
-
-final class NearbyFlightForecastProvider
-    extends
-        $FunctionalProvider<FlightForecast?, FlightForecast?, FlightForecast?>
-    with $Provider<FlightForecast?> {
-  NearbyFlightForecastProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'nearbyFlightForecastProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$nearbyFlightForecastHash();
-
-  @$internal
-  @override
-  $ProviderElement<FlightForecast?> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  FlightForecast? create(Ref ref) {
-    return nearbyFlightForecast(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(FlightForecast? value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<FlightForecast?>(value),
-    );
-  }
-}
-
-String _$nearbyFlightForecastHash() =>
-    r'1f94eb41e5e55459feaedd356fe8556ee3dd1560';
+    r'5c6e899950ad5eb6485e1895160236990b7b1c87';

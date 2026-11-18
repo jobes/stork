@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
-import '../../../weather/presentation/providers/navigation_eta_provider.dart';
+import '../providers/navigation_eta_provider.dart';
 import '../utils/navigation_formatters.dart';
 
 const _forecastHorizonDays = 4;

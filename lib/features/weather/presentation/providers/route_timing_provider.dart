@@ -16,7 +16,7 @@ import '../../domain/forecast_route.dart';
 import '../../domain/wind_route_timing.dart';
 import 'flight_weather_provider.dart';
 
-part 'navigation_eta_provider.g.dart';
+part 'route_timing_provider.g.dart';
 
 typedef _GpsFix = ({ForecastLocation location, DateTime time});
 
@@ -274,39 +274,4 @@ Map<String, TimedRoutePoint> routePointTiming(Ref ref) {
               windEffect: null,
             ),
   };
-}
-
-@riverpod
-NavigationCalculations navigationEta(Ref ref) {
-  final route =
-      ref.watch(navigationProvider).value?.points ?? const <NavigationPoint>[];
-  final points = ref.watch(flightWeatherPlanProvider);
-  final timing = ref.watch(routePointTimingProvider);
-  final legs = <NavigationLeg>[];
-  var previousDistance = 0.0;
-  var previousDuration = Duration.zero;
-
-  for (final point in points) {
-    final index = point.waypointIndex;
-    if (index == null || index >= route.length) continue;
-    final estimate = timing[point.id];
-    final cumulativeDuration = estimate?.duration ?? previousDuration;
-    legs.add(
-      NavigationLeg(
-        point: route[index],
-        legDistanceMeters: point.distanceMeters - previousDistance,
-        cumulativeDistanceMeters: point.distanceMeters,
-        legDuration: cumulativeDuration - previousDuration,
-        cumulativeDuration: cumulativeDuration,
-        eta: estimate?.eta,
-      ),
-    );
-    previousDistance = point.distanceMeters;
-    previousDuration = cumulativeDuration;
-  }
-  return NavigationCalculations(
-    legs: legs,
-    totalDistanceMeters: previousDistance,
-    totalDuration: previousDuration,
-  );
 }

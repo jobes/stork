@@ -7,7 +7,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/services/terrain_elevation_service.dart';
 import '../../../../core/utils/geo_utils.dart';
-import '../../../map/domain/airport_metadata.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
 import '../../../route/presentation/providers/navigation_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
@@ -15,9 +14,9 @@ import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import '../../data/repositories/flight_forecast_repository.dart';
 import '../../domain/flight_forecast.dart';
+import '../../domain/forecast_airport_elevation.dart';
 import '../../domain/forecast_profile.dart';
 import '../../domain/forecast_query.dart';
-import '../../domain/forecast_reference.dart';
 import '../../domain/forecast_route.dart';
 
 part 'flight_weather_provider.g.dart';
@@ -248,57 +247,54 @@ Future<double?> forecastPointTerrain(Ref ref, ForecastLocation location) => ref
     .watch(terrainElevationServiceProvider)
     .getElevation(location.latitude, location.longitude);
 
-/// Terrain and airport reference shared by the route list, map markers,
-/// navigation details and hazard evaluation.
+/// Terrain and airport reference for one forecast point. Resolving it per
+/// point keeps the route list, map markers, navigation details and hazard
+/// evaluation on the same terrain and pressure reference.
+@riverpod
+Future<ForecastReference> routeForecastReference(
+  Ref ref,
+  String pointId,
+) async {
+  final point = weatherPoint(ref.watch(flightWeatherPlanProvider), pointId);
+  if (point == null) return (terrainMeters: null, airportMeters: null);
+  final route =
+      ref.watch(navigationProvider).value?.points ?? const <NavigationPoint>[];
+  final index = point.waypointIndex;
+  final waypoint = index != null && index < route.length ? route[index] : null;
+  final terrain = await _ignoreErrors(
+    ref.watch(forecastPointTerrainProvider(point.location).future),
+    'Could not load terrain for $pointId',
+  );
+  final airportId = waypoint?.airportId;
+  final country = waypoint?.airportCountry;
+  final airport =
+      airportId != null &&
+          airportId.isNotEmpty &&
+          country != null &&
+          country.isNotEmpty
+      ? await _ignoreErrors(
+          ref.watch(airportMetadataProvider(airportId, country).future),
+          'Could not load airport elevation for $airportId',
+        )
+      : null;
+  return (
+    terrainMeters: terrain,
+    airportMeters: airportElevationMeters(airport),
+  );
+}
+
+/// References for every plan point, resolved through
+/// [routeForecastReferenceProvider].
 @riverpod
 Future<Map<String, ForecastReference>> routeForecastReferences(Ref ref) async {
   final points = ref.watch(flightWeatherPlanProvider);
-  final route =
-      ref.watch(navigationProvider).value?.points ?? const <NavigationPoint>[];
-  final terrainFutures = <String, Future<double?>>{};
-  final airportFutures = <String, Future<AirportMetadata?>>{};
-  for (final point in points) {
-    terrainFutures[point.id] = ref.watch(
-      forecastPointTerrainProvider(point.location).future,
-    );
-    final index = point.waypointIndex;
-    final waypoint = index != null && index < route.length
-        ? route[index]
-        : null;
-    final airportId = waypoint?.airportId;
-    final country = waypoint?.airportCountry;
-    airportFutures[point.id] =
-        airportId != null &&
-            airportId.isNotEmpty &&
-            country != null &&
-            country.isNotEmpty
-        ? () async {
-            try {
-              return await ref.watch(
-                airportMetadataProvider(airportId, country).future,
-              );
-            } catch (error) {
-              debugPrint('Could not load airport elevation for $airportId');
-              return null;
-            }
-          }()
-        : Future<AirportMetadata?>.value();
-  }
-  final entries = await Future.wait([
+  final references = await Future.wait([
     for (final point in points)
-      () async {
-        final terrain = await _ignoreErrors(
-          terrainFutures[point.id]!,
-          'Could not load terrain for ${point.id}',
-        );
-        final airport = airportElevationMeters(await airportFutures[point.id]!);
-        return MapEntry(point.id, (
-          terrainMeters: terrain,
-          airportMeters: airport,
-        ));
-      }(),
+      ref.watch(routeForecastReferenceProvider(point.id).future),
   ]);
-  return Map.fromEntries(entries);
+  return {
+    for (final (index, point) in points.indexed) point.id: references[index],
+  };
 }
 
 Future<T?> _ignoreErrors<T>(Future<T> future, String message) async {
@@ -308,28 +304,6 @@ Future<T?> _ignoreErrors<T>(Future<T> future, String message) async {
     debugPrint(message);
     return null;
   }
-}
-
-@riverpod
-FlightForecast? nearbyFlightForecast(Ref ref) {
-  // The map subscribes here so route profiles are prefetched before a detail opens.
-  final profiles = ref.watch(flightForecastProfilesProvider).value;
-  final points = ref.watch(flightWeatherPlanProvider);
-  if (profiles == null || points.isEmpty) return null;
-  final point = points.first;
-  if (point.id != 'aircraft' && point.id != 'origin') return null;
-  final location = ref.watch(flightWeatherProfileLocationsProvider)[point.id];
-  if (location == null) return null;
-  final series = profiles.series[forecastLocationKey(location)];
-  if (series == null) return null;
-  final terrain = ref.watch(forecastPointTerrainProvider(point.location)).value;
-  return series.at(
-    point.eta,
-    altitudeMeters: point.altitudeFeet == null
-        ? null
-        : point.altitudeFeet! * feetInMeters,
-    terrainMeters: terrain,
-  );
 }
 
 bool _movedFrom(ForecastLocation previous, ForecastLocation current) =>

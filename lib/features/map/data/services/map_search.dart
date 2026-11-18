@@ -135,8 +135,7 @@ MapSearchResult? _airportResult(
     type: MapSearchResultType.airport,
     name: name.isEmpty ? code : name,
     icaoCode: code,
-    airportId: (fields['source_id'] ?? fields['_id'] ?? fields['id'])
-        ?.toString(),
+    airportId: fields['source_id']?.toString(),
     airportCountry: fields['country']?.toString(),
     latitude: lat.toDouble(),
     longitude: lon.toDouble(),

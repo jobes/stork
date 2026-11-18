@@ -33,7 +33,7 @@ graph TD
     Calc -->|Expose calculations| NavUI[NavigationPage & Map Widget]
 ```
 
-Route state, models and persistence live in `lib/features/route/`. Weather planning consumes the route state without importing navigation UI, and navigation pages consume both the route state and the weather timing providers.
+Route state, models and persistence live in `lib/features/route/`. Weather planning consumes the route state without importing navigation UI. Weather owns the wind-adjusted timing (`route_timing_provider.dart`), while the navigation-facing `NavigationCalculations` aggregate lives with the navigation UI, so navigation pages consume both the route state and the weather timing providers.
 
 ### 2.1. Domain Models
 The navigation domain is built on three core classes:
@@ -57,7 +57,7 @@ The navigation domain is built on three core classes:
 
 ## 3. Dynamic Telemetry Calculations
 
-When navigation is active, the system continuously calculates flight parameters in [navigationEtaProvider](../../lib/features/weather/presentation/providers/navigation_eta_provider.dart). It builds `NavigationCalculations` from the wind-adjusted `routePointTiming` and falls back to the aircraft/GPS speed when no forecast wind is available.
+When navigation is active, the system continuously calculates flight parameters in [navigationEtaProvider](../../lib/features/navigation/presentation/providers/navigation_eta_provider.dart). It builds `NavigationCalculations` from the wind-adjusted [routePointTiming](../../lib/features/weather/presentation/providers/route_timing_provider.dart) and falls back to the aircraft/GPS speed when no forecast wind is available.
 
 ### 3.1. Speed Source Resolution
 The speed used to calculate travel times is resolved dynamically:
@@ -127,7 +127,7 @@ Accessing this screen displays:
 - **Control bar**: a large Start/Stop button and the **Weather in Windy** action. Clearing the route lives in the app-bar overflow menu with a confirmation dialog.
 - **Reorderable waypoint log**: each row shows the UTC ETA, leg and cumulative distance/time, a tappable planned-altitude chip (own altitude or aircraft default), wind at the planned altitude, a wind-effect chip and a hazard badge. The first row is marked NEXT and the last DEST. Removing a waypoint is available from the row overflow menu and can be undone from the snack bar.
 - **Empty and no-location states** explain how to add points from the map (via the back arrow) and offer **Add from favourites**. No separate "open map" action is needed because the map is the root screen.
-- **Weather in Windy** at the bottom opens the Windy route planner for the whole route (starting from the current GPS position when available). It shares the `openWindyRoute`/`buildWindyRouteUrl` helpers with the details dialog (see `presentation/windy_route.dart`).
+- **Weather in Windy** at the bottom opens the Windy route planner for the whole route (starting from the current GPS position when available). It shares the `openWindyRoute`/`buildWindyRouteUrl` helpers with the details dialog (see `presentation/utils/windy_route.dart`).
 - Waypoints can be reordered by dragging the handle or by long-pressing a row; individual waypoints can be removed (with undo) and the whole route cleared.
 
 ### 5.2. Map Overlay Telemetry Widget ([NavigationTelemetryWidget](../../lib/features/navigation/presentation/widgets/navigation_telemetry_widget.dart))

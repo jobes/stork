@@ -9,7 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/features/map/presentation/components/controls/map_features_bottom_sheet.dart';
 import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
-import 'package:stork/features/weather/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/navigation/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/weather/presentation/providers/route_timing_provider.dart';
 import 'package:stork/features/navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import 'package:stork/features/settings/domain/models/aircraft.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
@@ -171,11 +172,6 @@ void main() {
         addTearDown(container.dispose);
         await container.read(navigationProvider.future);
         final corrected = await tester.runAsync(() async {
-          final mapSubscription = container.listen(
-            nearbyFlightForecastProvider,
-            (_, _) {},
-          );
-          addTearDown(mapSubscription.close);
           await container.read(appSettingsProvider.future);
           await container.read(flightForecastProfilesProvider.future);
           final timingSubscription = container.listen(

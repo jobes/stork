@@ -5,6 +5,13 @@ const _forecastHitLayer = 'flight-weather-hit';
 const _forecastWindLayer = 'flight-weather-wind';
 const _forecastLabelLayer = 'flight-weather-label';
 const _emptyForecastGeoJson = '{"type":"FeatureCollection","features":[]}';
+// MapLibre paint values use the map style palette, like the other camera
+// layers; the white halo keeps the labels readable on light and dark styles.
+const _forecastTextColor = '#152E43';
+const _forecastHaloColor = '#FFFFFF';
+const _forecastMarkerColor = '#FFFFFF';
+const _forecastWaypointColor = '#D66900';
+const _forecastSampleColor = '#34576C';
 
 typedef _WindMarker = ({String arrow, double direction, String label});
 
@@ -95,13 +102,13 @@ extension on MapCamera {
             5.0,
             3.0,
           ],
-          'circle-color': '#FFFFFF',
+          'circle-color': _forecastMarkerColor,
           'circle-stroke-color': [
             'match',
             ['get', 'kind'],
             'waypoint',
-            '#D66900',
-            '#34576C',
+            _forecastWaypointColor,
+            _forecastSampleColor,
           ],
           'circle-stroke-width': 1.5,
         },
@@ -122,8 +129,8 @@ extension on MapCamera {
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': '#152E43',
-          'text-halo-color': '#FFFFFF',
+          'text-color': _forecastTextColor,
+          'text-halo-color': _forecastHaloColor,
           'text-halo-width': 2.0 * fontScale,
           'text-translate': [pointArrowOffsetX, 0.0],
           'text-translate-anchor': 'viewport',
@@ -145,8 +152,8 @@ extension on MapCamera {
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': '#152E43',
-          'text-halo-color': '#FFFFFF',
+          'text-color': _forecastTextColor,
+          'text-halo-color': _forecastHaloColor,
           'text-halo-width': 2.0 * fontScale,
           'text-translate': [pointLabelOffsetX, 0.0],
           'text-translate-anchor': 'viewport',
@@ -168,8 +175,8 @@ extension on MapCamera {
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': '#152E43',
-          'text-halo-color': '#FFFFFF',
+          'text-color': _forecastTextColor,
+          'text-halo-color': _forecastHaloColor,
           'text-halo-width': 2.0 * fontScale,
           // Paint translation keeps the rotated arrow in place while moving it
           // away from the aircraft; text-offset would rotate with the glyph.
@@ -193,8 +200,8 @@ extension on MapCamera {
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': '#152E43',
-          'text-halo-color': '#FFFFFF',
+          'text-color': _forecastTextColor,
+          'text-halo-color': _forecastHaloColor,
           'text-halo-width': 2.0 * fontScale,
           'text-translate': [windOffsetX, windLabelOffsetY],
           'text-translate-anchor': 'viewport',

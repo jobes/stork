@@ -3,7 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../l10n/app_localizations.dart';
 
-final openMeteoUrl = Uri.https('open-meteo.com', '/');
+final _openMeteoUrl = Uri.https('open-meteo.com', '/');
 
 /// Attribution required by the Open-Meteo licence wherever forecast data is shown.
 class WeatherAttributionLink extends StatelessWidget {
@@ -15,7 +15,7 @@ class WeatherAttributionLink extends StatelessWidget {
       alignment: AlignmentDirectional.centerStart,
       child: TextButton(
         onPressed: () =>
-            launchUrl(openMeteoUrl, mode: LaunchMode.externalApplication),
+            launchUrl(_openMeteoUrl, mode: LaunchMode.externalApplication),
         child: Text(AppLocalizations.of(context)!.weatherAttribution),
       ),
     );

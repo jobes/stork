@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stork/features/weather/presentation/providers/navigation_eta_provider.dart';
+import 'package:stork/features/weather/presentation/providers/route_timing_provider.dart';
 import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';

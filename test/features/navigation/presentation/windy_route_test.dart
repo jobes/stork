@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/route/domain/models/navigation_point.dart';
-import 'package:stork/features/navigation/presentation/windy_route.dart';
+import 'package:stork/features/navigation/presentation/utils/windy_route.dart';
 
 void main() {
   group('buildWindyRouteUrl', () {

@@ -17,10 +17,11 @@ import '../../../weather/domain/wind_route_timing.dart';
 import '../../../weather/presentation/components/weather_attribution_link.dart';
 import '../../../weather/presentation/components/weather_warning_summary.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
-import '../../../weather/presentation/providers/navigation_eta_provider.dart';
+import '../../../weather/presentation/providers/route_timing_provider.dart';
 import '../../../weather/presentation/providers/weather_hazard_provider.dart';
+import '../providers/navigation_eta_provider.dart';
 import '../utils/navigation_formatters.dart';
-import '../windy_route.dart';
+import '../utils/windy_route.dart';
 
 class NavigationDetailsDialog extends ConsumerWidget {
   const NavigationDetailsDialog({super.key});

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'navigation_eta_provider.dart';
+part of 'route_timing_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -196,50 +196,3 @@ final class RoutePointTimingProvider
 }
 
 String _$routePointTimingHash() => r'a7edf0c0464b4c1d235baf2854d1de9cb186466f';
-
-@ProviderFor(navigationEta)
-final navigationEtaProvider = NavigationEtaProvider._();
-
-final class NavigationEtaProvider
-    extends
-        $FunctionalProvider<
-          NavigationCalculations,
-          NavigationCalculations,
-          NavigationCalculations
-        >
-    with $Provider<NavigationCalculations> {
-  NavigationEtaProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'navigationEtaProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$navigationEtaHash();
-
-  @$internal
-  @override
-  $ProviderElement<NavigationCalculations> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  NavigationCalculations create(Ref ref) {
-    return navigationEta(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(NavigationCalculations value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<NavigationCalculations>(value),
-    );
-  }
-}
-
-String _$navigationEtaHash() => r'6250fb55df8b1c7969e07f3e0edda2f7f11e140e';

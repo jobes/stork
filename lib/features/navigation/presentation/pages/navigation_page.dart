@@ -21,13 +21,13 @@ import '../../../weather/domain/forecast_query.dart';
 import '../../../weather/presentation/dialogs/flight_weather_details_dialog.dart';
 import '../../../weather/presentation/dialogs/waypoint_altitude_dialog.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
-import '../../../weather/presentation/providers/navigation_eta_provider.dart';
 import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
 import '../dialogs/departure_dialog.dart';
+import '../providers/navigation_eta_provider.dart';
 import '../utils/navigation_formatters.dart';
+import '../utils/windy_route.dart';
 import '../widgets/route_waypoint_tile.dart';
 import '../widgets/route_weather_strip.dart';
-import '../windy_route.dart';
 
 class NavigationPage extends ConsumerWidget {
   const NavigationPage({super.key});
@@ -396,10 +396,7 @@ class _RouteOverviewCard extends StatelessWidget {
               Expanded(
                 child: _OverviewMetric(
                   icon: Icons.flag_outlined,
-                  value: formatNavigationTimeUtc(
-                    context,
-                    destinationEta,
-                  ).split(' ').first,
+                  value: formatNavigationClockUtc(context, destinationEta),
                   label: '${l10n.etaLabel} · ${l10n.clockUtc}',
                   highlighted: true,
                 ),
@@ -549,11 +546,18 @@ class _StatusChip extends StatelessWidget {
 
   final bool active;
 
+  /// Route status keeps its aviation colors, with a variant for each theme so
+  /// the chip stays readable on both surfaces.
+  static Color _statusColor({required bool isDark, required bool active}) {
+    if (!active) return isDark ? Colors.grey.shade400 : Colors.grey.shade700;
+    return isDark ? Colors.greenAccent : Colors.green.shade800;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = active ? Colors.green : Colors.grey;
+    final color = _statusColor(isDark: isDark, active: active);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -575,9 +579,7 @@ class _StatusChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: active
-                  ? (isDark ? Colors.greenAccent : Colors.green.shade800)
-                  : (isDark ? Colors.white70 : Colors.black54),
+              color: color,
             ),
           ),
         ],
