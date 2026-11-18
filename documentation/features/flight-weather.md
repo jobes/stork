@@ -8,11 +8,11 @@ Set cruising speed and default forecast altitude in the aircraft editor. A fresh
 
 The forecast includes the route origin, waypoints and destination. Additional points are placed at **10-minute** intervals using the selected aircraft's cruising speed and skipped within **2 minutes** of a waypoint. During flight the samples stay in place as ETAs change. Passed samples are dropped and editing the route can regenerate the sample positions. On the ground, choosing **Planned departure** in the route page opens one dialog with quick presets (Now, +30 min, +1 h), a day strip limited to the four-day horizon and an inline time field. It previews the destination ETA, clamps past times to now and rejects times outside the horizon. The departure picker uses local time and stores the selected instant in **UTC**; all forecast times (ETA, hourly intervals, download time and weather-warning passage times) are shown in **UTC** and marked with `UTC`. Clearing the route, or removing its last waypoint, clears the planned departure so a new route starts from the current time; undoing the removal restores it.
 
-## Model data and offline use
+## Model data and in-session use
 
-Stork requests [DWD ICON EU Native through Open-Meteo](https://open-meteo.com/en/docs/dwd-api) directly from the device when the layer is enabled. Requests contain forecast coordinates and the requested UTC hours. The repository batches up to **20 locations** per request and stores up to **160 recent profiles** locally. It requests hourly data with a **one-hour** buffer on either side of the plan and checks for updates every **30 minutes**. For the live aircraft location a new nearby forecast is requested after approximately **3 km** of displacement. The app interpolates locally when an ETA or altitude changes within a saved profile. If the network request fails, saved data can still be used for a covered ETA and the detail shows the download time and that refresh is unavailable. Outside the saved time range, the point shows that the forecast is unavailable.
+Stork requests [DWD ICON EU Native through Open-Meteo](https://open-meteo.com/en/docs/dwd-api) directly from the device when the layer is enabled. Requests contain forecast coordinates and the requested UTC hours. The repository batches up to **20 locations** per request and keeps the received profiles **in memory only**. It requests hourly data with a **one-hour** buffer on either side of the plan and checks for updates every **30 minutes**. For the live aircraft location a new nearby forecast is requested after approximately **3 km** of displacement. The app interpolates locally when an ETA or altitude changes within a fetched profile. Forecasts are a planning aid, not a safety function, so they are never written to storage: every app start fetches its own profiles. If a refresh fails, profiles fetched earlier in the same session can still be used for a covered ETA and the detail shows the download time and that refresh is unavailable. Outside the fetched time range, the point shows that the forecast is unavailable.
 
-The weather feature lives in `lib/features/weather/`. The repository and its data models handle network responses, JSON parsing and local profiles, domain models do the route and weather calculations, and Riverpod provides the plan and forecasts to the existing map style and details UI. To keep the map clear, the Open-Meteo attribution link is shown in the forecast point details, the route weather warnings, the navigation details and the map settings instead of on the map. The displayed values are derived from the model.
+The weather feature lives in `lib/features/weather/`. The repository and its data models handle network responses, JSON parsing and the in-memory profiles, domain models do the route and weather calculations, and Riverpod provides the plan and forecasts to the existing map style and details UI. To keep the map clear, the Open-Meteo attribution link is shown in the forecast point details, the route weather warnings, the navigation details and the map settings instead of on the map. The displayed values are derived from the model.
 
 ## Wind, temperature and pressure
 
@@ -33,7 +33,7 @@ In flight, Stork estimates the GPS ground vector from recent fixes and reported 
 
 ## Background processing
 
-On native targets, Flutter `compute` runs each wind-adjusted ETA calculation, weather response decode, offline-cache decode or encode, and forecast GeoJSON build in a short-lived Dart isolate. The UI isolate collects the route and settings, handles asynchronous HTTP and storage, and applies the completed GeoJSON to MapLibre. The route and map layers keep at most one computation in flight each. Pending updates use the newest inputs and results for superseded routes or map styles are discarded. The navigation UI can use its baseline estimate while the first result for a changed route is pending.
+On native targets, Flutter `compute` runs each wind-adjusted ETA calculation, weather response decode and forecast GeoJSON build in a short-lived Dart isolate. The UI isolate collects the route and settings, handles asynchronous HTTP, and applies the completed GeoJSON to MapLibre. The route and map layers keep at most one computation in flight each. Pending updates use the newest inputs and results for superseded routes or map styles are discarded. The navigation UI can use its baseline estimate while the first result for a changed route is pending.
 
 Flutter Web executes these same `compute` callbacks on the browser's main event loop.
 
@@ -53,6 +53,13 @@ short-lived isolate on native targets. Weather alerts use the existing orange
 warning severity in the navigation card and top-right map status indicator.
 The indicator's dialog lists active weather conditions alongside other alerts,
 with critical system and collision alerts retaining priority.
+
+When a refresh fails but the session already holds profiles, the indicator adds
+an informational **Forecast not up to date** condition. Its dialog shows the
+reason and offers **Refresh forecast**, which requests a new profile for every
+location of the current plan. The condition is hidden while a refresh is running
+and returns only if that refresh fails again. A missing forecast is not reported
+as an alert because every place that uses it already shows it as unavailable.
 
 A missing forecast cannot establish good weather. The model supplies weather
 codes and precipitation, but this integration has no complete visibility and

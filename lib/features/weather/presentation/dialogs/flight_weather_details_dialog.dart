@@ -367,7 +367,7 @@ class FlightWeatherDetailsDialog extends ConsumerWidget {
             Text(
               '${l10n.weatherDownloaded}: '
               '${dateTime.format(forecast.downloadedAt.toUtc())} ${l10n.clockUtc}'
-              '${profiles?.value?.refreshFailed == true ? ' · ${l10n.weatherCached}' : ''}',
+              '${profiles?.value?.refreshFailed == true ? ' · ${l10n.weatherNotRefreshed}' : ''}',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,
               ),

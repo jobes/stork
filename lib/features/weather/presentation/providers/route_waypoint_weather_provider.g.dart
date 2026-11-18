@@ -67,7 +67,7 @@ final class RouteWaypointWeatherProvider
 }
 
 String _$routeWaypointWeatherHash() =>
-    r'c6f51a73b29b5795d9c88f4f0f2ecd36a683ecfd';
+    r'b0cc4ccfeb7f94c9538aeaa62f0bd2f531916ced';
 
 /// Wind and surface gusts at every forecast point for its estimated arrival
 /// time. Uses the same wind-adjusted timing as the route list.
@@ -116,4 +116,4 @@ final class RoutePointWindsProvider
   }
 }
 
-String _$routePointWindsHash() => r'cea93f532cdf582f56ead64c66f6f6eb84dbe90e';
+String _$routePointWindsHash() => r'1941b34bd59bc2a35d4dbc446405f51ba3ee51c1';

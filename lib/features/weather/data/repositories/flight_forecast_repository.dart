@@ -5,18 +5,14 @@ import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart' show compute, debugPrint;
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../core/providers/shared_preferences_provider.dart';
 import '../../domain/flight_forecast.dart';
 import '../../domain/forecast_route.dart';
 import '../models/forecast_series.dart';
 
 part 'flight_forecast_repository.g.dart';
 
-const _cacheKey = 'flight_forecasts';
 const _batchSize = 20;
-const _maxSavedProfiles = 160;
 
 class _LocationOutsideModel implements Exception {
   const _LocationOutsideModel();
@@ -94,31 +90,13 @@ typedef ForecastProfiles = ({
 });
 
 @Riverpod(keepAlive: true)
-Future<FlightForecastRepository> flightForecastRepository(Ref ref) async {
-  final prefs = await ref.watch(sharedPreferencesProvider.future);
+FlightForecastRepository flightForecastRepository(Ref ref) {
   final client = http.Client();
   ref.onDispose(client.close);
-  return FlightForecastRepository(client, prefs);
+  return FlightForecastRepository(client);
 }
 
-typedef _CachedSeries = ({
-  DateTime downloaded,
-  Map<String, dynamic> json,
-  ForecastSeries series,
-});
-
-Map<String, _CachedSeries> _decodeForecastCache(String stored) {
-  final entries = jsonDecode(stored) as Map<String, dynamic>;
-  return entries.map((key, entry) {
-    final json = entry['data'] as Map<String, dynamic>;
-    final downloaded = DateTime.parse(entry['downloaded'] as String);
-    return MapEntry(key, (
-      json: json,
-      downloaded: downloaded,
-      series: ForecastSeries.fromJson(json, downloaded),
-    ));
-  });
-}
+typedef _CachedSeries = ({DateTime downloaded, ForecastSeries series});
 
 List<_CachedSeries> _decodeForecastBatch(
   ({List<int> body, int count, DateTime downloaded}) batch,
@@ -131,58 +109,27 @@ List<_CachedSeries> _decodeForecastBatch(
   return [
     for (final data in rows.cast<Map<String, dynamic>>())
       (
-        json: data,
         downloaded: batch.downloaded,
         series: ForecastSeries.fromJson(data, batch.downloaded),
       ),
   ];
 }
 
-({String json, Set<String> keys}) _encodeForecastCache(
-  Map<String, ({DateTime downloaded, Map<String, dynamic> json})> cache,
-) {
-  final entries = cache.entries.toList()
-    ..sort((a, b) => b.value.downloaded.compareTo(a.value.downloaded));
-  final newest = entries.take(_maxSavedProfiles);
-  return (
-    json: jsonEncode({
-      for (final entry in newest)
-        entry.key: {
-          'downloaded': entry.value.downloaded.toIso8601String(),
-          'data': entry.value.json,
-        },
-    }),
-    keys: newest.map((entry) => entry.key).toSet(),
-  );
-}
-
+/// Forecast profiles are kept in memory only. Weather is a planning aid, so a
+/// restart never reuses an older forecast: each session fetches its own
+/// profiles and reuses them only for network outages within the same session.
 class FlightForecastRepository {
   final http.Client _client;
-  final SharedPreferences _prefs;
   final _cache = <String, _CachedSeries>{};
   final _outsideModel = <String>{};
   Future<void> _pending = Future.value();
+  bool _refreshAll = false;
 
-  FlightForecastRepository(this._client, this._prefs) {
-    final stored = _prefs.getString(_cacheKey);
-    if (stored != null) _pending = _restore(stored);
-  }
+  FlightForecastRepository(this._client);
 
-  Future<void> _restore(String stored) async {
-    try {
-      _cache.addAll(
-        await compute(
-          _decodeForecastCache,
-          stored,
-          debugLabel: 'Restore flight forecast cache',
-        ),
-      );
-    } on FormatException {
-      debugPrint('Could not decode the saved flight forecast.');
-    } on TypeError {
-      debugPrint('Unexpected saved flight forecast format.');
-    }
-  }
+  /// Requests a fresh profile for every location on the next load. A failed
+  /// refresh keeps the profiles already held by this session.
+  void requestRefresh() => _refreshAll = true;
 
   Future<ForecastProfiles> load(ForecastQuery query) {
     final result = _pending.then((_) => _load(query));
@@ -192,8 +139,11 @@ class FlightForecastRepository {
 
   Future<ForecastProfiles> _load(ForecastQuery query) async {
     final now = clock.now().toUtc();
+    final refreshAll = _refreshAll;
+    _refreshAll = false;
     final missing = query.locations.keys.where((key) {
       if (_outsideModel.contains(key)) return false;
+      if (refreshAll) return true;
       final cached = _cache[key];
       return cached == null ||
           now.difference(cached.downloaded) >= forecastRefreshInterval ||
@@ -201,11 +151,10 @@ class FlightForecastRepository {
           !cached.series.covers(query.end);
     }).toList();
     var refreshFailed = false;
-    var updated = false;
     for (var i = 0; i < missing.length; i += _batchSize) {
       final batch = missing.skip(i).take(_batchSize).toList();
       try {
-        if (await _refreshBatch(batch, query, now)) updated = true;
+        await _refreshBatch(batch, query, now);
       } on Exception catch (error) {
         debugPrint(
           'Flight forecast refresh unavailable (${error.runtimeType}).',
@@ -225,11 +174,10 @@ class FlightForecastRepository {
       },
       refreshFailed: refreshFailed,
     );
-    if (updated) await _save();
     return result;
   }
 
-  Future<bool> _refreshBatch(
+  Future<void> _refreshBatch(
     List<String> batch,
     ForecastQuery query,
     DateTime now,
@@ -239,16 +187,14 @@ class FlightForecastRepository {
       for (final (index, key) in batch.indexed) {
         _cache[key] = rows[index];
       }
-      return true;
     } on _LocationOutsideModel {
       if (batch.length == 1) {
         _outsideModel.add(batch.single);
-        return false;
+        return;
       }
       final middle = batch.length ~/ 2;
-      final left = await _refreshBatch(batch.sublist(0, middle), query, now);
-      final right = await _refreshBatch(batch.sublist(middle), query, now);
-      return left || right;
+      await _refreshBatch(batch.sublist(0, middle), query, now);
+      await _refreshBatch(batch.sublist(middle), query, now);
     }
   }
 
@@ -289,22 +235,5 @@ class FlightForecastRepository {
       count: keys.length,
       downloaded: downloaded,
     ), debugLabel: 'Decode flight forecast batch');
-  }
-
-  Future<void> _save() async {
-    try {
-      final packed = await compute(_encodeForecastCache, {
-        for (final entry in _cache.entries)
-          entry.key: (
-            downloaded: entry.value.downloaded,
-            json: entry.value.json,
-          ),
-      }, debugLabel: 'Encode flight forecast cache');
-      _cache.removeWhere((key, value) => !packed.keys.contains(key));
-      final saved = await _prefs.setString(_cacheKey, packed.json);
-      if (!saved) debugPrint('Could not persist flight forecast profiles.');
-    } on Exception {
-      debugPrint('Could not persist flight forecast profiles.');
-    }
   }
 }

@@ -15,13 +15,11 @@ final flightForecastRepositoryProvider = FlightForecastRepositoryProvider._();
 final class FlightForecastRepositoryProvider
     extends
         $FunctionalProvider<
-          AsyncValue<FlightForecastRepository>,
           FlightForecastRepository,
-          FutureOr<FlightForecastRepository>
+          FlightForecastRepository,
+          FlightForecastRepository
         >
-    with
-        $FutureModifier<FlightForecastRepository>,
-        $FutureProvider<FlightForecastRepository> {
+    with $Provider<FlightForecastRepository> {
   FlightForecastRepositoryProvider._()
     : super(
         from: null,
@@ -38,15 +36,23 @@ final class FlightForecastRepositoryProvider
 
   @$internal
   @override
-  $FutureProviderElement<FlightForecastRepository> $createElement(
+  $ProviderElement<FlightForecastRepository> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $ProviderElement(pointer);
 
   @override
-  FutureOr<FlightForecastRepository> create(Ref ref) {
+  FlightForecastRepository create(Ref ref) {
     return flightForecastRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FlightForecastRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FlightForecastRepository>(value),
+    );
   }
 }
 
 String _$flightForecastRepositoryHash() =>
-    r'177d37f2087a1331a76b500701bc2954fdec5f5a';
+    r'92a92bed529a7d80aad674536f72d65fcfdd4734';

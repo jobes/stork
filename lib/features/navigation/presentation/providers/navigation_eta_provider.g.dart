@@ -127,7 +127,7 @@ final class RouteWindTimingProvider
   RouteWindTiming create() => RouteWindTiming();
 }
 
-String _$routeWindTimingHash() => r'666bffdf5c88bfc9d2741d89dfc511abaf04f85f';
+String _$routeWindTimingHash() => r'38f2f20683a1da8e456eec5cd1693dfa67b523db';
 
 abstract class _$RouteWindTiming extends $AsyncNotifier<WindTimingResult?> {
   FutureOr<WindTimingResult?> build();

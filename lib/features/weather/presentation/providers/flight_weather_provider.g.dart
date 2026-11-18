@@ -182,7 +182,7 @@ final class FlightWeatherQueryProvider
 }
 
 String _$flightWeatherQueryHash() =>
-    r'bc0af947d93bd9bc9d1b662ea1bdb7f89521e24e';
+    r'e4efb261d42a4cdcd2bf87baf35e3edbb8f64e66';
 
 abstract class _$FlightWeatherQuery extends $Notifier<ForecastQuery?> {
   ForecastQuery? build();
@@ -236,6 +236,69 @@ final class FlightForecastRefreshProvider
 String _$flightForecastRefreshHash() =>
     r'2b2ded5a808f2ff3c0ccf52f71b55deb8df4e160';
 
+/// Manual refresh requested from the map alert. Profiles only live in memory,
+/// so the action re-requests every location of the current plan.
+
+@ProviderFor(FlightForecastSync)
+final flightForecastSyncProvider = FlightForecastSyncProvider._();
+
+/// Manual refresh requested from the map alert. Profiles only live in memory,
+/// so the action re-requests every location of the current plan.
+final class FlightForecastSyncProvider
+    extends $NotifierProvider<FlightForecastSync, void> {
+  /// Manual refresh requested from the map alert. Profiles only live in memory,
+  /// so the action re-requests every location of the current plan.
+  FlightForecastSyncProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'flightForecastSyncProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$flightForecastSyncHash();
+
+  @$internal
+  @override
+  FlightForecastSync create() => FlightForecastSync();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
+  }
+}
+
+String _$flightForecastSyncHash() =>
+    r'ac24aaa46e197ec92fd7dcfe68e6a0b5a54b86ef';
+
+/// Manual refresh requested from the map alert. Profiles only live in memory,
+/// so the action re-requests every location of the current plan.
+
+abstract class _$FlightForecastSync extends $Notifier<void> {
+  void build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<void, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<void, void>,
+              void,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(flightForecastProfiles)
 final flightForecastProfilesProvider = FlightForecastProfilesProvider._();
 
@@ -276,7 +339,7 @@ final class FlightForecastProfilesProvider
 }
 
 String _$flightForecastProfilesHash() =>
-    r'd6755a910546b8201bd023e811d651357787a4c5';
+    r'bcf739119331cb61835868d4e18c9caf93ca6b78';
 
 @ProviderFor(forecastPointTerrain)
 final forecastPointTerrainProvider = ForecastPointTerrainFamily._();
@@ -389,4 +452,4 @@ final class NearbyFlightForecastProvider
 }
 
 String _$nearbyFlightForecastHash() =>
-    r'eba833e4bba288c9d5144488ac8a0b3a796984b6';
+    r'114ad2a9d1fdd01daa03d9fe724a3cf5150c27cf';

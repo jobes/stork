@@ -705,6 +705,7 @@ Future<void> _checkMapAlert(
   required MapAlert? alert,
   required String screenshot,
   bool openDialog = false,
+  List<Override> overrides = const [],
 }) async {
   await _pump(
     tester,
@@ -731,6 +732,7 @@ Future<void> _checkMapAlert(
     mapAlert: alert,
     // A pulsing badge never settles; the captured frame must stay stable.
     disableAnimations: true,
+    overrides: overrides,
   );
 
   final expectedIcon = alert == null
@@ -1036,6 +1038,27 @@ void main() {
           screenshot: 'weather_warning_alert_$suffix',
           openDialog: true,
         );
+      });
+      testWidgets('weather_stale_$suffix', (tester) async {
+        await _checkMapAlert(
+          tester,
+          brightness,
+          device.value,
+          alert: MapAlert(kind: MapAlertKind.forecastStale, since: _alertSince),
+          screenshot: 'weather_stale_$suffix',
+          openDialog: true,
+          overrides: [
+            flightForecastProfilesProvider.overrideWith(
+              (ref) async => (
+                series: {
+                  forecastLocationKey(_weatherLocation): _visualWeatherSeries(),
+                },
+                refreshFailed: true,
+              ),
+            ),
+          ],
+        );
+        expect(find.text('Refresh forecast'), findsOneWidget);
       });
       testWidgets('weather_route_$suffix', (tester) async {
         await _openWeatherVisual(

@@ -3271,7 +3271,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weatherDownloaded => 'Forecast downloaded';
 
   @override
-  String get weatherCached => 'Saved forecast · refresh unavailable';
+  String get weatherNotRefreshed =>
+      'Not refreshed · forecast from this session';
 
   @override
   String get weatherDisabled =>
@@ -3347,6 +3348,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get weatherAlertConditionsBody =>
       'The forecast at the aircraft or a remaining route point indicates adverse weather at the expected time of passage. Review route point details and the aviation weather briefing.';
+
+  @override
+  String get weatherAlertStaleTitle => 'Forecast not up to date';
+
+  @override
+  String get weatherAlertStaleBody =>
+      'The forecast could not be refreshed. The values shown come from this session and may be older than 30 minutes. Weather is a planning aid, not a safety function.';
+
+  @override
+  String get weatherRefresh => 'Refresh forecast';
 
   @override
   String get weatherRouteWarnings => 'Weather warnings on the route';

@@ -60,7 +60,9 @@ enum MapAlertKind {
   forecastFog(MapAlertSeverity.warning),
   forecastFreezing(MapAlertSeverity.warning),
   forecastSnow(MapAlertSeverity.warning),
-  forecastThunderstorm(MapAlertSeverity.warning);
+  forecastThunderstorm(MapAlertSeverity.warning),
+  // Weather is a planning aid, so stale data is informational.
+  forecastStale(MapAlertSeverity.info);
 
   const MapAlertKind(this.severity, {this.instrument});
 

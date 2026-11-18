@@ -4,16 +4,13 @@ import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 
 void main() {
   test(
-    'batches locations, reuses hourly profiles and retains them after a failed refresh',
+    'batches locations, reuses hourly profiles and keeps them for a failed refresh',
     () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
       final start = DateTime.utc(2026, 11, 16, 14);
       var now = start;
       var requestCount = 0;
@@ -59,7 +56,7 @@ void main() {
       );
 
       await withClock(Clock(() => now), () async {
-        final repository = FlightForecastRepository(client, prefs);
+        final repository = FlightForecastRepository(client);
         final initial = await repository.load(query);
         expect(initial.series.length, 2);
         expect(initial.refreshFailed, isFalse);
@@ -71,26 +68,93 @@ void main() {
 
         offline = true;
         now = start.add(const Duration(minutes: 35));
-        final restored = await FlightForecastRepository(
-          client,
-          prefs,
-        ).load(query);
+        final refreshed = await repository.load(query);
         expect(requestCount, 2);
-        expect(restored.refreshFailed, isTrue);
-        expect(restored.series.values.first.at(now)!.gustMs, 10);
+        expect(refreshed.refreshFailed, isTrue);
+        expect(refreshed.series.values.first.at(now)!.gustMs, 10);
         expect(
-          restored.series.values.first.at(start.add(const Duration(hours: 2))),
+          refreshed.series.values.first.at(start.add(const Duration(hours: 2))),
           isNull,
         );
       });
     },
   );
 
+  test('a restarted session never shows a forecast fetched earlier', () async {
+    final start = DateTime.utc(2026, 11, 16, 14);
+    var online = true;
+    final client = MockClient((request) async {
+      if (!online) return http.Response('offline', 503);
+      return http.Response(
+        jsonEncode({
+          'elevation': 165,
+          'hourly': {
+            'time': [start.millisecondsSinceEpoch ~/ 1000],
+            'wind_gusts_10m': [18],
+          },
+        }),
+        200,
+      );
+    });
+    addTearDown(client.close);
+    final query = ForecastQuery(
+      [(latitude: 48.17, longitude: 17.21)],
+      start,
+      start,
+    );
+
+    final session = await FlightForecastRepository(client).load(query);
+    expect(session.series, hasLength(1));
+    expect(session.refreshFailed, isFalse);
+
+    online = false;
+    final restarted = await FlightForecastRepository(client).load(query);
+    expect(restarted.series, isEmpty);
+    expect(restarted.refreshFailed, isTrue);
+  });
+
+  test('a manual refresh requests every profile again', () async {
+    final start = DateTime.utc(2026, 11, 16, 14);
+    var now = start;
+    var requests = 0;
+    final client = MockClient((request) async {
+      requests++;
+      return http.Response(
+        jsonEncode({
+          'elevation': 165,
+          'hourly': {
+            'time': [start.millisecondsSinceEpoch ~/ 1000],
+            'wind_gusts_10m': [18],
+          },
+        }),
+        200,
+      );
+    });
+    addTearDown(client.close);
+    final query = ForecastQuery(
+      [(latitude: 48.17, longitude: 17.21)],
+      start,
+      start,
+    );
+
+    await withClock(Clock(() => now), () async {
+      final repository = FlightForecastRepository(client);
+      await repository.load(query);
+      expect(requests, 1);
+
+      now = start.add(const Duration(minutes: 5));
+      await repository.load(query);
+      expect(requests, 1);
+
+      repository.requestRefresh();
+      await repository.load(query);
+      expect(requests, 2);
+    });
+  });
+
   test(
     'a point outside the model does not hide the rest of the batch',
     () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
       final start = DateTime.utc(2026, 11, 16, 14);
       var requests = 0;
       final client = MockClient((request) async {
@@ -118,7 +182,7 @@ void main() {
         start,
         start,
       );
-      final repository = FlightForecastRepository(client, prefs);
+      final repository = FlightForecastRepository(client);
 
       final profiles = await repository.load(query);
       expect(profiles.refreshFailed, isFalse);

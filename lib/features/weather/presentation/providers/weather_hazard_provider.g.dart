@@ -49,7 +49,7 @@ final class WeatherHazardDetailsProvider
 }
 
 String _$weatherHazardDetailsHash() =>
-    r'a81ed81a162f556792e533d90d82a15304dfac17';
+    r'94d0c2c33bf1bc8b8038a31d62ad50eaedcf8d39';
 
 @ProviderFor(weatherHazards)
 final weatherHazardsProvider = WeatherHazardsProvider._();

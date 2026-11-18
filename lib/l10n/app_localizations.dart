@@ -6012,11 +6012,11 @@ abstract class AppLocalizations {
   /// **'Forecast downloaded'**
   String get weatherDownloaded;
 
-  /// No description provided for @weatherCached.
+  /// No description provided for @weatherNotRefreshed.
   ///
   /// In en, this message translates to:
-  /// **'Saved forecast · refresh unavailable'**
-  String get weatherCached;
+  /// **'Not refreshed · forecast from this session'**
+  String get weatherNotRefreshed;
 
   /// No description provided for @weatherDisabled.
   ///
@@ -6143,6 +6143,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The forecast at the aircraft or a remaining route point indicates adverse weather at the expected time of passage. Review route point details and the aviation weather briefing.'**
   String get weatherAlertConditionsBody;
+
+  /// No description provided for @weatherAlertStaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast not up to date'**
+  String get weatherAlertStaleTitle;
+
+  /// No description provided for @weatherAlertStaleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The forecast could not be refreshed. The values shown come from this session and may be older than 30 minutes. Weather is a planning aid, not a safety function.'**
+  String get weatherAlertStaleBody;
+
+  /// No description provided for @weatherRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh forecast'**
+  String get weatherRefresh;
 
   /// No description provided for @weatherRouteWarnings.
   ///

@@ -152,12 +152,25 @@ Stream<int> flightForecastRefresh(Ref ref) async* {
   yield* Stream.periodic(forecastRefreshInterval, (n) => n + 1);
 }
 
+/// Manual refresh requested from the map alert. Profiles only live in memory,
+/// so the action re-requests every location of the current plan.
+@riverpod
+class FlightForecastSync extends _$FlightForecastSync {
+  @override
+  void build() {}
+
+  void refresh() {
+    ref.read(flightForecastRepositoryProvider).requestRefresh();
+    ref.invalidate(flightForecastProfilesProvider);
+  }
+}
+
 @riverpod
 Future<ForecastProfiles?> flightForecastProfiles(Ref ref) async {
   final query = ref.watch(flightWeatherQueryProvider);
   if (query == null) return null;
   ref.watch(flightForecastRefreshProvider);
-  final repository = await ref.watch(flightForecastRepositoryProvider.future);
+  final repository = ref.watch(flightForecastRepositoryProvider);
   return repository.load(query);
 }
 

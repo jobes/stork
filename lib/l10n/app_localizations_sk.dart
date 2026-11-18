@@ -3286,7 +3286,7 @@ class AppLocalizationsSk extends AppLocalizations {
   String get weatherDownloaded => 'Predpoveď stiahnutá';
 
   @override
-  String get weatherCached => 'Uložená predpoveď · obnova nedostupná';
+  String get weatherNotRefreshed => 'Neobnovené · predpoveď z tejto relácie';
 
   @override
   String get weatherDisabled =>
@@ -3363,6 +3363,16 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String get weatherAlertConditionsBody =>
       'Predpoveď pri lietadle alebo v zostávajúcom bode trasy uvádza nepriaznivé počasie v očakávanom čase preletu. Skontroluj detaily bodov trasy a letecký meteorologický brífing.';
+
+  @override
+  String get weatherAlertStaleTitle => 'Predpoveď nie je aktuálna';
+
+  @override
+  String get weatherAlertStaleBody =>
+      'Predpoveď sa nepodarilo obnoviť. Zobrazené hodnoty sú z tejto relácie a môžu byť staršie ako 30 minút. Počasie je pomôcka pri plánovaní, nie bezpečnostná funkcia.';
+
+  @override
+  String get weatherRefresh => 'Obnoviť predpoveď';
 
   @override
   String get weatherRouteWarnings => 'Výstrahy počasia na trase';

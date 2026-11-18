@@ -24,6 +24,7 @@ import 'map_alert_history_provider.dart';
 import 'map_radar.dart';
 import 'notams_provider.dart';
 import '../../../weather/domain/weather_hazard.dart';
+import '../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../../weather/presentation/providers/weather_hazard_provider.dart';
 
 export '../models/map_alert.dart';
@@ -85,6 +86,7 @@ class MapAlerts extends _$MapAlerts {
     radar.addListener(onRadarChanged);
     ref.onDispose(() => radar.removeListener(onRadarChanged));
     ref.listen(activeWeatherHazardsProvider, (_, _) => _scheduleRecompute());
+    ref.listen(flightForecastProfilesProvider, (_, _) => _scheduleRecompute());
     ref.listen(gpsHealthProvider, (_, _) => _scheduleRecompute());
     ref.listen(telemetryLinkHealthProvider, (_, _) => _scheduleRecompute());
     ref.listen(trafficSourceHealthProvider, (_, _) => _scheduleRecompute());
@@ -146,7 +148,16 @@ class MapAlerts extends _$MapAlerts {
     final notams = ref.read(notamsProvider);
 
     final hazards = ref.read(activeWeatherHazardsProvider);
+    final forecastState = ref.read(flightForecastProfilesProvider);
+    final forecast = forecastState.value;
     final active = <MapAlertKind>{
+      // Only stale data is reported; a missing forecast already shows as
+      // unavailable where it is used. A running refresh is not a problem yet.
+      if (!forecastState.isLoading &&
+          forecast != null &&
+          forecast.refreshFailed &&
+          forecast.series.isNotEmpty)
+        MapAlertKind.forecastStale,
       for (final hazard in hazards)
         switch (hazard) {
           WeatherHazard.wind => MapAlertKind.forecastWind,
