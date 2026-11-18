@@ -68,6 +68,7 @@ class NavigationPoint {
     throw FormatException('Invalid JSON for NavigationPoint: $json');
   }
 
-  double distanceTo(double otherLat, double otherLon) =>
-      GeoUtils.distanceBetween(otherLat, otherLon, latitude, longitude);
+  double distanceTo(double otherLat, double otherLon) {
+    return GeoUtils.distanceBetween(latitude, longitude, otherLat, otherLon);
+  }
 }

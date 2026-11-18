@@ -20,8 +20,8 @@ import 'package:stork/features/navigation/presentation/pages/navigation_page.dar
 import 'package:stork/features/map/presentation/components/controls/map_features_bottom_sheet.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_eta_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/throttled_telemetry_provider.dart';
+import 'package:stork/features/weather/data/models/forecast_series.dart';
 import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
-import 'package:stork/features/weather/domain/flight_forecast.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/domain/wind_route_timing.dart';
 import 'package:stork/features/weather/domain/weather_hazard.dart';

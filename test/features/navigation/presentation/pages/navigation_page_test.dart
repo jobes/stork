@@ -141,7 +141,7 @@ void main() {
       );
     });
 
-    testWidgets('uses settings expected flight speed when not flying', (
+    testWidgets('uses the aircraft cruise speed when not flying', (
       WidgetTester tester,
     ) async {
       SharedPreferences.setMockInitialValues({});
@@ -165,11 +165,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 3. Verify page does not show location warning, but shows expected flight speed label
-      expect(
-        find.textContaining('Expected flight speed: 100 kph'),
-        findsOneWidget,
-      );
+      // 3. Verify page does not show location warning, but shows the cruise speed label
+      expect(find.textContaining('Cruising speed: 100 kph'), findsOneWidget);
     });
 
     testWidgets(

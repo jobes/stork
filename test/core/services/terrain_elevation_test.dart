@@ -508,6 +508,12 @@ void main() {
           AviationMath.altitudeToQnhHpa(90000, 988.61),
           closeTo(1013.25, 0.05),
         );
+
+        // Below sea level the sea-level pressure is lower than the measurement.
+        expect(
+          AviationMath.altitudeToQnhHpa(102500, -100),
+          closeTo(1012.93, 0.05),
+        );
       },
     );
 

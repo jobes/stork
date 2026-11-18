@@ -945,7 +945,7 @@ class AppLocalizationsSk extends AppLocalizations {
   String get addPointToNavigation => 'Pridať bod do navigácie';
 
   @override
-  String get averageSpeed => 'Predpokladaná rýchlosť letu';
+  String get aircraftCruiseSpeed => 'Cestovná rýchlosť';
 
   @override
   String get groundSpeed => 'Rýchlosť voči zemi';
@@ -1064,7 +1064,7 @@ class AppLocalizationsSk extends AppLocalizations {
   }
 
   @override
-  String routeWeatherWarnings(String count) {
+  String routeWeatherWarnings(int count) {
     return 'Upozornenia na počasie na trase ($count)';
   }
 

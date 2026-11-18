@@ -14,6 +14,7 @@ import '../../../settings/domain/models/app_settings.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
+import '../../../weather/data/repositories/flight_forecast_repository.dart';
 import '../../../weather/presentation/dialogs/flight_weather_details_dialog.dart';
 import '../../../weather/presentation/dialogs/waypoint_altitude_dialog.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
@@ -178,6 +179,7 @@ class _RouteBody extends ConsumerWidget {
     final telemetry = ref.watch(throttledTelemetryProvider);
     final weather = ref.watch(routeWaypointWeatherProvider);
     final plan = ref.watch(flightWeatherPlanProvider);
+    final profiles = ref.watch(flightForecastProfilesProvider).value;
     final selectedDeparture = ref.watch(flightDepartureProvider);
     final defaultAltitude = ref
         .watch(selectedAircraftProvider)
@@ -194,7 +196,7 @@ class _RouteBody extends ConsumerWidget {
         ? telemetry.groundSpeed!
         : ref.watch(cruiseSpeedProvider);
     final speedLabel =
-        '${useRealSpeed ? l10n.groundSpeed : l10n.averageSpeed}: '
+        '${useRealSpeed ? l10n.groundSpeed : l10n.aircraftCruiseSpeed}: '
         '${settings.speedUnit.convertFromMs(activeSpeedMs).toStringAsFixed(0)} '
         '${settings.speedUnit.getAbbreviation(l10n)}';
 
@@ -256,6 +258,9 @@ class _RouteBody extends ConsumerWidget {
         final planPoint = plan
             .where((forecastPoint) => forecastPoint.waypointIndex == index)
             .firstOrNull;
+        final series = planPoint == null
+            ? null
+            : profiles?.series[forecastLocationKey(planPoint.location)];
         return RouteWaypointTile(
           key: ValueKey(
             '${point.latitude}_${point.longitude}_${point.name}_$index',
@@ -278,6 +283,8 @@ class _RouteBody extends ConsumerWidget {
               waypoint: point,
               defaultFeet: defaultAltitude,
               forecastPoint: planPoint,
+              eta: weather[index]?.eta,
+              series: series,
             ),
           ),
         );

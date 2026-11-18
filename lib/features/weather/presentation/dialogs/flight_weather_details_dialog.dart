@@ -96,14 +96,15 @@ class FlightWeatherDetailsDialog extends ConsumerWidget {
     final reference = airportMeters ?? terrain;
     final enabled = settings?.showFlightWeather ?? false;
     final profiles = enabled ? ref.watch(flightForecastProfilesProvider) : null;
-    final location = enabled
-        ? ref.watch(flightWeatherQueryProvider.notifier).locationFor(point)
-        : point.location;
+    final location = enabled ? forecastProfileLocation(point) : point.location;
     final altitude = point.altitudeFeet;
     final altitudeMeters = altitude == null ? null : altitude * feetInMeters;
+    final series = enabled
+        ? profiles?.value?.series[forecastLocationKey(location)]
+        : null;
     final forecast = eta == null
         ? null
-        : profiles?.value?.series[forecastLocationKey(location)]?.at(
+        : series?.at(
             eta,
             altitudeMeters: altitudeMeters,
             terrainMeters: terrain ?? airportMeters,
@@ -224,6 +225,8 @@ class FlightWeatherDetailsDialog extends ConsumerWidget {
                               waypoint: waypoint,
                               defaultFeet: aircraft?.weatherAltitudeFeet,
                               forecastPoint: point,
+                              eta: eta,
+                              series: series,
                             ),
                           ),
                   ),

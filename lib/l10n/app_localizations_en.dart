@@ -944,7 +944,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addPointToNavigation => 'Add point to navigation';
 
   @override
-  String get averageSpeed => 'Expected flight speed';
+  String get aircraftCruiseSpeed => 'Cruising speed';
 
   @override
   String get groundSpeed => 'Ground speed';
@@ -1063,7 +1063,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String routeWeatherWarnings(String count) {
+  String routeWeatherWarnings(int count) {
     return 'Weather warnings on the route ($count)';
   }
 

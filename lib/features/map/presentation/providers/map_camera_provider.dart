@@ -63,6 +63,7 @@ class MapCamera extends _$MapCamera {
   String? _lastFlightWeatherGeoJson;
   int _flightWeatherRevision = 0;
   bool _flightWeatherWriting = false;
+  bool _flightWeatherWriteScheduled = false;
   ({StyleController style, String data})? _lastCourseLineUpdate;
   Timer? _notamLayerTimer;
   bool _notamLayerDirty = false;

@@ -1,21 +1,21 @@
-import '../../../../weather/presentation/dialogs/flight_weather_details_dialog.dart';
-import '../../../../weather/presentation/providers/flight_weather_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:maplibre/maplibre.dart';
+
 import '../../../../../core/theme/stork_colors.dart';
 import '../../../../../l10n/app_localizations.dart';
-import '../../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../../favorites/presentation/dialogs/add_favorite_dialog.dart';
 import '../../../../favorites/presentation/dialogs/favorite_details_dialog.dart';
 import '../../../../favorites/presentation/providers/favorites_provider.dart';
+import '../../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../../weather/presentation/dialogs/flight_weather_details_dialog.dart';
+import '../../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../providers/airport_metadata_provider.dart';
+import '../../providers/notams_provider.dart';
 import '../dialogs/airport_details_dialog.dart';
 import '../dialogs/airspace_details_dialog.dart';
 import '../dialogs/notam_details_dialog.dart';
 import '../dialogs/traffic_details_dialog.dart';
-import '../../providers/notams_provider.dart';
 
 class MapFeaturesBottomSheet extends ConsumerWidget {
   final List<dynamic> features;
@@ -266,12 +266,13 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
                   ? null
                   : Text(route[point.waypointIndex!].name),
               onTap: () {
-                Navigator.pop(context);
+                final navigator = Navigator.of(context);
+                navigator.pop();
                 final waypoint = point.waypointIndex == null
                     ? null
                     : route[point.waypointIndex!];
                 showFlightWeatherDetails(
-                  context,
+                  navigator.context,
                   point.id,
                   airportId: waypoint?.isAirport == true
                       ? selectedAirportId

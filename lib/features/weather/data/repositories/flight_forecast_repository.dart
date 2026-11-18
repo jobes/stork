@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/providers/shared_preferences_provider.dart';
 import '../../domain/flight_forecast.dart';
+import '../../domain/forecast_route.dart';
+import '../models/forecast_series.dart';
 
 part 'flight_forecast_repository.g.dart';
 
@@ -41,6 +43,25 @@ final _hourlyVariables = [
 
 String forecastLocationKey(ForecastLocation location) =>
     '${location.latitude.toStringAsFixed(4)},${location.longitude.toStringAsFixed(4)}';
+
+/// The moving aircraft reuses one forecast profile per ~3 km grid cell so small
+/// movements do not invalidate the cached profile.
+const forecastLocationGrid = 0.03;
+
+ForecastLocation quantizeForecastLocation(ForecastLocation location) => (
+  latitude:
+      (location.latitude / forecastLocationGrid).round() * forecastLocationGrid,
+  longitude:
+      (location.longitude / forecastLocationGrid).round() *
+      forecastLocationGrid,
+);
+
+/// Profile lookup location for a forecast point. The live aircraft position is
+/// quantized; route points keep their own coordinates.
+ForecastLocation forecastProfileLocation(ForecastRoutePoint point) =>
+    point.id == 'origin' || point.id == 'aircraft'
+    ? quantizeForecastLocation(point.location)
+    : point.location;
 
 class ForecastQuery {
   final Map<String, ForecastLocation> locations;

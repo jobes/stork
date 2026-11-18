@@ -323,7 +323,7 @@ class _AircraftSettingsDialogState
             controller: _cruiseSpeedController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              labelText: l10n.averageSpeed,
+              labelText: l10n.aircraftCruiseSpeed,
               suffixText: _speedUnit.getAbbreviation(l10n),
             ),
           ),

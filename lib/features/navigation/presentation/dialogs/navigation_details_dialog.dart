@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../weather/data/repositories/flight_forecast_repository.dart';
-import '../../../weather/domain/flight_forecast.dart';
-import '../../../weather/domain/forecast_route.dart';
-import '../../../weather/domain/wind_route_timing.dart';
-import '../../../weather/presentation/providers/flight_weather_provider.dart';
-import '../../../weather/presentation/providers/weather_hazard_provider.dart';
-import '../../../weather/presentation/components/weather_attribution_link.dart';
-import '../../../weather/presentation/components/weather_warning_summary.dart';
 
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../../settings/domain/models/speed_unit.dart';
-import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
-import '../providers/navigation_provider.dart';
+import '../../../settings/domain/models/speed_unit.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
+import '../../../weather/data/models/forecast_series.dart';
+import '../../../weather/data/repositories/flight_forecast_repository.dart';
+import '../../../weather/domain/flight_forecast.dart';
+import '../../../weather/domain/forecast_route.dart';
+import '../../../weather/domain/wind_route_timing.dart';
+import '../../../weather/presentation/components/weather_attribution_link.dart';
+import '../../../weather/presentation/components/weather_warning_summary.dart';
+import '../../../weather/presentation/providers/flight_weather_provider.dart';
+import '../../../weather/presentation/providers/weather_hazard_provider.dart';
 import '../providers/navigation_eta_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../windy_route.dart';
 
 class NavigationDetailsDialog extends ConsumerWidget {

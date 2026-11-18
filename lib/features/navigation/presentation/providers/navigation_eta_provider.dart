@@ -9,6 +9,7 @@ import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/resolved_altitude.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
+import '../../../weather/data/models/forecast_series.dart';
 import '../../../weather/data/repositories/flight_forecast_repository.dart';
 import '../../../weather/domain/flight_forecast.dart';
 import '../../../weather/domain/forecast_route.dart';
@@ -190,7 +191,6 @@ class RouteWindTiming extends _$RouteWindTiming {
             isGpsDroneCan: telemetry.isGpsDroneCan,
             qnh: qnh,
           ).mslValue;
-    final query = ref.watch(flightWeatherQueryProvider.notifier);
     final terrain = ref.watch(terrainElevationServiceProvider);
 
     // While an isolate is running, intermediate requests can be superseded.
@@ -212,7 +212,9 @@ class RouteWindTiming extends _$RouteWindTiming {
       currentAltitudeMeters: altitude,
       profiles: {
         for (final point in points)
-          if (profiles.series[forecastLocationKey(query.locationFor(point))]
+          if (profiles.series[forecastLocationKey(
+                forecastProfileLocation(point),
+              )]
               case final series?)
             point.id: (
               series: series,

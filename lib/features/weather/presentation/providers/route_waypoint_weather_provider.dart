@@ -8,6 +8,7 @@ import '../../../navigation/presentation/providers/navigation_eta_provider.dart'
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../data/models/forecast_series.dart';
 import '../../data/repositories/flight_forecast_repository.dart';
 import '../../domain/flight_forecast.dart';
 import '../../domain/forecast_reference.dart';
@@ -47,7 +48,6 @@ Map<int, RouteWaypointWeather> routeWaypointWeather(Ref ref) {
       ? ref.watch(flightForecastProfilesProvider).value
       : null;
   final aircraft = ref.watch(selectedAircraftProvider);
-  final query = enabled ? ref.watch(flightWeatherQueryProvider.notifier) : null;
   final terrain = enabled ? ref.watch(terrainElevationServiceProvider) : null;
 
   return {
@@ -57,7 +57,7 @@ Map<int, RouteWaypointWeather> routeWaypointWeather(Ref ref) {
         timing: timing[point.id],
         series: enabled
             ? profiles?.series[forecastLocationKey(
-                query?.locationFor(point) ?? point.location,
+                forecastProfileLocation(point),
               )]
             : null,
         terrainMeters: terrain?.getCachedElevation(
@@ -125,14 +125,14 @@ Future<Map<String, RoutePointWind>> routePointWinds(Ref ref) async {
   final profiles = ref.watch(flightForecastProfilesProvider).value;
   if (profiles == null) return const {};
   final timing = ref.watch(routePointTimingProvider);
-  final query = ref.watch(flightWeatherQueryProvider.notifier);
 
   final winds = await Future.wait([
     for (final point in points)
       _pointWind(
         point,
         timing: timing[point.id],
-        series: profiles.series[forecastLocationKey(query.locationFor(point))],
+        series: profiles
+            .series[forecastLocationKey(forecastProfileLocation(point))],
         terrainMeters: ref.watch(
           forecastPointTerrainProvider(point.location).future,
         ),

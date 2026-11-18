@@ -6,6 +6,7 @@ import '../../../navigation/presentation/providers/navigation_eta_provider.dart'
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../data/models/forecast_series.dart';
 import '../../data/repositories/flight_forecast_repository.dart';
 import '../../domain/flight_forecast.dart';
 import '../../domain/weather_hazard.dart';
@@ -86,13 +87,12 @@ Future<List<WeatherHazardDetail>> weatherHazardDetails(Ref ref) async {
   if (profiles == null || (points.length > 1 && route?.isActive != true)) {
     return const [];
   }
-  final query = ref.watch(flightWeatherQueryProvider.notifier);
   final input = (
     windLimit: aircraft?.dangerousWindMs,
     gustLimit: aircraft?.dangerousGustMs,
     samples: [
       for (final point in points)
-        if (profiles.series[forecastLocationKey(query.locationFor(point))]
+        if (profiles.series[forecastLocationKey(forecastProfileLocation(point))]
             case final series?)
           (
             series: series,

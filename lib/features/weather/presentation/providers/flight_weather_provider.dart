@@ -118,8 +118,6 @@ ForecastRoutePoint? weatherPoint(List<ForecastRoutePoint> points, String id) =>
 
 @riverpod
 class FlightWeatherQuery extends _$FlightWeatherQuery {
-  ForecastLocation? _nearbyLocation;
-
   @override
   ForecastQuery? build() {
     final enabled = ref.watch(
@@ -130,12 +128,6 @@ class FlightWeatherQuery extends _$FlightWeatherQuery {
     if (points.isEmpty) return null;
 
     final start = points.first;
-    final position = start.location;
-    final nearby = _nearbyLocation;
-    if (nearby == null || _movedFrom(nearby, position)) {
-      _nearbyLocation = position;
-    }
-
     final firstEta = start.eta.toUtc();
     final lastEta = points.fold(
       firstEta,
@@ -144,16 +136,14 @@ class FlightWeatherQuery extends _$FlightWeatherQuery {
     DateTime hour(DateTime value) =>
         DateTime.utc(value.year, value.month, value.day, value.hour);
     return ForecastQuery(
-      [_nearbyLocation!, for (final point in points.skip(1)) point.location],
+      [
+        quantizeForecastLocation(start.location),
+        for (final point in points.skip(1)) point.location,
+      ],
       hour(firstEta).subtract(forecastTimeReserve),
       hour(lastEta).add(forecastTimeReserve + const Duration(hours: 1)),
     );
   }
-
-  ForecastLocation locationFor(ForecastRoutePoint point) =>
-      point.id == 'origin' || point.id == 'aircraft'
-      ? _nearbyLocation ?? point.location
-      : point.location;
 }
 
 @riverpod
@@ -184,9 +174,7 @@ FlightForecast? nearbyFlightForecast(Ref ref) {
   if (profiles == null || points.isEmpty) return null;
   final point = points.first;
   if (point.id != 'aircraft' && point.id != 'origin') return null;
-  final location = ref
-      .read(flightWeatherQueryProvider.notifier)
-      .locationFor(point);
+  final location = forecastProfileLocation(point);
   final series = profiles.series[forecastLocationKey(location)];
   if (series == null) return null;
   final terrain = ref.watch(forecastPointTerrainProvider(point.location)).value;

@@ -471,7 +471,10 @@
   "navigation": "Navigation",
   "navigateToPoint": "Navigate to point",
   "addPointToNavigation": "Add point to navigation",
-  "averageSpeed": "Expected flight speed",
+  "aircraftCruiseSpeed": "Cruising speed",
+  "@aircraftCruiseSpeed": {
+    "description": "Cruising true airspeed of the selected aircraft."
+  },
   "groundSpeed": "Ground speed",
   "navigationRequiresLocation": "Navigation requires current location.",
   "noNavigationPoints": "No navigation points. Tap on the map to add points.",
@@ -529,7 +532,7 @@
   "@routeWeatherWarnings": {
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int"
       }
     }
   },

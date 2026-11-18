@@ -1886,11 +1886,11 @@ abstract class AppLocalizations {
   /// **'Add point to navigation'**
   String get addPointToNavigation;
 
-  /// No description provided for @averageSpeed.
+  /// Cruising true airspeed of the selected aircraft.
   ///
   /// In en, this message translates to:
-  /// **'Expected flight speed'**
-  String get averageSpeed;
+  /// **'Cruising speed'**
+  String get aircraftCruiseSpeed;
 
   /// No description provided for @groundSpeed.
   ///
@@ -2112,7 +2112,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Weather warnings on the route ({count})'**
-  String routeWeatherWarnings(String count);
+  String routeWeatherWarnings(int count);
 
   /// No description provided for @routeWeatherDestinationWind.
   ///

@@ -4,8 +4,8 @@ import 'package:stork/features/navigation/presentation/providers/navigation_eta_
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
+import 'package:stork/features/weather/data/models/forecast_series.dart';
 import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
-import 'package:stork/features/weather/domain/flight_forecast.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/domain/wind_route_timing.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
@@ -118,7 +118,10 @@ ProviderContainer _container({
       ).overrideWith((ref) async => terrain),
       flightForecastProfilesProvider.overrideWith(
         (ref) async => (
-          series: {forecastLocationKey(_location): series},
+          series: {
+            forecastLocationKey(_location): series,
+            forecastLocationKey(quantizeForecastLocation(_location)): series,
+          },
           refreshFailed: false,
         ),
       ),

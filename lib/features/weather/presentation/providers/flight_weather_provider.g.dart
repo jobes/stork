@@ -41,7 +41,7 @@ final class FlightDepartureProvider
   }
 }
 
-String _$flightDepartureHash() => r'9f507dcaf78ea8e742fee1b9b9ddf5d38a583302';
+String _$flightDepartureHash() => r'a509a7d3b49b6a046a6526239f84f7ff4dbb0d0c';
 
 abstract class _$FlightDeparture extends $Notifier<DateTime?> {
   DateTime? build();
@@ -389,4 +389,4 @@ final class NearbyFlightForecastProvider
 }
 
 String _$nearbyFlightForecastHash() =>
-    r'dc14dc3fd7b8e570521ffd097744e9e32962eaed';
+    r'eba833e4bba288c9d5144488ac8a0b3a796984b6';

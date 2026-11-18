@@ -53,13 +53,13 @@ class RouteWeatherStrip extends ConsumerWidget {
           : l10n.weatherRouteStart;
       final warnings = _hazardLabels(l10n, first.value.hazards);
       final planPoint = ref
-          .read(flightWeatherPlanProvider)
+          .watch(flightWeatherPlanProvider)
           .where((point) => point.waypointIndex == first.key)
           .firstOrNull;
       return _Notice(
         icon: Icons.warning_amber_rounded,
         warning: true,
-        message: l10n.routeWeatherWarnings('${hazardous.length}'),
+        message: l10n.routeWeatherWarnings(hazardous.length),
         detail:
             '$name · $warnings · ${formatNavigationTimeUtc(context, first.value.eta)}',
         onTap: planPoint == null

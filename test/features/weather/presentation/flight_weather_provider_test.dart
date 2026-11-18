@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
+import 'package:stork/features/weather/data/models/forecast_series.dart';
 import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
-import 'package:stork/features/weather/domain/flight_forecast.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
 
@@ -80,7 +80,10 @@ ProviderContainer _container(FlightWeatherPlan Function() plan) {
       forecastPointTerrainProvider(_location).overrideWith((ref) async => null),
       flightForecastProfilesProvider.overrideWith(
         (ref) async => (
-          series: {forecastLocationKey(_location): series},
+          series: {
+            forecastLocationKey(_location): series,
+            forecastLocationKey(quantizeForecastLocation(_location)): series,
+          },
           refreshFailed: false,
         ),
       ),

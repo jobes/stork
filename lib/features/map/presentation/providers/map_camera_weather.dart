@@ -207,10 +207,18 @@ extension on MapCamera {
     final style = _flightWeatherStyle;
     if (style == null || !identical(style, _mapController?.style)) return;
     _flightWeatherRevision++;
-    if (!_flightWeatherWriting) unawaited(_writeFlightWeatherOnMap());
+    if (_flightWeatherWriting || _flightWeatherWriteScheduled) return;
+    _flightWeatherWriteScheduled = true;
+    // The writer reads providers, which can flush dirty provider state. Keep
+    // that work out of the notification stack that called this listener.
+    Future.microtask(() {
+      _flightWeatherWriteScheduled = false;
+      if (refAccess.mounted) unawaited(_writeFlightWeatherOnMap());
+    });
   }
 
   Future<void> _writeFlightWeatherOnMap() async {
+    if (_flightWeatherWriting) return;
     _flightWeatherWriting = true;
     try {
       while (refAccess.mounted) {

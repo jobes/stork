@@ -6,14 +6,12 @@ import 'package:intl/intl.dart';
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
-import '../../../navigation/presentation/providers/navigation_eta_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../data/repositories/flight_forecast_repository.dart';
+import '../../data/models/forecast_series.dart';
 import '../../domain/flight_forecast.dart';
 import '../../domain/forecast_route.dart';
-import '../providers/flight_weather_provider.dart';
 
 typedef _AltitudeResult = ({int? altitude});
 
@@ -25,6 +23,8 @@ Future<void> showWaypointAltitudeDialog(
   required NavigationPoint waypoint,
   required int? defaultFeet,
   ForecastRoutePoint? forecastPoint,
+  DateTime? eta,
+  ForecastSeries? series,
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final result = await showDialog<_AltitudeResult>(
@@ -34,6 +34,8 @@ Future<void> showWaypointAltitudeDialog(
       initial: waypoint.weatherAltitudeFeet,
       defaultFeet: defaultFeet,
       forecastPoint: forecastPoint,
+      eta: eta,
+      series: series,
     ),
   );
   if (result == null) return;
@@ -56,12 +58,16 @@ class _WaypointAltitudeDialog extends ConsumerStatefulWidget {
     required this.initial,
     required this.defaultFeet,
     required this.forecastPoint,
+    required this.eta,
+    required this.series,
   });
 
   final String waypointName;
   final int? initial;
   final int? defaultFeet;
   final ForecastRoutePoint? forecastPoint;
+  final DateTime? eta;
+  final ForecastSeries? series;
 
   @override
   ConsumerState<_WaypointAltitudeDialog> createState() =>
@@ -114,16 +120,8 @@ class _WaypointAltitudeDialogState
     final speedUnit = settings?.windSpeedUnit ?? SpeedUnit.kmh;
     final feet = _selectedFeet;
     final point = widget.forecastPoint;
-    final timing = point == null
-        ? null
-        : ref.watch(routePointTimingProvider)[point.id];
-    final eta = point == null ? null : timing?.eta ?? point.eta;
-    final series = point == null
-        ? null
-        : ref
-              .watch(flightForecastProfilesProvider)
-              .value
-              ?.series[forecastLocationKey(point.location)];
+    final eta = widget.eta ?? point?.eta;
+    final series = widget.series;
     final forecast = series != null && eta != null && feet != null
         ? series.at(eta, altitudeMeters: feet * feetInMeters)
         : null;

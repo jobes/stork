@@ -17,8 +17,8 @@ import 'package:stork/features/settings/presentation/providers/aircraft_provider
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/telemetry/domain/models/telemetry_state.dart';
 import 'package:stork/features/telemetry/presentation/providers/throttled_telemetry_provider.dart';
+import 'package:stork/features/weather/data/models/forecast_series.dart';
 import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
-import 'package:stork/features/weather/domain/flight_forecast.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 import 'package:stork/features/weather/presentation/dialogs/flight_weather_details_dialog.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
@@ -149,15 +149,18 @@ void main() {
             appSettingsProvider.overrideWith(_WeatherSettings.new),
             throttledTelemetryProvider.overrideWith(_WeatherTelemetry.new),
             flightWeatherPlanProvider.overrideWith(_Plan.new),
-            forecastPointTerrainProvider(
-              _location,
-            ).overrideWith((ref) async => terrain),
+            for (final location in [_origin, _location, _destination])
+              forecastPointTerrainProvider(
+                location,
+              ).overrideWith((ref) async => terrain),
             flightForecastProfilesProvider.overrideWith((ref) async {
               profileRequests++;
               return (
                 series: {
                   forecastLocationKey(_location): series,
                   forecastLocationKey(_origin): series,
+                  forecastLocationKey(quantizeForecastLocation(_origin)):
+                      series,
                   forecastLocationKey(_destination): series,
                 },
                 refreshFailed: false,
@@ -324,12 +327,16 @@ void main() {
             dangerousGustMs: 10,
           ),
         ),
-        forecastPointTerrainProvider(
-          _location,
-        ).overrideWith((ref) async => null),
+        for (final location in [_origin, _location, _destination])
+          forecastPointTerrainProvider(
+            location,
+          ).overrideWith((ref) async => null),
         flightForecastProfilesProvider.overrideWith(
           (ref) async => (
-            series: {forecastLocationKey(_location): series},
+            series: {
+              forecastLocationKey(_location): series,
+              forecastLocationKey(quantizeForecastLocation(_location)): series,
+            },
             refreshFailed: false,
           ),
         ),

@@ -383,7 +383,7 @@
   "navigation": "Navigácia",
   "navigateToPoint": "Naviguj na bod",
   "addPointToNavigation": "Pridať bod do navigácie",
-  "averageSpeed": "Predpokladaná rýchlosť letu",
+  "aircraftCruiseSpeed": "Cestovná rýchlosť",
   "groundSpeed": "Rýchlosť voči zemi",
   "navigationRequiresLocation": "Najprv potrebujem aktuálnu polohu.",
   "noNavigationPoints": "Žiadne body navigácie. Pridajte body kliknutím na mapu.",

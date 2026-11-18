@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
+import 'package:stork/features/weather/domain/forecast_route.dart';
 
 void main() {
   test(
@@ -128,4 +129,35 @@ void main() {
       expect(requests, 3);
     },
   );
+
+  test('reuses one profile location within a ~3 km grid cell', () {
+    const base = (latitude: 48.17, longitude: 17.21);
+    const nearby = (latitude: 48.171, longitude: 17.211);
+    const distant = (latitude: 48.24, longitude: 17.21);
+    final eta = DateTime.utc(2026, 11, 16, 14);
+
+    expect(quantizeForecastLocation(nearby), quantizeForecastLocation(base));
+    expect(
+      quantizeForecastLocation(distant),
+      isNot(quantizeForecastLocation(base)),
+    );
+
+    ForecastRoutePoint point(
+      String id,
+      ({double latitude, double longitude}) location,
+    ) => ForecastRoutePoint(
+      id: id,
+      location: location,
+      eta: eta,
+      duration: Duration.zero,
+      distanceMeters: 0,
+      altitudeFeet: null,
+    );
+
+    expect(
+      forecastProfileLocation(point('origin', base)),
+      quantizeForecastLocation(base),
+    );
+    expect(forecastProfileLocation(point('waypoint-0', nearby)), nearby);
+  });
 }
