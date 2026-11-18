@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:stork/core/utils/geo_utils.dart';
-import 'package:stork/features/route/domain/models/navigation_point.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/weather/data/repositories/flight_forecast_repository.dart';
 import 'package:stork/features/weather/domain/flight_forecast.dart';
 import 'package:stork/features/weather/domain/forecast_query.dart';

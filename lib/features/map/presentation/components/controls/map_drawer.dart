@@ -10,7 +10,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../../../../../core/widgets/stork_navigation_tile.dart';
 import '../../../../../l10n/app_localizations.dart';
-import '../../../../route/presentation/providers/navigation_provider.dart';
+import '../../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../../offline_maps/presentation/providers/offline_maps_provider.dart';
 import '../../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../../settings/presentation/providers/pilot_provider.dart';

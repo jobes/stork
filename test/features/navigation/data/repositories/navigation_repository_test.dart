@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:stork/features/route/data/repositories/navigation_repository.dart';
-import 'package:stork/features/route/domain/models/navigation_state.dart';
-import 'package:stork/features/route/domain/models/navigation_point.dart';
+import 'package:stork/features/navigation/data/repositories/navigation_repository.dart';
+import 'package:stork/features/navigation/domain/models/navigation_state.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 
 void main() {
   group('NavigationRepository Tests', () {

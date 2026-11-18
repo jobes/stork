@@ -43,9 +43,7 @@ String _buildFlightWeatherGeoJson(_ForecastMapInput input) {
       kind = mapped ? 'mapped' : 'waypoint';
     } else {
       if (!input.enabled) continue;
-      kind = point.id == 'aircraft' || point.id == 'origin'
-          ? 'aircraft'
-          : 'sample';
+      kind = isAircraftForecastPoint(point.id) ? 'aircraft' : 'sample';
     }
     final wind = input.winds[point.id];
     features.add({
@@ -271,8 +269,7 @@ extension on MapCamera {
     final route = refAccess.read(navigationProvider).value?.points ?? [];
     final favorites = refAccess.read(favoritesProvider).value ?? [];
     final start = points.isEmpty ? null : points.first;
-    final aircraftAtStart =
-        start != null && (start.id == 'aircraft' || start.id == 'origin');
+    final aircraftAtStart = start != null && isAircraftForecastPoint(start.id);
     if (!enabled || !aircraftAtStart) {
       return (
         enabled: enabled,
@@ -292,7 +289,7 @@ extension on MapCamera {
     final winds = <String, _WindMarker>{};
     for (final point in points) {
       final data = pointWinds[point.id];
-      final isAircraft = point.id == 'aircraft' || point.id == 'origin';
+      final isAircraft = isAircraftForecastPoint(point.id);
       if (data == null && !isAircraft) continue;
       final wind = data?.wind;
       final speed = wind == null

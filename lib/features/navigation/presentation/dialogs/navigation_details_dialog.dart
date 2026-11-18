@@ -5,7 +5,7 @@ import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';

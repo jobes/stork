@@ -22,9 +22,6 @@ const forecastWindHeights = [10, 80, 120, 180];
 const forecastTemperatureHeights = [2, 80, 120, 180];
 const forecastGustField = 'wind_gusts_10m';
 
-double _interpolate(double a, double b, double fraction) =>
-    a + (b - a) * fraction;
-
 /// Parsed Open-Meteo hourly profile: model elevation, timestamps and the raw
 /// hourly columns. Interpolates wind, temperature, pressure and precipitation
 /// for a requested time and altitude.
@@ -123,7 +120,7 @@ class ForecastSeries implements ForecastProfile {
     final temperature = canSampleAltitude
         ? interpolateTime(
             (i) => _temperatureAt(i, altitudeMeters, minimumHeight),
-            _interpolate,
+            linearInterpolate,
           )
         : null;
 
@@ -134,11 +131,11 @@ class ForecastSeries implements ForecastProfile {
         !time.isBefore(times[interval].subtract(const Duration(hours: 1)));
     final surfacePressure = interpolateTime(
       (i) => _value('surface_pressure', i),
-      _interpolate,
+      linearInterpolate,
     );
     final surfaceTemperature = interpolateTime(
       (i) => _value('temperature_2m', i),
-      _interpolate,
+      linearInterpolate,
     );
     final elevation = pressureReferenceMeters ?? modelElevationMeters;
     double? referencePressure = surfacePressure;
@@ -161,16 +158,11 @@ class ForecastSeries implements ForecastProfile {
       precipitationMm: hasInterval ? _value('precipitation', interval) : null,
       lowCloudPercent: interpolateTime(
         (i) => _value('cloud_cover_low', i),
-        _interpolate,
+        linearInterpolate,
       ),
-      qnhHpa: referencePressure != null
-          ? AviationMath.altitudeToQnhHpa(referencePressure * 100, elevation)
-          : surfacePressure == null
+      qnhHpa: referencePressure == null
           ? null
-          : AviationMath.altitudeToQnhHpa(
-              surfacePressure * 100,
-              modelElevationMeters,
-            ),
+          : AviationMath.altitudeToQnhHpa(referencePressure * 100, elevation),
       qfeHpa: pressureReferenceMeters == null ? null : referencePressure,
       intervalEnd: hasInterval ? times[interval] : null,
       downloadedAt: downloadedAt,
@@ -227,7 +219,7 @@ class ForecastSeries implements ForecastProfile {
       final elevation = modelElevationMeters + height;
       if (elevation >= minimumHeight) add(elevation, '${height}m');
     }
-    return _atHeight(samples, altitude, _interpolate);
+    return _atHeight(samples, altitude, linearInterpolate);
   }
 
   T? _atHeight<T extends Object>(

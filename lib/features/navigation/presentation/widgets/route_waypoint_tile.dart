@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../route/domain/models/navigation_leg.dart';
-import '../../../route/domain/models/navigation_point.dart';
+import '../../domain/models/navigation_leg.dart';
+import '../../domain/models/navigation_point.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
 import '../../../weather/domain/weather_hazard.dart';

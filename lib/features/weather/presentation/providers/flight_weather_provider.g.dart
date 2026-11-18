@@ -131,7 +131,7 @@ final class FlightWeatherPlanNotifierProvider
 }
 
 String _$flightWeatherPlanNotifierHash() =>
-    r'5801f226d1a8d447ee9989df4b20e4cf29bbd9e3';
+    r'8ec5c3fea59bc80803fd8dc570b337462fa21f8e';
 
 abstract class _$FlightWeatherPlanNotifier
     extends $Notifier<List<ForecastRoutePoint>> {
@@ -193,7 +193,7 @@ final class FlightWeatherOriginProvider
 }
 
 String _$flightWeatherOriginHash() =>
-    r'37bf28fec3b06abb464ea24da9f36457a9cb2156';
+    r'b00088efe94e9bef2e904d3e3e95915c36066121';
 
 /// Latches the profile location for the moving aircraft. Small movements reuse
 /// the previous profile instead of requesting a new one every grid cell.
@@ -273,7 +273,7 @@ final class FlightWeatherProfileLocationsProvider
 }
 
 String _$flightWeatherProfileLocationsHash() =>
-    r'9f71a35dcdba935ab0d2bc0134c74b77fb570391';
+    r'e823d55d7717db2944502d6350e3d735db870125';
 
 @ProviderFor(FlightWeatherQuery)
 final flightWeatherQueryProvider = FlightWeatherQueryProvider._();

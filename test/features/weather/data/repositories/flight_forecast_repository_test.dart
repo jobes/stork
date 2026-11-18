@@ -197,6 +197,13 @@ void main() {
 
       await repository.load(query);
       expect(requests, 3);
+
+      // A manual refresh retries the location the model did not cover.
+      repository.requestRefresh();
+      final refreshed = await repository.load(query);
+      expect(requests, 6);
+      expect(refreshed.refreshFailed, isFalse);
+      expect(refreshed.series.keys, [forecastLocationKey(location)]);
     },
   );
 

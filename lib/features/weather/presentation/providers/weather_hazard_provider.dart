@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/flight_forecast.dart';

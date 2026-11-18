@@ -21,20 +21,23 @@ class StorkDetailSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final content = Padding(padding: padding, child: child);
     return Container(
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: scheme.outlineVariant),
       ),
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(radius),
-          child: Padding(padding: padding, child: child),
-        ),
-      ),
+      child: onTap == null
+          ? content
+          : Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(radius),
+                child: content,
+              ),
+            ),
     );
   }
 }

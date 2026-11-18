@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../core/utils/geo_utils.dart';
-import '../../route/domain/models/navigation_point.dart';
+import '../../navigation/domain/models/navigation_point.dart';
 import 'flight_forecast.dart';
 
 part 'forecast_route.freezed.dart';
@@ -132,7 +132,7 @@ class ForecastRoute {
     if (points.isEmpty) {
       return [
         ForecastRoutePoint(
-          id: 'aircraft',
+          id: forecastAircraftPointId,
           location: position,
           eta: departure,
           duration: Duration.zero,
@@ -184,7 +184,7 @@ class ForecastRoute {
         : 0.0;
     result.add(
       point(
-        id: 'origin',
+        id: forecastOriginPointId,
         location: origin,
         distance: 0,
         feet: originFraction == 0
@@ -199,7 +199,7 @@ class ForecastRoute {
       distances.add(distance);
       result.add(
         point(
-          id: 'waypoint-${index + offset}',
+          id: forecastWaypointPointId(index + offset),
           location: waypointLocation(waypoint),
           distance: distance,
           feet: altitude(index),
@@ -225,7 +225,7 @@ class ForecastRoute {
       );
       result.add(
         point(
-          id: 'sample-$index',
+          id: forecastSamplePointId(index),
           location: sample.location,
           distance: sampleDistance,
           feet: height,

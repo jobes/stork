@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stork/features/route/domain/models/navigation_point.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/weather/domain/forecast_route.dart';
 
 void main() {

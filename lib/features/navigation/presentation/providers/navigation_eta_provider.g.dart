@@ -9,15 +9,15 @@ part of 'navigation_eta_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Navigation-facing arrival estimates. The wind-adjusted timing comes from
-/// the weather feature, so this aggregate stays in the navigation UI and adds
-/// nothing when the forecast is disabled or unavailable.
+/// the weather feature while the aggregate stays with the navigation UI, so it
+/// falls back to the plan's speed-based ETA when no forecast is available.
 
 @ProviderFor(navigationEta)
 final navigationEtaProvider = NavigationEtaProvider._();
 
 /// Navigation-facing arrival estimates. The wind-adjusted timing comes from
-/// the weather feature, so this aggregate stays in the navigation UI and adds
-/// nothing when the forecast is disabled or unavailable.
+/// the weather feature while the aggregate stays with the navigation UI, so it
+/// falls back to the plan's speed-based ETA when no forecast is available.
 
 final class NavigationEtaProvider
     extends
@@ -28,8 +28,8 @@ final class NavigationEtaProvider
         >
     with $Provider<NavigationCalculations> {
   /// Navigation-facing arrival estimates. The wind-adjusted timing comes from
-  /// the weather feature, so this aggregate stays in the navigation UI and adds
-  /// nothing when the forecast is disabled or unavailable.
+  /// the weather feature while the aggregate stays with the navigation UI, so it
+  /// falls back to the plan's speed-based ETA when no forecast is available.
   NavigationEtaProvider._()
     : super(
         from: null,

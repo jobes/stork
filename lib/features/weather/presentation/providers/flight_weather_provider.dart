@@ -8,7 +8,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/terrain_elevation_service.dart';
 import '../../../../core/utils/geo_utils.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../../../navigation/domain/models/navigation_point.dart';
+import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
@@ -43,13 +44,76 @@ Stream<DateTime> flightWeatherClock(Ref ref) async* {
   yield* Stream.periodic(const Duration(seconds: 15), (_) => clock.now());
 }
 
+/// Plan state that must survive rebuilds: the route geometry, the waypoints it
+/// was built from and the last emitted plan. Immutable so `build` swaps one
+/// value instead of mutating separate fields.
+class _PlanCache {
+  const _PlanCache({
+    this.route,
+    this.waypoints = const [],
+    this.plan,
+    this.previousWaypointAltitudeFeet,
+    this.wasFlying = false,
+  });
+
+  final ForecastRoute? route;
+  final List<NavigationPoint> waypoints;
+  final List<ForecastRoutePoint>? plan;
+  final int? previousWaypointAltitudeFeet;
+  final bool wasFlying;
+
+  _PlanCache copyWith({List<ForecastRoutePoint>? plan}) => _PlanCache(
+    route: route,
+    waypoints: waypoints,
+    plan: plan ?? this.plan,
+    previousWaypointAltitudeFeet: previousWaypointAltitudeFeet,
+    wasFlying: wasFlying,
+  );
+}
+
+/// Re-plans the route geometry only when the waypoints or the ground position
+/// make the previous geometry unusable. Auto-advanced removals keep the
+/// existing samples so they stay in place while flying.
+_PlanCache _advancePlan(
+  _PlanCache previous, {
+  required List<NavigationPoint> waypoints,
+  required ForecastLocation position,
+  required double cruiseSpeed,
+  required bool flying,
+  required bool wasAutoAdvanced,
+}) {
+  final route = previous.route;
+  final removedCount = previous.waypoints.length - waypoints.length;
+  final needsNewGeometry =
+      route == null ||
+      !route.matches(waypoints) ||
+      (!flying &&
+          (previous.wasFlying ||
+              route.planningSpeed != cruiseSpeed ||
+              _movedFrom(route.origin, position))) ||
+      (removedCount != 0 && !wasAutoAdvanced);
+  if (needsNewGeometry) {
+    return _PlanCache(
+      route: ForecastRoute.plan(position, waypoints, cruiseSpeed),
+      waypoints: waypoints,
+      plan: previous.plan,
+      wasFlying: flying,
+    );
+  }
+  return _PlanCache(
+    route: route,
+    waypoints: waypoints,
+    plan: previous.plan,
+    previousWaypointAltitudeFeet: removedCount > 0
+        ? previous.waypoints[removedCount - 1].weatherAltitudeFeet
+        : previous.previousWaypointAltitudeFeet,
+    wasFlying: flying,
+  );
+}
+
 @riverpod
 class FlightWeatherPlanNotifier extends _$FlightWeatherPlanNotifier {
-  ForecastRoute? _plannedRoute;
-  List<NavigationPoint> _lastWaypoints = const [];
-  List<ForecastRoutePoint>? _lastPlan;
-  int? _previousWaypointAltitudeFeet;
-  bool _wasFlying = false;
+  _PlanCache _cache = const _PlanCache();
 
   @override
   List<ForecastRoutePoint> build() {
@@ -94,42 +158,34 @@ class FlightWeatherPlanNotifier extends _$FlightWeatherPlanNotifier {
             reportedSpeed > 0
         ? reportedSpeed
         : cruiseSpeed;
-    final plan = _plannedRoute;
-
-    final removedCount = _lastWaypoints.length - waypoints.length;
-    if (plan == null ||
-        !plan.matches(waypoints) ||
-        (!flying &&
-            (_wasFlying ||
-                plan.planningSpeed != cruiseSpeed ||
-                _movedFrom(plan.origin, position))) ||
-        (removedCount != 0 && route?.wasAutoAdvanced != true)) {
-      _plannedRoute = ForecastRoute.plan(position, waypoints, cruiseSpeed);
-      _previousWaypointAltitudeFeet = null;
-    } else if (removedCount > 0) {
-      _previousWaypointAltitudeFeet =
-          _lastWaypoints[removedCount - 1].weatherAltitudeFeet;
-    }
-    _lastWaypoints = waypoints;
-    _wasFlying = flying;
+    final cache = _advancePlan(
+      _cache,
+      waypoints: waypoints,
+      position: position,
+      cruiseSpeed: cruiseSpeed,
+      flying: flying,
+      wasAutoAdvanced: route?.wasAutoAdvanced ?? false,
+    );
     final departure =
         flying || plannedDeparture == null || plannedDeparture.isBefore(now)
         ? now
         : plannedDeparture;
-    final forecastPoints = _plannedRoute!.forecastPoints(
+    final forecastPoints = cache.route!.forecastPoints(
       position: position,
       points: waypoints,
       departure: waypoints.isEmpty ? now : departure,
       groundSpeed: groundSpeed,
       flying: flying,
       defaultAltitudeFeet: defaultFeet,
-      previousWaypointAltitudeFeet: _previousWaypointAltitudeFeet,
+      previousWaypointAltitudeFeet: cache.previousWaypointAltitudeFeet,
     );
-    final previous = _lastPlan;
-    if (previous != null && listEquals(previous, forecastPoints)) {
-      return previous;
+    final previousPlan = cache.plan;
+    if (previousPlan != null && listEquals(previousPlan, forecastPoints)) {
+      _cache = cache;
+      return previousPlan;
     }
-    return _lastPlan = forecastPoints;
+    _cache = cache.copyWith(plan: forecastPoints);
+    return forecastPoints;
   }
 }
 
@@ -146,21 +202,25 @@ class FlightWeatherOrigin extends _$FlightWeatherOrigin {
       _latched = null;
       return null;
     }
-    final position = points.first.location;
-    final latched = _latched;
-    if (latched == null ||
+    return _latched = _latchOrigin(_latched, points.first.location);
+  }
+}
+
+/// Keeps the previous location until the aircraft has moved far enough.
+ForecastLocation _latchOrigin(
+  ForecastLocation? latched,
+  ForecastLocation position,
+) =>
+    latched == null ||
         GeoUtils.distanceBetween(
               latched.latitude,
               latched.longitude,
               position.latitude,
               position.longitude,
             ) >=
-            forecastOriginRefreshDistanceMeters) {
-      _latched = position;
-    }
-    return _latched;
-  }
-}
+            forecastOriginRefreshDistanceMeters
+    ? position
+    : latched;
 
 /// Profile lookup location for every plan point. The aircraft uses the latched
 /// location so lookups keep working while the previous profile is reused.
@@ -173,7 +233,7 @@ Map<String, ForecastLocation> flightWeatherProfileLocations(Ref ref) {
       : quantizeForecastLocation(origin);
   return {
     for (final point in points)
-      point.id: point.id == 'origin' || point.id == 'aircraft'
+      point.id: isAircraftForecastPoint(point.id)
           ? originLocation ?? quantizeForecastLocation(point.location)
           : point.location,
   };

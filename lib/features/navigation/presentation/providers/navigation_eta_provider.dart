@@ -1,6 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../../domain/models/navigation_calculations.dart';
+import '../../domain/models/navigation_leg.dart';
+import '../../domain/models/navigation_point.dart';
+import 'navigation_provider.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../../weather/presentation/providers/route_timing_provider.dart';
 

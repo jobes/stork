@@ -46,6 +46,9 @@ class AviationMath {
 
   /// Calculates the reference pressure (QNH) in hPa for a given measured air pressure (in Pa)
   /// at a known altitude (in meters).
+  ///
+  /// Negative altitudes are not clamped: below sea level the standard-atmosphere
+  /// base factor exceeds 1, so the reference pressure is lower than the measurement.
   static double altitudeToQnhHpa(double pressurePa, double altitudeMeters) {
     final double base = math.max(0.0001, 1.0 - altitudeMeters / 44330.77);
     final double power = math.pow(base, barometricExponent).toDouble();

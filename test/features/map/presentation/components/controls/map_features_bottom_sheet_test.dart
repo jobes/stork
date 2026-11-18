@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/core/theme/stork_colors.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
-import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/map/domain/models/poi_type.dart';
 import 'package:stork/features/map/presentation/components/controls/map_features_bottom_sheet.dart';
 import 'package:stork/features/map/presentation/components/dialogs/airport_details_dialog.dart';

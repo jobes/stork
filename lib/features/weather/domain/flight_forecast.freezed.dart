@@ -13,6 +13,273 @@ part of 'flight_forecast.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
+mixin _$ForecastWind {
+
+ double get east; double get north;
+/// Create a copy of ForecastWind
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ForecastWindCopyWith<ForecastWind> get copyWith => _$ForecastWindCopyWithImpl<ForecastWind>(this as ForecastWind, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as ForecastWind;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ForecastWind&&(identical(other.east, _this.east) || other.east == _this.east)&&(identical(other.north, _this.north) || other.north == _this.north));
+}
+
+
+@override
+int get hashCode {
+  final _this = this as ForecastWind;
+  return Object.hash(runtimeType,_this.east,_this.north);
+}
+
+@override
+String toString() {
+  final _this = this as ForecastWind;
+  return 'ForecastWind(east: ${_this.east}, north: ${_this.north})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ForecastWindCopyWith<$Res>  {
+  factory $ForecastWindCopyWith(ForecastWind value, $Res Function(ForecastWind) _then) = _$ForecastWindCopyWithImpl;
+@useResult
+$Res call({
+ double east, double north
+});
+
+
+
+
+}
+/// @nodoc
+class _$ForecastWindCopyWithImpl<$Res>
+    implements $ForecastWindCopyWith<$Res> {
+  _$ForecastWindCopyWithImpl(this._self, this._then);
+
+  final ForecastWind _self;
+  final $Res Function(ForecastWind) _then;
+
+/// Create a copy of ForecastWind
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? east = null,Object? north = null,}) {
+  return _then(ForecastWind(
+null == east ? _self.east : east // ignore: cast_nullable_to_non_nullable
+as double,null == north ? _self.north : north // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ForecastWind].
+extension ForecastWindPatterns on ForecastWind {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ForecastWind value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ForecastWind() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ForecastWind value)  $default,){
+final _that = this;
+switch (_that) {
+case _ForecastWind():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ForecastWind value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ForecastWind() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double east,  double north)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ForecastWind() when $default != null:
+return $default(_that.east,_that.north);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double east,  double north)  $default,) {final _that = this;
+switch (_that) {
+case _ForecastWind():
+return $default(_that.east,_that.north);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double east,  double north)?  $default,) {final _that = this;
+switch (_that) {
+case _ForecastWind() when $default != null:
+return $default(_that.east,_that.north);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _ForecastWind extends ForecastWind {
+  const _ForecastWind(this.east, this.north): super._();
+  
+
+@override final  double east;
+@override final  double north;
+
+/// Create a copy of ForecastWind
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ForecastWindCopyWith<_ForecastWind> get copyWith => __$ForecastWindCopyWithImpl<_ForecastWind>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ForecastWind&&(identical(other.east, east) || other.east == east)&&(identical(other.north, north) || other.north == north));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,east,north);
+}
+
+@override
+String toString() {
+    return 'ForecastWind(east: $east, north: $north)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ForecastWindCopyWith<$Res> implements $ForecastWindCopyWith<$Res> {
+  factory _$ForecastWindCopyWith(_ForecastWind value, $Res Function(_ForecastWind) _then) = __$ForecastWindCopyWithImpl;
+@override @useResult
+$Res call({
+ double east, double north
+});
+
+
+
+
+}
+/// @nodoc
+class __$ForecastWindCopyWithImpl<$Res>
+    implements _$ForecastWindCopyWith<$Res> {
+  __$ForecastWindCopyWithImpl(this._self, this._then);
+
+  final _ForecastWind _self;
+  final $Res Function(_ForecastWind) _then;
+
+/// Create a copy of ForecastWind
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? east = null,Object? north = null,}) {
+  return _then(_ForecastWind(
+null == east ? _self.east : east // ignore: cast_nullable_to_non_nullable
+as double,null == north ? _self.north : north // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$FlightForecast {
 
  ForecastWind? get wind; double? get temperatureC; double? get gustMs; double? get precipitationMm; double? get lowCloudPercent; double? get qnhHpa; double? get qfeHpa; DateTime? get intervalEnd; DateTime get downloadedAt; int? get weatherCode;
@@ -55,7 +322,7 @@ $Res call({
 });
 
 
-
+$ForecastWindCopyWith<$Res>? get wind;
 
 }
 /// @nodoc
@@ -83,7 +350,19 @@ as DateTime,weatherCode: freezed == weatherCode ? _self.weatherCode : weatherCod
 as int?,
   ));
 }
+/// Create a copy of FlightForecast
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ForecastWindCopyWith<$Res>? get wind {
+    if (_self.wind == null) {
+    return null;
+  }
 
+  return $ForecastWindCopyWith<$Res>(_self.wind!, (value) {
+    return _then(_self.copyWith(wind: value));
+  });
+}
 }
 
 
@@ -271,7 +550,7 @@ $Res call({
 });
 
 
-
+@override $ForecastWindCopyWith<$Res>? get wind;
 
 }
 /// @nodoc
@@ -300,7 +579,19 @@ as int?,
   ));
 }
 
+/// Create a copy of FlightForecast
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ForecastWindCopyWith<$Res>? get wind {
+    if (_self.wind == null) {
+    return null;
+  }
 
+  return $ForecastWindCopyWith<$Res>(_self.wind!, (value) {
+    return _then(_self.copyWith(wind: value));
+  });
+}
 }
 
 // dart format on

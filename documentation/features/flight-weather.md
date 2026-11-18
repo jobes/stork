@@ -57,7 +57,8 @@ with critical system and collision alerts retaining priority.
 When a refresh fails but the session already holds profiles, the indicator adds
 an informational **Forecast not up to date** condition. Its dialog shows the
 reason and offers **Refresh forecast**, which requests a new profile for every
-location of the current plan. The condition is hidden while a refresh is running
+location of the current plan, including locations the model did not cover in an
+earlier request. The condition is hidden while a refresh is running
 and returns only if that refresh fails again. A missing forecast is not reported
 as an alert because every place that uses it already shows it as unavailable.
 

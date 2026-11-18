@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/utils/geo_utils.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../../../navigation/domain/models/navigation_point.dart';
+import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/domain/models/resolved_altitude.dart';
@@ -19,11 +20,77 @@ import 'flight_weather_provider.dart';
 part 'route_timing_provider.g.dart';
 
 typedef _GpsFix = ({ForecastLocation location, DateTime time});
+typedef _GroundTrackState = ({_GpsFix? previous, GroundTrack? track});
+typedef _GroundTrackTelemetry = ({
+  double? latitude,
+  double? longitude,
+  bool isFlying,
+  DateTime? gpsLastFixAt,
+  double? gpsHorizontalAccuracy,
+  double? groundSpeed,
+});
+
+/// Advances the measured GPS ground vector from one telemetry sample to the
+/// next. The vector is smoothed during steady flight and reset on a turn.
+_GroundTrackState _advanceGroundTrack(
+  _GroundTrackState state,
+  _GroundTrackTelemetry telemetry,
+  DateTime now,
+) {
+  const _GroundTrackState clear = (previous: null, track: null);
+  if (!telemetry.isFlying) return clear;
+  final latitude = telemetry.latitude;
+  final longitude = telemetry.longitude;
+  final measuredAt = telemetry.gpsLastFixAt;
+  final speed = telemetry.groundSpeed;
+  if (latitude == null ||
+      longitude == null ||
+      measuredAt == null ||
+      now.difference(measuredAt) > const Duration(seconds: 15) ||
+      speed == null ||
+      !speed.isFinite ||
+      speed <= 0) {
+    return clear;
+  }
+  final previous = state.previous;
+  if (previous != null && !measuredAt.isAfter(previous.time)) return state;
+  final location = (latitude: latitude, longitude: longitude);
+  final current = (location: location, time: measuredAt);
+  if (previous == null ||
+      measuredAt.difference(previous.time) > const Duration(seconds: 15)) {
+    return (previous: current, track: null);
+  }
+
+  final moved = GeoUtils.distanceBetween(
+    previous.location.latitude,
+    previous.location.longitude,
+    latitude,
+    longitude,
+  );
+  final accuracy = telemetry.gpsHorizontalAccuracy ?? 0;
+  if (moved < (accuracy > 20 ? accuracy : 20)) {
+    return (previous: current, track: null);
+  }
+
+  final bearing = forecastBearing(previous.location, location);
+  final track = state.track;
+  if (track == null ||
+      trackDifference(bearing, track.bearing) > maxGpsTrackDifference) {
+    return (previous: current, track: (speedMs: speed, bearing: bearing));
+  }
+  final turn = (bearing - track.bearing + 180) % 360 - 180;
+  return (
+    previous: current,
+    track: (
+      speedMs: track.speedMs + 0.4 * (speed - track.speedMs),
+      bearing: (track.bearing + 0.4 * turn) % 360,
+    ),
+  );
+}
 
 @riverpod
 class NavigationGroundTrackNotifier extends _$NavigationGroundTrackNotifier {
-  _GpsFix? _previous;
-  GroundTrack? _track;
+  _GroundTrackState _state = (previous: null, track: null);
 
   @override
   GroundTrack? build() {
@@ -39,54 +106,11 @@ class NavigationGroundTrackNotifier extends _$NavigationGroundTrackNotifier {
         ),
       ),
     );
-    if (!telemetry.isFlying) {
-      _previous = null;
-      return _track = null;
-    }
-    final now = ref.watch(flightWeatherClockProvider).value ?? clock.now();
-    final latitude = telemetry.latitude;
-    final longitude = telemetry.longitude;
-    final measuredAt = telemetry.gpsLastFixAt;
-    final speed = telemetry.groundSpeed;
-    if (latitude == null ||
-        longitude == null ||
-        measuredAt == null ||
-        now.difference(measuredAt) > const Duration(seconds: 15) ||
-        speed == null ||
-        !speed.isFinite ||
-        speed <= 0) {
-      _previous = null;
-      return _track = null;
-    }
-    final previous = _previous;
-    if (previous != null && !measuredAt.isAfter(previous.time)) return _track;
-    final location = (latitude: latitude, longitude: longitude);
-    _previous = (location: location, time: measuredAt);
-    if (previous == null ||
-        measuredAt.difference(previous.time) > const Duration(seconds: 15)) {
-      return _track = null;
-    }
-
-    final moved = GeoUtils.distanceBetween(
-      previous.location.latitude,
-      previous.location.longitude,
-      latitude,
-      longitude,
-    );
-    final accuracy = telemetry.gpsHorizontalAccuracy ?? 0;
-    if (moved < (accuracy > 20 ? accuracy : 20)) return _track = null;
-
-    final bearing = forecastBearing(previous.location, location);
-    final track = _track;
-    if (track == null ||
-        trackDifference(bearing, track.bearing) > maxGpsTrackDifference) {
-      return _track = (speedMs: speed, bearing: bearing);
-    }
-    final turn = (bearing - track.bearing + 180) % 360 - 180;
-    return _track = (
-      speedMs: track.speedMs + 0.4 * (speed - track.speedMs),
-      bearing: (track.bearing + 0.4 * turn) % 360,
-    );
+    final now = telemetry.isFlying
+        ? ref.watch(flightWeatherClockProvider).value ?? clock.now()
+        : clock.now();
+    _state = _advanceGroundTrack(_state, telemetry, now);
+    return _state.track;
   }
 }
 
@@ -145,6 +169,8 @@ WindTimingKey _windTimingKey(Ref ref) => (
 
 @riverpod
 class RouteWindTimingNotifier extends _$RouteWindTimingNotifier {
+  /// Latest isolate job. Kept only for single-flight coordination with the
+  /// revision counter, which discards results superseded by a newer build.
   Future<Map<String, TimedRoutePoint>>? _running;
   int _revision = 0;
 
@@ -152,7 +178,7 @@ class RouteWindTimingNotifier extends _$RouteWindTimingNotifier {
   Future<WindTimingResult?> build() async {
     final revision = ++_revision;
     final points = ref.watch(flightWeatherPlanProvider);
-    if (points.isEmpty || points.first.id != 'origin') return null;
+    if (points.isEmpty || points.first.id != forecastOriginPointId) return null;
     final enabled = ref.watch(
       appSettingsProvider.select((s) => s.value?.showFlightWeather ?? false),
     );
@@ -247,7 +273,9 @@ class RouteWindTimingNotifier extends _$RouteWindTimingNotifier {
 @riverpod
 Map<String, TimedRoutePoint> routePointTiming(Ref ref) {
   final points = ref.watch(flightWeatherPlanProvider);
-  if (points.isEmpty || points.first.id != 'origin') return const {};
+  if (points.isEmpty || points.first.id != forecastOriginPointId) {
+    return const {};
+  }
   final key = ref.watch(_windTimingKeyProvider);
   final enabled = ref.watch(
     appSettingsProvider.select((s) => s.value?.showFlightWeather ?? false),
@@ -261,17 +289,21 @@ Map<String, TimedRoutePoint> routePointTiming(Ref ref) {
       ? RouteTimingSource.gps
       : RouteTimingSource.profile;
 
-  return {
-    for (final point in points)
-      point.id: usable?.locations[point.id] == point.location
-          ? usable!.timing[point.id]!
-          : (
-              eta: point.eta,
-              duration: point.duration,
-              sources: point.id == 'origin'
-                  ? const <RouteTimingSource>{}
-                  : {source},
-              windEffect: null,
-            ),
-  };
+  TimedRoutePoint baseline(ForecastRoutePoint point) => (
+    eta: point.eta,
+    duration: point.duration,
+    sources: point.id == forecastOriginPointId
+        ? const <RouteTimingSource>{}
+        : {source},
+    windEffect: null,
+  );
+
+  TimedRoutePoint timingFor(ForecastRoutePoint point) {
+    if (usable == null || usable.locations[point.id] != point.location) {
+      return baseline(point);
+    }
+    return usable.timing[point.id] ?? baseline(point);
+  }
+
+  return {for (final point in points) point.id: timingFor(point)};
 }

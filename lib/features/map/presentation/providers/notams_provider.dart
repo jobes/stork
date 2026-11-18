@@ -6,7 +6,7 @@ import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/utils/geo_utils.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../offline_maps/presentation/providers/offline_maps_provider.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../data/repositories/notam_catalog_repository.dart';

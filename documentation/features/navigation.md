@@ -33,19 +33,19 @@ graph TD
     Calc -->|Expose calculations| NavUI[NavigationPage & Map Widget]
 ```
 
-Route state, models and persistence live in `lib/features/route/`. Weather planning consumes the route state without importing navigation UI. Weather owns the wind-adjusted timing (`route_timing_provider.dart`), while the navigation-facing `NavigationCalculations` aggregate lives with the navigation UI, so navigation pages consume both the route state and the weather timing providers.
+Route state, models, persistence and the navigation UI form one feature in `lib/features/navigation/`: the domain models and the `SharedPreferences` repository sit in `domain/` and `data/`, while pages, dialogs, widgets and the Riverpod notifiers sit in `presentation/`. Weather planning reads the route state from the navigation domain without importing navigation UI and owns the wind-adjusted timing (`route_timing_provider.dart`) in the weather feature. The navigation-facing `NavigationCalculations` aggregate is produced by `navigation_eta_provider.dart`, which joins the route state with that timing.
 
 ### 2.1. Domain Models
 The navigation domain is built on three core classes:
 
-1.  **[NavigationPoint](../../lib/features/route/domain/models/navigation_point.dart)**: Represents a single waypoint.
+1.  **[NavigationPoint](../../lib/features/navigation/domain/models/navigation_point.dart)**: Represents a single waypoint.
     *   `latitude` and `longitude`: The geographic location.
     *   `name`: The display label (e.g., airport name, ICAO code, place name, or coordinate string).
     *   `isAirport`: Flag identifying if the point is an airport (which shows specific airport icons in list items and menus).
-2.  **[NavigationState](../../lib/features/route/domain/models/navigation_state.dart)**: The overall state of the navigation.
+2.  **[NavigationState](../../lib/features/navigation/domain/models/navigation_state.dart)**: The overall state of the navigation.
     *   `points`: The ordered list of active `NavigationPoint`s.
     *   `isActive`: A boolean indicating whether route tracking is active.
-3.  **[NavigationLeg](../../lib/features/route/domain/models/navigation_leg.dart)**: Represents a segment of the flight route.
+3.  **[NavigationLeg](../../lib/features/navigation/domain/models/navigation_leg.dart)**: Represents a segment of the flight route.
     *   `point`: The target waypoint.
     *   `legDistanceMeters`: The distance from the previous point (or aircraft's current location) to this waypoint.
     *   `legDuration`: ETE for this specific leg.
@@ -80,7 +80,7 @@ The speed used to calculate travel times is resolved dynamically:
 
 ## 4. 60-Second Auto-Advance Logic
 
-To prevent pilots from needing to manually clear waypoints in flight, the application features an automated waypoint advancement loop managed by the [navigationAutoAdvanceProvider](../../lib/features/route/presentation/providers/navigation_provider.dart).
+To prevent pilots from needing to manually clear waypoints in flight, the application features an automated waypoint advancement loop managed by the [navigationAutoAdvanceProvider](../../lib/features/navigation/presentation/providers/navigation_provider.dart).
 
 ### 4.1. Rules & Invariants
 - The provider listens to the `telemetryProvider` stream.
@@ -109,7 +109,7 @@ for (final p in navState.points) {
 If `removeCount > 0`, a batch removal is requested.
 
 ### 4.3. Concurrency Protection
-To prevent overlapping auto-advance operations (since telemetry updates at 10Hz/50Hz, while database writes are asynchronous), the [NavigationNotifier](../../lib/features/route/presentation/providers/navigation_provider.dart) maintains an internal `_isAutoAdvancing` guard:
+To prevent overlapping auto-advance operations (since telemetry updates at 10Hz/50Hz, while database writes are asynchronous), the [NavigationNotifier](../../lib/features/navigation/presentation/providers/navigation_provider.dart) maintains an internal `_isAutoAdvancing` guard:
 - During the asynchronous write, `_isAutoAdvancing` is set to `true`.
 - Any subsequent proximity updates are ignored until the write completes and the state updates.
 

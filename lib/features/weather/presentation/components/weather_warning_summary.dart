@@ -4,10 +4,11 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
+import '../../domain/flight_forecast.dart';
 import '../../domain/weather_hazard.dart';
 import '../dialogs/flight_weather_details_dialog.dart';
 import '../providers/flight_weather_provider.dart';
@@ -61,7 +62,7 @@ class WeatherWarningSummary extends ConsumerWidget {
                     final index = point?.waypointIndex;
                     final name = index != null && index < route.length
                         ? route[index].name
-                        : detail.pointId == 'origin'
+                        : detail.pointId == forecastOriginPointId
                         ? l10n.weatherRouteStart
                         : l10n.weatherRouteSampleLocation;
                     final coordinates =
@@ -69,18 +70,35 @@ class WeatherWarningSummary extends ConsumerWidget {
                     final reasons = [
                       for (final hazard in detail.hazards)
                         switch (hazard) {
-                          WeatherHazard.wind => l10n.weatherExceededWind(
-                            speed(detail.windMs!),
-                            speed(detail.windLimitMs!),
-                          ),
-                          WeatherHazard.gust => l10n.weatherExceededGust(
-                            speed(detail.gustMs!),
-                            speed(detail.gustLimitMs!),
-                          ),
-                          WeatherHazard.precipitation =>
-                            detail.precipitationMm == null
-                                ? l10n.weatherAlertPrecipitationTitle
-                                : '${l10n.weatherPrecipitation} · ${context.formatNumber(detail.precipitationMm!, 1)} mm',
+                          WeatherHazard.wind => switch ((
+                            detail.windMs,
+                            detail.windLimitMs,
+                          )) {
+                            (final wind?, final limit?) =>
+                              l10n.weatherExceededWind(
+                                speed(wind),
+                                speed(limit),
+                              ),
+                            _ => l10n.weatherAlertWindTitle,
+                          },
+                          WeatherHazard.gust => switch ((
+                            detail.gustMs,
+                            detail.gustLimitMs,
+                          )) {
+                            (final gust?, final limit?) =>
+                              l10n.weatherExceededGust(
+                                speed(gust),
+                                speed(limit),
+                              ),
+                            _ => l10n.weatherAlertGustTitle,
+                          },
+                          WeatherHazard.precipitation => switch (detail
+                              .precipitationMm) {
+                            final precipitation? =>
+                              '${l10n.weatherPrecipitation} · '
+                                  '${context.formatNumber(precipitation, 1)} mm',
+                            _ => l10n.weatherAlertPrecipitationTitle,
+                          },
                           WeatherHazard.fog => l10n.weatherAlertFogTitle,
                           WeatherHazard.freezingPrecipitation =>
                             l10n.weatherAlertFreezingTitle,

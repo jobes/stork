@@ -18,7 +18,9 @@ import 'package:stork/features/map/presentation/providers/map_alerts_provider.da
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_clock_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_radar.dart';
-import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
+import 'package:stork/features/navigation/domain/models/navigation_state.dart';
+import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
 import 'package:stork/features/settings/domain/models/aircraft.dart';

@@ -8,7 +8,8 @@ import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../../../navigation/domain/models/navigation_point.dart';
+import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/domain/models/temperature_unit.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
@@ -136,7 +137,7 @@ class FlightWeatherDetailsDialog extends ConsumerWidget {
     final waypointName = waypoint?.name.trim() ?? '';
     final pointName = waypointName.isNotEmpty
         ? waypointName
-        : point.id == 'origin'
+        : point.id == forecastOriginPointId
         ? l10n.weatherRouteStart
         : title;
     final windValue = switch (wind) {

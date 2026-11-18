@@ -6,11 +6,6 @@ import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../domain/models/navigation_point.dart';
 import '../../domain/models/navigation_state.dart';
 
-export '../../domain/models/navigation_point.dart';
-export '../../domain/models/navigation_state.dart';
-export '../../domain/models/navigation_leg.dart';
-export '../../domain/models/navigation_calculations.dart';
-
 part 'navigation_provider.g.dart';
 
 @Riverpod(keepAlive: true)

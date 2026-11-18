@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/navigation/presentation/widgets/route_waypoint_tile.dart';
-import 'package:stork/features/route/domain/models/navigation_leg.dart';
-import 'package:stork/features/route/domain/models/navigation_point.dart';
+import 'package:stork/features/navigation/domain/models/navigation_leg.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/settings/domain/models/speed_unit.dart';
 import 'package:stork/l10n/app_localizations.dart';
 

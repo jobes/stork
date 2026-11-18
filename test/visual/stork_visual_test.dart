@@ -42,7 +42,9 @@ import 'package:stork/features/map/presentation/components/dialogs/base_details_
 import 'package:stork/features/map/presentation/components/dialogs/map_search_dialog.dart';
 import 'package:stork/features/map/presentation/providers/map_alerts_provider.dart';
 import 'package:stork/features/map/presentation/providers/notams_provider.dart';
-import 'package:stork/features/route/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
+import 'package:stork/features/navigation/domain/models/navigation_state.dart';
+import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';

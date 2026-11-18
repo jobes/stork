@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';

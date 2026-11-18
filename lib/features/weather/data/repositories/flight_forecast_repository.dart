@@ -101,8 +101,10 @@ class FlightForecastRepository {
     _cache.removeWhere((key, _) => !requested.contains(key));
     _outsideModel.removeWhere((key) => !requested.contains(key));
     final missing = query.locations.keys.where((key) {
-      if (_outsideModel.contains(key)) return false;
+      // A manual refresh retries every planned location, including those the
+      // model did not cover in an earlier request.
       if (refreshAll) return true;
+      if (_outsideModel.contains(key)) return false;
       final cached = _cache[key];
       return cached == null ||
           now.difference(cached.downloaded) >= forecastRefreshInterval ||
@@ -145,6 +147,7 @@ class FlightForecastRepository {
       final rows = await _request(batch, query, now);
       for (final (index, key) in batch.indexed) {
         _cache[key] = rows[index];
+        _outsideModel.remove(key);
       }
     } on _LocationOutsideModel {
       if (batch.length == 1) {

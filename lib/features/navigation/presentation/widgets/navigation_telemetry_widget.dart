@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../route/presentation/providers/navigation_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../../../settings/domain/models/range_thresholds.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';

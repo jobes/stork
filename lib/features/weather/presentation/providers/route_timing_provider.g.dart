@@ -42,7 +42,7 @@ final class NavigationGroundTrackNotifierProvider
 }
 
 String _$navigationGroundTrackNotifierHash() =>
-    r'a2964f15e15dd24fa52de75b92b94cf3ffbba5f9';
+    r'eb7d3bd7f25bafe5811edb0f9f8d72710ee1d3f8';
 
 abstract class _$NavigationGroundTrackNotifier extends $Notifier<GroundTrack?> {
   GroundTrack? build();
@@ -128,7 +128,7 @@ final class RouteWindTimingNotifierProvider
 }
 
 String _$routeWindTimingNotifierHash() =>
-    r'af6569d654c96229f42a50cde0d59d82156ac841';
+    r'12086704434e914878f1af983089234560216063';
 
 abstract class _$RouteWindTimingNotifier
     extends $AsyncNotifier<WindTimingResult?> {
@@ -195,4 +195,4 @@ final class RoutePointTimingProvider
   }
 }
 
-String _$routePointTimingHash() => r'a7edf0c0464b4c1d235baf2854d1de9cb186466f';
+String _$routePointTimingHash() => r'2776a5b2ab9f8eba4d599d3a7984e462669d777a';

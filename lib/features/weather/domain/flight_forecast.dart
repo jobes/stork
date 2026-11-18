@@ -29,14 +29,25 @@ const feetInMeters = 0.3048;
 
 typedef ForecastLocation = ({double latitude, double longitude});
 
-double _interpolate(double a, double b, double fraction) =>
+/// Identifiers used by [ForecastRoutePoint] so every layer recognises the
+/// aircraft position, the route origin, waypoints and weather samples.
+const forecastAircraftPointId = 'aircraft';
+const forecastOriginPointId = 'origin';
+String forecastWaypointPointId(int index) => 'waypoint-$index';
+String forecastSamplePointId(int index) => 'sample-$index';
+
+/// The aircraft position is the first plan point both with and without a route.
+bool isAircraftForecastPoint(String id) =>
+    id == forecastOriginPointId || id == forecastAircraftPointId;
+
+double linearInterpolate(double a, double b, double fraction) =>
     a + (b - a) * fraction;
 
-class ForecastWind {
-  final double east;
-  final double north;
+@freezed
+abstract class ForecastWind with _$ForecastWind {
+  const ForecastWind._();
 
-  const ForecastWind(this.east, this.north);
+  const factory ForecastWind(double east, double north) = _ForecastWind;
 
   factory ForecastWind.fromKmh(double speed, double directionFrom) {
     final angle = directionFrom * math.pi / 180;
@@ -58,8 +69,8 @@ class ForecastWind {
   }
 
   ForecastWind interpolate(ForecastWind other, double fraction) => ForecastWind(
-    _interpolate(east, other.east, fraction),
-    _interpolate(north, other.north, fraction),
+    linearInterpolate(east, other.east, fraction),
+    linearInterpolate(north, other.north, fraction),
   );
 }
 
