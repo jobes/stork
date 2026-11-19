@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/core/services/cannelloni_service.dart';
 import 'package:stork/core/services/style_provider.dart';
 import 'package:stork/core/startup/initial_map_camera.dart';
@@ -80,6 +82,7 @@ ProviderContainer _container({
   _SlowSettings? settings,
   Future<List<FavoritePoint>>? favorites,
   Future<void>? configuration,
+  Future<SharedPreferences> Function()? preferences,
   Future<bool>? monitoring,
   Future<void> Function()? fir,
   Future<void>? assets,
@@ -91,6 +94,8 @@ ProviderContainer _container({
 }) => ProviderContainer(
   retry: (_, _) => null,
   overrides: [
+    if (preferences != null)
+      sharedPreferencesProvider.overrideWith((_) => preferences()),
     applicationConfigurationProvider.overrideWith((_) async {
       started?.call('configuration');
       await configuration;
@@ -103,8 +108,9 @@ ProviderContainer _container({
       started?.call('fir');
       await fir?.call();
     }),
-    startupMapAssetsProvider.overrideWith((_) async {
+    startupMapAssetsProvider.overrideWith((ref) async {
       started?.call('assets');
+      if (preferences != null) await ref.read(sharedPreferencesProvider.future);
       await assets;
     }),
     startupOfflineDatabaseProvider.overrideWith((_) async {
@@ -135,6 +141,30 @@ ProviderContainer _container({
 );
 
 void main() {
+  test(
+    'retry recovers shared preferences before dependent local preparation',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final preferences = await SharedPreferences.getInstance();
+      var attempts = 0;
+      final container = _container(
+        preferences: () async {
+          if (++attempts == 1) throw StateError('Preferences unavailable');
+          return preferences;
+        },
+      );
+      addTearDown(container.dispose);
+      container.listen(applicationBootstrapProvider, (_, _) {});
+      await expectLater(
+        container.read(applicationBootstrapProvider.future),
+        throwsA(anything),
+      );
+      retryApplicationBootstrap(container);
+      await container.read(applicationBootstrapProvider.future);
+      expect(attempts, 2);
+    },
+  );
+
   test(
     'real bootstrap keeps asynchronous settings mounted before the map exists',
     () async {

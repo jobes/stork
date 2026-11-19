@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,7 +36,12 @@ class ProtomapsResolver {
       final response = await ownedClient
           .get(Uri.parse('https://build-metadata.protomaps.dev/builds.json'))
           .timeout(const Duration(seconds: 3));
-      if (response.statusCode != 200) return;
+      if (response.statusCode != 200) {
+        debugPrint(
+          'Protomaps catalog refresh failed: HTTP ${response.statusCode}',
+        );
+        return;
+      }
       final builds = jsonDecode(response.body) as List<dynamic>;
       final urls = [
         for (final build in builds)
@@ -43,7 +49,8 @@ class ProtomapsResolver {
             'https://build.protomaps.com/${build['key']}',
       ].where(_validUrl).toList()..sort();
       if (urls.isNotEmpty) await prefs.setString(cacheKey, urls.last);
-    } catch (_) {
+    } catch (error) {
+      debugPrint('Protomaps catalog refresh failed: $error');
       // A failed refresh keeps both the selected archive and the stored cache.
     } finally {
       if (client == null) ownedClient.close();

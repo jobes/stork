@@ -430,13 +430,15 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                         cameraController.attachController(
                           controller,
                           cameraPrepared: initialCamera != null,
+                          preparedCamera: initialCamera,
                         ),
-                    onStyleLoaded: (style) {
+                    onStyleLoaded: (style, preparedStyle) {
                       _radar.attachStyle(style);
                       unawaited(
                         cameraController.handleStyleLoaded(
                           style,
                           overlaysPrepared: true,
+                          preparedStyle: preparedStyle,
                         ),
                       );
                     },

@@ -71,6 +71,7 @@ class MapCamera extends _$MapCamera {
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
   int _styleLoadGeneration = 0;
+  final _preparedStyles = <String, _PreparedOverlaySnapshot>{};
   Object? _preparedOverlayInputs;
   Map<String, String> _preparedSourceData = const {};
   List<_NotamMapFeature> _preparedNotamFeatures = const [];
@@ -104,6 +105,8 @@ class MapCamera extends _$MapCamera {
   Duration _lastUpdateInterval = const Duration(seconds: 1);
   DateTime? _lastRouteUpdateTime;
   Timer? _routeUpdateTimer;
+  Timer? _routeRetryTimer;
+  int _routeRetryAttempts = 0;
   Geographic? _lastKnownRouteOrigin;
   bool _routeWriting = false;
   bool? _pendingRouteForce;
@@ -370,6 +373,7 @@ class MapCamera extends _$MapCamera {
     ref.onDispose(() {
       trafficTimer.cancel();
       _routeUpdateTimer?.cancel();
+      _routeRetryTimer?.cancel();
       _moveThrottleTimer?.cancel();
       _followResumeTimer?.cancel();
       _notamLayerTimer?.cancel();
@@ -382,13 +386,30 @@ class MapCamera extends _$MapCamera {
   void attachController(
     MapController controller, {
     bool cameraPrepared = false,
+    InitialMapCamera? preparedCamera,
   }) {
     _mapController = controller;
     if (!_controllerCompleter.isCompleted) {
       _controllerCompleter.complete(controller);
     }
 
-    if (cameraPrepared) return;
+    if (cameraPrepared) {
+      if (_hasExplicitFocus) return;
+      final telemetry = ref.read(telemetryProvider);
+      final latest = _navigationPosition(
+        telemetry.latitude,
+        telemetry.longitude,
+      );
+      // The Android plugin can call onMapCreated before populating camera.
+      final current =
+          controller.camera?.center ??
+          preparedCamera?.center ??
+          ref.read(initialMapCameraProvider)?.center;
+      if (latest == null ||
+          (latest.lat == current?.lat && latest.lon == current?.lon)) {
+        return;
+      }
+    }
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
     if (!_hasExplicitFocus &&
@@ -1008,7 +1029,15 @@ class MapCamera extends _$MapCamera {
     return false;
   }
 
-  void _updateNavigationRouteOnMap({bool force = false}) {
+  void _updateNavigationRouteOnMap({
+    bool force = false,
+    bool retrying = false,
+  }) {
+    if (!retrying) {
+      _routeRetryTimer?.cancel();
+      _routeRetryTimer = null;
+      _routeRetryAttempts = 0;
+    }
     final style = _mapController?.style;
     if (!_isAircraftSymbolInitialized || style == null) return;
 
@@ -1047,10 +1076,24 @@ class MapCamera extends _$MapCamera {
       );
       if (ref.mounted && identical(style, _mapController?.style)) {
         _lastNavigationRouteUpdate = (style: style, data: data);
+        _routeRetryAttempts = 0;
       }
     } catch (error) {
       if (ref.mounted && identical(style, _mapController?.style)) {
         _lastNavigationRouteUpdate = null;
+        if (_routeRetryAttempts < 3) {
+          _routeRetryAttempts++;
+          _routeRetryTimer?.cancel();
+          _routeRetryTimer = Timer(
+            Duration(milliseconds: 250 * _routeRetryAttempts),
+            () {
+              _routeRetryTimer = null;
+              if (ref.mounted && identical(style, _mapController?.style)) {
+                _updateNavigationRouteOnMap(force: true, retrying: true);
+              }
+            },
+          );
+        }
       }
       debugPrint('Navigation route update failed: $error');
     } finally {
@@ -1063,18 +1106,8 @@ class MapCamera extends _$MapCamera {
     }
   }
 
-  Geographic? _navigationPosition(double? latitude, double? longitude) {
-    if (latitude == null ||
-        longitude == null ||
-        !latitude.isFinite ||
-        !longitude.isFinite ||
-        latitude.abs() > 90 ||
-        longitude.abs() > 180 ||
-        (latitude == 0 && longitude == 0)) {
-      return null;
-    }
-    return Geographic(lat: latitude, lon: longitude);
-  }
+  Geographic? _navigationPosition(double? latitude, double? longitude) =>
+      GeoUtils.validatedPosition(latitude, longitude);
 
   String _buildNavigationGeoJson() {
     final telemetry = ref.read(telemetryProvider);
@@ -1088,7 +1121,9 @@ class MapCamera extends _$MapCamera {
       ref.read(navigationProvider).value,
       origin:
           _lastKnownRouteOrigin ??
-          (prepared?.hasLocation == true ? prepared!.center : null),
+          (prepared?.hasLocation == true
+              ? _navigationPosition(prepared!.center.lat, prepared.center.lon)
+              : null),
     );
   }
 

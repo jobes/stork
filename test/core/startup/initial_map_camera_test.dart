@@ -6,6 +6,21 @@ import 'package:stork/features/telemetry/domain/models/map_view_state.dart';
 import 'package:stork/features/telemetry/domain/models/telemetry_state.dart';
 
 void main() {
+  for (final invalid in [
+    Geographic(lat: double.nan, lon: 17),
+    const Geographic(lat: 0, lon: 0),
+  ]) {
+    test('invalid last-known position falls back: $invalid', () {
+      final camera = InitialMapCamera.fromTelemetry(
+        const TelemetryState(),
+        const AppSettings(),
+        lastKnownPosition: invalid,
+      );
+      expect(camera.hasLocation, isFalse);
+      expect(camera.center, const Geographic(lat: 48.15, lon: 17.11));
+    });
+  }
+
   test('current telemetry wins over the startup fallback on map reentry', () {
     final camera = InitialMapCamera.fromTelemetry(
       const TelemetryState(

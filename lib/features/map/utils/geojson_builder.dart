@@ -22,7 +22,7 @@ class GeoJsonBuilder {
       return empty;
     }
     final points = [
-      ?origin,
+      ?GeoUtils.validatedPosition(origin?.lat, origin?.lon),
       for (final point in navigation.points)
         Geographic(lat: point.latitude, lon: point.longitude),
     ];

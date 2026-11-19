@@ -12,7 +12,7 @@ class AircraftMap extends StatefulWidget {
   final double initialBearing;
   final Geographic? searchPin;
   final Function(MapController) onMapCreated;
-  final Function(StyleController) onStyleLoaded;
+  final void Function(StyleController, String preparedStyle) onStyleLoaded;
   final Function(MapEvent) onEvent;
   final VoidCallback onUserInteraction;
 
@@ -87,7 +87,7 @@ class _AircraftMapState extends State<AircraftMap> {
         onStyleLoaded: (style) {
           _loadingStyle = false;
           if (_requestedStyle == widget.style) {
-            widget.onStyleLoaded(style);
+            widget.onStyleLoaded(style, _requestedStyle);
           } else {
             _applyStyle();
           }

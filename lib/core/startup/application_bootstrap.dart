@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/cannelloni_service.dart';
+import '../providers/shared_preferences_provider.dart';
 import '../services/style_provider.dart';
 import '../../features/favorites/presentation/providers/favorites_provider.dart';
 import '../../features/map/presentation/providers/airspace_activity_provider.dart';
@@ -101,6 +102,10 @@ final applicationBootstrapProvider = FutureProvider<PreparedApplication>(
 /// existing providers avoids starting unrelated work on a failed early boot.
 void retryApplicationBootstrap(ProviderContainer container) {
   container.invalidate(applicationBootstrapProvider);
+  if (container.read(sharedPreferencesProvider.exists) &&
+      container.read(sharedPreferencesProvider).hasError) {
+    container.invalidate(sharedPreferencesProvider);
+  }
   for (final dependency in [
     applicationConfigurationProvider,
     startupFirIndexProvider,

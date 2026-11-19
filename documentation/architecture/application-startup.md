@@ -41,7 +41,13 @@ the live style/palette code; initial GeoJSON uses the same generators as live
 updates. Sources with no available data are empty feature collections. Airspace
 filters are embedded as well. `handleStyleLoaded(overlaysPrepared: true)` attaches
 live updates and catches up only when the input snapshot changed, without adding
-the embedded layers again. No new native readiness event or fixed map-loading
+the embedded layers again. Each native style callback identifies its requested
+style JSON and uses that request's immutable overlay snapshot, not the latest
+prepared snapshot. A bounded snapshot cache falls back to a full catch-up if a
+request is no longer cached. Effective brightness is checked independently of
+provider inputs. NOTAM errors clear initial and catch-up notices, and failure of
+an aircraft catch-up write does not prevent airspace/traffic initialization.
+No new native readiness event or fixed map-loading
 delay is used.
 
 Saved navigation legs are embedded even before GPS is available. A valid live
@@ -50,7 +56,13 @@ waypoint; the regional camera fallback is never used as an aircraft position.
 The first valid GPS update and route edits bypass position throttling. Subsequent
 position updates coalesce over two seconds with a trailing update, so the final
 sample is delivered even when GPS stops sending. Native route writes are
-serialized and identical source data is skipped.
+serialized and identical source data is skipped. Failed writes retry at most
+three times with 250/500/750 ms delays; each retry reads current state, and new
+inputs cancel an obsolete retry. Style replacement and disposal cancel pending
+retries. Native last-known coordinates are validated before conversion, and
+prepared route origins use the same validation. A camera attach catches up a
+new telemetry position while preserving an exact prepared camera or an explicit
+user focus.
 
 Temporary settings and style subscriptions keep asynchronous settings loading
 and the prepared map providers alive through the handoff. Reading a future alone

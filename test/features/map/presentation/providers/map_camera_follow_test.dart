@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' show ThemeMode;
+import 'package:stork/features/settings/presentation/providers/display_preferences_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maplibre/maplibre.dart' as ml;
 import 'package:stork/core/services/location_provider.dart';
+import 'package:stork/features/map/utils/geojson_builder.dart';
 import 'package:stork/core/startup/initial_map_camera.dart';
 import 'package:stork/core/theme/stork_colors.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
@@ -114,9 +117,20 @@ class _FilteredTraffic extends FilteredTraffic {
   void publish(TrafficAircraft aircraft) => state = [aircraft];
 }
 
-class _Settings extends AppSettingsNotifier {
+class _SystemPreferences extends DisplayPreferencesNotifier {
   @override
-  AppSettings build() => const AppSettings();
+  Future<DisplayPreferences> build() async => (
+    themeMode: ThemeMode.system,
+    language: AppLanguage.system,
+    saving: false,
+  );
+}
+
+class _Settings extends AppSettingsNotifier {
+  _Settings([this.initial = const AppSettings()]);
+  final AppSettings initial;
+  @override
+  AppSettings build() => initial;
 
   void setFollowPitch(double pitch) {
     state = AsyncData(state.requireValue.copyWith(mapFollowPitch: pitch));
@@ -135,6 +149,16 @@ class _Notams extends Notams {
   @override
   Future<NotamFetchResult> build() async => const NotamFetchResult([]);
 
+  void fail() {
+    final error = AsyncError<NotamFetchResult>(
+      StateError('NOTAM unavailable'),
+      StackTrace.current,
+    );
+    // Simulate an async refresh failure that retained its previous value.
+    // ignore: invalid_use_of_internal_member
+    state = error.copyWithPrevious(state);
+  }
+
   void publish(List<Notam> notams) {
     state = AsyncData(NotamFetchResult(notams));
   }
@@ -148,9 +172,13 @@ class _Favorites extends FavoritesNotifier {
 class _Style extends Fake implements ml.StyleController {
   final updates = <String, List<String>>{};
   final layers = <String, ml.StyleLayer>{};
+  final removedLayers = <String>[];
   bool failNextNotamWrite = false;
   Future<void>? nextFavoritesLayerDelay;
   Future<void>? nextRouteWriteDelay;
+  Future<void>? nextAircraftWriteDelay;
+  int routeWriteFailures = 0;
+  bool failNextAircraftWrite = false;
 
   @override
   Future<void> addSource(ml.Source source) async {}
@@ -171,7 +199,9 @@ class _Style extends Fake implements ml.StyleController {
   }
 
   @override
-  Future<void> removeLayer(String id) async {}
+  Future<void> removeLayer(String id) async {
+    removedLayers.add(id);
+  }
 
   @override
   Future<void> updateGeoJsonSource({
@@ -179,7 +209,20 @@ class _Style extends Fake implements ml.StyleController {
     required String data,
   }) async {
     (updates[id] ??= []).add(data);
+    if (id == 'aircraft-source') {
+      if (failNextAircraftWrite) {
+        failNextAircraftWrite = false;
+        throw StateError('Aircraft write failed');
+      }
+      final delay = nextAircraftWriteDelay;
+      nextAircraftWriteDelay = null;
+      if (delay != null) await delay;
+    }
     if (id == 'navigation-route-source') {
+      if (routeWriteFailures > 0) {
+        routeWriteFailures--;
+        throw StateError('Route write failed');
+      }
       final delay = nextRouteWriteDelay;
       nextRouteWriteDelay = null;
       if (delay != null) await delay;
@@ -188,6 +231,22 @@ class _Style extends Fake implements ml.StyleController {
       failNextNotamWrite = false;
       throw StateError('NOTAM source unavailable');
     }
+  }
+}
+
+class _UninitializedMap extends Fake implements ml.MapController {
+  int moves = 0;
+  @override
+  ml.MapCamera? get camera => null;
+  @override
+  Future<void> moveCamera({
+    ml.Geographic? center,
+    double? zoom,
+    double? bearing,
+    double? pitch,
+    EdgeInsets padding = EdgeInsets.zero,
+  }) async {
+    moves++;
   }
 }
 
@@ -267,6 +326,8 @@ _setupFollow(
   _Navigation? navigation,
   _Telemetry? initialTelemetry,
   InitialMapCamera? initialCamera,
+  DisplayPreferencesNotifier? preferences,
+  _Settings? settings,
 }) async {
   final telemetry = initialTelemetry ?? _Telemetry();
   final traffic = _FilteredTraffic();
@@ -276,7 +337,9 @@ _setupFollow(
         telemetryProvider.overrideWith(() => telemetry),
         filteredTrafficProvider.overrideWith(() => traffic),
         trafficProvider.overrideWith(_Traffic.new),
-        appSettingsProvider.overrideWith(_Settings.new),
+        appSettingsProvider.overrideWith(() => settings ?? _Settings()),
+        if (preferences != null)
+          displayPreferencesProvider.overrideWith(() => preferences),
         currentLocationProvider.overrideWithValue(const AsyncData(null)),
         navigationProvider.overrideWith(() => navigation ?? _Navigation()),
         if (notams != null) notamsProvider.overrideWith(() => notams),
@@ -323,6 +386,273 @@ List<dynamic> _routeCoordinates(String data) =>
     jsonDecode(data)['features'][0]['geometry']['coordinates'] as List;
 
 void main() {
+  testWidgets(
+    'an exact prepared snapshot does not move an uninitialized native camera',
+    (tester) async {
+      final setup = await _setupFollow(tester, notams: _Notams());
+      final native = _UninitializedMap();
+      setup.camera.attachController(
+        native,
+        cameraPrepared: true,
+        preparedCamera: const InitialMapCamera(
+          center: ml.Geographic(lat: 48, lon: 17),
+          zoom: 6,
+          hasLocation: true,
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(native.moves, 0);
+    },
+  );
+
+  testWidgets(
+    'invalid prepared route origins preserve saved legs without a connector',
+    (tester) async {
+      final setup = await _setupFollow(
+        tester,
+        notams: _Notams(),
+        navigation: _Navigation(_route),
+        initialTelemetry: _Telemetry(const TelemetryState()),
+        initialCamera: InitialMapCamera(
+          center: ml.Geographic(lat: double.nan, lon: 17),
+          zoom: 6,
+          hasLocation: true,
+        ),
+      );
+      final prepared = jsonDecode(
+        setup.camera.prepareStyle('{"version":8,"sources":{},"layers":[]}'),
+      );
+      final line =
+          prepared['sources']['navigation-route-source']['data']['features'][0]['geometry']['coordinates']
+              as List;
+      expect(line.first[0], closeTo(18, 1e-9));
+      expect(line.first[1], closeTo(49, 1e-9));
+      expect(line.last[0], closeTo(19, 1e-9));
+      final raw = GeoJsonBuilder.buildNavigationRouteGeoJson(
+        _route,
+        origin: ml.Geographic(lat: double.nan, lon: 17),
+      );
+      expect(_routeCoordinates(raw).first[0], closeTo(18, 1e-9));
+    },
+  );
+
+  testWidgets(
+    'failed route writes retry latest state and stop after a bounded budget',
+    (tester) async {
+      final setup = await _setupFollow(
+        tester,
+        notams: _Notams(),
+        navigation: _Navigation(_route),
+      );
+      setup.map.style.routeWriteFailures = 4;
+      setup.telemetry.changePosition(48.1, 17.1);
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
+      for (final delay in [250, 500, 750]) {
+        await tester.pump(Duration(milliseconds: delay));
+        await tester.pump();
+      }
+      final writes = setup.map.style.updates['navigation-route-source']!;
+      expect(writes, hasLength(4));
+      await tester.pump(const Duration(seconds: 5));
+      expect(writes, hasLength(4));
+      setup.telemetry.changePosition(48.2, 17.2);
+      await tester.pump(const Duration(seconds: 2));
+      expect(_routeCoordinates(writes.last).first[0], closeTo(17.2, 1e-9));
+    },
+  );
+
+  testWidgets('new route edits supersede a pending failed-write retry', (
+    tester,
+  ) async {
+    final navigation = _Navigation(_route);
+    final setup = await _setupFollow(
+      tester,
+      notams: _Notams(),
+      navigation: navigation,
+    );
+    setup.map.style.routeWriteFailures = 1;
+    navigation.publish(const NavigationState());
+    await tester.pump();
+    navigation.publish(_route);
+    await tester.pump();
+    final writes = setup.map.style.updates['navigation-route-source']!;
+    expect(writes, hasLength(2));
+    expect(_routeCoordinates(writes.last).last[0], closeTo(19, 1e-9));
+    await tester.pump(const Duration(seconds: 3));
+    expect(writes, hasLength(2));
+  });
+
+  testWidgets(
+    'a loaded style uses its own snapshot even after another preparation',
+    (tester) async {
+      final setup = await _setupFollow(
+        tester,
+        notams: _Notams(),
+        navigation: _Navigation(_route),
+      );
+      final first = setup.camera.prepareStyle(
+        '{"version":8,"sources":{},"layers":[]}',
+      );
+      setup.telemetry.changePosition(49, 18);
+      setup.camera.prepareStyle('{"version":8,"sources":{},"layers":[]}');
+      setup.map.style.updates.clear();
+      await setup.camera.handleStyleLoaded(
+        setup.map.style,
+        overlaysPrepared: true,
+        preparedStyle: first,
+      );
+      final aircraft = jsonDecode(
+        setup.map.style.updates['aircraft-source']!.last,
+      );
+      expect(aircraft['features'][0]['geometry']['coordinates'], [18, 49]);
+    },
+  );
+
+  testWidgets(
+    'brightness changes during native loading refresh the prepared palette',
+    (tester) async {
+      tester.binding.platformDispatcher.platformBrightnessTestValue =
+          Brightness.light;
+      final setup = await _setupFollow(
+        tester,
+        notams: _Notams(),
+        preferences: _SystemPreferences(),
+        settings: _Settings(const AppSettings(showFlightWeather: false)),
+      );
+      final prepared = setup.camera.prepareStyle(
+        '{"version":8,"sources":{},"layers":[]}',
+      );
+      setup.map.style = _Style();
+      tester.binding.platformDispatcher.platformBrightnessTestValue =
+          Brightness.dark;
+      addTearDown(
+        tester.binding.platformDispatcher.clearPlatformBrightnessTestValue,
+      );
+      await setup.camera.handleStyleLoaded(
+        setup.map.style,
+        overlaysPrepared: true,
+        preparedStyle: prepared,
+      );
+      await tester.pump();
+      expect(
+        setup.map.style.layers['flight-weather-wind']!.paint['text-color'],
+        '#E4F2FC',
+      );
+    },
+  );
+
+  testWidgets('NOTAM errors clear both prepared data and catch-up data', (
+    tester,
+  ) async {
+    final notams = _Notams();
+    final setup = await _setupFollow(tester, notams: notams);
+    notams.publish([
+      Notam(
+        id: 'n',
+        fir: 'LZBB',
+        from: DateTime.utc(2026),
+        msg: 'notice',
+        latitude: 48,
+        longitude: 17,
+        radius: 1000,
+      ),
+    ]);
+    final prepared = setup.camera.prepareStyle(
+      '{"version":8,"sources":{},"layers":[]}',
+    );
+    notams.fail();
+    final failed = jsonDecode(
+      setup.camera.prepareStyle('{"version":8,"sources":{},"layers":[]}'),
+    );
+    expect(failed['sources']['notams-source']['data']['features'], isEmpty);
+    setup.map.style.updates.clear();
+    await setup.camera.handleStyleLoaded(
+      setup.map.style,
+      overlaysPrepared: true,
+      preparedStyle: prepared,
+    );
+    await tester.pump(const Duration(seconds: 2));
+    expect(
+      jsonDecode(setup.map.style.updates['notams-source']!.last)['features'],
+      isEmpty,
+    );
+  });
+
+  testWidgets('course catch-up rereads telemetry after the aircraft write', (
+    tester,
+  ) async {
+    final setup = await _setupFollow(
+      tester,
+      notams: _Notams(),
+      initialTelemetry: _Telemetry(
+        const TelemetryState(
+          latitude: 48,
+          longitude: 17,
+          groundSpeed: 30,
+          isFlying: true,
+          mapViewState: MapViewState.overview,
+        ),
+      ),
+    );
+    final prepared = setup.camera.prepareStyle(
+      '{"version":8,"sources":{},"layers":[]}',
+    );
+    setup.telemetry.changePosition(48.1, 17.1);
+    final aircraftDone = Completer<void>();
+    setup.map.style.nextAircraftWriteDelay = aircraftDone.future;
+    final loading = setup.camera.handleStyleLoaded(
+      setup.map.style,
+      overlaysPrepared: true,
+      preparedStyle: prepared,
+    );
+    setup.telemetry.changePosition(48.2, 17.2);
+    aircraftDone.complete();
+    await loading;
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Consumer)),
+    );
+    final expected = GeoJsonBuilder.buildCourseLineGeoJson(
+      container.read(telemetryProvider),
+      container.read(appSettingsProvider).value,
+    );
+    expect(setup.map.style.updates['course-line-source']!.last, expected);
+  });
+
+  testWidgets(
+    'an aircraft failure does not skip airspace and traffic initialization',
+    (tester) async {
+      final setup = await _setupFollow(tester, notams: _Notams());
+      setup.map.style.failNextAircraftWrite = true;
+      await setup.camera.handleStyleLoaded(
+        setup.map.style,
+        overlaysPrepared: true,
+      );
+      expect(setup.map.viewportReads, greaterThan(0));
+      expect(setup.map.style.removedLayers, contains('active-airspaces-fill'));
+    },
+  );
+
+  testWidgets('attaching a stale prepared camera catches up latest telemetry', (
+    tester,
+  ) async {
+    final setup = await _setupFollow(
+      tester,
+      notams: _Notams(),
+      initialTelemetry: _Telemetry(
+        const TelemetryState(
+          latitude: 49,
+          longitude: 18,
+          mapViewState: MapViewState.overview,
+        ),
+      ),
+    );
+    final native = _Map();
+    setup.camera.attachController(native, cameraPrepared: true);
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(native.camera.center, const ml.Geographic(lat: 49, lon: 18));
+  });
+
   testWidgets('startup route contains saved legs before any telemetry position', (
     tester,
   ) async {
@@ -529,6 +859,7 @@ void main() {
     await setup.camera.handleStyleLoaded(
       setup.map.style,
       overlaysPrepared: true,
+      preparedStyle: prepared,
     );
     expect(setup.map.style.layers, isEmpty);
     expect(setup.map.style.updates, isEmpty);
