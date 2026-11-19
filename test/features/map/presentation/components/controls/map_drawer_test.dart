@@ -18,6 +18,8 @@ import 'package:stork/features/map/presentation/providers/map_alerts_provider.da
 import 'package:stork/features/map/presentation/providers/map_camera_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_clock_provider.dart';
 import 'package:stork/features/map/presentation/providers/map_radar.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
+import 'package:stork/features/navigation/domain/models/navigation_state.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
@@ -73,6 +75,12 @@ class _Settings extends AppSettingsNotifier {
   @override
   Future<SettingsUpdateResult> updateShowUtcClock(bool visible) async {
     state = AsyncData(state.requireValue.copyWith(showUtcClock: visible));
+    return const SettingsUpdateSuccess();
+  }
+
+  @override
+  Future<SettingsUpdateResult> updateShowFlightWeather(bool visible) async {
+    state = AsyncData(state.requireValue.copyWith(showFlightWeather: visible));
     return const SettingsUpdateSuccess();
   }
 
@@ -247,9 +255,23 @@ Future<ProviderContainer> _pumpDrawer(
   return container;
 }
 
-Future<void> _enableEditingInMapSettings(WidgetTester tester) async {
-  await tester.tap(find.text('Settings'));
+Future<void> _openDrawerSettings(WidgetTester tester) async {
+  final settings = find.text('Settings');
+  await tester.scrollUntilVisible(
+    settings,
+    100,
+    scrollable: find.descendant(
+      of: find.byType(MapDrawer),
+      matching: find.byType(Scrollable),
+    ),
+  );
   await tester.pumpAndSettle();
+  await tester.tap(settings.hitTestable());
+  await tester.pumpAndSettle();
+}
+
+Future<void> _enableEditingInMapSettings(WidgetTester tester) async {
+  await _openDrawerSettings(tester);
   await tester.tap(find.text('Map'));
   await tester.pumpAndSettle();
 
@@ -276,7 +298,7 @@ void main() {
     southeast: const Geographic(lat: 48, lon: 18),
   );
 
-  testWidgets('radar playback is the first action and closes the drawer', (
+  testWidgets('radar playback sits before Route and closes the drawer', (
     tester,
   ) async {
     final container = await _pumpDrawer(tester, useMapPage: true);
@@ -284,15 +306,50 @@ void main() {
     final playback = find.text('Play precipitation history');
     expect(playback.hitTestable(), findsOneWidget);
     expect(
-      tester.getTopLeft(playback).dy,
-      lessThan(tester.getTopLeft(find.text('Flight and map')).dy),
+      find.widgetWithText(SwitchListTile, 'Flight forecast'),
+      findsNothing,
     );
+    final headingY = tester.getTopLeft(find.text('Flight and map')).dy;
+    final playbackY = tester.getTopLeft(playback).dy;
+    final routeY = tester.getTopLeft(find.text('Route')).dy;
+    expect(playbackY, greaterThan(headingY));
+    expect(routeY, greaterThan(playbackY));
 
     await tester.tap(playback);
     await tester.pumpAndSettle();
     expect(find.byType(MapDrawer), findsNothing);
     expect(container.read(mapRadarProvider).value.unavailable, isTrue);
     expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('flight forecast switch lives in map settings and is on', (
+    tester,
+  ) async {
+    final container = await _pumpDrawer(tester);
+
+    await _openDrawerSettings(tester);
+    await tester.tap(find.text('Map'));
+    await tester.pumpAndSettle();
+
+    final forecast = find.widgetWithText(SwitchListTile, 'Flight forecast');
+    await tester.scrollUntilVisible(
+      forecast,
+      100,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.pumpAndSettle();
+    expect(forecast, findsOneWidget);
+    expect(
+      container.read(appSettingsProvider).value?.showFlightWeather,
+      isTrue,
+    );
+
+    await tester.tap(forecast.hitTestable());
+    await tester.pumpAndSettle();
+    expect(
+      container.read(appSettingsProvider).value?.showFlightWeather,
+      isFalse,
+    );
   });
 
   testWidgets(
@@ -549,8 +606,7 @@ void main() {
     Future<void> toggleClockFromMenu() async {
       tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Settings'));
-      await tester.pumpAndSettle();
+      await _openDrawerSettings(tester);
       await tester.tap(find.text('Map'));
       await tester.pumpAndSettle();
       final widgetSettings = find.widgetWithText(ListTile, 'Widget settings');
@@ -640,8 +696,7 @@ void main() {
   ) async {
     await _pumpDrawer(tester);
     final map = tester.state<ScaffoldState>(find.byType(Scaffold));
-    await tester.tap(find.text('Settings'));
-    await tester.pumpAndSettle();
+    await _openDrawerSettings(tester);
     expect(map.isDrawerOpen, isFalse);
 
     await tester.tap(find.text('Instruments and connection'));

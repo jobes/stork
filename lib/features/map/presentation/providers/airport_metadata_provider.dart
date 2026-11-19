@@ -41,6 +41,8 @@ class AirportMetadataCache extends _$AirportMetadataCache {
       }
     }
 
+    if (countryCode.isEmpty) return null;
+
     // 3. If the country has not been downloaded in this session, fetch it
     final lowerCountryCode = countryCode.toLowerCase();
     if (!_downloadedCountries.contains(lowerCountryCode)) {

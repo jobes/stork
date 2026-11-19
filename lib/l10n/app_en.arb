@@ -180,6 +180,7 @@
     "description": "Indicator when GPS is not available"
   },
   "speedUnitSettings": "Speed Unit",
+  "windSpeedUnitSettings": "Wind speed unit",
   "speedUnitMs": "m/s",
   "speedUnitMph": "mph",
   "speedUnitKnots": "knots",
@@ -470,7 +471,10 @@
   "navigation": "Navigation",
   "navigateToPoint": "Navigate to point",
   "addPointToNavigation": "Add point to navigation",
-  "averageSpeed": "Expected flight speed",
+  "aircraftCruiseSpeed": "Cruising speed",
+  "@aircraftCruiseSpeed": {
+    "description": "Cruising true airspeed of the selected aircraft."
+  },
   "groundSpeed": "Ground speed",
   "navigationRequiresLocation": "Navigation requires current location.",
   "noNavigationPoints": "No navigation points. Tap on the map to add points.",
@@ -486,21 +490,99 @@
   "weatherInWindy": "Weather in Windy",
   "nearestPoint": "Nearest Point",
   "destinationPoint": "Destination",
-  "activeSpeedLabel": "Speed for ETA: {value} {unit}",
-  "@activeSpeedLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
   "waypointsList": "Waypoints List",
   "placeholderDash": "---",
   "minutesAbbrev": "min",
   "etaLabel": "ETA",
+  "undo": "Undo",
+  "navigationEmptyTitle": "No route yet",
+  "navigationEmptyStepMap": "Open the map with the back arrow.",
+  "navigationEmptyStepTap": "Tap an airport, town or favourite.",
+  "navigationEmptyStepAdd": "Choose \"Add point to navigation\".",
+  "navigationEmptyTip": "Waypoints can be reordered later.",
+  "navigationAddFromFavourites": "Add from favourites",
+  "navigationWaitingForLocation": "Waiting for GPS fix…",
+  "navigationWaitingForLocationHint": "Navigation starts automatically once your position is known. Allow location access in system settings if needed.",
+  "navigationNextWaypoint": "NEXT",
+  "navigationDestination": "DEST",
+  "navigationWaypointDetails": "Point details",
+  "navigationRemoveWaypoint": "Remove point",
+  "navigationWaypointActions": "Waypoint actions",
+  "navigationRouteActions": "Route actions",
+  "navigationWaypointRemoved": "Removed {name}.",
+  "navigationWaypointRemovalFailed": "Could not remove the waypoint. Please try again.",
+  "@navigationWaypointRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "routeWeatherWarnings": "Weather warnings on the route ({count})",
+  "@routeWeatherWarnings": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "routeWeatherDestinationWind": "Wind at destination",
+  "departureTimeTitle": "Departure time",
+  "departureToday": "Today",
+  "departureNowPreset": "Now",
+  "departureIn30Min": "+30 min",
+  "departureIn1Hour": "+1 h",
+  "departureForecastEta": "Destination ETA: {eta}",
+  "@departureForecastEta": {
+    "placeholders": {
+      "eta": {
+        "type": "String"
+      }
+    }
+  },
+  "departureOutOfRange": "Pick a time within the next four days.",
+  "departureLocalUtcHint": "Departure uses local time. Route times are shown in UTC.",
+  "departureSet": "Set departure",
+  "departureInvalidTime": "Enter a time as HH:mm.",
+  "departureShiftEarlier": "Earlier",
+  "departureShiftLater": "Later",
+  "altitudeDefaultOption": "Default",
+  "altitudeCustomOption": "Custom",
+  "altitudeAircraftDefault": "Aircraft default {value} ft",
+  "@altitudeAircraftDefault": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "altitudeSetAction": "Set altitude",
+  "altitudeChipValue": "{value} ft",
+  "@altitudeChipValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "altitudeDefaultChip": "Default · {value} ft",
+  "@altitudeDefaultChip": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "altitudeWindPreview": "Wind at ETA: {value}",
+  "@altitudeWindPreview": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "altitudeDecrease": "Lower altitude",
+  "altitudeIncrease": "Raise altitude",
   "flightRecords": "Flight Records",
   "flightRecordsTitle": "Flight Records",
   "flightName": "Flight Name",
@@ -1183,6 +1265,7 @@
   "clearAllHiddenAircraft": "Clear all hidden",
   "settingsMapAppearance": "Map appearance",
   "settingsMapZoom": "Map zoom and tilt",
+  "settingsMapWeather": "Weather",
   "settingsWidgetSettings": "Widget settings",
   "settingsWidgetLayout": "Widget layout",
   "settingsResetLayoutConfirm": "Reset the saved widget positions for the current layout? This cannot be undone.",
@@ -1227,7 +1310,7 @@
     }
   },
   "menuMap": "Map",
-  "menuMapSummary": "Appearance, zoom and widget layout",
+  "menuMapSummary": "Appearance, zoom, weather and widget layout",
   "menuUnitsAndLimits": "Units and limits",
   "menuUnitsSummary": "{speed} · {altitude} · aircraft limits",
   "@menuUnitsSummary": {
@@ -1517,5 +1600,99 @@
   "mapSearchLocalFailed": "Some airports or favourites could not be loaded.",
   "mapSearchLoadingMunicipalities": "Searching for towns and villages…",
   "mapSearchNoMunicipalities": "No towns or villages found.",
-  "mapSearchMunicipalitiesFailed": "Could not load towns and villages."
+  "mapSearchMunicipalitiesFailed": "Could not load towns and villages.",
+  "flightWeather": "Flight forecast",
+  "flightWeatherSettingsDescription": "Weather on the map, wind-adjusted ETA and alerts.",
+  "weatherAttribution": "Weather data by Open-Meteo.com",
+  "weatherDefaultAltitude": "Default weather altitude",
+  "weatherAltitudeHelp": "Used for the wind and temperature forecast at the aircraft and at route points using the default.",
+  "weatherAltitudeFt": "ft AMSL",
+  "weatherMissingAltitude": "Set the forecast altitude in the aircraft profile or at this waypoint.",
+  "weatherInvalidAltitude": "Enter a whole number in feet AMSL.",
+  "aircraftInvalidCruiseSpeed": "Enter a valid cruising speed.",
+  "weatherSaveFailed": "Could not save the settings.",
+  "weatherPointDetails": "Route point details",
+  "weatherSectionAir": "Air and wind",
+  "weatherSectionPressure": "Pressure",
+  "weatherSampleDetails": "Forecast at this point",
+  "weatherRouteStart": "Start of route",
+  "weatherPlannedAltitude": "Forecast altitude",
+  "weatherPlannedDeparture": "Planned departure",
+  "weatherDepartureNow": "Now",
+  "weatherForecastUnavailable": "Forecast unavailable for this time and location.",
+  "weatherWindUnavailable": "Wind unavailable at this altitude.",
+  "weatherBelowTerrain": "The selected altitude is below the terrain.",
+  "weatherWindAtAltitude": "Wind at planned altitude",
+  "weatherCalm": "Calm",
+  "weatherHeadwind": "Headwind",
+  "weatherTailwind": "Tailwind",
+  "weatherCrosswindLeft": "Crosswind from left",
+  "weatherCrosswindRight": "Crosswind from right",
+  "weatherTemperature": "Temperature at planned altitude",
+  "weatherSurfaceGusts": "Surface gusts (10 m above ground)",
+  "weatherGustShort": "ground gusts",
+  "weatherGustMapLabel": "gusts",
+  "weatherPrecipitation": "Precipitation",
+  "weatherLowCloud": "Low cloud cover",
+  "weatherModelQnh": "Estimated QNH",
+  "weatherModelQfe": "Estimated QFE",
+  "weatherQfeAirport": "Aerodrome elevation",
+  "weatherQfeTerrain": "Terrain elevation",
+  "weatherDownloaded": "Forecast downloaded",
+  "weatherNotRefreshed": "Not refreshed · forecast from this session",
+  "weatherDisabled": "Flight forecast is disabled. Enable it in Settings → Map.",
+  "navigationEtaGps": "GPS progress",
+  "navigationEtaWind": "Forecast wind",
+  "navigationEtaProfile": "Aircraft TAS",
+  "navigationEtaBlocked": "The forecast wind prevents progress on this route at the estimated TAS.",
+  "navigationWindTimeChange": "Wind effect: {minutes} min on forecast sections",
+  "@navigationWindTimeChange": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherDangerousWind": "Dangerous wind",
+  "weatherDangerousGust": "Dangerous surface gusts",
+  "weatherWindLimitHelp": "Warn above this wind speed at planned altitude. Leave blank to disable this limit.",
+  "weatherGustLimitHelp": "Warn above this gust speed at 10 m above ground. Leave blank to disable this limit.",
+  "weatherInvalidLimit": "Enter a positive speed or leave the limit blank.",
+  "weatherAlertWindTitle": "Forecast wind exceeds aircraft limit",
+  "weatherAlertGustTitle": "Forecast gusts exceed aircraft limit",
+  "weatherAlertPrecipitationTitle": "Precipitation forecast on the route",
+  "weatherAlertFogTitle": "Fog forecast on the route",
+  "weatherAlertFreezingTitle": "Freezing precipitation forecast",
+  "weatherAlertSnowTitle": "Snow forecast on the route",
+  "weatherAlertThunderstormTitle": "Thunderstorms forecast on the route",
+  "weatherAlertWindBody": "Forecast wind at planned altitude exceeds the selected aircraft limit at the aircraft or a remaining route point. Open route point details for time, altitude and wind.",
+  "weatherAlertGustBody": "Forecast hourly maximum gusts at 10 m above ground exceed the selected aircraft limit. Open route point details for the forecast interval.",
+  "weatherAlertConditionsBody": "The forecast at the aircraft or a remaining route point indicates adverse weather at the expected time of passage. Review route point details and the aviation weather briefing.",
+  "weatherAlertStaleTitle": "Forecast not up to date",
+  "weatherAlertStaleBody": "The forecast could not be refreshed. The values shown come from this session and may be older than 30 minutes. Weather is a planning aid, not a safety function.",
+  "weatherRefresh": "Refresh forecast",
+  "weatherRouteWarnings": "Weather warnings on the route",
+  "weatherRouteSampleLocation": "Route sample",
+  "weatherExceededWind": "Wind {value} exceeds limit {limit}",
+  "weatherExceededGust": "Surface gusts {value} exceed limit {limit}",
+  "@weatherExceededWind": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "@weatherExceededGust": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  }
 }

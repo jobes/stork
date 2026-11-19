@@ -42,12 +42,13 @@ abstract class AppSettings with _$AppSettings {
     @Default(false) bool areWidgetsDraggable,
     @Default({}) Map<String, WidgetPosition> widgetPositions,
     @Default(SpeedUnit.kmh) SpeedUnit speedUnit,
+    @Default(SpeedUnit.kmh) SpeedUnit windSpeedUnit,
     @Default(1013.25) double qnh,
     @Default(1013.25) double qfe,
     @Default(true) bool autoQnh,
     @Default(AltitudeUnit.feet) AltitudeUnit altitudeUnit,
     @Default(AltitudeUnit.meters) AltitudeUnit heightUnit,
-    @Default(27.78) double averageSpeed,
+    @Default(true) bool showFlightWeather,
     String? pilotId,
     String? airplaneId,
     @Default(TemperatureUnit.celsius) TemperatureUnit temperatureUnit,
@@ -144,15 +145,6 @@ abstract class AppSettings with _$AppSettings {
       );
     }
     return copyWith(qnh: validatedQnh);
-  }
-
-  AppSettings copyWithValidatedAverageSpeed(double speedValue) {
-    double validatedSpeed = speedValue;
-    if (!validatedSpeed.isFinite || validatedSpeed < 0.001) {
-      validatedSpeed = 0.001;
-    }
-    final speedMs = speedUnit.convertToMs(validatedSpeed);
-    return copyWith(averageSpeed: speedMs);
   }
 
   AppSettings copyWithValidatedFlightSpeedMaxRange(

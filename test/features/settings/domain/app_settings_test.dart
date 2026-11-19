@@ -6,6 +6,15 @@ import 'package:stork/features/settings/domain/models/pressure_unit.dart';
 import 'package:stork/features/settings/domain/models/range_thresholds.dart';
 
 void main() {
+  test('Flight forecast is enabled by default', () {
+    expect(const AppSettings().showFlightWeather, isTrue);
+    expect(AppSettings.fromJson({}).showFlightWeather, isTrue);
+    expect(
+      AppSettings.fromJson({'showFlightWeather': false}).showFlightWeather,
+      isFalse,
+    );
+  });
+
   test('Follow pitch defaults to 30 degrees and survives serialization', () {
     expect(AppSettings.fromJson({}).mapFollowPitch, 30.0);
 

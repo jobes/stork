@@ -238,6 +238,48 @@ class FlightSettingsPage extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
+                            l10n.windSpeedUnitSettings,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        DropdownButton<SpeedUnit>(
+                          value: settings.windSpeedUnit,
+                          onChanged: (SpeedUnit? newValue) {
+                            if (newValue != null) {
+                              unawaited(
+                                ref
+                                    .read(appSettingsProvider.notifier)
+                                    .updateWindSpeedUnit(newValue),
+                              );
+                            }
+                          },
+                          items: SpeedUnit.values
+                              .map<DropdownMenuItem<SpeedUnit>>((
+                                SpeedUnit value,
+                              ) {
+                                return DropdownMenuItem<SpeedUnit>(
+                                  value: value,
+                                  child: Text(value.getLabel(l10n)),
+                                );
+                              })
+                              .toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
                             l10n.altitudeUnitSettings,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
@@ -480,41 +522,6 @@ class FlightSettingsPage extends ConsumerWidget {
                               ref
                                   .read(appSettingsProvider.notifier)
                                   .updateFlightSpeedMaxRange(newValue),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.averageSpeed,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                        NumberInput(
-                          initialValue: speedUnit
-                              .convertFromMs(settings.averageSpeed)
-                              .roundToDouble(),
-                          min: 10,
-                          max: 500,
-                          step: 5,
-                          suffix: settings.speedUnit.getAbbreviation(l10n),
-                          onChanged: (newValue) {
-                            unawaited(
-                              ref
-                                  .read(appSettingsProvider.notifier)
-                                  .updateAverageSpeed(newValue),
                             );
                           },
                         ),

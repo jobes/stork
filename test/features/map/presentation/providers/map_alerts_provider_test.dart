@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +20,9 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_link_h
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/traffic_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/traffic_source_health_provider.dart';
+import 'package:stork/features/weather/data/models/forecast_series.dart';
+import 'package:stork/features/weather/domain/forecast_profile.dart';
+import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
 
 class _Telemetry extends TelemetryNotifier {
   @override
@@ -101,6 +106,7 @@ ProviderContainer _container({
   TrafficSourceHealthState traffic = const TrafficSourceHealthState(),
   AltitudeHealthState altitude = const AltitudeHealthState(),
   bool linkAvailable = true,
+  Future<ForecastProfiles?> Function()? forecast,
 }) {
   return ProviderContainer(
     overrides: [
@@ -116,7 +122,27 @@ ProviderContainer _container({
       ),
       offlineMapsProvider.overrideWith(_OfflineMaps.new),
       mapStyleProvider.overrideWith((ref) async => '{}'),
+      if (forecast != null)
+        flightForecastProfilesProvider.overrideWith((ref) => forecast()),
     ],
+  );
+}
+
+ForecastProfiles _staleForecast({bool withData = true}) {
+  final now = clock.now().toUtc();
+  return (
+    series: withData
+        ? {
+            '48.1700,17.2100': ForecastSeries.fromJson({
+              'elevation': 165,
+              'hourly': {
+                'time': [now.millisecondsSinceEpoch ~/ 1000],
+                'wind_gusts_10m': [18],
+              },
+            }, now),
+          }
+        : const {},
+    refreshFailed: true,
   );
 }
 
@@ -130,6 +156,41 @@ Future<MapAlert?> _firstAlert(ProviderContainer container) async {
 void main() {
   test('stays quiet when every signal is healthy', () async {
     final container = _container();
+    addTearDown(container.dispose);
+
+    expect(await _firstAlert(container), isNull);
+  });
+
+  test('reports a stale forecast as informational', () async {
+    final container = _container(forecast: () async => _staleForecast());
+    addTearDown(container.dispose);
+
+    final alert = await _firstAlert(container);
+    expect(alert?.kind, MapAlertKind.forecastStale);
+    expect(alert?.severity, MapAlertSeverity.info);
+  });
+
+  test('hides the stale forecast while a refresh is running', () async {
+    var refreshing = false;
+    final pending = Completer<ForecastProfiles?>();
+    final container = _container(
+      forecast: () async => refreshing ? pending.future : _staleForecast(),
+    );
+    addTearDown(container.dispose);
+
+    expect((await _firstAlert(container))?.kind, MapAlertKind.forecastStale);
+
+    refreshing = true;
+    container.invalidate(flightForecastProfilesProvider);
+    await pumpEventQueue();
+
+    expect(container.read(mapAlertsProvider), isEmpty);
+  });
+
+  test('does not report a missing forecast', () async {
+    final container = _container(
+      forecast: () async => _staleForecast(withData: false),
+    );
     addTearDown(container.dispose);
 
     expect(await _firstAlert(container), isNull);

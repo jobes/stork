@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:url_launcher/url_launcher.dart';
 
-import '../domain/models/navigation_point.dart';
+import '../../domain/models/navigation_point.dart';
 
 /// Builds a Windy route-planner URL
 /// (`https://www.windy.com/route-planner/vfr/lat,lng;lat,lng;...`) for the

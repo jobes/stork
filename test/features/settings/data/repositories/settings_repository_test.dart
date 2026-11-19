@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/features/settings/data/repositories/settings_repository.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
+import 'package:stork/features/settings/domain/models/speed_unit.dart';
 
 void main() {
   group('SettingsRepository getSettings exception handling', () {
@@ -12,6 +13,26 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       prefs = await SharedPreferences.getInstance();
     });
+
+    test(
+      'wind units persist independently from aircraft speed units',
+      () async {
+        final repository = SettingsRepository(prefs);
+        final settings = await repository.getSettings();
+        expect(settings.windSpeedUnit, SpeedUnit.kmh);
+        await repository.saveSettings(
+          settings.copyWith(
+            speedUnit: SpeedUnit.knots,
+            windSpeedUnit: SpeedUnit.ms,
+          ),
+        );
+        final saved = await repository.getSettings();
+        expect(saved.speedUnit, SpeedUnit.knots);
+        expect(saved.windSpeedUnit, SpeedUnit.ms);
+        await repository.saveSettings(saved.copyWith(speedUnit: SpeedUnit.mph));
+        expect((await repository.getSettings()).windSpeedUnit, SpeedUnit.ms);
+      },
+    );
 
     test(
       'older settings show the clock and warn one hour before sunset',

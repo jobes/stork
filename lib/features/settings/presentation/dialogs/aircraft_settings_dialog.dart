@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../domain/models/aircraft.dart';
+import '../../domain/models/speed_unit.dart';
 import '../providers/aircraft_provider.dart';
 import '../providers/settings_provider.dart';
 
@@ -43,6 +46,14 @@ class _AircraftSettingsDialogState
   late final TextEditingController _initialFlightsController;
   late final TextEditingController _ognDeviceIdController;
   late bool _sendLivePosition;
+  late final SpeedUnit _speedUnit;
+  late final SpeedUnit _windSpeedUnit;
+  late final TextEditingController _cruiseSpeedController;
+  late final TextEditingController _weatherAltitudeController;
+  late final TextEditingController _windLimitController;
+  late final TextEditingController _gustLimitController;
+  bool _savingFlightProfile = false;
+  late final String _initialSpeedText;
 
   @override
   void initState() {
@@ -57,6 +68,27 @@ class _AircraftSettingsDialogState
       text: widget.aircraft.ognDeviceId,
     );
     _sendLivePosition = widget.aircraft.sendLivePosition;
+    _speedUnit =
+        ref.read(appSettingsProvider).value?.speedUnit ?? SpeedUnit.kmh;
+    _windSpeedUnit =
+        ref.read(appSettingsProvider).value?.windSpeedUnit ?? SpeedUnit.kmh;
+    _cruiseSpeedController = TextEditingController(
+      text: _speedUnit
+          .convertFromMs(widget.aircraft.cruiseSpeedMs)
+          .toStringAsFixed(1),
+    );
+    _initialSpeedText = _cruiseSpeedController.text;
+    String? limitText(double? ms) =>
+        ms == null ? null : _windSpeedUnit.convertFromMs(ms).toStringAsFixed(1);
+    _windLimitController = TextEditingController(
+      text: limitText(widget.aircraft.dangerousWindMs),
+    );
+    _gustLimitController = TextEditingController(
+      text: limitText(widget.aircraft.dangerousGustMs),
+    );
+    _weatherAltitudeController = TextEditingController(
+      text: widget.aircraft.weatherAltitudeFeet?.toString(),
+    );
   }
 
   @override
@@ -64,7 +96,94 @@ class _AircraftSettingsDialogState
     _initialHoursController.dispose();
     _initialFlightsController.dispose();
     _ognDeviceIdController.dispose();
+    _cruiseSpeedController.dispose();
+    _weatherAltitudeController.dispose();
+    _windLimitController.dispose();
+    _gustLimitController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveAircraft(Aircraft aircraft) async {
+    if (_savingFlightProfile) return;
+    setState(() => _savingFlightProfile = true);
+    try {
+      await ref.read(aircraftStateProvider.notifier).updateAircraft(aircraft);
+    } finally {
+      if (mounted) setState(() => _savingFlightProfile = false);
+    }
+  }
+
+  Future<void> _saveFlightProfile(AppLocalizations l10n) async {
+    final speed = double.tryParse(
+      _cruiseSpeedController.text.trim().replaceAll(',', '.'),
+    );
+    if (_savingFlightProfile) return;
+    final speedMs = _cruiseSpeedController.text == _initialSpeedText
+        ? widget.aircraft.cruiseSpeedMs
+        : speed == null
+        ? null
+        : _speedUnit.convertToMs(speed);
+    final altitudeText = _weatherAltitudeController.text.trim();
+    final altitude = int.tryParse(altitudeText);
+    final messenger = ScaffoldMessenger.of(widget.parentContext);
+    if (speedMs == null ||
+        !speedMs.isFinite ||
+        speedMs < minCruiseSpeedMs ||
+        speedMs > maxCruiseSpeedMs) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.aircraftInvalidCruiseSpeed)),
+      );
+      return;
+    }
+    if (altitudeText.isNotEmpty && altitude == null) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.weatherInvalidAltitude)),
+      );
+      return;
+    }
+
+    double? readLimit(TextEditingController controller) {
+      final value = double.tryParse(
+        controller.text.trim().replaceAll(',', '.'),
+      );
+      return value == null ? null : _windSpeedUnit.convertToMs(value);
+    }
+
+    final wind = readLimit(_windLimitController);
+    final gust = readLimit(_gustLimitController);
+    if ((_windLimitController.text.trim().isNotEmpty &&
+            (wind == null || !wind.isFinite || wind <= 0)) ||
+        (_gustLimitController.text.trim().isNotEmpty &&
+            (gust == null || !gust.isFinite || gust <= 0))) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.weatherInvalidLimit)));
+      return;
+    }
+
+    final current = ref
+        .read(aircraftStateProvider)
+        .value
+        ?.where((a) => a.id == widget.aircraft.id)
+        .firstOrNull;
+    if (current == null) return;
+    setState(() => _savingFlightProfile = true);
+    try {
+      await ref
+          .read(aircraftStateProvider.notifier)
+          .updateAircraft(
+            current.copyWith(
+              cruiseSpeedMs: speedMs,
+              weatherAltitudeFeet: altitude,
+              dangerousWindMs: wind,
+              dangerousGustMs: gust,
+            ),
+          );
+    } catch (_) {
+      if (messenger.mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.weatherSaveFailed)));
+      }
+    } finally {
+      if (mounted) setState(() => _savingFlightProfile = false);
+    }
   }
 
   @override
@@ -110,6 +229,7 @@ class _AircraftSettingsDialogState
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () async {
+                  if (_savingFlightProfile) return;
                   final hours = double.tryParse(_initialHoursController.text);
                   if (hours == null || hours < 0) {
                     ScaffoldMessenger.of(widget.parentContext).showSnackBar(
@@ -124,11 +244,9 @@ class _AircraftSettingsDialogState
                     (a) => a.id == widget.aircraft.id,
                     orElse: () => widget.aircraft,
                   );
-                  await ref
-                      .read(aircraftStateProvider.notifier)
-                      .updateAircraft(
-                        currentAircraft.copyWith(initialFlightHours: hours),
-                      );
+                  await _saveAircraft(
+                    currentAircraft.copyWith(initialFlightHours: hours),
+                  );
                   if (widget.parentContext.mounted) {
                     ScaffoldMessenger.of(widget.parentContext).showSnackBar(
                       SnackBar(content: Text(l10n.initialHoursSaved)),
@@ -178,6 +296,7 @@ class _AircraftSettingsDialogState
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () async {
+                  if (_savingFlightProfile) return;
                   final flights = int.tryParse(_initialFlightsController.text);
                   if (flights == null || flights < 0) {
                     ScaffoldMessenger.of(widget.parentContext).showSnackBar(
@@ -192,11 +311,9 @@ class _AircraftSettingsDialogState
                     (a) => a.id == widget.aircraft.id,
                     orElse: () => widget.aircraft,
                   );
-                  await ref
-                      .read(aircraftStateProvider.notifier)
-                      .updateAircraft(
-                        currentAircraft.copyWith(initialFlights: flights),
-                      );
+                  await _saveAircraft(
+                    currentAircraft.copyWith(initialFlights: flights),
+                  );
                   if (widget.parentContext.mounted) {
                     ScaffoldMessenger.of(widget.parentContext).showSnackBar(
                       SnackBar(content: Text(l10n.initialFlightsSaved)),
@@ -217,6 +334,57 @@ class _AircraftSettingsDialogState
             ],
           ),
           const Divider(height: 32),
+          TextField(
+            controller: _cruiseSpeedController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: l10n.aircraftCruiseSpeed,
+              suffixText: _speedUnit.getAbbreviation(l10n),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _weatherAltitudeController,
+            keyboardType: const TextInputType.numberWithOptions(signed: true),
+            decoration: InputDecoration(
+              labelText: l10n.weatherDefaultAltitude,
+              helperText: l10n.weatherAltitudeHelp,
+              helperMaxLines: 3,
+              suffixText: l10n.weatherAltitudeFt,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _windLimitController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: l10n.weatherDangerousWind,
+              helperText: l10n.weatherWindLimitHelp,
+              helperMaxLines: 3,
+              suffixText: _windSpeedUnit.getAbbreviation(l10n),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _gustLimitController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: l10n.weatherDangerousGust,
+              helperText: l10n.weatherGustLimitHelp,
+              helperMaxLines: 3,
+              suffixText: _windSpeedUnit.getAbbreviation(l10n),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              onPressed: _savingFlightProfile
+                  ? null
+                  : () => unawaited(_saveFlightProfile(l10n)),
+              child: Text(l10n.save),
+            ),
+          ),
+          const Divider(height: 32),
           Text(
             l10n.ognSettingsSection,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -231,6 +399,7 @@ class _AircraftSettingsDialogState
             subtitle: Text(l10n.sendLivePositionDesc),
             value: _sendLivePosition,
             onChanged: (val) async {
+              if (_savingFlightProfile) return;
               final currentAircrafts =
                   ref.read(aircraftStateProvider).value ?? [widget.aircraft];
               final currentAircraft = currentAircrafts.firstWhere(
@@ -252,11 +421,9 @@ class _AircraftSettingsDialogState
               setState(() {
                 _sendLivePosition = val;
               });
-              await ref
-                  .read(aircraftStateProvider.notifier)
-                  .updateAircraft(
-                    currentAircraft.copyWith(sendLivePosition: val),
-                  );
+              await _saveAircraft(
+                currentAircraft.copyWith(sendLivePosition: val),
+              );
             },
           ),
           const SizedBox(height: 12),
@@ -290,6 +457,7 @@ class _AircraftSettingsDialogState
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () async {
+                  if (_savingFlightProfile) return;
                   final id = _ognDeviceIdController.text.trim().toUpperCase();
                   if (!RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(id)) {
                     ScaffoldMessenger.of(
@@ -304,11 +472,9 @@ class _AircraftSettingsDialogState
                     (a) => a.id == widget.aircraft.id,
                     orElse: () => widget.aircraft,
                   );
-                  await ref
-                      .read(aircraftStateProvider.notifier)
-                      .updateAircraft(
-                        currentAircraft.copyWith(ognDeviceId: id),
-                      );
+                  await _saveAircraft(
+                    currentAircraft.copyWith(ognDeviceId: id),
+                  );
                   if (widget.parentContext.mounted) {
                     ScaffoldMessenger.of(
                       widget.parentContext,
@@ -385,6 +551,7 @@ class _AircraftSettingsDialogState
                   style: const TextStyle(color: Colors.red),
                 ),
                 onPressed: () async {
+                  if (_savingFlightProfile) return;
                   final dialogCtx = context;
                   Navigator.pop(dialogCtx);
                   final confirmed = await showDialog<bool>(

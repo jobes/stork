@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Aircraft {
 
- String get id; String get name; double get initialFlightHours; int get initialFlights; bool get sendLivePosition; String get ognDeviceId; AircraftType get type;
+ String get id; String get name; double get initialFlightHours; int get initialFlights; bool get sendLivePosition; String get ognDeviceId; double get cruiseSpeedMs; int? get weatherAltitudeFeet; double? get dangerousWindMs; double? get dangerousGustMs; AircraftType get type;
 /// Create a copy of Aircraft
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $AircraftCopyWith<Aircraft> get copyWith => _$AircraftCopyWithImpl<Aircraft>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as Aircraft;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Aircraft&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.initialFlightHours, _this.initialFlightHours) || other.initialFlightHours == _this.initialFlightHours)&&(identical(other.initialFlights, _this.initialFlights) || other.initialFlights == _this.initialFlights)&&(identical(other.sendLivePosition, _this.sendLivePosition) || other.sendLivePosition == _this.sendLivePosition)&&(identical(other.ognDeviceId, _this.ognDeviceId) || other.ognDeviceId == _this.ognDeviceId)&&(identical(other.type, _this.type) || other.type == _this.type));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Aircraft&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.initialFlightHours, _this.initialFlightHours) || other.initialFlightHours == _this.initialFlightHours)&&(identical(other.initialFlights, _this.initialFlights) || other.initialFlights == _this.initialFlights)&&(identical(other.sendLivePosition, _this.sendLivePosition) || other.sendLivePosition == _this.sendLivePosition)&&(identical(other.ognDeviceId, _this.ognDeviceId) || other.ognDeviceId == _this.ognDeviceId)&&(identical(other.cruiseSpeedMs, _this.cruiseSpeedMs) || other.cruiseSpeedMs == _this.cruiseSpeedMs)&&(identical(other.weatherAltitudeFeet, _this.weatherAltitudeFeet) || other.weatherAltitudeFeet == _this.weatherAltitudeFeet)&&(identical(other.dangerousWindMs, _this.dangerousWindMs) || other.dangerousWindMs == _this.dangerousWindMs)&&(identical(other.dangerousGustMs, _this.dangerousGustMs) || other.dangerousGustMs == _this.dangerousGustMs)&&(identical(other.type, _this.type) || other.type == _this.type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as Aircraft;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.initialFlightHours,_this.initialFlights,_this.sendLivePosition,_this.ognDeviceId,_this.type);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.initialFlightHours,_this.initialFlights,_this.sendLivePosition,_this.ognDeviceId,_this.cruiseSpeedMs,_this.weatherAltitudeFeet,_this.dangerousWindMs,_this.dangerousGustMs,_this.type);
 }
 
 @override
 String toString() {
   final _this = this as Aircraft;
-  return 'Aircraft(id: ${_this.id}, name: ${_this.name}, initialFlightHours: ${_this.initialFlightHours}, initialFlights: ${_this.initialFlights}, sendLivePosition: ${_this.sendLivePosition}, ognDeviceId: ${_this.ognDeviceId}, type: ${_this.type})';
+  return 'Aircraft(id: ${_this.id}, name: ${_this.name}, initialFlightHours: ${_this.initialFlightHours}, initialFlights: ${_this.initialFlights}, sendLivePosition: ${_this.sendLivePosition}, ognDeviceId: ${_this.ognDeviceId}, cruiseSpeedMs: ${_this.cruiseSpeedMs}, weatherAltitudeFeet: ${_this.weatherAltitudeFeet}, dangerousWindMs: ${_this.dangerousWindMs}, dangerousGustMs: ${_this.dangerousGustMs}, type: ${_this.type})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $AircraftCopyWith<$Res>  {
   factory $AircraftCopyWith(Aircraft value, $Res Function(Aircraft) _then) = _$AircraftCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, double initialFlightHours, int initialFlights, bool sendLivePosition, String ognDeviceId, AircraftType type
+ String id, String name, double initialFlightHours, int initialFlights, bool sendLivePosition, String ognDeviceId, double cruiseSpeedMs, int? weatherAltitudeFeet, double? dangerousWindMs, double? dangerousGustMs, AircraftType type
 });
 
 
@@ -71,7 +71,7 @@ class _$AircraftCopyWithImpl<$Res>
 
 /// Create a copy of Aircraft
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? initialFlightHours = null,Object? initialFlights = null,Object? sendLivePosition = null,Object? ognDeviceId = null,Object? type = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? initialFlightHours = null,Object? initialFlights = null,Object? sendLivePosition = null,Object? ognDeviceId = null,Object? cruiseSpeedMs = null,Object? weatherAltitudeFeet = freezed,Object? dangerousWindMs = freezed,Object? dangerousGustMs = freezed,Object? type = null,}) {
   return _then(Aircraft(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -79,7 +79,11 @@ as String,initialFlightHours: null == initialFlightHours ? _self.initialFlightHo
 as double,initialFlights: null == initialFlights ? _self.initialFlights : initialFlights // ignore: cast_nullable_to_non_nullable
 as int,sendLivePosition: null == sendLivePosition ? _self.sendLivePosition : sendLivePosition // ignore: cast_nullable_to_non_nullable
 as bool,ognDeviceId: null == ognDeviceId ? _self.ognDeviceId : ognDeviceId // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,cruiseSpeedMs: null == cruiseSpeedMs ? _self.cruiseSpeedMs : cruiseSpeedMs // ignore: cast_nullable_to_non_nullable
+as double,weatherAltitudeFeet: freezed == weatherAltitudeFeet ? _self.weatherAltitudeFeet : weatherAltitudeFeet // ignore: cast_nullable_to_non_nullable
+as int?,dangerousWindMs: freezed == dangerousWindMs ? _self.dangerousWindMs : dangerousWindMs // ignore: cast_nullable_to_non_nullable
+as double?,dangerousGustMs: freezed == dangerousGustMs ? _self.dangerousGustMs : dangerousGustMs // ignore: cast_nullable_to_non_nullable
+as double?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as AircraftType,
   ));
 }
@@ -165,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  double initialFlightHours,  int initialFlights,  bool sendLivePosition,  String ognDeviceId,  AircraftType type)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  double initialFlightHours,  int initialFlights,  bool sendLivePosition,  String ognDeviceId,  double cruiseSpeedMs,  int? weatherAltitudeFeet,  double? dangerousWindMs,  double? dangerousGustMs,  AircraftType type)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Aircraft() when $default != null:
-return $default(_that.id,_that.name,_that.initialFlightHours,_that.initialFlights,_that.sendLivePosition,_that.ognDeviceId,_that.type);case _:
+return $default(_that.id,_that.name,_that.initialFlightHours,_that.initialFlights,_that.sendLivePosition,_that.ognDeviceId,_that.cruiseSpeedMs,_that.weatherAltitudeFeet,_that.dangerousWindMs,_that.dangerousGustMs,_that.type);case _:
   return orElse();
 
 }
@@ -186,10 +190,10 @@ return $default(_that.id,_that.name,_that.initialFlightHours,_that.initialFlight
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  double initialFlightHours,  int initialFlights,  bool sendLivePosition,  String ognDeviceId,  AircraftType type)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  double initialFlightHours,  int initialFlights,  bool sendLivePosition,  String ognDeviceId,  double cruiseSpeedMs,  int? weatherAltitudeFeet,  double? dangerousWindMs,  double? dangerousGustMs,  AircraftType type)  $default,) {final _that = this;
 switch (_that) {
 case _Aircraft():
-return $default(_that.id,_that.name,_that.initialFlightHours,_that.initialFlights,_that.sendLivePosition,_that.ognDeviceId,_that.type);case _:
+return $default(_that.id,_that.name,_that.initialFlightHours,_that.initialFlights,_that.sendLivePosition,_that.ognDeviceId,_that.cruiseSpeedMs,_that.weatherAltitudeFeet,_that.dangerousWindMs,_that.dangerousGustMs,_that.type);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +210,10 @@ return $default(_that.id,_that.name,_that.initialFlightHours,_that.initialFlight
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  double initialFlightHours,  int initialFlights,  bool sendLivePosition,  String ognDeviceId,  AircraftType type)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  double initialFlightHours,  int initialFlights,  bool sendLivePosition,  String ognDeviceId,  double cruiseSpeedMs,  int? weatherAltitudeFeet,  double? dangerousWindMs,  double? dangerousGustMs,  AircraftType type)?  $default,) {final _that = this;
 switch (_that) {
 case _Aircraft() when $default != null:
-return $default(_that.id,_that.name,_that.initialFlightHours,_that.initialFlights,_that.sendLivePosition,_that.ognDeviceId,_that.type);case _:
+return $default(_that.id,_that.name,_that.initialFlightHours,_that.initialFlights,_that.sendLivePosition,_that.ognDeviceId,_that.cruiseSpeedMs,_that.weatherAltitudeFeet,_that.dangerousWindMs,_that.dangerousGustMs,_that.type);case _:
   return null;
 
 }
@@ -221,7 +225,7 @@ return $default(_that.id,_that.name,_that.initialFlightHours,_that.initialFlight
 @JsonSerializable()
 
 class _Aircraft implements Aircraft {
-  const _Aircraft({required this.id, required this.name, this.initialFlightHours = 0.0, this.initialFlights = 0, this.sendLivePosition = false, this.ognDeviceId = '', this.type = AircraftType.glider});
+  const _Aircraft({required this.id, required this.name, this.initialFlightHours = 0.0, this.initialFlights = 0, this.sendLivePosition = false, this.ognDeviceId = '', this.cruiseSpeedMs = defaultCruiseSpeedMs, this.weatherAltitudeFeet, this.dangerousWindMs, this.dangerousGustMs, this.type = AircraftType.glider});
   factory _Aircraft.fromJson(Map<String, dynamic> json) => _$AircraftFromJson(json);
 
 @override final  String id;
@@ -230,6 +234,10 @@ class _Aircraft implements Aircraft {
 @override@JsonKey() final  int initialFlights;
 @override@JsonKey() final  bool sendLivePosition;
 @override@JsonKey() final  String ognDeviceId;
+@override@JsonKey() final  double cruiseSpeedMs;
+@override final  int? weatherAltitudeFeet;
+@override final  double? dangerousWindMs;
+@override final  double? dangerousGustMs;
 @override@JsonKey() final  AircraftType type;
 
 /// Create a copy of Aircraft
@@ -245,18 +253,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Aircraft&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.initialFlightHours, initialFlightHours) || other.initialFlightHours == initialFlightHours)&&(identical(other.initialFlights, initialFlights) || other.initialFlights == initialFlights)&&(identical(other.sendLivePosition, sendLivePosition) || other.sendLivePosition == sendLivePosition)&&(identical(other.ognDeviceId, ognDeviceId) || other.ognDeviceId == ognDeviceId)&&(identical(other.type, type) || other.type == type));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Aircraft&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.initialFlightHours, initialFlightHours) || other.initialFlightHours == initialFlightHours)&&(identical(other.initialFlights, initialFlights) || other.initialFlights == initialFlights)&&(identical(other.sendLivePosition, sendLivePosition) || other.sendLivePosition == sendLivePosition)&&(identical(other.ognDeviceId, ognDeviceId) || other.ognDeviceId == ognDeviceId)&&(identical(other.cruiseSpeedMs, cruiseSpeedMs) || other.cruiseSpeedMs == cruiseSpeedMs)&&(identical(other.weatherAltitudeFeet, weatherAltitudeFeet) || other.weatherAltitudeFeet == weatherAltitudeFeet)&&(identical(other.dangerousWindMs, dangerousWindMs) || other.dangerousWindMs == dangerousWindMs)&&(identical(other.dangerousGustMs, dangerousGustMs) || other.dangerousGustMs == dangerousGustMs)&&(identical(other.type, type) || other.type == type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,initialFlightHours,initialFlights,sendLivePosition,ognDeviceId,type);
+    return Object.hash(runtimeType,id,name,initialFlightHours,initialFlights,sendLivePosition,ognDeviceId,cruiseSpeedMs,weatherAltitudeFeet,dangerousWindMs,dangerousGustMs,type);
 }
 
 @override
 String toString() {
-    return 'Aircraft(id: $id, name: $name, initialFlightHours: $initialFlightHours, initialFlights: $initialFlights, sendLivePosition: $sendLivePosition, ognDeviceId: $ognDeviceId, type: $type)';
+    return 'Aircraft(id: $id, name: $name, initialFlightHours: $initialFlightHours, initialFlights: $initialFlights, sendLivePosition: $sendLivePosition, ognDeviceId: $ognDeviceId, cruiseSpeedMs: $cruiseSpeedMs, weatherAltitudeFeet: $weatherAltitudeFeet, dangerousWindMs: $dangerousWindMs, dangerousGustMs: $dangerousGustMs, type: $type)';
 }
 
 
@@ -267,7 +275,7 @@ abstract mixin class _$AircraftCopyWith<$Res> implements $AircraftCopyWith<$Res>
   factory _$AircraftCopyWith(_Aircraft value, $Res Function(_Aircraft) _then) = __$AircraftCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, double initialFlightHours, int initialFlights, bool sendLivePosition, String ognDeviceId, AircraftType type
+ String id, String name, double initialFlightHours, int initialFlights, bool sendLivePosition, String ognDeviceId, double cruiseSpeedMs, int? weatherAltitudeFeet, double? dangerousWindMs, double? dangerousGustMs, AircraftType type
 });
 
 
@@ -284,7 +292,7 @@ class __$AircraftCopyWithImpl<$Res>
 
 /// Create a copy of Aircraft
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? initialFlightHours = null,Object? initialFlights = null,Object? sendLivePosition = null,Object? ognDeviceId = null,Object? type = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? initialFlightHours = null,Object? initialFlights = null,Object? sendLivePosition = null,Object? ognDeviceId = null,Object? cruiseSpeedMs = null,Object? weatherAltitudeFeet = freezed,Object? dangerousWindMs = freezed,Object? dangerousGustMs = freezed,Object? type = null,}) {
   return _then(_Aircraft(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -292,7 +300,11 @@ as String,initialFlightHours: null == initialFlightHours ? _self.initialFlightHo
 as double,initialFlights: null == initialFlights ? _self.initialFlights : initialFlights // ignore: cast_nullable_to_non_nullable
 as int,sendLivePosition: null == sendLivePosition ? _self.sendLivePosition : sendLivePosition // ignore: cast_nullable_to_non_nullable
 as bool,ognDeviceId: null == ognDeviceId ? _self.ognDeviceId : ognDeviceId // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,cruiseSpeedMs: null == cruiseSpeedMs ? _self.cruiseSpeedMs : cruiseSpeedMs // ignore: cast_nullable_to_non_nullable
+as double,weatherAltitudeFeet: freezed == weatherAltitudeFeet ? _self.weatherAltitudeFeet : weatherAltitudeFeet // ignore: cast_nullable_to_non_nullable
+as int?,dangerousWindMs: freezed == dangerousWindMs ? _self.dangerousWindMs : dangerousWindMs // ignore: cast_nullable_to_non_nullable
+as double?,dangerousGustMs: freezed == dangerousGustMs ? _self.dangerousGustMs : dangerousGustMs // ignore: cast_nullable_to_non_nullable
+as double?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as AircraftType,
   ));
 }

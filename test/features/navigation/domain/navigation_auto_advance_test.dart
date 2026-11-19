@@ -2,10 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
+import 'package:stork/features/settings/presentation/providers/aircraft_provider.dart';
 import '../../../helpers/sensors_mock.dart';
 
 void main() {
@@ -21,10 +23,9 @@ void main() {
             (ref) => SharedPreferences.getInstance(),
           ),
           appSettingsProvider.overrideWith(
-            () => FakeAppSettingsNotifier(
-              const AppSettings(averageSpeed: 10.0), // 10.0 m/s
-            ),
+            () => FakeAppSettingsNotifier(const AppSettings()),
           ),
+          cruiseSpeedProvider.overrideWith((ref) => 10.0),
         ],
       );
       // Wait for initialization
@@ -72,7 +73,7 @@ void main() {
     );
 
     test(
-      'auto-advances when time to next point is <= 60 seconds (using settings speed)',
+      'auto-advances when time to next point is <= 60 seconds (using aircraft cruising speed)',
       () async {
         final notifier = container.read(navigationProvider.notifier);
 

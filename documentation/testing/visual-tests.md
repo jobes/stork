@@ -38,6 +38,18 @@ captures simulate the space occupied by the keyboard on a landscape phone
 with 19 airport matches. The tests verify that the Photon status and local
 results remain visible together.
 
+Flight forecast has **128 English-language captures**, covering both themes and
+all four viewports. The sixteen scenarios show the route list with wind-adjusted
+times, the navigation widget, the map point menu, route point weather, QNH/QFE,
+a missing terrain reference, an unavailable forecast, the waypoint altitude
+editor, the navigation weather summary and the aircraft's cruising speed and
+default forecast altitude, the orange navigation warning, the map weather alert
+dialog with the stale-forecast condition and its refresh action, the aircraft
+weather limits and the navigation warning details with locations and thresholds,
+plus independent wind units in m/s. Longer dialogs have separate top and scrolled
+captures. The fixtures use a fixed route, forecast date, wind, gusts and pressure.
+They exercise the actual screens and dialogs with provider overrides.
+
 The fixtures replace profile, settings, discovery, gateway, authentication
 and collision inputs. They never read real preferences or use GPS, network,
 credentials or avionics. System text scaling is fixed at 1.0. These are rendered Flutter widgets,

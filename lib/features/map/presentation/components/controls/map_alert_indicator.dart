@@ -14,6 +14,7 @@ import '../../../../telemetry/domain/models/flight_alert_record.dart';
 import '../../../../telemetry/domain/models/telemetry_instrument.dart';
 import '../../../../telemetry/presentation/providers/instrument_status_provider.dart';
 import '../../../../telemetry/presentation/providers/temperature_trend_provider.dart';
+import '../../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../providers/map_alert_history_provider.dart';
 import '../../providers/map_alerts_provider.dart';
 import '../../providers/notams_provider.dart';
@@ -456,7 +457,32 @@ class _MapAlertDialog extends ConsumerWidget {
                 label: Text(l10n.notamRefresh),
               ),
           ],
+          if (alerts.any((alert) => alert.kind == MapAlertKind.forecastStale))
+            const _ForecastRefreshAction(),
         ],
+      ),
+    );
+  }
+}
+
+/// Refresh action for a stale forecast. Kept out of the dialog body so the
+/// weather providers are only created when the condition is shown.
+class _ForecastRefreshAction extends ConsumerWidget {
+  const _ForecastRefreshAction();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loading = ref.watch(
+      flightForecastProfilesProvider.select((value) => value.isLoading),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: OutlinedButton.icon(
+        onPressed: loading
+            ? null
+            : () => ref.read(flightForecastSyncProvider.notifier).refresh(),
+        icon: const Icon(Icons.refresh),
+        label: Text(AppLocalizations.of(context)!.weatherRefresh),
       ),
     );
   }
@@ -735,6 +761,12 @@ String _formatReading(
 
 IconData mapAlertIcon(MapAlertKind kind) {
   return switch (kind) {
+    MapAlertKind.forecastWind || MapAlertKind.forecastGust => Icons.air,
+    MapAlertKind.forecastFog => Icons.foggy,
+    MapAlertKind.forecastSnow || MapAlertKind.forecastFreezing => Icons.ac_unit,
+    MapAlertKind.forecastThunderstorm => Icons.thunderstorm_outlined,
+    MapAlertKind.forecastPrecipitation => Icons.water_drop_outlined,
+    MapAlertKind.forecastStale => Icons.sync_problem,
     MapAlertKind.collisionThreat => Icons.warning_amber_rounded,
     MapAlertKind.oilTemperature ||
     MapAlertKind.cylinderTemperature ||
@@ -782,6 +814,14 @@ String _alertTitle(AppLocalizations l10n, MapAlert alert) {
     };
   }
   return switch (kind) {
+    MapAlertKind.forecastWind => l10n.weatherAlertWindTitle,
+    MapAlertKind.forecastGust => l10n.weatherAlertGustTitle,
+    MapAlertKind.forecastFog => l10n.weatherAlertFogTitle,
+    MapAlertKind.forecastFreezing => l10n.weatherAlertFreezingTitle,
+    MapAlertKind.forecastSnow => l10n.weatherAlertSnowTitle,
+    MapAlertKind.forecastThunderstorm => l10n.weatherAlertThunderstormTitle,
+    MapAlertKind.forecastPrecipitation => l10n.weatherAlertPrecipitationTitle,
+    MapAlertKind.forecastStale => l10n.weatherAlertStaleTitle,
     MapAlertKind.collisionThreat => l10n.mapAlertCollisionTitle,
     MapAlertKind.mapStyleUnavailable => l10n.mapAlertMapStyleTitle,
     MapAlertKind.gpsPermissionDenied => l10n.mapAlertGpsPermissionTitle,
@@ -819,6 +859,14 @@ String _alertBody(AppLocalizations l10n, MapAlert alert) {
         : '${l10n.mapAlertInstrumentCylinder(channel)}. $description';
   }
   return switch (kind) {
+    MapAlertKind.forecastWind => l10n.weatherAlertWindBody,
+    MapAlertKind.forecastGust => l10n.weatherAlertGustBody,
+    MapAlertKind.forecastPrecipitation ||
+    MapAlertKind.forecastFog ||
+    MapAlertKind.forecastSnow ||
+    MapAlertKind.forecastFreezing ||
+    MapAlertKind.forecastThunderstorm => l10n.weatherAlertConditionsBody,
+    MapAlertKind.forecastStale => l10n.weatherAlertStaleBody,
     MapAlertKind.collisionThreat => l10n.mapAlertCollisionBody,
     MapAlertKind.mapStyleUnavailable => l10n.mapAlertMapStyleBody,
     MapAlertKind.gpsPermissionDenied => l10n.mapAlertGpsPermissionBody,

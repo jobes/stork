@@ -27,6 +27,8 @@ Documents in this section detail user-facing features, overlay widgets, custom c
 
 *   [Waypoint Navigation System](features/navigation.md)
     *   *Explains how waypoint-based routing works, including dynamic ETA/ETE calculations, custom path legs, reorderable lists, manual controls, and the auto-advance logic that moves to the next waypoint when travel time is $\le 60.0$ seconds.*
+*   [Flight forecast](features/flight-weather.md)
+    *   *Describes planned departure, waypoint altitudes and in-memory model forecasts.*
 *   [Flight Duration and Distance Tracking](features/flight-duration-tracking.md)
     *   *Describes block-time telemetry tracking which automatically detects takeoff and landing, accumulates flight distances using geographic mathematics while filtering out GPS noise, and exposes the time/distance readouts via dedicated widgets.*
 *   [Black Box Flight Logging and GPX Export](features/black-box-logging.md)

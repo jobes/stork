@@ -80,6 +80,60 @@ void main() {
       },
     );
 
+    test(
+      'each aircraft stores its own flight profile with fresh defaults',
+      () async {
+        final repository = AircraftRepository(prefs);
+        await prefs.setString('app_settings', '{"averageSpeed":37}');
+        await prefs.setString(
+          'app_aircrafts',
+          '[{"id":"one","name":"First"},{"id":"two","name":"Second"}]',
+        );
+
+        final first = (await repository.getAircraft('one'))!;
+        expect(first.cruiseSpeedMs, defaultCruiseSpeedMs);
+        expect(first.weatherAltitudeFeet, isNull);
+
+        await repository.saveAircraft(
+          first.copyWith(cruiseSpeedMs: 21, weatherAltitudeFeet: 3200),
+        );
+        expect(
+          (await repository.getAircraft('one'))!.weatherAltitudeFeet,
+          3200,
+        );
+        expect((await repository.getAircraft('one'))!.cruiseSpeedMs, 21);
+        expect(
+          (await repository.getAircraft('two'))!.cruiseSpeedMs,
+          defaultCruiseSpeedMs,
+        );
+        expect(
+          (await repository.getAircraft('two'))!.weatherAltitudeFeet,
+          isNull,
+        );
+      },
+    );
+
+    test('weather limits are optional and isolated per aircraft', () async {
+      final repository = AircraftRepository(prefs);
+      await repository.saveAircrafts([
+        const Aircraft(
+          id: 'one',
+          name: 'First',
+          dangerousWindMs: 7,
+          dangerousGustMs: 11,
+        ),
+        const Aircraft(id: 'two', name: 'Second'),
+      ]);
+      expect((await repository.getAircraft('one'))!.dangerousWindMs, 7);
+      expect((await repository.getAircraft('one'))!.dangerousGustMs, 11);
+      expect((await repository.getAircraft('two'))!.dangerousWindMs, isNull);
+      expect((await repository.getAircraft('two'))!.dangerousGustMs, isNull);
+      final first = (await repository.getAircraft('one'))!;
+      await repository.saveAircraft(first.copyWith(dangerousWindMs: null));
+      expect((await repository.getAircraft('one'))!.dangerousWindMs, isNull);
+      expect((await repository.getAircraft('one'))!.dangerousGustMs, 11);
+    });
+
     test('saveAircrafts successfully persists aircrafts', () async {
       final repository = AircraftRepository(prefs);
       const aircrafts = [Aircraft(id: '1', name: 'Cessna 172')];

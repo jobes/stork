@@ -35,6 +35,7 @@ import '../components/controls/map_widget_wrapper.dart';
 import '../components/controls/utc_clock_widget.dart';
 import '../providers/map_camera_provider.dart';
 import '../providers/map_radar.dart';
+import '../../../navigation/domain/models/navigation_point.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../navigation/presentation/widgets/navigation_telemetry_widget.dart';
 import '../components/controls/map_features_bottom_sheet.dart';
@@ -190,6 +191,8 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
               longitude: result.longitude,
               name: name,
               isAirport: result.type == MapSearchResultType.airport,
+              airportId: result.airportId,
+              airportCountry: result.airportCountry,
             ),
           );
       if (!mounted) return;

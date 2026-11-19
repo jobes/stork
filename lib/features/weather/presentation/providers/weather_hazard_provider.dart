@@ -1,0 +1,166 @@
+import 'dart:collection';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../../navigation/presentation/providers/navigation_provider.dart';
+import '../../../settings/presentation/providers/aircraft_provider.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../domain/flight_forecast.dart';
+import '../../domain/forecast_profile.dart';
+import '../../domain/forecast_query.dart';
+import '../../domain/forecast_route.dart';
+import '../../domain/weather_hazard.dart';
+import 'flight_weather_provider.dart';
+import 'route_timing_provider.dart';
+
+part 'weather_hazard_provider.g.dart';
+
+typedef _HazardSample = ({
+  ForecastProfile series,
+  ForecastRoutePoint point,
+  ForecastReference reference,
+  DateTime time,
+});
+typedef _HazardInput = ({
+  List<_HazardSample> samples,
+  double? windLimit,
+  double? gustLimit,
+});
+
+typedef WeatherHazardDetail = ({
+  String pointId,
+  ForecastLocation location,
+  DateTime time,
+  double? altitudeFeet,
+  Set<WeatherHazard> hazards,
+  double? windMs,
+  double? gustMs,
+  double? windLimitMs,
+  double? gustLimitMs,
+  double? precipitationMm,
+  DateTime? intervalEnd,
+});
+
+List<WeatherHazardDetail> _evaluateHazards(_HazardInput input) {
+  final details = <WeatherHazardDetail>[];
+  for (final sample in input.samples) {
+    final forecast = sample.series.atReference(
+      sample.time,
+      altitudeFeet: sample.point.altitudeFeet,
+      reference: sample.reference,
+    );
+    if (forecast == null) continue;
+    final hazards = forecastHazards(
+      forecast,
+      windLimitMs: input.windLimit,
+      gustLimitMs: input.gustLimit,
+    );
+    if (hazards.isEmpty) continue;
+    details.add((
+      pointId: sample.point.id,
+      location: sample.point.location,
+      time: sample.time,
+      altitudeFeet: sample.point.altitudeFeet,
+      hazards: hazards,
+      windMs: forecast.wind?.speedMs,
+      gustMs: forecast.gustMs,
+      windLimitMs: input.windLimit,
+      gustLimitMs: input.gustLimit,
+      precipitationMm: forecast.precipitationMm,
+      intervalEnd: forecast.intervalEnd,
+    ));
+  }
+  details.sort((a, b) => a.time.compareTo(b.time));
+  return details;
+}
+
+typedef _HazardSnapshot = ({
+  Object? route,
+  Object? aircraft,
+  List<ForecastRoutePoint> points,
+});
+
+class _EvaluatedHazards extends UnmodifiableListView<WeatherHazardDetail> {
+  _EvaluatedHazards(this.snapshot, super.details);
+  final _HazardSnapshot snapshot;
+}
+
+@riverpod
+Future<List<WeatherHazardDetail>> weatherHazardDetails(Ref ref) async {
+  final enabled = ref.watch(
+    appSettingsProvider.select((s) => s.value?.showFlightWeather ?? false),
+  );
+  if (!enabled) return const [];
+  final points = ref.watch(flightWeatherPlanProvider);
+  final timing = ref.watch(routePointTimingProvider);
+  final profiles = ref.watch(flightForecastProfilesProvider).value;
+  final aircraft = ref.watch(selectedAircraftProvider);
+  final route = ref.watch(navigationProvider).value;
+  if (profiles == null || (points.length > 1 && route?.isActive != true)) {
+    return const [];
+  }
+  final locations = ref.watch(flightWeatherProfileLocationsProvider);
+  final references = await ref.watch(routeForecastReferencesProvider.future);
+  final input = (
+    windLimit: aircraft?.dangerousWindMs,
+    gustLimit: aircraft?.dangerousGustMs,
+    samples: [
+      for (final point in points)
+        if (profiles.series[forecastLocationKey(
+              locations[point.id] ?? point.location,
+            )]
+            case final series?)
+          if (references[point.id] case final reference?)
+            if ((timing.containsKey(point.id)
+                    ? timing[point.id]!.eta
+                    : point.eta)
+                case final time?)
+              (series: series, point: point, reference: reference, time: time),
+    ],
+  );
+  final details = await compute(
+    _evaluateHazards,
+    input,
+    debugLabel: 'Evaluate route weather hazards',
+  );
+  return _EvaluatedHazards((
+    route: route,
+    aircraft: aircraft,
+    points: points,
+  ), details);
+}
+
+@riverpod
+List<WeatherHazardDetail> activeWeatherHazardDetails(Ref ref) {
+  final enabled = ref.watch(
+    appSettingsProvider.select((s) => s.value?.showFlightWeather ?? false),
+  );
+  if (!enabled) return const [];
+  final details = ref.watch(weatherHazardDetailsProvider);
+  if (details.hasError) {
+    debugPrint(
+      'Could not evaluate route weather hazards: ${details.error.runtimeType}',
+    );
+  }
+  final retained = details.value;
+  if (retained is! _EvaluatedHazards ||
+      retained.snapshot.route != ref.watch(navigationProvider).value ||
+      retained.snapshot.aircraft != ref.watch(selectedAircraftProvider) ||
+      !listEquals(
+        retained.snapshot.points,
+        ref.watch(flightWeatherPlanProvider),
+      )) {
+    return const [];
+  }
+  return retained;
+}
+
+/// Hazards currently reported by the active plan, already filtered by the
+/// flight forecast setting.
+@riverpod
+Set<WeatherHazard> activeWeatherHazards(Ref ref) => {
+  for (final detail in ref.watch(activeWeatherHazardDetailsProvider))
+    ...detail.hazards,
+};

@@ -1,9 +1,34 @@
+import 'dart:async';
+import 'package:stork/features/navigation/data/repositories/navigation_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/core/providers/shared_preferences_provider.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
+import 'package:stork/features/navigation/domain/models/navigation_state.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
 import '../../../../helpers/sensors_mock.dart';
+
+class _ControlledRepository extends NavigationRepository {
+  _ControlledRepository(super.prefs, this.initial);
+  final NavigationState initial;
+  final started = Completer<void>();
+  final removal = Completer<void>();
+  var saves = 0;
+
+  @override
+  NavigationState loadNavigationState() => initial;
+
+  @override
+  Future<void> saveNavigationState(NavigationState state) {
+    if (++saves == 1) {
+      started.complete();
+      return removal.future;
+    }
+    return Future.value();
+  }
+}
 
 void main() {
   group('NavigationNotifier Tests', () {
@@ -79,16 +104,20 @@ void main() {
       await notifier.addPoint(point1);
       await notifier.addPoint(point2);
 
+      final departure = DateTime.utc(2026, 11, 19, 12);
+      container.read(flightDepartureProvider.notifier).select(departure);
       await notifier.removePoint(0);
 
       final state = await container.read(navigationProvider.future);
       expect(state.points, hasLength(1));
       expect(state.points.first.name, 'Point 2');
       expect(state.isActive, isTrue);
+      expect(container.read(flightDepartureProvider), departure);
 
       await notifier.removePoint(0);
 
       final stateEmpty = await container.read(navigationProvider.future);
+      expect(container.read(flightDepartureProvider), isNull);
       expect(stateEmpty.points, isEmpty);
       expect(stateEmpty.isActive, isFalse); // Deactivates when empty
     });
@@ -133,53 +162,69 @@ void main() {
       },
     );
 
-    test('NavigationCalculations computes legs and totals correctly', () {
-      const points = [
-        NavigationPoint(latitude: 48.0, longitude: 17.0, name: 'Point 1'),
-        NavigationPoint(latitude: 48.0, longitude: 18.0, name: 'Point 2'),
-      ];
-
-      // Test with null coordinates
-      final emptyCalc = NavigationCalculations.calculate(
-        points: points,
-        currentLatitude: null,
-        currentLongitude: null,
-        activeSpeedMs: 10.0,
+    for (final concurrentEdit in ['none', 'route', 'departure']) {
+      test(
+        'failed removal rolls back without overwriting a newer edit ($concurrentEdit)',
+        () async {
+          const initial = NavigationState(
+            points: [
+              NavigationPoint(latitude: 48, longitude: 17, name: 'First'),
+            ],
+            isActive: true,
+            wasAutoAdvanced: true,
+          );
+          final repository = _ControlledRepository(
+            await SharedPreferences.getInstance(),
+            initial,
+          );
+          final isolated = ProviderContainer(
+            overrides: [
+              navigationAutoAdvanceProvider.overrideWith((ref) {}),
+              navigationRepositoryProvider.overrideWith(
+                (ref) async => repository,
+              ),
+            ],
+          );
+          addTearDown(isolated.dispose);
+          await isolated.read(navigationProvider.future);
+          final notifier = isolated.read(navigationProvider.notifier);
+          final departure = DateTime.utc(2026, 11, 19, 12);
+          final laterDeparture = departure.add(const Duration(hours: 1));
+          isolated.read(flightDepartureProvider.notifier).select(departure);
+          final removal = notifier.removePoint(0);
+          final failure = expectLater(removal, throwsStateError);
+          await repository.started.future;
+          expect(isolated.read(navigationProvider).value!.points, isEmpty);
+          expect(isolated.read(navigationProvider).value!.isActive, isFalse);
+          expect(isolated.read(flightDepartureProvider), isNull);
+          if (concurrentEdit == 'route') {
+            await notifier.addPoint(
+              const NavigationPoint(latitude: 49, longitude: 18, name: 'New'),
+            );
+          }
+          if (concurrentEdit != 'none') {
+            isolated
+                .read(flightDepartureProvider.notifier)
+                .select(laterDeparture);
+          }
+          repository.removal.completeError(StateError('Save failed'));
+          await failure;
+          await isolated.pump();
+          final state = isolated.read(navigationProvider).value!;
+          if (concurrentEdit == 'route') {
+            expect(state.points.single.name, 'New');
+          } else {
+            expect(state, same(initial));
+            expect(state.isActive, isTrue);
+            expect(state.wasAutoAdvanced, isTrue);
+          }
+          expect(
+            isolated.read(flightDepartureProvider),
+            concurrentEdit == 'none' ? departure : laterDeparture,
+          );
+        },
       );
-      expect(emptyCalc.legs, isEmpty);
-      expect(emptyCalc.totalDistanceMeters, 0.0);
-      expect(emptyCalc.totalDuration, Duration.zero);
-
-      // Test with valid coordinates
-      final now = DateTime(2026, 6, 13, 12, 0, 0);
-      final calc = NavigationCalculations.calculate(
-        points: points,
-        currentLatitude: 48.0,
-        currentLongitude: 17.0,
-        activeSpeedMs: 10.0,
-        now: now,
-      );
-
-      expect(calc.legs, hasLength(2));
-      expect(calc.legs[0].legDistanceMeters, closeTo(0.0, 1.0));
-      expect(calc.legs[0].legDuration, Duration.zero);
-
-      final expectedDist = points[0].distanceTo(
-        points[1].latitude,
-        points[1].longitude,
-      );
-      expect(calc.legs[1].legDistanceMeters, closeTo(expectedDist, 1.0));
-      expect(
-        calc.legs[1].legDuration.inSeconds,
-        equals((expectedDist / 10.0).round()),
-      );
-      expect(calc.totalDistanceMeters, closeTo(expectedDist, 1.0));
-      expect(
-        calc.totalDuration.inSeconds,
-        equals((expectedDist / 10.0).round()),
-      );
-      expect(calc.legs[1].eta, now.add(calc.totalDuration));
-    });
+    }
 
     test('reorderPoints moves points correctly', () async {
       final notifier = container.read(navigationProvider.notifier);

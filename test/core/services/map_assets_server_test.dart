@@ -3,11 +3,9 @@ import 'dart:io';
 import 'dart:typed_data' show Endian;
 
 import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart'
-    show TestDefaultBinaryMessengerBinding, TestWidgetsFlutterBinding;
+import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/services/database/database_service_io.dart';
 import 'package:stork/core/services/map_assets_server.dart';
-import 'package:test/test.dart';
 
 class _FakeAssetBundle extends CachingAssetBundle {
   _FakeAssetBundle(this._assets);

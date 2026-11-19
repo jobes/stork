@@ -1,31 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clock/clock.dart';
 
-import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import '../providers/navigation_provider.dart';
-import '../../../../l10n/app_localizations.dart';
-import '../dialogs/navigation_details_dialog.dart';
+import '../../../settings/domain/models/range_thresholds.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../telemetry/presentation/widgets/telemetry_card.dart';
+import '../../../weather/presentation/providers/weather_hazard_provider.dart';
+import '../dialogs/navigation_details_dialog.dart';
+import '../providers/navigation_eta_provider.dart';
+import '../utils/navigation_formatters.dart';
 
 class NavigationTelemetryWidget extends ConsumerWidget {
   const NavigationTelemetryWidget({super.key});
 
-  String _formatDurationNoSeconds(BuildContext context, Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final minStr = minutes.toString().padLeft(2, '0');
-    if (hours > 0) {
-      return '$hours:$minStr';
-    } else {
-      return '$minutes ${AppLocalizations.of(context)!.minutesAbbrev}';
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final telemetry = ref.watch(throttledTelemetryProvider);
+    final calculations = ref.watch(navigationEtaProvider);
+    final weatherWarning = ref.watch(activeWeatherHazardsProvider).isNotEmpty;
     final settings = ref.watch(appSettingsProvider).value;
     final navigationAsync = ref.watch(navigationProvider);
     final fontScale = (settings?.mapControlScale ?? 1.0).toDouble();
@@ -45,39 +36,27 @@ class NavigationTelemetryWidget extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        final useRealSpeed =
-            telemetry.isFlying &&
-            telemetry.groundSpeed != null &&
-            telemetry.groundSpeed! > 0;
-        final activeSpeedMs = useRealSpeed
-            ? telemetry.groundSpeed!
-            : (settings?.averageSpeed ?? 27.78);
-
-        final calculations = NavigationCalculations.calculate(
-          points: points,
-          currentLatitude: telemetry.latitude,
-          currentLongitude: telemetry.longitude,
-          activeSpeedMs: activeSpeedMs,
-          now: clock.now(),
-        );
-
-        final hasLegs = calculations.legs.isNotEmpty;
-        final timeToNearest = hasLegs
-            ? calculations.legs.first.legDuration
-            : null;
-        final timeToDest = hasLegs ? calculations.totalDuration : null;
+        final nearest = calculations.legs.firstOrNull;
+        final destination = calculations.legs.lastOrNull;
+        final timeToNearest = nearest?.eta == null
+            ? null
+            : nearest?.legDuration;
+        final timeToDest = destination?.eta == null
+            ? null
+            : calculations.totalDuration;
 
         final hasMultiplePoints = points.length > 1;
 
-        final l10n = AppLocalizations.of(context)!;
-        final timeToNearestStr = timeToNearest != null
-            ? _formatDurationNoSeconds(context, timeToNearest)
-            : l10n.placeholderDash;
-        final timeToDestStr = timeToDest != null
-            ? _formatDurationNoSeconds(context, timeToDest)
-            : l10n.placeholderDash;
+        final timeToNearestStr = formatNavigationDuration(
+          context,
+          timeToNearest,
+        );
+        final timeToDestStr = formatNavigationDuration(context, timeToDest);
 
         return TelemetryCard(
+          state: weatherWarning
+              ? ThresholdState.maxWarning
+              : ThresholdState.operational,
           onTap: () {
             showDialog(
               context: context,

@@ -13,6 +13,8 @@ import 'package:shared_preferences_platform_interface/shared_preferences_platfor
 import 'package:stork/features/map/data/repositories/notam_catalog_repository.dart';
 import 'package:stork/features/map/data/repositories/notam_repository.dart';
 import 'package:stork/features/map/presentation/providers/notams_provider.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
+import 'package:stork/features/navigation/domain/models/navigation_state.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';

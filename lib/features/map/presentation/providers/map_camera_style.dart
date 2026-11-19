@@ -15,6 +15,7 @@ extension MapCameraStyle on MapCamera {
     if (!isCurrentStyle()) return;
     final generation = ++_styleLoadGeneration;
     _notamStyle = null;
+    _flightWeatherStyle = null;
     try {
       // All map icons come from the app sprite (`assets/map_sprites/`, sprite
       // id "default"): `aircraft-icon` (aircraft-layer), `possibleLoc`
@@ -255,6 +256,16 @@ extension MapCameraStyle on MapCamera {
           paint: {'text-color': '#000000', 'text-halo-width': 0},
         ),
       );
+      if (generation != _styleLoadGeneration || !isCurrentStyle()) return;
+      try {
+        await _addFlightWeatherLayers(style);
+        if (generation != _styleLoadGeneration || !isCurrentStyle()) return;
+        _lastFlightWeatherGeoJson = null;
+        _flightWeatherStyle = style;
+        _updateFlightWeatherOnMap();
+      } catch (error) {
+        debugPrint('Could not initialize flight forecast layers: $error');
+      }
       if (generation != _styleLoadGeneration || !isCurrentStyle()) return;
 
       _isAircraftSymbolInitialized = true;

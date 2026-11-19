@@ -1,37 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:clock/clock.dart';
 
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../core/widgets/stork_detail_surface.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../../settings/domain/models/speed_unit.dart';
-import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../providers/navigation_provider.dart';
-import '../windy_route.dart';
+import '../../../settings/domain/models/speed_unit.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../../telemetry/presentation/providers/throttled_telemetry_provider.dart';
+import '../../../weather/domain/flight_forecast.dart';
+import '../../../weather/domain/forecast_profile.dart';
+import '../../../weather/domain/forecast_query.dart';
+import '../../../weather/domain/forecast_route.dart';
+import '../../../weather/domain/wind_route_timing.dart';
+import '../../../weather/presentation/components/weather_attribution_link.dart';
+import '../../../weather/presentation/components/weather_warning_summary.dart';
+import '../../../weather/presentation/providers/flight_weather_provider.dart';
+import '../../../weather/presentation/providers/route_timing_provider.dart';
+import '../../../weather/presentation/providers/weather_hazard_provider.dart';
+import '../providers/navigation_eta_provider.dart';
+import '../utils/navigation_formatters.dart';
+import '../utils/windy_route.dart';
 
 class NavigationDetailsDialog extends ConsumerWidget {
   const NavigationDetailsDialog({super.key});
-
-  String _formatEta(BuildContext context, DateTime? dateTime) {
-    if (dateTime == null) return AppLocalizations.of(context)!.placeholderDash;
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
-  String _formatDurationNoSeconds(BuildContext context, Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final minStr = minutes.toString().padLeft(2, '0');
-    if (hours > 0) {
-      return '$hours:$minStr';
-    } else {
-      return '$minutes ${AppLocalizations.of(context)!.minutesAbbrev}';
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +33,22 @@ class NavigationDetailsDialog extends ConsumerWidget {
     final navigationAsync = ref.watch(navigationProvider);
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final now = clock.now();
+    final calculations = ref.watch(navigationEtaProvider);
+    final forecastPoints = ref.watch(flightWeatherPlanProvider);
+    final planByWaypoint = forecastPointsByWaypoint(forecastPoints);
+    final timing = ref.watch(routePointTimingProvider);
+    final profiles = ref.watch(flightForecastProfilesProvider).value;
+    final references = settings?.showFlightWeather == true
+        ? ref.watch(routeForecastReferencesProvider).value ??
+              const <String, ForecastReference>{}
+        : const <String, ForecastReference>{};
+    final locations = settings?.showFlightWeather == true
+        ? ref.watch(flightWeatherProfileLocationsProvider)
+        : const <String, ForecastLocation>{};
+    final speedUnit = settings?.windSpeedUnit ?? SpeedUnit.kmh;
+    final hasWeatherWarnings = ref
+        .watch(activeWeatherHazardDetailsProvider)
+        .isNotEmpty;
 
     final defaultTextColor = scheme.onSurfaceVariant;
     final valueColor = scheme.onSurface;
@@ -71,36 +79,19 @@ class NavigationDetailsDialog extends ConsumerWidget {
             telemetry.latitude != 0.0 &&
             telemetry.longitude != 0.0;
 
-        final useRealSpeed =
-            telemetry.isFlying &&
-            telemetry.groundSpeed != null &&
-            telemetry.groundSpeed! > 0;
-        final activeSpeedMs = useRealSpeed
-            ? telemetry.groundSpeed!
-            : (settings?.averageSpeed ?? 27.78);
-        final speedUnit = settings?.speedUnit ?? SpeedUnit.kmh;
-        final speedValFormatted = speedUnit
-            .convertFromMs(activeSpeedMs)
-            .toStringAsFixed(0);
-        final speedUnitAbbr = speedUnit.getAbbreviation(l10n);
-
-        final calculations = NavigationCalculations.calculate(
-          points: points,
-          currentLatitude: telemetry.latitude,
-          currentLongitude: telemetry.longitude,
-          activeSpeedMs: activeSpeedMs,
-          now: now,
-        );
-
         final hasLegs = calculations.legs.isNotEmpty;
         final distToNearest = hasLegs
             ? calculations.legs.first.legDistanceMeters
             : null;
         final distToDest = hasLegs ? calculations.totalDistanceMeters : null;
-        final timeToNearest = hasLegs
-            ? calculations.legs.first.legDuration
-            : null;
-        final timeToDest = hasLegs ? calculations.totalDuration : null;
+        final nearest = calculations.legs.firstOrNull;
+        final destination = calculations.legs.lastOrNull;
+        final timeToNearest = nearest?.eta == null
+            ? null
+            : nearest?.legDuration;
+        final timeToDest = destination?.eta == null
+            ? null
+            : calculations.totalDuration;
 
         final hasMultiplePoints = points.length > 1;
 
@@ -114,7 +105,10 @@ class NavigationDetailsDialog extends ConsumerWidget {
             final legDuration = leg.legDuration;
             final cumulativeDistanceKm = leg.cumulativeDistanceMeters / 1000.0;
             final cumulativeDuration = leg.cumulativeDuration;
-            final etaWaypointFormatted = _formatEta(context, leg.eta);
+            final etaWaypointFormatted = formatNavigationTimeUtc(
+              context,
+              leg.eta,
+            );
 
             waypointWidgets.add(
               Container(
@@ -172,14 +166,14 @@ class NavigationDetailsDialog extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${l10n.leg}: ${context.formatNumber(legDistanceKm, 1)} km • ${_formatDurationNoSeconds(context, legDuration)}',
+                            '${l10n.leg}: ${context.formatNumber(legDistanceKm, 1)} km • ${leg.eta == null ? l10n.placeholderDash : formatNavigationDuration(context, legDuration)}',
                             style: TextStyle(
                               fontSize: 11,
                               color: defaultTextColor,
                             ),
                           ),
                           Text(
-                            '${l10n.total}: ${context.formatNumber(cumulativeDistanceKm, 1)} km • ${_formatDurationNoSeconds(context, cumulativeDuration)} (${l10n.etaLabel}: $etaWaypointFormatted)',
+                            '${l10n.total}: ${context.formatNumber(cumulativeDistanceKm, 1)} km • ${leg.eta == null ? l10n.placeholderDash : formatNavigationDuration(context, cumulativeDuration)} (${l10n.etaLabel}: $etaWaypointFormatted)',
                             style: TextStyle(
                               fontSize: 11,
                               color: defaultTextColor,
@@ -268,18 +262,34 @@ class NavigationDetailsDialog extends ConsumerWidget {
             : l10n.placeholderDash;
 
         final timeToNearestStr = timeToNearest != null
-            ? _formatDurationNoSeconds(context, timeToNearest)
+            ? formatNavigationDuration(context, timeToNearest)
             : l10n.placeholderDash;
         final timeToDestStr = timeToDest != null
-            ? _formatDurationNoSeconds(context, timeToDest)
+            ? formatNavigationDuration(context, timeToDest)
             : l10n.placeholderDash;
 
-        final etaNearestStr = timeToNearest != null
-            ? _formatEta(context, now.add(timeToNearest))
+        final etaNearestStr = nearest?.eta != null
+            ? formatNavigationTimeUtc(context, nearest?.eta)
             : null;
-        final etaDestStr = timeToDest != null
-            ? _formatEta(context, now.add(timeToDest))
+        final etaDestStr = destination?.eta != null
+            ? formatNavigationTimeUtc(context, destination?.eta)
             : null;
+
+        Widget forecastSummary(int index, {required bool includeGust}) {
+          final point = planByWaypoint[index];
+          if (point == null) return const SizedBox.shrink();
+          return _buildForecastSummary(
+            context,
+            point,
+            timing[point.id],
+            profiles?.series[forecastLocationKey(
+              locations[point.id] ?? point.location,
+            )],
+            references[point.id],
+            speedUnit,
+            includeGust: includeGust,
+          );
+        }
 
         return BaseDetailsDialog(
           titleText: l10n.navigationDetailsTitle,
@@ -289,6 +299,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const WeatherWarningSummary(),
               // Summary container
               StorkDetailSurface(
                 padding: const EdgeInsets.all(16),
@@ -305,6 +316,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
                         time: timeToNearestStr,
                         eta: etaNearestStr,
                       ),
+                      forecastSummary(0, includeGust: false),
                       const Divider(height: 20),
                     ],
                     _buildDetailRow(
@@ -316,30 +328,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
                       time: timeToDestStr,
                       eta: etaDestStr,
                     ),
-                    const Divider(height: 20),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.speed_outlined,
-                          size: 16,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            l10n.activeSpeedLabel(
-                              speedValFormatted,
-                              speedUnitAbbr,
-                            ),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: defaultTextColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    forecastSummary(points.length - 1, includeGust: true),
                   ],
                 ),
               ),
@@ -353,6 +342,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
                 icon: const Icon(Icons.cloud_outlined),
                 label: Text(l10n.weatherInWindy),
               ),
+              if (!hasWeatherWarnings) const WeatherAttributionLink(),
               const SizedBox(height: 16),
               Text(
                 l10n.waypointsList,
@@ -382,6 +372,74 @@ class NavigationDetailsDialog extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Center(child: Text(e.toString())),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForecastSummary(
+    BuildContext context,
+    ForecastRoutePoint point,
+    TimedRoutePoint? timing,
+    ForecastProfile? series,
+    ForecastReference? reference,
+    SpeedUnit speedUnit, {
+    required bool includeGust,
+  }) {
+    if (timing == null || timing.sources.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final l10n = AppLocalizations.of(context)!;
+    final blocked = timing.sources.contains(RouteTimingSource.blocked);
+    final estimatedAt = timing.eta;
+    final feet = point.altitudeFeet;
+    final forecast = estimatedAt == null
+        ? null
+        : series?.atReference(
+            estimatedAt,
+            altitudeFeet: feet,
+            reference: reference,
+          );
+    final values = <String>[];
+    String speed(double ms) =>
+        '${context.formatNumber(speedUnit.convertFromMs(ms), 0)} ${speedUnit.getAbbreviation(l10n)}';
+    if (forecast?.wind case final wind?) {
+      values.add(
+        wind.speedMs < 0.05
+            ? l10n.weatherCalm
+            : '${l10n.weatherWindAtAltitude} · ${(wind.directionFrom.round() % 360).toString().padLeft(3, '0')}° ${speed(wind.speedMs)}',
+      );
+    }
+    if (includeGust && forecast?.gustMs != null) {
+      values.add('${l10n.weatherSurfaceGusts} · ${speed(forecast!.gustMs!)}');
+    }
+    final windMinutes = ((timing.windEffect?.inSeconds ?? 0) / 60).round();
+    if (windMinutes != 0) {
+      values.add(
+        l10n.navigationWindTimeChange(
+          '${windMinutes > 0 ? '+' : '−'}${context.formatNumber(windMinutes.abs().toDouble(), 0)}',
+        ),
+      );
+    }
+    final sources = timing.sources.map(
+      (source) => switch (source) {
+        RouteTimingSource.gps => l10n.navigationEtaGps,
+        RouteTimingSource.wind => l10n.navigationEtaWind,
+        RouteTimingSource.profile => l10n.navigationEtaProfile,
+        RouteTimingSource.blocked => l10n.navigationEtaBlocked,
+        RouteTimingSource.incompleteWind => l10n.weatherForecastUnavailable,
+      },
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          [
+            if (blocked) l10n.navigationEtaBlocked else sources.join(' + '),
+            ...values,
+          ].join('\n'),
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ),
     );

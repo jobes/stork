@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +8,7 @@ import '../../../../core/constants/map_constants.dart';
 import '../../../../core/widgets/stork_navigation_tile.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
+import '../../../weather/presentation/components/weather_attribution_link.dart';
 import '../providers/settings_provider.dart';
 import '../providers/pilot_provider.dart';
 import '../widgets/settings_widgets.dart';
@@ -156,6 +159,23 @@ class MapSettingsPage extends ConsumerWidget {
               ],
             ),
             StorkSettingsSection(
+              title: l10n.settingsMapWeather,
+              children: [
+                SwitchListTile(
+                  title: Text(l10n.flightWeather),
+                  subtitle: Text(l10n.flightWeatherSettingsDescription),
+                  value: settings.showFlightWeather,
+                  onChanged: (enabled) {
+                    unawaited(
+                      ref
+                          .read(appSettingsProvider.notifier)
+                          .updateShowFlightWeather(enabled),
+                    );
+                  },
+                ),
+              ],
+            ),
+            StorkSettingsSection(
               title: pilotNames[settings.pilotId] == null
                   ? l10n.settingsWidgetLayout
                   : '${l10n.settingsWidgetLayout} · ${pilotNames[settings.pilotId]}',
@@ -195,12 +215,18 @@ class MapSettingsPage extends ConsumerWidget {
             ),
             Align(
               alignment: AlignmentDirectional.centerStart,
-              child: TextButton(
-                onPressed: () => launchUrl(
-                  Uri.https('www.rainviewer.com'),
-                  mode: LaunchMode.externalApplication,
-                ),
-                child: Text(l10n.radarAttribution),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextButton(
+                    onPressed: () => launchUrl(
+                      Uri.https('www.rainviewer.com'),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                    child: Text(l10n.radarAttribution),
+                  ),
+                  const WeatherAttributionLink(),
+                ],
               ),
             ),
           ],
