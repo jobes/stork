@@ -56,6 +56,7 @@ import 'package:stork/features/settings/domain/models/pilot.dart';
 import 'package:stork/features/settings/domain/models/range_thresholds.dart';
 import 'package:stork/features/settings/domain/models/widget_position.dart';
 import 'package:stork/features/settings/presentation/pages/settings_page.dart';
+import 'package:stork/features/settings/presentation/pages/data_sources_page.dart';
 import 'package:stork/features/settings/presentation/pages/map_settings_page.dart';
 import 'package:stork/features/settings/presentation/pages/widget_settings_page.dart';
 import 'package:stork/features/settings/presentation/pages/flight_settings_page.dart';
@@ -89,6 +90,8 @@ import 'package:stork/features/telemetry/presentation/widgets/speed_telemetry_wi
 import 'package:stork/features/telemetry/presentation/widgets/vario_telemetry_widget.dart';
 import 'package:stork/features/telemetry/presentation/widgets/vhf_radio_telemetry_widget.dart';
 import 'package:stork/l10n/app_localizations.dart';
+
+import '../helpers/source_logo_http.dart';
 
 const _frame = ValueKey('visual-frame');
 
@@ -1291,6 +1294,73 @@ void main() {
             openDialog: true,
           );
         });
+      }
+      testWidgets('data_sources_$suffix', (tester) async {
+        await withSourceLogos(SourceLogoState.loaded, () async {
+          await _pump(
+            tester,
+            const DataSourcesPage(),
+            brightness,
+            device.value,
+          );
+          for (final section in {
+            'maps': 'Maps and terrain',
+            'aviation': 'Aeronautical information',
+            'weather': 'Weather',
+            'traffic': 'Air traffic',
+            'location': 'Search and location',
+          }.entries) {
+            await tester.scrollUntilVisible(
+              find.text(section.value),
+              200,
+              scrollable: find.byType(Scrollable).first,
+            );
+            // Let the deterministic network image codec finish outside fake time.
+            await tester.runAsync(() async {
+              for (final image in tester.widgetList<Image>(
+                find.byType(Image),
+              )) {
+                await precacheImage(
+                  image.image,
+                  tester.element(find.byType(DataSourcesPage)),
+                );
+              }
+            });
+            await tester.pumpAndSettle();
+            expect(find.byType(RawImage), findsWidgets);
+            expect(
+              tester
+                  .widgetList<RawImage>(find.byType(RawImage))
+                  .any((image) => image.image != null),
+              isTrue,
+            );
+            await _shot(tester, 'data_sources_${section.key}_$suffix');
+          }
+          final scrollable = tester.state<ScrollableState>(
+            find.byType(Scrollable).first,
+          );
+          scrollable.position.jumpTo(scrollable.position.maxScrollExtent);
+          await tester.pumpAndSettle();
+          expect(find.byIcon(Icons.sensors), findsOneWidget);
+          await _shot(tester, 'data_sources_bottom_$suffix');
+        });
+      });
+      if (device.key == 'phone_portrait') {
+        for (final state in [SourceLogoState.loading, SourceLogoState.failed]) {
+          testWidgets('data_sources_${state.name}_$suffix', (tester) async {
+            await withSourceLogos(state, () async {
+              await _pump(
+                tester,
+                const DataSourcesPage(),
+                brightness,
+                device.value,
+              );
+              expect(find.byIcon(Icons.public), findsWidgets);
+              expect(find.text('OpenStreetMap'), findsOneWidget);
+              await _shot(tester, 'data_sources_${state.name}_$suffix');
+            });
+          });
+        }
       }
       for (final entry in <String, Widget>{
         'settings': const SettingsPage(),

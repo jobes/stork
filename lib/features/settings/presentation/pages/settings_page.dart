@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/services/cannelloni_service.dart';
 import '../../../../core/widgets/stork_navigation_tile.dart';
@@ -8,7 +9,6 @@ import '../../domain/models/altitude_unit.dart';
 import '../providers/display_preferences_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/stork_settings_section.dart';
-import 'data_sources_page.dart';
 import 'flight_settings_page.dart';
 import 'gateway_settings_page.dart';
 import 'map_settings_page.dart';
@@ -159,7 +159,7 @@ class SettingsPage extends ConsumerWidget {
                 icon: Icons.source_outlined,
                 title: l10n.dataSourcesTitle,
                 subtitle: l10n.dataSourcesSummary,
-                onTap: () => open(const DataSourcesPage()),
+                onTap: () => context.push('/settings/data-sources'),
               ),
             ],
           ),

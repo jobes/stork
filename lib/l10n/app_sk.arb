@@ -1354,5 +1354,17 @@
   "dataSourcesPhotonDescription": "Vyhľadávanie miest a obcí cez službu Photon hostovanú Komootom. Vyhľadávanie letísk používa letecký katalóg.",
   "dataSourcesIpDescription": "Približná poloha podľa IP adresy, keď sa nepodarí získať GPS polohu.",
   "dataSourcesDevicesTitle": "GPS, senzory a palubné prístroje",
-  "dataSourcesDevicesDescription": "Vlastná poloha a údaje zo senzorov zariadenia spolu s letovou a motorovou telemetriou z palubných prístrojov pripojených cez DroneCAN/Cannelloni podľa dostupného vybavenia."
+  "dataSourcesDevicesDescription": "Vlastná poloha a údaje zo senzorov zariadenia spolu s letovou a motorovou telemetriou z palubných prístrojov pripojených cez DroneCAN/Cannelloni podľa dostupného vybavenia.",
+  "dataSourcesOsmTitle": "OpenStreetMap",
+  "dataSourcesProtomapsTitle": "Protomaps",
+  "dataSourcesOpenAipTitle": "openAIP",
+  "dataSourcesMapterhornTitle": "Mapterhorn",
+  "dataSourcesNotamsTitle": "notams.online",
+  "dataSourcesForecastTitle": "Open-Meteo · DWD ICON EU",
+  "dataSourcesRadarTitle": "RainViewer",
+  "dataSourcesOgnTitle": "Open Glider Network · OGN",
+  "dataSourcesDdbTitle": "OGN Device Database · DDB",
+  "dataSourcesPureTrackTitle": "PureTrack",
+  "dataSourcesPhotonTitle": "Photon · Komoot",
+  "dataSourcesIpTitle": "ipapi.co"
 }

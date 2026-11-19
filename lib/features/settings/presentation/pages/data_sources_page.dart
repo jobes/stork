@@ -18,7 +18,7 @@ class DataSourcesPage extends StatelessWidget {
             title: l10n.dataSourcesMaps,
             children: [
               _DataSource(
-                title: 'OpenStreetMap',
+                title: l10n.dataSourcesOsmTitle,
                 description: l10n.dataSourcesOsmDescription,
                 logoUrl:
                     'https://www.openstreetmap.org/assets/favicon-96x96-6ffbc38962fddb870f9577b76430a0ee4db5fb4eca485f850cd45436d7f3eb87.png',
@@ -26,21 +26,21 @@ class DataSourcesPage extends StatelessWidget {
               ),
               const Divider(height: 1),
               _DataSource(
-                title: 'Protomaps',
+                title: l10n.dataSourcesProtomapsTitle,
                 description: l10n.dataSourcesProtomapsDescription,
                 logoUrl: 'https://protomaps.com/favicon.png',
                 website: 'https://protomaps.com/',
               ),
               const Divider(height: 1),
               _DataSource(
-                title: 'openAIP',
+                title: l10n.dataSourcesOpenAipTitle,
                 description: l10n.dataSourcesOpenAipDescription,
                 logoUrl: 'https://www.openaip.net/apple-touch-icon.png',
                 website: 'https://www.openaip.net/',
               ),
               const Divider(height: 1),
               _DataSource(
-                title: 'Mapterhorn',
+                title: l10n.dataSourcesMapterhornTitle,
                 description: l10n.dataSourcesMapterhornDescription,
                 logoUrl:
                     'https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png',
@@ -61,7 +61,7 @@ class DataSourcesPage extends StatelessWidget {
             title: l10n.dataSourcesAviation,
             children: [
               _DataSource(
-                title: 'notams.online',
+                title: l10n.dataSourcesNotamsTitle,
                 description: l10n.dataSourcesNotamsDescription,
                 logoUrl: 'https://notams.online/assets/images/favicon.png',
                 website: 'https://notams.online/',
@@ -86,14 +86,14 @@ class DataSourcesPage extends StatelessWidget {
             title: l10n.dataSourcesWeather,
             children: [
               _DataSource(
-                title: 'Open-Meteo · DWD ICON EU',
+                title: l10n.dataSourcesForecastTitle,
                 description: l10n.dataSourcesForecastDescription,
                 logoUrl: 'https://open-meteo.com/apple-touch-icon.png',
                 website: 'https://open-meteo.com/',
               ),
               const Divider(height: 1),
               _DataSource(
-                title: 'RainViewer',
+                title: l10n.dataSourcesRadarTitle,
                 description: l10n.dataSourcesRadarDescription,
                 logoUrl: 'https://www.rainviewer.com/apple-touch-icon-v3.png',
                 website: 'https://www.rainviewer.com/',
@@ -104,21 +104,21 @@ class DataSourcesPage extends StatelessWidget {
             title: l10n.dataSourcesTraffic,
             children: [
               _DataSource(
-                title: 'Open Glider Network · OGN',
+                title: l10n.dataSourcesOgnTitle,
                 description: l10n.dataSourcesOgnDescription,
                 logoUrl: 'https://ddb.glidernet.org/pict/ogn-logo-ani.gif',
                 website: 'https://www.glidernet.org/',
               ),
               const Divider(height: 1),
               _DataSource(
-                title: 'OGN Device Database · DDB',
+                title: l10n.dataSourcesDdbTitle,
                 description: l10n.dataSourcesDdbDescription,
                 logoUrl: 'https://ddb.glidernet.org/pict/ogn-logo-ani.gif',
                 website: 'https://ddb.glidernet.org/',
               ),
               const Divider(height: 1),
               _DataSource(
-                title: 'PureTrack',
+                title: l10n.dataSourcesPureTrackTitle,
                 description: l10n.dataSourcesPureTrackDescription,
                 logoUrl: 'https://puretrack.io/apple-touch-icon.png',
                 website: 'https://puretrack.io/',
@@ -135,15 +135,14 @@ class DataSourcesPage extends StatelessWidget {
             title: l10n.dataSourcesLocation,
             children: [
               _DataSource(
-                title: 'Photon · Komoot',
+                title: l10n.dataSourcesPhotonTitle,
                 description: l10n.dataSourcesPhotonDescription,
-                logoUrl:
-                    'https://photon.komoot.io/static/img/photon_logo.png',
+                logoUrl: 'https://photon.komoot.io/static/img/photon_logo.png',
                 website: 'https://photon.komoot.io/',
               ),
               const Divider(height: 1),
               _DataSource(
-                title: 'ipapi.co',
+                title: l10n.dataSourcesIpTitle,
                 description: l10n.dataSourcesIpDescription,
                 logoUrl: 'https://ipapi.co/static/images/icon/icon-72.png',
                 website: 'https://ipapi.co/',
@@ -242,11 +241,8 @@ class _SourceLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    Widget placeholder() => Icon(
-      fallbackIcon,
-      size: 24,
-      color: url == null ? colors.onSurfaceVariant : Colors.black54,
-    );
+    Widget placeholder() =>
+        Icon(fallbackIcon, size: 24, color: colors.onSurfaceVariant);
 
     return ExcludeSemantics(
       child: Container(
@@ -254,7 +250,7 @@ class _SourceLogo extends StatelessWidget {
         height: 44,
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: url == null ? colors.surfaceContainerHighest : Colors.white,
+          color: colors.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: colors.outlineVariant),
         ),
@@ -266,8 +262,8 @@ class _SourceLogo extends StatelessWidget {
                 height: 32,
                 fit: BoxFit.contain,
                 errorBuilder: (_, _, _) => placeholder(),
-                loadingBuilder: (_, child, progress) =>
-                    progress == null ? child : placeholder(),
+                frameBuilder: (_, child, frame, _) =>
+                    frame == null ? placeholder() : child,
               ),
       ),
     );

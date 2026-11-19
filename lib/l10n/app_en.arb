@@ -1725,5 +1725,17 @@
   "dataSourcesPhotonDescription": "City and municipality search using the Photon service hosted by Komoot. Airport search uses the aeronautical catalog.",
   "dataSourcesIpDescription": "Approximate location based on the IP address when GPS location cannot be obtained.",
   "dataSourcesDevicesTitle": "GPS, sensors and onboard instruments",
-  "dataSourcesDevicesDescription": "Own position and sensor readings from the device, plus flight and engine telemetry from onboard instruments connected through DroneCAN/Cannelloni, depending on the available equipment."
+  "dataSourcesDevicesDescription": "Own position and sensor readings from the device, plus flight and engine telemetry from onboard instruments connected through DroneCAN/Cannelloni, depending on the available equipment.",
+  "dataSourcesOsmTitle": "OpenStreetMap",
+  "dataSourcesProtomapsTitle": "Protomaps",
+  "dataSourcesOpenAipTitle": "openAIP",
+  "dataSourcesMapterhornTitle": "Mapterhorn",
+  "dataSourcesNotamsTitle": "notams.online",
+  "dataSourcesForecastTitle": "Open-Meteo · DWD ICON EU",
+  "dataSourcesRadarTitle": "RainViewer",
+  "dataSourcesOgnTitle": "Open Glider Network · OGN",
+  "dataSourcesDdbTitle": "OGN Device Database · DDB",
+  "dataSourcesPureTrackTitle": "PureTrack",
+  "dataSourcesPhotonTitle": "Photon · Komoot",
+  "dataSourcesIpTitle": "ipapi.co"
 }

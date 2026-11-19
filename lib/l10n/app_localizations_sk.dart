@@ -3497,4 +3497,40 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String get dataSourcesDevicesDescription =>
       'Vlastná poloha a údaje zo senzorov zariadenia spolu s letovou a motorovou telemetriou z palubných prístrojov pripojených cez DroneCAN/Cannelloni podľa dostupného vybavenia.';
+
+  @override
+  String get dataSourcesOsmTitle => 'OpenStreetMap';
+
+  @override
+  String get dataSourcesProtomapsTitle => 'Protomaps';
+
+  @override
+  String get dataSourcesOpenAipTitle => 'openAIP';
+
+  @override
+  String get dataSourcesMapterhornTitle => 'Mapterhorn';
+
+  @override
+  String get dataSourcesNotamsTitle => 'notams.online';
+
+  @override
+  String get dataSourcesForecastTitle => 'Open-Meteo · DWD ICON EU';
+
+  @override
+  String get dataSourcesRadarTitle => 'RainViewer';
+
+  @override
+  String get dataSourcesOgnTitle => 'Open Glider Network · OGN';
+
+  @override
+  String get dataSourcesDdbTitle => 'OGN Device Database · DDB';
+
+  @override
+  String get dataSourcesPureTrackTitle => 'PureTrack';
+
+  @override
+  String get dataSourcesPhotonTitle => 'Photon · Komoot';
+
+  @override
+  String get dataSourcesIpTitle => 'ipapi.co';
 }

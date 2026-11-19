@@ -3482,4 +3482,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataSourcesDevicesDescription =>
       'Own position and sensor readings from the device, plus flight and engine telemetry from onboard instruments connected through DroneCAN/Cannelloni, depending on the available equipment.';
+
+  @override
+  String get dataSourcesOsmTitle => 'OpenStreetMap';
+
+  @override
+  String get dataSourcesProtomapsTitle => 'Protomaps';
+
+  @override
+  String get dataSourcesOpenAipTitle => 'openAIP';
+
+  @override
+  String get dataSourcesMapterhornTitle => 'Mapterhorn';
+
+  @override
+  String get dataSourcesNotamsTitle => 'notams.online';
+
+  @override
+  String get dataSourcesForecastTitle => 'Open-Meteo · DWD ICON EU';
+
+  @override
+  String get dataSourcesRadarTitle => 'RainViewer';
+
+  @override
+  String get dataSourcesOgnTitle => 'Open Glider Network · OGN';
+
+  @override
+  String get dataSourcesDdbTitle => 'OGN Device Database · DDB';
+
+  @override
+  String get dataSourcesPureTrackTitle => 'PureTrack';
+
+  @override
+  String get dataSourcesPhotonTitle => 'Photon · Komoot';
+
+  @override
+  String get dataSourcesIpTitle => 'ipapi.co';
 }

@@ -6365,6 +6365,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Own position and sensor readings from the device, plus flight and engine telemetry from onboard instruments connected through DroneCAN/Cannelloni, depending on the available equipment.'**
   String get dataSourcesDevicesDescription;
+
+  /// No description provided for @dataSourcesOsmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenStreetMap'**
+  String get dataSourcesOsmTitle;
+
+  /// No description provided for @dataSourcesProtomapsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Protomaps'**
+  String get dataSourcesProtomapsTitle;
+
+  /// No description provided for @dataSourcesOpenAipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'openAIP'**
+  String get dataSourcesOpenAipTitle;
+
+  /// No description provided for @dataSourcesMapterhornTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mapterhorn'**
+  String get dataSourcesMapterhornTitle;
+
+  /// No description provided for @dataSourcesNotamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'notams.online'**
+  String get dataSourcesNotamsTitle;
+
+  /// No description provided for @dataSourcesForecastTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-Meteo · DWD ICON EU'**
+  String get dataSourcesForecastTitle;
+
+  /// No description provided for @dataSourcesRadarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'RainViewer'**
+  String get dataSourcesRadarTitle;
+
+  /// No description provided for @dataSourcesOgnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Glider Network · OGN'**
+  String get dataSourcesOgnTitle;
+
+  /// No description provided for @dataSourcesDdbTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'OGN Device Database · DDB'**
+  String get dataSourcesDdbTitle;
+
+  /// No description provided for @dataSourcesPureTrackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PureTrack'**
+  String get dataSourcesPureTrackTitle;
+
+  /// No description provided for @dataSourcesPhotonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photon · Komoot'**
+  String get dataSourcesPhotonTitle;
+
+  /// No description provided for @dataSourcesIpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ipapi.co'**
+  String get dataSourcesIpTitle;
 }
 
 class _AppLocalizationsDelegate

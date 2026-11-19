@@ -50,6 +50,12 @@ plus independent wind units in m/s. Longer dialogs have separate top and scrolle
 captures. The fixtures use a fixed route, forecast date, wind, gusts and pressure.
 They exercise the actual screens and dialogs with provider overrides.
 
+Data sources has **52 English-language captures**: all five sections and the bottom of the page in both
+themes and all four viewports, plus loading and unavailable online logos on a
+portrait phone in both themes. Logo requests use a synthetic PNG fixture or
+controlled pending/failed responses; no provider images are downloaded. The
+Settings references also include the entry to the data sources screen.
+
 The fixtures replace profile, settings, discovery, gateway, authentication
 and collision inputs. They never read real preferences or use GPS, network,
 credentials or avionics. System text scaling is fixed at 1.0. These are rendered Flutter widgets,
