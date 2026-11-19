@@ -9,16 +9,31 @@ created during local preparation. Startup failure stays on this page with retry.
 or the monitoring SDK and without constructing MaterialApp, themes or the router.
 It shares `StartupContent` with the later application loader and waits for the
 first frame to rasterize before building the full shell. Binding creation and `runApp` share a guarded zone for uncaught
-errors. After the first loader frame, `applicationRuntimeProvider` loads `.env`
-and initializes Sentry without a second `runApp`. Services that capture API keys
-are only created after configuration is available. Sentry's UI wrapper mounts
+errors. After the first loader frame, `applicationConfigurationProvider` loads
+`.env`. Only configuration is a prerequisite
+for local preparations; Sentry initialization runs alongside those preparations
+without a second `runApp`. The map handoff still waits for Sentry initialization
+to settle, keeping its wrapper stable from the first map frame. Services that
+capture API keys are only created after configuration is available. Sentry's UI wrapper mounts
 with the router after initialization; monitoring failure does not prevent startup.
 
 The bootstrap loads display preferences, settings, navigation and favourites,
 starts the session's telemetry/recording services, prepares the FIR index off
 the UI isolate, starts the local asset server, and opens the offline database.
-The initial camera uses valid telemetry or a bounded, permission-free last-known
-GPS lookup, with a regional fallback. It does not wait for GeoIP or a fresh fix.
+The settings/session group, FIR index, local asset server, offline database and
+monitoring initialize concurrently. A bounded, permission-free last-known GPS
+lookup starts alongside them, with a 600 ms budget counted from that early start.
+A valid telemetry position skips waiting for that lookup. When a lookup is
+needed, telemetry is re-read afterwards so an arriving live fix wins. The initial
+camera falls back to the regional default without GeoIP or a fresh-fix request.
+Failed local resource providers are invalidated on retry; successful preparation
+is reused.
+
+Startup steps have timeline spans. Build release with
+`--dart-define=STORK_STARTUP_TIMINGS=true` to log durations and elapsed time from
+Dart `main()`. The `Bootstrap` duration ends after local preparation and initial
+style construction; it does not measure native map rendering or gesture latency.
+Normal release builds leave timing logs disabled.
 
 `mapStyleProvider` prepares the final font scale and embeds all overlay sources
 and layer definitions into the initial style. `MapOverlayStyle` is shared with
@@ -62,3 +77,21 @@ portrait/landscape and larger text, deferred task ordering, archive stability,
 inline overlay style validity, and the existing map/weather/server regressions.
 Native startup speed and first-gesture latency still require profile/release
 measurements on a device.
+
+Release measurement on Samsung SM-X510 (2026-11-19), three process-cold starts
+per build, with the same opt-in bootstrap timing in both builds:
+
+| Startup preparation | Previous order | Concurrent order |
+| --- | ---: | ---: |
+| First start after installation | 451 ms | 250 ms |
+| Second cold start | 225 ms | 173 ms |
+| Third cold start | 202 ms | 157 ms |
+| Median | 225 ms | 173 ms |
+
+This small sample shows a 52 ms reduction in median bootstrap duration (about
+23%). Median elapsed time from Dart `main()` to prepared style was 342 ms versus
+294 ms. These timings exclude completion of native map rendering. The first
+start after each installation was slower in both builds; these are observations
+on this tablet, not a guaranteed saving on every device. In the concurrent
+build, FIR preparation and monitoring overlapped, and the last-known location
+lookup completed 132–223 ms after it started instead of starting after them.

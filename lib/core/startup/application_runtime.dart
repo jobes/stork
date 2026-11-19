@@ -3,10 +3,21 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-/// Started by the bootstrap after the loader's first frame, never by main().
-/// Configuration must still precede services that capture API keys at creation.
+import 'startup_timing.dart';
+
+/// Configuration precedes services that capture API keys at creation.
+final applicationConfigurationProvider = FutureProvider<void>(
+  (_) => measureStartup('Configuration', () => dotenv.load(fileName: '.env')),
+  retry: (_, _) => null,
+);
+
+/// Starts after the first loader frame, alongside local map preparation.
 final applicationRuntimeProvider = FutureProvider<bool>((ref) async {
-  await dotenv.load(fileName: '.env');
+  await ref.watch(applicationConfigurationProvider.future);
+  return measureStartup('Monitoring', _initializeMonitoring);
+}, retry: (_, _) => null);
+
+Future<bool> _initializeMonitoring() async {
   final dsn = dotenv.env['SENTRY_DSN']?.trim();
   if (dsn == null || dsn.isEmpty) return false;
 
@@ -31,4 +42,4 @@ final applicationRuntimeProvider = FutureProvider<bool>((ref) async {
     debugPrint('Sentry init failed; running without monitoring: $error');
     return false;
   }
-}, retry: (_, _) => null);
+}

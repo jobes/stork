@@ -1,17 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/shared_preferences_provider.dart';
 import '../services/cannelloni_service.dart';
-import '../services/database/database_service.dart';
-import '../services/location_service.dart';
-import '../services/map_assets_server.dart';
-import '../services/protomaps_resolver.dart';
 import '../services/style_provider.dart';
 import '../../features/favorites/presentation/providers/favorites_provider.dart';
-import '../../features/map/domain/utils/fir_utils.dart';
 import '../../features/map/presentation/providers/airspace_activity_provider.dart';
 import '../../features/navigation/presentation/providers/navigation_provider.dart';
 import '../../features/settings/presentation/providers/display_preferences_provider.dart';
@@ -20,6 +13,8 @@ import '../../features/telemetry/presentation/providers/black_box_provider.dart'
 import '../../features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'initial_map_camera.dart';
 import 'application_runtime.dart';
+import 'local_map_preparation.dart';
+import 'startup_timing.dart';
 
 /// Holds the prepared style only until the first destination has mounted.
 /// After handoff, ordinary page subscriptions own the map providers again.
@@ -30,74 +25,93 @@ class PreparedApplication {
 
 /// Read once by the app shell after its first frame. No native map is mounted
 /// until this future completes, including preparation of its initial GeoJSON.
-final applicationBootstrapProvider = FutureProvider<PreparedApplication>((
-  ref,
-) async {
-  await ref.watch(applicationRuntimeProvider.future);
-  if (!ref.mounted) return const PreparedApplication();
+final applicationBootstrapProvider = FutureProvider<PreparedApplication>(
+  (ref) => measureStartup('Bootstrap', () async {
+    await ref.watch(applicationConfigurationProvider.future);
+    if (!ref.mounted) return const PreparedApplication();
 
-  // A read of an auto-disposed provider's future does not keep its async
-  // build mounted. Hold settings through preparation and the first UI frame.
-  final settingsLease = ref.listen(appSettingsProvider, (_, _) {});
-  ref.onDispose(settingsLease.close);
-  await Future.wait([
-    ref.read(displayPreferencesProvider.future),
-    ref.read(appSettingsProvider.future),
-    ref.read(navigationProvider.future),
-    ref.read(favoritesProvider.future),
-  ]);
-  if (!ref.mounted) return const PreparedApplication();
+    // A read of an auto-disposed provider's future does not keep its async
+    // build mounted. Hold settings through preparation and the first UI frame.
+    final settingsLease = ref.listen(appSettingsProvider, (_, _) {});
+    ref.onDispose(settingsLease.close);
+    // Start the bounded location lookup before the other local work. It is only
+    // awaited below if telemetry still has no valid position.
+    final lastPosition = ref.read(startupLastKnownPositionProvider.future);
+    await measureStartup(
+      'Local preparation',
+      () => Future.wait([
+        ref.watch(applicationRuntimeProvider.future),
+        ref.read(startupFirIndexProvider.future),
+        ref.read(startupMapAssetsProvider.future),
+        ref.read(startupOfflineDatabaseProvider.future),
+        measureStartup('Settings and session services', () async {
+          await Future.wait([
+            ref.read(displayPreferencesProvider.future),
+            ref.read(appSettingsProvider.future),
+            ref.read(navigationProvider.future),
+            ref.read(favoritesProvider.future),
+          ]);
+          if (!ref.mounted) return;
+          // Session services must not wait for map preparation or monitoring.
+          ref.read(cannelloniServiceProvider);
+          ref.read(blackBoxServiceProvider);
+          ref.read(gpsListenerProvider);
+        }),
+      ]),
+    );
+    if (!ref.mounted) return const PreparedApplication();
 
-  // These are session services, not map services. Do not postpone recording
-  // until the renderer or online data is available. Their providers keep alive.
-  ref.read(cannelloniServiceProvider);
-  ref.read(blackBoxServiceProvider);
-  ref.read(gpsListenerProvider);
-
-  await FirUtils.initialize();
-  if (!ref.mounted) return const PreparedApplication();
-  final prefs = await ref.read(sharedPreferencesProvider.future);
-  ProtomapsResolver.useCachedUrl(prefs);
-  if (!kIsWeb) {
-    await MapAssetsServer.start();
-    await DatabaseService.database;
-  }
-  if (!ref.mounted) return const PreparedApplication();
-
-  // Quiet, bounded local lookup only. Neither GeoIP nor a new GPS fix belongs
-  // on the startup critical path.
-  final lastPosition = await LocationService.getGpsLocationOnly().timeout(
-    const Duration(milliseconds: 600),
-    onTimeout: () => null,
-  );
-  if (!ref.mounted) return const PreparedApplication();
-  final telemetry = ref.read(telemetryProvider);
-  final settings = ref.read(appSettingsProvider).requireValue;
-  ref
-      .read(initialMapCameraProvider.notifier)
-      .prepare(
-        InitialMapCamera.fromTelemetry(
-          telemetry,
-          settings,
-          lastKnownPosition: lastPosition,
-        ),
-      );
-  ref.read(airspaceActivityProvider);
-  final styleLease = ref.listen(mapStyleProvider, (_, _) {});
-  ref.onDispose(styleLease.close);
-  await ref.read(mapStyleProvider.future);
-  return PreparedApplication(
-    releaseMapPreparation: () {
-      styleLease.close();
-      settingsLease.close();
-    },
-  );
-}, retry: (_, _) => null);
+    final settings = ref.read(appSettingsProvider).requireValue;
+    final telemetryCamera = InitialMapCamera.fromTelemetry(
+      ref.read(telemetryProvider),
+      settings,
+    );
+    final knownPosition = telemetryCamera.hasLocation
+        ? null
+        : await lastPosition;
+    if (!ref.mounted) return const PreparedApplication();
+    // Re-read telemetry after an asynchronous lookup: a live fix may have arrived.
+    ref
+        .read(initialMapCameraProvider.notifier)
+        .prepare(
+          InitialMapCamera.fromTelemetry(
+            ref.read(telemetryProvider),
+            settings,
+            lastKnownPosition: knownPosition,
+          ),
+        );
+    ref.read(airspaceActivityProvider);
+    final styleLease = ref.listen(mapStyleProvider, (_, _) {});
+    ref.onDispose(styleLease.close);
+    await measureStartup(
+      'Initial map style',
+      () => ref.read(mapStyleProvider.future),
+    );
+    return PreparedApplication(
+      releaseMapPreparation: () {
+        styleLease.close();
+        settingsLease.close();
+      },
+    );
+  }),
+  retry: (_, _) => null,
+);
 
 /// Retry failed local dependencies as well as the coordinator. Reading only
 /// existing providers avoids starting unrelated work on a failed early boot.
 void retryApplicationBootstrap(ProviderContainer container) {
   container.invalidate(applicationBootstrapProvider);
+  for (final dependency in [
+    applicationConfigurationProvider,
+    startupFirIndexProvider,
+    startupMapAssetsProvider,
+    startupOfflineDatabaseProvider,
+  ]) {
+    if (container.read(dependency.exists) &&
+        container.read(dependency).hasError) {
+      container.invalidate(dependency);
+    }
+  }
   if (container.read(applicationRuntimeProvider.exists) &&
       container.read(applicationRuntimeProvider).hasError) {
     container.invalidate(applicationRuntimeProvider);

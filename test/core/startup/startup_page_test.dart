@@ -55,10 +55,10 @@ void main() {
     },
   );
 
-  testWidgets('loader paints before runtime configuration and monitoring start', (
+  testWidgets('loader paints before runtime configuration starts', (
     tester,
   ) async {
-    final pending = Completer<bool>();
+    final pending = Completer<void>();
     var runtimeStarts = 0;
     tester.binding.defaultBinaryMessenger.setMockMessageHandler(
       'dev.flutter.pigeon.wakelock_plus_platform_interface.WakelockPlusApi.toggle',
@@ -68,7 +68,7 @@ void main() {
       ProviderScope(
         overrides: [
           displayPreferencesProvider.overrideWith(_Preferences.new),
-          applicationRuntimeProvider.overrideWith((_) {
+          applicationConfigurationProvider.overrideWith((_) {
             runtimeStarts++;
             return pending.future;
           }),
@@ -84,7 +84,7 @@ void main() {
     expect(find.text('Pripravujeme mapu'), findsOneWidget);
     expect(find.byType(MapPage), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
-    pending.complete(false);
+    pending.complete();
     await tester.pump();
   });
 
