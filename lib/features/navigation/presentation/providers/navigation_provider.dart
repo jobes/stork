@@ -157,6 +157,8 @@ class NavigationNotifier extends _$NavigationNotifier {
     try {
       await _save(updated);
     } catch (_) {
+      // Restoring this exact snapshot also lets the departure listener restore
+      // the planned time it cleared when the last waypoint was removed.
       if (identical(state.value, updated)) state = AsyncData(current);
       rethrow;
     }

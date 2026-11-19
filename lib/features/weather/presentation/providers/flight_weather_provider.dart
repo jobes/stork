@@ -11,6 +11,7 @@ import '../../../../core/utils/geo_utils.dart';
 import '../../../map/domain/models/airport_elevation.dart';
 import '../../../map/presentation/providers/airport_metadata_provider.dart';
 import '../../../navigation/domain/models/navigation_point.dart';
+import '../../../navigation/domain/models/navigation_state.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -25,18 +26,36 @@ part 'flight_weather_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 class FlightDepartureNotifier extends _$FlightDepartureNotifier {
+  ({NavigationState route, DateTime? departure})? _clearedDeparture;
+
   @override
   DateTime? build() {
-    ref.listen(
-      navigationProvider.select((route) => route.value?.points.isEmpty ?? true),
-      (previous, next) {
-        if (next) state = null;
-      },
-    );
+    ref.listen(navigationProvider.select((route) => route.value), (
+      previous,
+      next,
+    ) {
+      if (next == null || next.points.isEmpty) {
+        if (previous != null && previous.points.isNotEmpty) {
+          _clearedDeparture = (route: previous, departure: state);
+        }
+        state = null;
+      } else {
+        final cleared = _clearedDeparture;
+        _clearedDeparture = null;
+        // A failed optimistic removal restores the original route object.
+        if (cleared != null && identical(next, cleared.route)) {
+          state = cleared.departure;
+        }
+      }
+    });
     return null;
   }
 
-  void select(DateTime? time) => state = time?.toUtc();
+  void select(DateTime? time) {
+    // An explicit selection supersedes any departure saved for rollback.
+    _clearedDeparture = null;
+    state = time?.toUtc();
+  }
 }
 
 @riverpod

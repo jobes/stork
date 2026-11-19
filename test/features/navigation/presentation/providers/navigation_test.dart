@@ -7,6 +7,7 @@ import 'package:stork/core/providers/shared_preferences_provider.dart';
 import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/navigation/domain/models/navigation_state.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
 import '../../../../helpers/sensors_mock.dart';
 
 class _ControlledRepository extends NavigationRepository {
@@ -103,16 +104,20 @@ void main() {
       await notifier.addPoint(point1);
       await notifier.addPoint(point2);
 
+      final departure = DateTime.utc(2026, 11, 19, 12);
+      container.read(flightDepartureProvider.notifier).select(departure);
       await notifier.removePoint(0);
 
       final state = await container.read(navigationProvider.future);
       expect(state.points, hasLength(1));
       expect(state.points.first.name, 'Point 2');
       expect(state.isActive, isTrue);
+      expect(container.read(flightDepartureProvider), departure);
 
       await notifier.removePoint(0);
 
       final stateEmpty = await container.read(navigationProvider.future);
+      expect(container.read(flightDepartureProvider), isNull);
       expect(stateEmpty.points, isEmpty);
       expect(stateEmpty.isActive, isFalse); // Deactivates when empty
     });
@@ -157,7 +162,7 @@ void main() {
       },
     );
 
-    for (final concurrentEdit in [false, true]) {
+    for (final concurrentEdit in ['none', 'route', 'departure']) {
       test(
         'failed removal rolls back without overwriting a newer edit ($concurrentEdit)',
         () async {
@@ -183,26 +188,40 @@ void main() {
           addTearDown(isolated.dispose);
           await isolated.read(navigationProvider.future);
           final notifier = isolated.read(navigationProvider.notifier);
+          final departure = DateTime.utc(2026, 11, 19, 12);
+          final laterDeparture = departure.add(const Duration(hours: 1));
+          isolated.read(flightDepartureProvider.notifier).select(departure);
           final removal = notifier.removePoint(0);
           final failure = expectLater(removal, throwsStateError);
           await repository.started.future;
           expect(isolated.read(navigationProvider).value!.points, isEmpty);
           expect(isolated.read(navigationProvider).value!.isActive, isFalse);
-          if (concurrentEdit) {
+          expect(isolated.read(flightDepartureProvider), isNull);
+          if (concurrentEdit == 'route') {
             await notifier.addPoint(
               const NavigationPoint(latitude: 49, longitude: 18, name: 'New'),
             );
           }
+          if (concurrentEdit != 'none') {
+            isolated
+                .read(flightDepartureProvider.notifier)
+                .select(laterDeparture);
+          }
           repository.removal.completeError(StateError('Save failed'));
           await failure;
+          await isolated.pump();
           final state = isolated.read(navigationProvider).value!;
-          if (concurrentEdit) {
+          if (concurrentEdit == 'route') {
             expect(state.points.single.name, 'New');
           } else {
             expect(state, same(initial));
             expect(state.isActive, isTrue);
             expect(state.wasAutoAdvanced, isTrue);
           }
+          expect(
+            isolated.read(flightDepartureProvider),
+            concurrentEdit == 'none' ? departure : laterDeparture,
+          );
         },
       );
     }

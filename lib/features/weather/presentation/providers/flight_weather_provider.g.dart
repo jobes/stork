@@ -42,7 +42,7 @@ final class FlightDepartureNotifierProvider
 }
 
 String _$flightDepartureNotifierHash() =>
-    r'77a2697088e83ef45464d342842f8712e67ab02a';
+    r'5cf32a14e6966c4a6b0875ef4c164f543995534a';
 
 abstract class _$FlightDepartureNotifier extends $Notifier<DateTime?> {
   DateTime? build();
