@@ -1,4 +1,8 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'flight_forecast.dart';
+
+part 'forecast_query.freezed.dart';
 
 String forecastLocationKey(ForecastLocation location) =>
     '${location.latitude.toStringAsFixed(4)},${location.longitude.toStringAsFixed(4)}';
@@ -15,16 +19,32 @@ ForecastLocation quantizeForecastLocation(ForecastLocation location) => (
       forecastLocationGrid,
 );
 
-class ForecastQuery {
-  final Map<String, ForecastLocation> locations;
-  final DateTime start;
-  final DateTime end;
+@Freezed(
+  equal: false,
+  copyWith: false,
+  map: FreezedMapOptions.none,
+  when: FreezedWhenOptions.none,
+)
+abstract class ForecastQuery with _$ForecastQuery {
+  const ForecastQuery._();
 
-  ForecastQuery(Iterable<ForecastLocation> locations, this.start, this.end)
-    : locations = {
-        for (final location in locations)
-          forecastLocationKey(location): location,
-      };
+  const factory ForecastQuery._value({
+    required Map<String, ForecastLocation> locations,
+    required DateTime start,
+    required DateTime end,
+  }) = _ForecastQuery;
+
+  factory ForecastQuery(
+    Iterable<ForecastLocation> locations,
+    DateTime start,
+    DateTime end,
+  ) => ForecastQuery._value(
+    locations: Map.unmodifiable({
+      for (final location in locations) forecastLocationKey(location): location,
+    }),
+    start: start,
+    end: end,
+  );
 
   @override
   bool operator ==(Object other) =>

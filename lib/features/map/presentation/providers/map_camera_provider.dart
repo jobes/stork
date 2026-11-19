@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/material.dart'
+    show ThemeMode, Brightness, WidgetsBinding, WidgetsBindingObserver;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -45,6 +47,13 @@ part 'map_camera_weather.dart';
 const double kTrafficLookaheadPeriodSeconds = 10.0;
 const double kTrafficBaseIconSizePx = 64.0;
 
+class _WeatherBrightnessObserver extends WidgetsBindingObserver {
+  _WeatherBrightnessObserver(this.onChange);
+  final void Function() onChange;
+  @override
+  void didChangePlatformBrightness() => onChange();
+}
+
 @riverpod
 class MapCamera extends _$MapCamera {
   Ref get refAccess => ref;
@@ -61,6 +70,7 @@ class MapCamera extends _$MapCamera {
   bool _isAircraftSymbolInitialized = false;
   int _styleLoadGeneration = 0;
   StyleController? _flightWeatherStyle;
+  _ForecastPalette? _lastFlightWeatherPalette;
   String? _lastFlightWeatherGeoJson;
   int _flightWeatherRevision = 0;
   bool _flightWeatherWriting = false;
@@ -88,6 +98,13 @@ class MapCamera extends _$MapCamera {
 
   @override
   void build() {
+    final brightnessObserver = _WeatherBrightnessObserver(() {
+      unawaited(_updateFlightWeatherPalette());
+    });
+    WidgetsBinding.instance.addObserver(brightnessObserver);
+    ref.onDispose(
+      () => WidgetsBinding.instance.removeObserver(brightnessObserver),
+    );
     ref.listen(
       telemetryProvider.select(
         (s) => (
@@ -284,10 +301,10 @@ class MapCamera extends _$MapCamera {
       (_, _) => _updateFlightWeatherOnMap(),
     );
     ref.listen(routePointWindsProvider, (_, _) => _updateFlightWeatherOnMap());
-    ref.listen(
-      displayPreferencesProvider,
-      (_, _) => _updateFlightWeatherOnMap(),
-    );
+    ref.listen(displayPreferencesProvider, (_, _) {
+      _updateFlightWeatherOnMap();
+      unawaited(_updateFlightWeatherPalette());
+    });
     ref.listen(
       appSettingsProvider.select(
         (s) => (s.value?.showFlightWeather, s.value?.windSpeedUnit),
@@ -914,6 +931,8 @@ class MapCamera extends _$MapCamera {
             _forecastHitLayer,
             _forecastWindLayer,
             _forecastLabelLayer,
+            'flight-weather-point-wind',
+            'flight-weather-point-label',
           ],
         );
         for (final f in forecastFeatures) {

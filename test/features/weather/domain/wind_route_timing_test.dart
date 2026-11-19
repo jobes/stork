@@ -142,8 +142,42 @@ void main() {
         windAt: (_, _, _) => null,
       );
       expect(timing['finish']!.duration, const Duration(seconds: 500));
-      expect(timing['finish']!.sources, {RouteTimingSource.gps});
+      expect(timing['finish']!.sources, {
+        RouteTimingSource.gps,
+        RouteTimingSource.incompleteWind,
+      });
       expect(timing['finish']!.windEffect, isNull);
     },
   );
+  test('crosswind equal to TAS permits progress with a tailwind', () {
+    expect(
+      groundSpeedForTrack(10, const ForecastWind(10, 5), 0),
+      closeTo(5, 1e-6),
+    );
+    expect(groundSpeedForTrack(10, const ForecastWind(10, 0), 0), isNull);
+    expect(groundSpeedForTrack(10, const ForecastWind(10.01, 5), 0), isNull);
+  });
+
+  test('missing shifted midpoint retains a labeled first-pass estimate', () {
+    final timing = calculateWindRouteTiming(
+      points: [
+        _point('origin', 0, 48),
+        _point('finish', 10000, 48.1, index: 0),
+      ],
+      profileTas: 20,
+      gpsSpeed: null,
+      groundTrack: null,
+      currentAltitudeMeters: null,
+      windAt: (_, time, _) =>
+          time.isBefore(_departure.add(const Duration(minutes: 5)))
+          ? const ForecastWind(0, -10)
+          : null,
+    );
+    expect(timing['finish']!.duration, const Duration(seconds: 1000));
+    expect(timing['finish']!.sources, {
+      RouteTimingSource.profile,
+      RouteTimingSource.incompleteWind,
+    });
+    expect(timing['finish']!.windEffect, isNull);
+  });
 }

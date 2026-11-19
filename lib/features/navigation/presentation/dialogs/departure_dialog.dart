@@ -133,9 +133,12 @@ class _FlightDepartureDialogState
     );
     final invalidTime = _parseTime(_timeController.text) == null;
     final outOfRange =
-        departure.isBefore(now.subtract(const Duration(minutes: 1))) ||
-        departure.isAfter(now.add(const Duration(days: _forecastHorizonDays)));
-    final canApply = !invalidTime && !outOfRange;
+        !_useNow &&
+        (departure.isBefore(now.subtract(const Duration(minutes: 1))) ||
+            departure.isAfter(
+              now.add(const Duration(days: _forecastHorizonDays)),
+            ));
+    final canApply = _useNow || (!invalidTime && !outOfRange);
     final days = [
       for (int index = 0; index <= _forecastHorizonDays; index++)
         DateUtils.dateOnly(now).add(Duration(days: index)),

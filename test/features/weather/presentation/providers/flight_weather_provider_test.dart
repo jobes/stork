@@ -1,3 +1,7 @@
+import 'package:stork/features/navigation/domain/models/navigation_state.dart';
+import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
+import 'package:stork/features/settings/presentation/providers/aircraft_provider.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
@@ -13,6 +17,11 @@ import 'package:stork/features/weather/presentation/providers/route_waypoint_wea
 
 final _now = DateTime.utc(2026, 11, 16, 14);
 const _location = (latitude: 48.2, longitude: 17.2);
+
+class _Navigation extends NavigationNotifier {
+  @override
+  NavigationState build() => const NavigationState();
+}
 
 class _Settings extends AppSettingsNotifier {
   @override
@@ -30,6 +39,13 @@ class _AircraftPlan extends FlightWeatherPlanNotifier {
       distanceMeters: 0,
       altitudeFeet: 2000,
     ),
+  ];
+}
+
+class _SurfacePlan extends _AircraftPlan {
+  @override
+  List<ForecastRoutePoint> build() => [
+    super.build().first.copyWith(altitudeFeet: null, waypointIndex: 0),
   ];
 }
 
@@ -96,6 +112,8 @@ ProviderContainer _container(FlightWeatherPlanNotifier Function() plan) {
   return ProviderContainer(
     overrides: [
       appSettingsProvider.overrideWith(_Settings.new),
+      navigationProvider.overrideWith(_Navigation.new),
+      selectedAircraftProvider.overrideWith((ref) => null),
       flightWeatherPlanProvider.overrideWith(plan),
       routePointTimingProvider.overrideWith((ref) => const {}),
       routeForecastReferencesProvider.overrideWith(
@@ -168,5 +186,37 @@ void main() {
     expect(container.read(flightWeatherQueryProvider)!.locations.keys, [
       forecastLocationKey(quantizeForecastLocation(moved!)),
     ]);
+  });
+  test(
+    'surface weather remains available without a planned altitude',
+    () async {
+      final container = _container(_SurfacePlan.new);
+      addTearDown(container.dispose);
+      await container.read(flightForecastProfilesProvider.future);
+      final weather = container.read(routeWaypointWeatherProvider)[0]!;
+      expect(weather.forecastEnabled, isTrue);
+      expect(weather.forecastAvailable, isTrue);
+      expect(weather.wind, isNull);
+      expect(weather.gustMs, 20);
+    },
+  );
+
+  test('extends only the current query and respects the planning horizon', () {
+    withClock(Clock.fixed(_now), () {
+      final container = _container(_RoutePlan.new);
+      addTearDown(container.dispose);
+      final query = container.read(flightWeatherQueryProvider)!;
+      final notifier = container.read(flightWeatherQueryProvider.notifier);
+      notifier.extendFor(query, _now.add(const Duration(hours: 5)));
+      final extended = container.read(flightWeatherQueryProvider)!;
+      expect(extended.end.isAfter(query.end), isTrue);
+      notifier.extendFor(query, _now.add(const Duration(days: 20)));
+      expect(container.read(flightWeatherQueryProvider), extended);
+      notifier.extendFor(extended, _now.add(const Duration(days: 20)));
+      expect(
+        container.read(flightWeatherQueryProvider)!.end,
+        DateTime.utc(2026, 11, 20),
+      );
+    });
   });
 }

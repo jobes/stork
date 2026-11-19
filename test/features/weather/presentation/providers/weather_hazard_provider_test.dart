@@ -1,3 +1,4 @@
+import 'package:stork/features/weather/domain/wind_route_timing.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/features/settings/domain/models/aircraft.dart';
@@ -28,6 +29,9 @@ class _Settings extends AppSettingsNotifier {
 class _Navigation extends NavigationNotifier {
   @override
   NavigationState build() => const NavigationState(isActive: true);
+
+  void changeRoute() =>
+      state = const AsyncData(NavigationState(isActive: false));
 }
 
 class _Plan extends FlightWeatherPlanNotifier {
@@ -66,12 +70,16 @@ void main() {
           'weather_code': [0, 45, 0],
         },
       }, _now);
+      var timing = <String, TimedRoutePoint>{};
       final container = ProviderContainer(
         overrides: [
           appSettingsProvider.overrideWith(_Settings.new),
           navigationProvider.overrideWith(_Navigation.new),
           flightWeatherPlanProvider.overrideWith(_Plan.new),
-          routePointTimingProvider.overrideWith((ref) => {}),
+          routePointTimingProvider.overrideWith((ref) => timing),
+          forecastPointTerrainProvider(
+            _location,
+          ).overrideWith((ref) async => null),
           selectedAircraftProvider.overrideWith(
             (ref) => const Aircraft(
               id: 'one',
@@ -111,6 +119,32 @@ void main() {
         WeatherHazard.gust,
         WeatherHazard.fog,
       });
+      container.invalidate(weatherHazardDetailsProvider);
+      expect(container.read(activeWeatherHazardsProvider), hazards);
+      await container.read(weatherHazardDetailsProvider.future);
+
+      timing = {
+        'aircraft': (
+          eta: null,
+          duration: null,
+          sources: const {RouteTimingSource.blocked},
+          windEffect: null,
+        ),
+      };
+      container.invalidate(routePointTimingProvider);
+      expect(
+        await container.read(weatherHazardDetailsProvider.future),
+        isEmpty,
+      );
+
+      timing = {};
+      container.invalidate(routePointTimingProvider);
+      await container.read(weatherHazardDetailsProvider.future);
+      expect(container.read(activeWeatherHazardsProvider), hazards);
+      (container.read(navigationProvider.notifier) as _Navigation)
+          .changeRoute();
+      expect(container.read(activeWeatherHazardsProvider), isEmpty);
+
       (container.read(appSettingsProvider.notifier) as _Settings)
           .disableWeather();
       expect(container.read(activeWeatherHazardsProvider), isEmpty);

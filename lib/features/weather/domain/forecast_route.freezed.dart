@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ForecastRoutePoint {
 
- String get id; ForecastLocation get location; DateTime get eta; Duration get duration; double get distanceMeters; double? get altitudeFeet; double? get bearing; int? get waypointIndex;
+ String get id; ForecastLocation get location; ForecastLocation? get profileLocation; DateTime get eta; Duration get duration; double get distanceMeters; double? get altitudeFeet; double? get bearing; int? get waypointIndex;
 /// Create a copy of ForecastRoutePoint
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $ForecastRoutePointCopyWith<ForecastRoutePoint> get copyWith => _$ForecastRouteP
 @override
 bool operator ==(Object other) {
   final _this = this as ForecastRoutePoint;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ForecastRoutePoint&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.location, _this.location) || other.location == _this.location)&&(identical(other.eta, _this.eta) || other.eta == _this.eta)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.distanceMeters, _this.distanceMeters) || other.distanceMeters == _this.distanceMeters)&&(identical(other.altitudeFeet, _this.altitudeFeet) || other.altitudeFeet == _this.altitudeFeet)&&(identical(other.bearing, _this.bearing) || other.bearing == _this.bearing)&&(identical(other.waypointIndex, _this.waypointIndex) || other.waypointIndex == _this.waypointIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ForecastRoutePoint&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.location, _this.location) || other.location == _this.location)&&(identical(other.profileLocation, _this.profileLocation) || other.profileLocation == _this.profileLocation)&&(identical(other.eta, _this.eta) || other.eta == _this.eta)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.distanceMeters, _this.distanceMeters) || other.distanceMeters == _this.distanceMeters)&&(identical(other.altitudeFeet, _this.altitudeFeet) || other.altitudeFeet == _this.altitudeFeet)&&(identical(other.bearing, _this.bearing) || other.bearing == _this.bearing)&&(identical(other.waypointIndex, _this.waypointIndex) || other.waypointIndex == _this.waypointIndex));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ForecastRoutePoint;
-  return Object.hash(runtimeType,_this.id,_this.location,_this.eta,_this.duration,_this.distanceMeters,_this.altitudeFeet,_this.bearing,_this.waypointIndex);
+  return Object.hash(runtimeType,_this.id,_this.location,_this.profileLocation,_this.eta,_this.duration,_this.distanceMeters,_this.altitudeFeet,_this.bearing,_this.waypointIndex);
 }
 
 @override
 String toString() {
   final _this = this as ForecastRoutePoint;
-  return 'ForecastRoutePoint(id: ${_this.id}, location: ${_this.location}, eta: ${_this.eta}, duration: ${_this.duration}, distanceMeters: ${_this.distanceMeters}, altitudeFeet: ${_this.altitudeFeet}, bearing: ${_this.bearing}, waypointIndex: ${_this.waypointIndex})';
+  return 'ForecastRoutePoint(id: ${_this.id}, location: ${_this.location}, profileLocation: ${_this.profileLocation}, eta: ${_this.eta}, duration: ${_this.duration}, distanceMeters: ${_this.distanceMeters}, altitudeFeet: ${_this.altitudeFeet}, bearing: ${_this.bearing}, waypointIndex: ${_this.waypointIndex})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $ForecastRoutePointCopyWith<$Res>  {
   factory $ForecastRoutePointCopyWith(ForecastRoutePoint value, $Res Function(ForecastRoutePoint) _then) = _$ForecastRoutePointCopyWithImpl;
 @useResult
 $Res call({
- String id, ForecastLocation location, DateTime eta, Duration duration, double distanceMeters, double? altitudeFeet, double? bearing, int? waypointIndex
+ String id, ForecastLocation location, ForecastLocation? profileLocation, DateTime eta, Duration duration, double distanceMeters, double? altitudeFeet, double? bearing, int? waypointIndex
 });
 
 
@@ -68,11 +68,12 @@ class _$ForecastRoutePointCopyWithImpl<$Res>
 
 /// Create a copy of ForecastRoutePoint
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? location = null,Object? eta = null,Object? duration = null,Object? distanceMeters = null,Object? altitudeFeet = freezed,Object? bearing = freezed,Object? waypointIndex = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? location = null,Object? profileLocation = freezed,Object? eta = null,Object? duration = null,Object? distanceMeters = null,Object? altitudeFeet = freezed,Object? bearing = freezed,Object? waypointIndex = freezed,}) {
   return _then(ForecastRoutePoint(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
-as ForecastLocation,eta: null == eta ? _self.eta : eta // ignore: cast_nullable_to_non_nullable
+as ForecastLocation,profileLocation: freezed == profileLocation ? _self.profileLocation : profileLocation // ignore: cast_nullable_to_non_nullable
+as ForecastLocation?,eta: null == eta ? _self.eta : eta // ignore: cast_nullable_to_non_nullable
 as DateTime,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as Duration,distanceMeters: null == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
 as double,altitudeFeet: freezed == altitudeFeet ? _self.altitudeFeet : altitudeFeet // ignore: cast_nullable_to_non_nullable
@@ -163,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  ForecastLocation location,  DateTime eta,  Duration duration,  double distanceMeters,  double? altitudeFeet,  double? bearing,  int? waypointIndex)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  ForecastLocation location,  ForecastLocation? profileLocation,  DateTime eta,  Duration duration,  double distanceMeters,  double? altitudeFeet,  double? bearing,  int? waypointIndex)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ForecastRoutePoint() when $default != null:
-return $default(_that.id,_that.location,_that.eta,_that.duration,_that.distanceMeters,_that.altitudeFeet,_that.bearing,_that.waypointIndex);case _:
+return $default(_that.id,_that.location,_that.profileLocation,_that.eta,_that.duration,_that.distanceMeters,_that.altitudeFeet,_that.bearing,_that.waypointIndex);case _:
   return orElse();
 
 }
@@ -184,10 +185,10 @@ return $default(_that.id,_that.location,_that.eta,_that.duration,_that.distanceM
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  ForecastLocation location,  DateTime eta,  Duration duration,  double distanceMeters,  double? altitudeFeet,  double? bearing,  int? waypointIndex)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  ForecastLocation location,  ForecastLocation? profileLocation,  DateTime eta,  Duration duration,  double distanceMeters,  double? altitudeFeet,  double? bearing,  int? waypointIndex)  $default,) {final _that = this;
 switch (_that) {
 case _ForecastRoutePoint():
-return $default(_that.id,_that.location,_that.eta,_that.duration,_that.distanceMeters,_that.altitudeFeet,_that.bearing,_that.waypointIndex);case _:
+return $default(_that.id,_that.location,_that.profileLocation,_that.eta,_that.duration,_that.distanceMeters,_that.altitudeFeet,_that.bearing,_that.waypointIndex);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +205,10 @@ return $default(_that.id,_that.location,_that.eta,_that.duration,_that.distanceM
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  ForecastLocation location,  DateTime eta,  Duration duration,  double distanceMeters,  double? altitudeFeet,  double? bearing,  int? waypointIndex)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  ForecastLocation location,  ForecastLocation? profileLocation,  DateTime eta,  Duration duration,  double distanceMeters,  double? altitudeFeet,  double? bearing,  int? waypointIndex)?  $default,) {final _that = this;
 switch (_that) {
 case _ForecastRoutePoint() when $default != null:
-return $default(_that.id,_that.location,_that.eta,_that.duration,_that.distanceMeters,_that.altitudeFeet,_that.bearing,_that.waypointIndex);case _:
+return $default(_that.id,_that.location,_that.profileLocation,_that.eta,_that.duration,_that.distanceMeters,_that.altitudeFeet,_that.bearing,_that.waypointIndex);case _:
   return null;
 
 }
@@ -219,11 +220,12 @@ return $default(_that.id,_that.location,_that.eta,_that.duration,_that.distanceM
 
 
 class _ForecastRoutePoint implements ForecastRoutePoint {
-  const _ForecastRoutePoint({required this.id, required this.location, required this.eta, required this.duration, required this.distanceMeters, required this.altitudeFeet, this.bearing, this.waypointIndex});
+  const _ForecastRoutePoint({required this.id, required this.location, this.profileLocation, required this.eta, required this.duration, required this.distanceMeters, required this.altitudeFeet, this.bearing, this.waypointIndex});
   
 
 @override final  String id;
 @override final  ForecastLocation location;
+@override final  ForecastLocation? profileLocation;
 @override final  DateTime eta;
 @override final  Duration duration;
 @override final  double distanceMeters;
@@ -241,18 +243,18 @@ _$ForecastRoutePointCopyWith<_ForecastRoutePoint> get copyWith => __$ForecastRou
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ForecastRoutePoint&&(identical(other.id, id) || other.id == id)&&(identical(other.location, location) || other.location == location)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.distanceMeters, distanceMeters) || other.distanceMeters == distanceMeters)&&(identical(other.altitudeFeet, altitudeFeet) || other.altitudeFeet == altitudeFeet)&&(identical(other.bearing, bearing) || other.bearing == bearing)&&(identical(other.waypointIndex, waypointIndex) || other.waypointIndex == waypointIndex));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ForecastRoutePoint&&(identical(other.id, id) || other.id == id)&&(identical(other.location, location) || other.location == location)&&(identical(other.profileLocation, profileLocation) || other.profileLocation == profileLocation)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.distanceMeters, distanceMeters) || other.distanceMeters == distanceMeters)&&(identical(other.altitudeFeet, altitudeFeet) || other.altitudeFeet == altitudeFeet)&&(identical(other.bearing, bearing) || other.bearing == bearing)&&(identical(other.waypointIndex, waypointIndex) || other.waypointIndex == waypointIndex));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,location,eta,duration,distanceMeters,altitudeFeet,bearing,waypointIndex);
+    return Object.hash(runtimeType,id,location,profileLocation,eta,duration,distanceMeters,altitudeFeet,bearing,waypointIndex);
 }
 
 @override
 String toString() {
-    return 'ForecastRoutePoint(id: $id, location: $location, eta: $eta, duration: $duration, distanceMeters: $distanceMeters, altitudeFeet: $altitudeFeet, bearing: $bearing, waypointIndex: $waypointIndex)';
+    return 'ForecastRoutePoint(id: $id, location: $location, profileLocation: $profileLocation, eta: $eta, duration: $duration, distanceMeters: $distanceMeters, altitudeFeet: $altitudeFeet, bearing: $bearing, waypointIndex: $waypointIndex)';
 }
 
 
@@ -263,7 +265,7 @@ abstract mixin class _$ForecastRoutePointCopyWith<$Res> implements $ForecastRout
   factory _$ForecastRoutePointCopyWith(_ForecastRoutePoint value, $Res Function(_ForecastRoutePoint) _then) = __$ForecastRoutePointCopyWithImpl;
 @override @useResult
 $Res call({
- String id, ForecastLocation location, DateTime eta, Duration duration, double distanceMeters, double? altitudeFeet, double? bearing, int? waypointIndex
+ String id, ForecastLocation location, ForecastLocation? profileLocation, DateTime eta, Duration duration, double distanceMeters, double? altitudeFeet, double? bearing, int? waypointIndex
 });
 
 
@@ -280,11 +282,12 @@ class __$ForecastRoutePointCopyWithImpl<$Res>
 
 /// Create a copy of ForecastRoutePoint
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? location = null,Object? eta = null,Object? duration = null,Object? distanceMeters = null,Object? altitudeFeet = freezed,Object? bearing = freezed,Object? waypointIndex = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? location = null,Object? profileLocation = freezed,Object? eta = null,Object? duration = null,Object? distanceMeters = null,Object? altitudeFeet = freezed,Object? bearing = freezed,Object? waypointIndex = freezed,}) {
   return _then(_ForecastRoutePoint(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,location: null == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
-as ForecastLocation,eta: null == eta ? _self.eta : eta // ignore: cast_nullable_to_non_nullable
+as ForecastLocation,profileLocation: freezed == profileLocation ? _self.profileLocation : profileLocation // ignore: cast_nullable_to_non_nullable
+as ForecastLocation?,eta: null == eta ? _self.eta : eta // ignore: cast_nullable_to_non_nullable
 as DateTime,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as Duration,distanceMeters: null == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
 as double,altitudeFeet: freezed == altitudeFeet ? _self.altitudeFeet : altitudeFeet // ignore: cast_nullable_to_non_nullable

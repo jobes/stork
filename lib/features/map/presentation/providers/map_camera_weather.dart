@@ -4,16 +4,34 @@ const _forecastSource = 'flight-weather-source';
 const _forecastHitLayer = 'flight-weather-hit';
 const _forecastWindLayer = 'flight-weather-wind';
 const _forecastLabelLayer = 'flight-weather-label';
-// MapLibre paint values use the map style palette, like the other camera
-// layers; the white halo keeps the labels readable on light and dark styles.
-const _forecastTextColor = '#152E43';
-const _forecastHaloColor = '#FFFFFF';
-const _forecastMarkerColor = '#FFFFFF';
-const _forecastWaypointColor = '#D66900';
-const _forecastSampleColor = '#34576C';
+typedef _ForecastPalette = ({
+  String text,
+  String halo,
+  String marker,
+  String waypoint,
+  String sample,
+});
+const _forecastLight = (
+  text: '#152E43',
+  halo: '#FFFFFF',
+  marker: '#FFFFFF',
+  waypoint: '#D66900',
+  sample: '#34576C',
+);
+const _forecastDark = (
+  text: '#E4F2FC',
+  halo: '#15202B',
+  marker: '#203344',
+  waypoint: '#FFB15C',
+  sample: '#9CC9E2',
+);
 
 extension on MapCamera {
-  Future<void> _addFlightWeatherLayers(StyleController style) async {
+  Future<void> _addFlightWeatherLayers(
+    StyleController style, {
+    bool addSource = true,
+  }) async {
+    final palette = _forecastPalette();
     final fontScale =
         refAccess.read(appSettingsProvider).value?.mapFontSize ?? 1;
     final windArrowSize = 36.0 * fontScale;
@@ -22,9 +40,14 @@ extension on MapCamera {
     final windLabelOffsetY = 20.0 * fontScale;
     final pointArrowOffsetX = 22.0 * fontScale;
     final pointLabelOffsetX = 38.0 * fontScale;
-    await style.addSource(
-      const GeoJsonSource(id: _forecastSource, data: emptyFlightWeatherGeoJson),
-    );
+    if (addSource) {
+      await style.addSource(
+        const GeoJsonSource(
+          id: _forecastSource,
+          data: emptyFlightWeatherGeoJson,
+        ),
+      );
+    }
     await style.addLayer(
       const CircleStyleLayer(
         id: _forecastHitLayer,
@@ -34,7 +57,7 @@ extension on MapCamera {
       ),
     );
     await style.addLayer(
-      const CircleStyleLayer(
+      CircleStyleLayer(
         id: 'flight-weather-markers',
         sourceId: _forecastSource,
         filter: ['in', 'kind', 'waypoint', 'sample'],
@@ -46,13 +69,13 @@ extension on MapCamera {
             5.0,
             3.0,
           ],
-          'circle-color': _forecastMarkerColor,
+          'circle-color': palette.marker,
           'circle-stroke-color': [
             'match',
             ['get', 'kind'],
             'waypoint',
-            _forecastWaypointColor,
-            _forecastSampleColor,
+            palette.waypoint,
+            palette.sample,
           ],
           'circle-stroke-width': 1.5,
         },
@@ -73,8 +96,8 @@ extension on MapCamera {
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': _forecastTextColor,
-          'text-halo-color': _forecastHaloColor,
+          'text-color': palette.text,
+          'text-halo-color': palette.halo,
           'text-halo-width': 2.0 * fontScale,
           'text-translate': [pointArrowOffsetX, 0.0],
           'text-translate-anchor': 'viewport',
@@ -96,8 +119,8 @@ extension on MapCamera {
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': _forecastTextColor,
-          'text-halo-color': _forecastHaloColor,
+          'text-color': palette.text,
+          'text-halo-color': palette.halo,
           'text-halo-width': 2.0 * fontScale,
           'text-translate': [pointLabelOffsetX, 0.0],
           'text-translate-anchor': 'viewport',
@@ -119,8 +142,8 @@ extension on MapCamera {
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': _forecastTextColor,
-          'text-halo-color': _forecastHaloColor,
+          'text-color': palette.text,
+          'text-halo-color': palette.halo,
           'text-halo-width': 2.0 * fontScale,
           // Paint translation keeps the rotated arrow in place while moving it
           // away from the aircraft; text-offset would rotate with the glyph.
@@ -144,14 +167,44 @@ extension on MapCamera {
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': _forecastTextColor,
-          'text-halo-color': _forecastHaloColor,
+          'text-color': palette.text,
+          'text-halo-color': palette.halo,
           'text-halo-width': 2.0 * fontScale,
           'text-translate': [windOffsetX, windLabelOffsetY],
           'text-translate-anchor': 'viewport',
         },
       ),
     );
+    _lastFlightWeatherPalette = palette;
+  }
+
+  _ForecastPalette _forecastPalette() {
+    final mode =
+        refAccess.read(displayPreferencesProvider).value?.themeMode ??
+        ThemeMode.system;
+    final dark =
+        mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            SchedulerBinding.instance.platformDispatcher.platformBrightness ==
+                Brightness.dark);
+    return dark ? _forecastDark : _forecastLight;
+  }
+
+  Future<void> _updateFlightWeatherPalette() async =>
+      _updateFlightWeatherOnMap();
+
+  Future<void> _replaceFlightWeatherPalette(StyleController style) async {
+    for (final id in [
+      _forecastHitLayer,
+      'flight-weather-markers',
+      'flight-weather-point-wind',
+      'flight-weather-point-label',
+      _forecastWindLayer,
+      _forecastLabelLayer,
+    ]) {
+      await style.removeLayer(id);
+    }
+    await _addFlightWeatherLayers(style, addSource: false);
   }
 
   void _updateFlightWeatherOnMap() {
@@ -177,6 +230,12 @@ extension on MapCamera {
         if (style == null || !identical(style, _mapController?.style)) return;
         final revision = _flightWeatherRevision;
         try {
+          if (_lastFlightWeatherPalette != _forecastPalette()) {
+            await _replaceFlightWeatherPalette(style);
+            if (!refAccess.mounted || !identical(style, _flightWeatherStyle)) {
+              continue;
+            }
+          }
           final input = _flightWeatherInput();
           final geoJson = input.points.isEmpty || !input.enabled
               ? emptyFlightWeatherGeoJson

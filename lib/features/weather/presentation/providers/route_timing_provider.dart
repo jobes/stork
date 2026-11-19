@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
-import 'package:flutter/foundation.dart' show compute, debugPrint;
+import 'package:flutter/foundation.dart' show compute, debugPrint, listEquals;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -134,6 +136,7 @@ typedef _WindTimingInput = ({
 
 typedef WindTimingResult = ({
   WindTimingKey key,
+  List<ForecastRoutePoint> plan,
   Map<String, TimedRoutePoint> timing,
   Map<String, ForecastLocation> locations,
 });
@@ -218,8 +221,10 @@ class RouteWindTimingNotifier extends _$RouteWindTimingNotifier {
             isGpsDroneCan: telemetry.isGpsDroneCan,
             qnh: qnh,
           ).mslValue;
+    final query = ref.watch(flightWeatherQueryProvider);
     final locations = ref.watch(flightWeatherProfileLocationsProvider);
     final references = await ref.watch(routeForecastReferencesProvider.future);
+    if (!ref.mounted || revision != _revision) return null;
 
     // While an isolate is running, intermediate requests can be superseded.
     final running = _running;
@@ -256,8 +261,25 @@ class RouteWindTimingNotifier extends _$RouteWindTimingNotifier {
     try {
       final timing = await job;
       if (!ref.mounted || revision != _revision) return null;
+      if (query != null) {
+        final lastArrival = timing.values.fold<DateTime>(
+          points.first.eta,
+          (latest, point) => point.eta != null && point.eta!.isAfter(latest)
+              ? point.eta!
+              : latest,
+        );
+        if (!lastArrival.add(forecastTimeReserve).isBefore(query.end)) {
+          Timer.run(() {
+            if (!ref.mounted || revision != _revision) return;
+            ref
+                .read(flightWeatherQueryProvider.notifier)
+                .extendFor(query, lastArrival);
+          });
+        }
+      }
       return (
         key: key,
+        plan: points,
         timing: timing,
         locations: {for (final point in points) point.id: point.location},
       );
@@ -281,7 +303,10 @@ Map<String, TimedRoutePoint> routePointTiming(Ref ref) {
     appSettingsProvider.select((s) => s.value?.showFlightWeather ?? false),
   );
   final result = enabled ? ref.watch(routeWindTimingProvider).value : null;
-  final usable = result?.key == key ? result : null;
+  final usable =
+      result != null && result.key == key && listEquals(result.plan, points)
+      ? result
+      : null;
   final gps = ref.watch(
     throttledTelemetryProvider.select((s) => s.groundSpeed),
   );

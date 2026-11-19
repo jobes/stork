@@ -73,7 +73,7 @@ The speed used to calculate travel times is resolved dynamically:
     *   $$\text{cumulativeDistance} = \sum \text{legDistance}$$
     *   $$\text{cumulativeDuration} = \sum \text{legDuration}$$
 5.  **ETA Mapping**:
-    $$\text{ETA} = \text{Current DateTime} + \text{cumulativeDuration}$$
+    $$\text{ETA} = \text{Selected Departure (or Current DateTime)} + \text{cumulativeDuration}$$
 6.  **Update reference**: The reference coordinate is updated to the current waypoint, and the loop repeats for the next point.
 
 ---

@@ -16,6 +16,10 @@ part 'flight_forecast_repository.g.dart';
 
 const _batchSize = 20;
 
+class _StopForecastRequests implements Exception {
+  const _StopForecastRequests();
+}
+
 class _LocationOutsideModel implements Exception {
   const _LocationOutsideModel();
 }
@@ -88,15 +92,15 @@ class FlightForecastRepository {
   void requestRefresh() => _refreshAll = true;
 
   Future<ForecastProfiles> load(ForecastQuery query) {
-    final result = _pending.then((_) => _load(query));
+    final refreshAll = _refreshAll;
+    _refreshAll = false;
+    final result = _pending.then((_) => _load(query, refreshAll));
     _pending = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
     return result;
   }
 
-  Future<ForecastProfiles> _load(ForecastQuery query) async {
+  Future<ForecastProfiles> _load(ForecastQuery query, bool refreshAll) async {
     final now = clock.now().toUtc();
-    final refreshAll = _refreshAll;
-    _refreshAll = false;
     final requested = query.locations.keys.toSet();
     _cache.removeWhere((key, _) => !requested.contains(key));
     _outsideModel.removeWhere((key) => !requested.contains(key));
@@ -116,16 +120,17 @@ class FlightForecastRepository {
       final batch = missing.skip(i).take(_batchSize).toList();
       try {
         await _refreshBatch(batch, query, now);
+      } on _StopForecastRequests {
+        refreshFailed = true;
+        break;
       } on Exception catch (error) {
         debugPrint(
           'Flight forecast refresh unavailable (${error.runtimeType}).',
         );
         refreshFailed = true;
-        break;
       } on TypeError {
         debugPrint('Unexpected flight forecast format.');
         refreshFailed = true;
-        break;
       }
     }
     final result = (
@@ -186,6 +191,9 @@ class FlightForecastRepository {
     if (response.statusCode == 400 &&
         response.body.contains('No data is available for this location')) {
       throw const _LocationOutsideModel();
+    }
+    if ([401, 403, 429].contains(response.statusCode)) {
+      throw const _StopForecastRequests();
     }
     if (response.statusCode != 200) {
       throw http.ClientException(

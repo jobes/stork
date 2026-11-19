@@ -128,7 +128,7 @@ final class RouteWindTimingNotifierProvider
 }
 
 String _$routeWindTimingNotifierHash() =>
-    r'12086704434e914878f1af983089234560216063';
+    r'deb8546ac007733c585b0b1ce309253713bc3dc2';
 
 abstract class _$RouteWindTimingNotifier
     extends $AsyncNotifier<WindTimingResult?> {
@@ -195,4 +195,4 @@ final class RoutePointTimingProvider
   }
 }
 
-String _$routePointTimingHash() => r'2776a5b2ab9f8eba4d599d3a7984e462669d777a';
+String _$routePointTimingHash() => r'77825b5b45ab62196abaab03f83c018e7b21cf2f';

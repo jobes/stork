@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'flight_forecast.dart';
 import 'forecast_route.dart';
 
-enum RouteTimingSource { profile, gps, wind, blocked }
+enum RouteTimingSource { profile, gps, wind, incompleteWind, blocked }
 
 typedef GroundTrack = ({double speedMs, double bearing});
 typedef TimedRoutePoint = ({
@@ -32,7 +32,7 @@ double tasFromGroundTrack(GroundTrack track, ForecastWind wind) {
 
 double? groundSpeedForTrack(double tas, ForecastWind wind, double bearing) {
   final components = wind.relativeTo(bearing);
-  if (components.fromRight.abs() >= tas) return null;
+  if (components.fromRight.abs() > tas) return null;
   final speed =
       math.sqrt(tas * tas - components.fromRight * components.fromRight) -
       components.headwind;
@@ -104,7 +104,15 @@ Map<String, TimedRoutePoint> calculateWindRouteTiming({
         final at = origin.eta.add(duration(elapsedSeconds + seconds / 2));
         final a = windAt(previous, at, _plannedAltitude(previous));
         final b = windAt(point, at, _plannedAltitude(point));
-        if (a == null || b == null) break;
+        if (a == null || b == null) {
+          // Keep the first estimate if its shifted midpoint is unavailable.
+          forecastApplied = false;
+          sources.add(RouteTimingSource.incompleteWind);
+          source = gpsFallback == null
+              ? RouteTimingSource.profile
+              : RouteTimingSource.gps;
+          break;
+        }
         final wind = a.interpolate(b, 0.5);
         final speed = groundSpeedForTrack(tas, wind, bearing);
         if (speed == null) {

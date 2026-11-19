@@ -12,6 +12,7 @@ import '../../../settings/domain/models/speed_unit.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/forecast_profile.dart';
 import '../../domain/forecast_route.dart';
+import '../providers/flight_weather_provider.dart';
 
 typedef _AltitudeResult = ({int? altitude});
 
@@ -32,6 +33,7 @@ Future<void> showWaypointAltitudeDialog(
   final result = await showDialog<_AltitudeResult>(
     context: context,
     builder: (_) => _WaypointAltitudeDialog(
+      waypoint: waypoint,
       waypointName: waypoint.name,
       initial: waypoint.weatherAltitudeFeet,
       defaultFeet: defaultFeet,
@@ -43,9 +45,13 @@ Future<void> showWaypointAltitudeDialog(
   );
   if (result == null) return;
   try {
+    final points =
+        ref.read(navigationProvider).value?.points ?? const <NavigationPoint>[];
+    final currentIndex = points.indexOf(waypoint);
+    if (currentIndex < 0) throw StateError('Waypoint was removed');
     await ref
         .read(navigationProvider.notifier)
-        .updatePointWeatherAltitude(waypointIndex, result.altitude);
+        .updatePointWeatherAltitude(currentIndex, result.altitude);
   } catch (_) {
     if (context.mounted) {
       ScaffoldMessenger.of(
@@ -57,6 +63,7 @@ Future<void> showWaypointAltitudeDialog(
 
 class _WaypointAltitudeDialog extends ConsumerStatefulWidget {
   const _WaypointAltitudeDialog({
+    required this.waypoint,
     required this.waypointName,
     required this.initial,
     required this.defaultFeet,
@@ -66,6 +73,7 @@ class _WaypointAltitudeDialog extends ConsumerStatefulWidget {
     required this.reference,
   });
 
+  final NavigationPoint waypoint;
   final String waypointName;
   final int? initial;
   final int? defaultFeet;
@@ -88,7 +96,7 @@ class _WaypointAltitudeDialogState
   @override
   void initState() {
     super.initState();
-    _useDefault = widget.initial == null && widget.defaultFeet != null;
+    _useDefault = widget.initial == null;
     _controller = TextEditingController(
       text: (widget.initial ?? widget.defaultFeet)?.toString() ?? '',
     );
@@ -124,14 +132,29 @@ class _WaypointAltitudeDialogState
     final settings = ref.watch(appSettingsProvider).value;
     final speedUnit = settings?.windSpeedUnit ?? SpeedUnit.kmh;
     final feet = _selectedFeet;
-    final point = widget.forecastPoint;
+    final route =
+        ref.watch(navigationProvider).value?.points ??
+        const <NavigationPoint>[];
+    final currentIndex = route.indexOf(widget.waypoint);
+    final point = widget.forecastPoint == null || currentIndex < 0
+        ? null
+        : forecastPointsByWaypoint(
+            ref.watch(flightWeatherPlanProvider),
+          )[currentIndex];
     final eta = widget.eta ?? point?.eta;
     final series = widget.series;
-    final forecast = series != null && eta != null && feet != null
+    final reference = point == null
+        ? null
+        : ref
+              .watch(routeForecastReferenceProvider(point.id))
+              .unwrapPrevious()
+              .value;
+    final forecast =
+        series != null && eta != null && feet != null && reference != null
         ? series.atReference(
             eta,
             altitudeFeet: feet.toDouble(),
-            reference: widget.reference,
+            reference: reference,
           )
         : null;
     final wind = forecast?.wind;
@@ -173,7 +196,6 @@ class _WaypointAltitudeDialogState
               segments: [
                 ButtonSegment(
                   value: true,
-                  enabled: widget.defaultFeet != null,
                   label: Text(l10n.altitudeDefaultOption),
                 ),
                 ButtonSegment(

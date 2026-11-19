@@ -49,7 +49,7 @@ final class WeatherHazardDetailsProvider
 }
 
 String _$weatherHazardDetailsHash() =>
-    r'625c6d7503b1f67edf6fc64cd1cbe96d0d8defb4';
+    r'e5df3ea37bbb94049434acbaad1b3e468b2c77af';
 
 @ProviderFor(activeWeatherHazardDetails)
 final activeWeatherHazardDetailsProvider =
@@ -98,7 +98,7 @@ final class ActiveWeatherHazardDetailsProvider
 }
 
 String _$activeWeatherHazardDetailsHash() =>
-    r'db46db97a429d73174f5a97c06de30cfaa07d7ca';
+    r'd44e6776babce66121f56f9bb1c9d02d22e56a4a';
 
 /// Hazards currently reported by the active plan, already filtered by the
 /// flight forecast setting.

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -74,6 +76,17 @@ List<WeatherHazardDetail> _evaluateHazards(_HazardInput input) {
   return details;
 }
 
+typedef _HazardSnapshot = ({
+  Object? route,
+  Object? aircraft,
+  List<ForecastRoutePoint> points,
+});
+
+class _EvaluatedHazards extends UnmodifiableListView<WeatherHazardDetail> {
+  _EvaluatedHazards(this.snapshot, super.details);
+  final _HazardSnapshot snapshot;
+}
+
 @riverpod
 Future<List<WeatherHazardDetail>> weatherHazardDetails(Ref ref) async {
   final enabled = ref.watch(
@@ -100,19 +113,23 @@ Future<List<WeatherHazardDetail>> weatherHazardDetails(Ref ref) async {
             )]
             case final series?)
           if (references[point.id] case final reference?)
-            (
-              series: series,
-              point: point,
-              reference: reference,
-              time: timing[point.id]?.eta ?? point.eta,
-            ),
+            if ((timing.containsKey(point.id)
+                    ? timing[point.id]!.eta
+                    : point.eta)
+                case final time?)
+              (series: series, point: point, reference: reference, time: time),
     ],
   );
-  return compute(
+  final details = await compute(
     _evaluateHazards,
     input,
     debugLabel: 'Evaluate route weather hazards',
   );
+  return _EvaluatedHazards((
+    route: route,
+    aircraft: aircraft,
+    points: points,
+  ), details);
 }
 
 @riverpod
@@ -127,7 +144,17 @@ List<WeatherHazardDetail> activeWeatherHazardDetails(Ref ref) {
       'Could not evaluate route weather hazards: ${details.error.runtimeType}',
     );
   }
-  return details.value ?? const [];
+  final retained = details.value;
+  if (retained is! _EvaluatedHazards ||
+      retained.snapshot.route != ref.watch(navigationProvider).value ||
+      retained.snapshot.aircraft != ref.watch(selectedAircraftProvider) ||
+      !listEquals(
+        retained.snapshot.points,
+        ref.watch(flightWeatherPlanProvider),
+      )) {
+    return const [];
+  }
+  return retained;
 }
 
 /// Hazards currently reported by the active plan, already filtered by the

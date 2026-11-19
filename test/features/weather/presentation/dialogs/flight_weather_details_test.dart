@@ -268,6 +268,8 @@ void main() {
 
         await tester.tap(find.byIcon(Icons.edit_outlined));
         await tester.pumpAndSettle();
+        await tester.tap(find.text('Custom'));
+        await tester.pumpAndSettle();
         await tester.enterText(find.byType(TextFormField), '3200');
         await tester.tap(find.widgetWithText(FilledButton, 'Save'));
         await tester.pumpAndSettle();

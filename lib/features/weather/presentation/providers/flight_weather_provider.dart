@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart' show debugPrint, listEquals;
@@ -136,12 +137,9 @@ class FlightWeatherPlanNotifier extends _$FlightWeatherPlanNotifier {
     // ETA and arrival weather are minute-resolution, so bucket the clock to
     // avoid rebuilding the whole plan four times a minute.
     final clockNow = ref.watch(flightWeatherClockProvider).value ?? clock.now();
-    final now = DateTime(
-      clockNow.year,
-      clockNow.month,
-      clockNow.day,
-      clockNow.hour,
-      clockNow.minute,
+    final now = DateTime.fromMillisecondsSinceEpoch(
+      clockNow.millisecondsSinceEpoch ~/ 60000 * 60000,
+      isUtc: true,
     );
     final plannedDeparture = ref.watch(flightDepartureProvider);
 
@@ -235,7 +233,7 @@ Map<String, ForecastLocation> flightWeatherProfileLocations(Ref ref) {
     for (final point in points)
       point.id: isAircraftForecastPoint(point.id)
           ? originLocation ?? quantizeForecastLocation(point.location)
-          : point.location,
+          : point.profileLocation ?? point.location,
   };
 }
 
@@ -260,6 +258,29 @@ List<ForecastWaypoint> _forecastWaypoints(List<NavigationPoint> points) => [
 
 @riverpod
 class FlightWeatherQuery extends _$FlightWeatherQuery {
+  /// Extend only the query that produced the timing result. The next plan
+  /// rebuild computes its own ordinary window.
+  void extendFor(ForecastQuery query, DateTime arrival) {
+    if (state != query) return;
+    final now = clock.now().toUtc();
+    // Keep extensions within the departure picker's planning horizon.
+    final horizon = DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+    ).add(const Duration(days: 4));
+    final needed = DateTime.utc(
+      arrival.year,
+      arrival.month,
+      arrival.day,
+      arrival.hour,
+    ).add(forecastTimeReserve + const Duration(hours: 1));
+    final end = needed.isBefore(horizon) ? needed : horizon;
+    if (end.isAfter(query.end)) {
+      state = ForecastQuery(query.locations.values, query.start, end);
+    }
+  }
+
   @override
   ForecastQuery? build() {
     final enabled = ref.watch(
@@ -282,7 +303,8 @@ class FlightWeatherQuery extends _$FlightWeatherQuery {
     return ForecastQuery(
       [
         quantizeForecastLocation(origin),
-        for (final point in points.skip(1)) point.location,
+        for (final point in points.skip(1))
+          point.profileLocation ?? point.location,
       ],
       hour(firstEta).subtract(forecastTimeReserve),
       hour(lastEta).add(forecastTimeReserve + const Duration(hours: 1)),
@@ -337,23 +359,62 @@ Future<ForecastReference> routeForecastReference(
       ref.watch(navigationProvider).value?.points ?? const <NavigationPoint>[];
   final index = point.waypointIndex;
   final waypoint = index != null && index < route.length ? route[index] : null;
-  final terrain = await _ignoreErrors(
+  final terrainFuture = _ignoreErrors(
     ref.watch(forecastPointTerrainProvider(point.location).future),
     'Could not load terrain for $pointId',
   );
   final airportId = waypoint?.airportId;
   final country = waypoint?.airportCountry;
-  final airport =
-      airportId != null &&
-          airportId.isNotEmpty &&
-          country != null &&
-          country.isNotEmpty
-      ? await _ignoreErrors(
-          ref.watch(airportMetadataProvider(airportId, country).future),
+  final airportFuture = airportId != null && airportId.isNotEmpty
+      ? _ignoreErrors(
+          ref.watch(airportMetadataProvider(airportId, country ?? '').future),
           'Could not load airport elevation for $airportId',
         )
       : null;
+  final terrain = await terrainFuture;
+  final airport = await airportFuture;
   return (terrainMeters: terrain, airportMeters: airport?.elevation?.metersMsl);
+}
+
+typedef _ReferenceInput = ({
+  ForecastLocation location,
+  String? airportId,
+  String? country,
+});
+
+_ReferenceInput _referenceInput(
+  ForecastRoutePoint point,
+  List<NavigationPoint> route,
+) {
+  final index = point.waypointIndex;
+  final waypoint = index != null && index < route.length ? route[index] : null;
+  return (
+    location: point.location,
+    airportId: waypoint?.airportId,
+    country: waypoint?.airportCountry,
+  );
+}
+
+class _RouteForecastReferences
+    extends UnmodifiableMapView<String, ForecastReference> {
+  _RouteForecastReferences(super.references, this.inputs);
+  final Map<String, _ReferenceInput> inputs;
+}
+
+/// A refreshing AsyncValue may retain references from a different route.
+/// Reuse each reference only for the location and airport that produced it.
+ForecastReference? currentForecastReference(
+  AsyncValue<Map<String, ForecastReference>> references,
+  ForecastRoutePoint point,
+  List<NavigationPoint> route,
+) {
+  final values = references.value;
+  if (values is _RouteForecastReferences) {
+    return values.inputs[point.id] == _referenceInput(point, route)
+        ? values[point.id]
+        : null;
+  }
+  return references.isLoading ? null : values?[point.id];
 }
 
 /// References for every plan point, resolved through
@@ -361,13 +422,18 @@ Future<ForecastReference> routeForecastReference(
 @riverpod
 Future<Map<String, ForecastReference>> routeForecastReferences(Ref ref) async {
   final points = ref.watch(flightWeatherPlanProvider);
+  final route =
+      ref.watch(navigationProvider).value?.points ?? const <NavigationPoint>[];
+  final inputs = {
+    for (final point in points) point.id: _referenceInput(point, route),
+  };
   final references = await Future.wait([
     for (final point in points)
       ref.watch(routeForecastReferenceProvider(point.id).future),
   ]);
-  return {
+  return _RouteForecastReferences({
     for (final (index, point) in points.indexed) point.id: references[index],
-  };
+  }, inputs);
 }
 
 Future<T?> _ignoreErrors<T>(Future<T> future, String message) async {

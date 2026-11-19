@@ -427,6 +427,7 @@ class NavigationDetailsDialog extends ConsumerWidget {
         RouteTimingSource.wind => l10n.navigationEtaWind,
         RouteTimingSource.profile => l10n.navigationEtaProfile,
         RouteTimingSource.blocked => l10n.navigationEtaBlocked,
+        RouteTimingSource.incompleteWind => l10n.weatherForecastUnavailable,
       },
     );
     return Padding(

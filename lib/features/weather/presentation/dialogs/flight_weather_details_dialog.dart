@@ -97,7 +97,11 @@ class FlightWeatherDetailsDialog extends ConsumerWidget {
         .value;
     final enabled = settings?.showFlightWeather ?? false;
     final forecastReference = enabled
-        ? (ref.watch(routeForecastReferencesProvider).value?[point.id] ??
+        ? (currentForecastReference(
+                ref.watch(routeForecastReferencesProvider),
+                point,
+                route,
+              ) ??
               (terrainMeters: terrain, airportMeters: airportMeters))
         : (terrainMeters: terrain, airportMeters: airportMeters);
     final reference =

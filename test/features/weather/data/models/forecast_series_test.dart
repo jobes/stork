@@ -95,4 +95,53 @@ void main() {
     expect(airportReference.wind, isNotNull);
     expect(airportReference.qfeHpa, isNotNull);
   });
+  test('rejects malformed containers and timestamps eagerly', () {
+    for (final hourly in [
+      {'time': 'bad'},
+      {
+        'time': [1, 'bad'],
+      },
+      {
+        'time': [1, 2],
+        'wind_speed_10m': 'bad',
+      },
+      {
+        'time': [2, 1],
+      },
+    ]) {
+      expect(
+        () =>
+            ForecastSeries.fromJson({'elevation': 100, 'hourly': hourly}, time),
+        throwsFormatException,
+      );
+    }
+  });
+
+  test(
+    'weather code uses nearest timestamp while interval fields stay unchanged',
+    () {
+      final profile = ForecastSeries.fromJson({
+        'elevation': 100,
+        'hourly': {
+          'time': [
+            time.millisecondsSinceEpoch ~/ 1000,
+            time.add(const Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000,
+          ],
+          'weather_code': [0, 45],
+          'precipitation': [0, 2],
+          'wind_gusts_10m': [0, 36],
+        },
+      }, time);
+      expect(profile.at(time.add(const Duration(minutes: 1)))!.weatherCode, 0);
+      expect(
+        profile.at(time.add(const Duration(minutes: 31)))!.weatherCode,
+        45,
+      );
+      expect(
+        profile.at(time.add(const Duration(minutes: 1)))!.precipitationMm,
+        2,
+      );
+      expect(profile.at(time.add(const Duration(minutes: 1)))!.gustMs, 10);
+    },
+  );
 }

@@ -21,6 +21,7 @@ abstract class ForecastRoutePoint with _$ForecastRoutePoint {
   const factory ForecastRoutePoint({
     required String id,
     required ForecastLocation location,
+    ForecastLocation? profileLocation,
     required DateTime eta,
     required Duration duration,
     required double distanceMeters,
@@ -160,6 +161,7 @@ class ForecastRoute {
     ForecastRoutePoint point({
       required String id,
       required ForecastLocation location,
+      ForecastLocation? profileLocation,
       required double distance,
       required double? feet,
       double? bearing,
@@ -169,6 +171,7 @@ class ForecastRoute {
       return ForecastRoutePoint(
         id: id,
         location: location,
+        profileLocation: profileLocation,
         eta: departure.add(duration),
         duration: duration,
         distanceMeters: distance,
@@ -220,9 +223,22 @@ class ForecastRoute {
       final legIndex = sample.leg - offset;
       if (legIndex < 0) continue;
       final leg = _legs[sample.leg];
-      final sampleDistance =
+      final alongDistance =
           distances[legIndex] - (1 - sample.fraction) * leg.distance;
-      if (sampleDistance <= 0) continue;
+      if (alongDistance <= 0) continue;
+      final sampleDistance = legIndex == 0
+          ? _distance(origin, sample.location)
+          : alongDistance;
+      if (legIndex == 0 && sampleDistance >= remainingFirst) continue;
+      final location =
+          legIndex == 0 && (sampleDistance - alongDistance).abs() > 0.01
+          ? GeoUtils.destinationPoint(
+              origin.latitude,
+              origin.longitude,
+              forecastBearing(origin, leg.end),
+              sampleDistance,
+            )
+          : sample.location;
       final startHeight = legIndex == 0
           ? firstStartHeight
           : altitude(legIndex - 1);
@@ -234,10 +250,11 @@ class ForecastRoute {
       result.add(
         point(
           id: forecastSamplePointId(index),
-          location: sample.location,
+          location: location,
+          profileLocation: sample.location,
           distance: sampleDistance,
           feet: height,
-          bearing: forecastBearing(sample.location, leg.end),
+          bearing: forecastBearing(location, leg.end),
         ),
       );
     }

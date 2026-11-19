@@ -252,7 +252,8 @@ class RouteWaypointTile extends StatelessWidget {
                                   ],
                                 ),
                               )
-                            else if (weather?.forecastAvailable == false)
+                            else if (weather?.forecastEnabled == true &&
+                                weather?.forecastAvailable == false)
                               Tooltip(
                                 message: l10n.weatherForecastUnavailable,
                                 child: Icon(

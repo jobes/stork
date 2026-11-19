@@ -445,13 +445,10 @@ class MapFeaturesBottomSheet extends ConsumerWidget {
                 airportId = properties['source_id']?.toString();
                 country = properties['country']?.toString();
 
-                if (airportId != null &&
-                    airportId.isNotEmpty &&
-                    country != null &&
-                    country.isNotEmpty) {
+                if (airportId != null && airportId.isNotEmpty) {
                   try {
                     final metadata = await ref.read(
-                      airportMetadataProvider(airportId, country).future,
+                      airportMetadataProvider(airportId, country ?? '').future,
                     );
                     if (metadata != null) {
                       if (metadata.latitude != null &&

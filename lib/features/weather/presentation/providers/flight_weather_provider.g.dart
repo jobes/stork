@@ -131,7 +131,7 @@ final class FlightWeatherPlanNotifierProvider
 }
 
 String _$flightWeatherPlanNotifierHash() =>
-    r'030127446bc42a55275a229d38ed55303cd497a5';
+    r'833c7e3fe7f155ff6ea1bf441f84c12a46fe93a7';
 
 abstract class _$FlightWeatherPlanNotifier
     extends $Notifier<List<ForecastRoutePoint>> {
@@ -273,7 +273,7 @@ final class FlightWeatherProfileLocationsProvider
 }
 
 String _$flightWeatherProfileLocationsHash() =>
-    r'e823d55d7717db2944502d6350e3d735db870125';
+    r'7b3bd29ab63fe1ca0a20ca6354cecb36f613b82d';
 
 @ProviderFor(FlightWeatherQuery)
 final flightWeatherQueryProvider = FlightWeatherQueryProvider._();
@@ -308,7 +308,7 @@ final class FlightWeatherQueryProvider
 }
 
 String _$flightWeatherQueryHash() =>
-    r'd0a7065c9a08c1a956fd761c909d8b2bf4b8f400';
+    r'd1e60e34052f401f0d3117a8f1804b9142a64b97';
 
 abstract class _$FlightWeatherQuery extends $Notifier<ForecastQuery?> {
   ForecastQuery? build();
@@ -607,7 +607,7 @@ final class RouteForecastReferenceProvider
 }
 
 String _$routeForecastReferenceHash() =>
-    r'553ddf47b8f4b3987f3d8497e91da8d82489b354';
+    r'b6a0adbeef37e6a45d5a017a8a2abc1ca0acff16';
 
 /// Terrain and airport reference for one forecast point. Resolving it per
 /// point keeps the route list, map markers, navigation details and hazard
@@ -683,4 +683,4 @@ final class RouteForecastReferencesProvider
 }
 
 String _$routeForecastReferencesHash() =>
-    r'5c6e899950ad5eb6485e1895160236990b7b1c87';
+    r'fa42bafb6a62ce2842f0c1a2e92224f3c6a5bafc';

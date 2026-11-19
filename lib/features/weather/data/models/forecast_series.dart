@@ -31,19 +31,58 @@ class ForecastSeries implements ForecastProfile {
   final List<DateTime> times;
   final Map<String, List<dynamic>> _hourly;
 
-  ForecastSeries.fromJson(Map<String, dynamic> json, this.downloadedAt)
-    : modelElevationMeters = (json['elevation'] as num).toDouble(),
-      _hourly = (json['hourly'] as Map<String, dynamic>)
-          .cast<String, List<dynamic>>(),
-      times =
-          ((json['hourly'] as Map<String, dynamic>)['time'] as List<dynamic>)
-              .map(
-                (t) => DateTime.fromMillisecondsSinceEpoch(
-                  (t as int) * 1000,
-                  isUtc: true,
-                ),
-              )
-              .toList(growable: false);
+  ForecastSeries._(
+    this.modelElevationMeters,
+    this.downloadedAt,
+    this.times,
+    this._hourly,
+  );
+
+  factory ForecastSeries.fromJson(
+    Map<String, dynamic> json,
+    DateTime downloadedAt,
+  ) {
+    if (json case {
+      'elevation': num elevation,
+      'hourly': Map<String, dynamic> hourly,
+    }) {
+      if (hourly case {'time': List<dynamic> timestamps}) {
+        if (!elevation.isFinite || timestamps.any((t) => t is! int)) {
+          throw const FormatException(
+            'Invalid forecast timestamps or elevation',
+          );
+        }
+        final columns = <String, List<dynamic>>{};
+        for (final entry in hourly.entries) {
+          if (entry.value case List<dynamic> values) {
+            columns[entry.key] = List.unmodifiable(values);
+          } else {
+            throw const FormatException('Invalid forecast column');
+          }
+        }
+        final times = timestamps
+            .map(
+              (t) => DateTime.fromMillisecondsSinceEpoch(
+                (t as int) * 1000,
+                isUtc: true,
+              ),
+            )
+            .toList(growable: false);
+        for (var i = 1; i < times.length; i++) {
+          if (!times[i].isAfter(times[i - 1])) {
+            throw const FormatException('Unordered forecast timestamps');
+          }
+        }
+        return ForecastSeries._(
+          elevation.toDouble(),
+          downloadedAt,
+          List.unmodifiable(times),
+          Map.unmodifiable(columns),
+        );
+      }
+    }
+    throw const FormatException('Invalid forecast response');
+  }
 
   @override
   bool covers(DateTime time) =>
@@ -151,7 +190,11 @@ class ForecastSeries implements ForecastProfile {
     }
     final gustKmh = hasInterval ? _value(forecastGustField, interval) : null;
     return FlightForecast(
-      weatherCode: _value('weather_code', next)?.toInt(),
+      // Weather codes describe an instant; ties select the later timestamp.
+      weatherCode: _value(
+        'weather_code',
+        fraction < 0.5 ? previous : next,
+      )?.toInt(),
       wind: wind,
       temperatureC: temperature,
       gustMs: gustKmh == null ? null : gustKmh / 3.6,

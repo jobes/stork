@@ -3,6 +3,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../settings/presentation/providers/aircraft_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../../navigation/domain/models/navigation_point.dart';
+import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../domain/flight_forecast.dart';
 import '../../domain/forecast_profile.dart';
 import '../../domain/forecast_query.dart';
@@ -27,6 +29,7 @@ typedef RouteWaypointWeather = ({
   DateTime? intervalEnd,
   Set<WeatherHazard> hazards,
   bool forecastAvailable,
+  bool forecastEnabled,
 });
 
 /// Forecast at each route waypoint, keyed by the waypoint index in the
@@ -44,9 +47,10 @@ Map<int, RouteWaypointWeather> routeWaypointWeather(Ref ref) {
       : null;
   final aircraft = ref.watch(selectedAircraftProvider);
   final references = enabled
-      ? ref.watch(routeForecastReferencesProvider).value ??
-            const <String, ForecastReference>{}
-      : const <String, ForecastReference>{};
+      ? ref.watch(routeForecastReferencesProvider)
+      : null;
+  final route =
+      ref.watch(navigationProvider).value?.points ?? const <NavigationPoint>[];
   final locations = enabled
       ? ref.watch(flightWeatherProfileLocationsProvider)
       : const <String, ForecastLocation>{};
@@ -55,13 +59,16 @@ Map<int, RouteWaypointWeather> routeWaypointWeather(Ref ref) {
     for (final point in points)
       ?point.waypointIndex: _weatherForPoint(
         point,
+        enabled: enabled,
         timing: timing[point.id],
         series: enabled
             ? profiles?.series[forecastLocationKey(
                 locations[point.id] ?? point.location,
               )]
             : null,
-        reference: references[point.id],
+        reference: references == null
+            ? null
+            : currentForecastReference(references, point, route),
         windLimitMs: aircraft?.dangerousWindMs,
         gustLimitMs: aircraft?.dangerousGustMs,
       ),
@@ -70,6 +77,7 @@ Map<int, RouteWaypointWeather> routeWaypointWeather(Ref ref) {
 
 RouteWaypointWeather _weatherForPoint(
   ForecastRoutePoint point, {
+  required bool enabled,
   required TimedRoutePoint? timing,
   required ForecastProfile? series,
   required ForecastReference? reference,
@@ -78,7 +86,7 @@ RouteWaypointWeather _weatherForPoint(
 }) {
   final eta = timing == null ? point.eta : timing.eta;
   final altitudeFeet = point.altitudeFeet;
-  final forecast = series != null && eta != null && altitudeFeet != null
+  final forecast = series != null && eta != null
       ? series.atReference(
           eta,
           altitudeFeet: altitudeFeet,
@@ -104,6 +112,7 @@ RouteWaypointWeather _weatherForPoint(
             gustLimitMs: gustLimitMs,
           ),
     forecastAvailable: forecast != null,
+    forecastEnabled: enabled,
   );
 }
 
@@ -122,9 +131,9 @@ Map<String, RoutePointWind> routePointWinds(Ref ref) {
   final profiles = ref.watch(flightForecastProfilesProvider).value;
   if (profiles == null) return const {};
   final timing = ref.watch(routePointTimingProvider);
-  final references =
-      ref.watch(routeForecastReferencesProvider).value ??
-      const <String, ForecastReference>{};
+  final references = ref.watch(routeForecastReferencesProvider);
+  final route =
+      ref.watch(navigationProvider).value?.points ?? const <NavigationPoint>[];
   final locations = ref.watch(flightWeatherProfileLocationsProvider);
 
   final winds = <String, RoutePointWind>{};
@@ -134,7 +143,7 @@ Map<String, RoutePointWind> routePointWinds(Ref ref) {
       timing: timing[point.id],
       series: profiles
           .series[forecastLocationKey(locations[point.id] ?? point.location)],
-      reference: references[point.id],
+      reference: currentForecastReference(references, point, route),
     );
     if (wind != null) winds[point.id] = wind;
   }

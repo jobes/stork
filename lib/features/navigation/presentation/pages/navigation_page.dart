@@ -280,7 +280,7 @@ class _RouteBody extends ConsumerWidget {
           point: point,
           leg: leg,
           weather: weather[index],
-          speedUnit: settings.speedUnit,
+          speedUnit: settings.windSpeedUnit,
           defaultAltitudeFeet: defaultAltitude,
           onTap: planPoint == null
               ? null
@@ -316,9 +316,9 @@ Future<void> _removeWaypoint(
   final navigation = ref.read(navigationProvider.notifier);
   final departure = ref.read(flightDepartureProvider.notifier);
   final plannedDeparture = ref.read(flightDepartureProvider);
-  await navigation.removePoint(index);
-  if (!context.mounted) return;
   final messenger = ScaffoldMessenger.of(context);
+  await navigation.removePoint(index);
+  if (!messenger.mounted) return;
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(
     SnackBar(

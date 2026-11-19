@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
@@ -204,6 +205,128 @@ void main() {
       expect(requests, 6);
       expect(refreshed.refreshFailed, isFalse);
       expect(refreshed.series.keys, [forecastLocationKey(location)]);
+    },
+  );
+
+  test(
+    'recoverable failures do not prevent later independent batches',
+    () async {
+      final start = DateTime.utc(2026, 11, 16, 14);
+      var requests = 0;
+      final client = MockClient((request) async {
+        requests++;
+        if (requests == 1) return http.Response('offline', 503);
+        if (requests == 2) return http.Response('{bad json', 200);
+        return http.Response(
+          jsonEncode({
+            'elevation': 100,
+            'hourly': {
+              'time': [start.millisecondsSinceEpoch ~/ 1000],
+            },
+          }),
+          200,
+        );
+      });
+      addTearDown(client.close);
+      final result = await FlightForecastRepository(client).load(
+        ForecastQuery(
+          [
+            for (var i = 0; i < 41; i++)
+              (latitude: 48 + i / 100, longitude: 17.0),
+          ],
+          start,
+          start,
+        ),
+      );
+      expect(requests, 3);
+      expect(result.refreshFailed, isTrue);
+      expect(result.series, hasLength(1));
+    },
+  );
+
+  test('rate limiting stops all later batches', () async {
+    final start = DateTime.utc(2026, 11, 16, 14);
+    var requests = 0;
+    final client = MockClient((request) async {
+      requests++;
+      return http.Response('rate limited', 429);
+    });
+    addTearDown(client.close);
+    final result = await FlightForecastRepository(client).load(
+      ForecastQuery(
+        [
+          for (var i = 0; i < 21; i++)
+            (latitude: 48 + i / 100, longitude: 17.0),
+        ],
+        start,
+        start,
+      ),
+    );
+    expect(requests, 1);
+    expect(result.refreshFailed, isTrue);
+  });
+
+  test('manual refresh belongs to its queued load', () async {
+    final start = DateTime.utc(2026, 11, 16, 14);
+    final release = Completer<void>();
+    final started = Completer<void>();
+    var requests = 0;
+    final client = MockClient((request) async {
+      requests++;
+      if (requests == 1) {
+        started.complete();
+        await release.future;
+      }
+      return http.Response(
+        jsonEncode({
+          'elevation': 100,
+          'hourly': {
+            'time': [start.millisecondsSinceEpoch ~/ 1000],
+          },
+        }),
+        200,
+      );
+    });
+    addTearDown(client.close);
+    await withClock(Clock.fixed(start), () async {
+      final repository = FlightForecastRepository(client);
+      final query = ForecastQuery(
+        [(latitude: 48.0, longitude: 17.0)],
+        start,
+        start,
+      );
+      final initial = repository.load(query);
+      await started.future;
+      final older = repository.load(query);
+      repository.requestRefresh();
+      final manual = repository.load(query);
+      final ordinary = repository.load(query);
+      release.complete();
+      await initial;
+      await older;
+      expect(requests, 1);
+      await manual;
+      await ordinary;
+      expect(requests, 2);
+    });
+  });
+
+  test(
+    'query freezes keys and compares their sets independently of coordinates',
+    () {
+      final start = DateTime.utc(2026, 11, 16);
+      final locations = [(latitude: 48.0, longitude: 17.0)];
+      final query = ForecastQuery(locations, start, start);
+      locations.clear();
+      expect(query.locations, hasLength(1));
+      expect(() => query.locations.clear(), throwsUnsupportedError);
+      final equivalent = ForecastQuery(
+        [(latitude: 48.000001, longitude: 17.0)],
+        start,
+        start,
+      );
+      expect(query, equivalent);
+      expect(query.hashCode, equivalent.hashCode);
     },
   );
 
