@@ -3370,4 +3370,152 @@ class AppLocalizationsEn extends AppLocalizations {
   String weatherExceededGust(String value, String limit) {
     return 'Surface gusts $value exceed limit $limit';
   }
+
+  @override
+  String get dataSourcesTitle => 'Data sources';
+
+  @override
+  String get dataSourcesSummary =>
+      'Providers of maps, aviation data, weather and traffic';
+
+  @override
+  String get dataSourcesMaps => 'Maps and terrain';
+
+  @override
+  String get dataSourcesAviation => 'Aeronautical information';
+
+  @override
+  String get dataSourcesWeather => 'Weather';
+
+  @override
+  String get dataSourcesTraffic => 'Air traffic';
+
+  @override
+  String get dataSourcesLocation => 'Search and location';
+
+  @override
+  String get dataSourcesWebsite => 'Website';
+
+  @override
+  String get dataSourcesLinkFailed => 'Could not open the website.';
+
+  @override
+  String get dataSourcesOsmDescription =>
+      'Geographic data for the base map, including settlements, roads and landscape features.';
+
+  @override
+  String get dataSourcesProtomapsDescription =>
+      'Vector tiles and map styling resources used to display the OpenStreetMap base map.';
+
+  @override
+  String get dataSourcesOpenAipDescription =>
+      'Aeronautical map layers and information about airports, airspaces, navigation aids and radio frequencies, including airport images.';
+
+  @override
+  String get dataSourcesMapterhornDescription =>
+      'Terrain elevation data for hillshading and height above ground (AGL) calculations.';
+
+  @override
+  String get dataSourcesDistributionTitle =>
+      'Stork data distribution · Hugging Face';
+
+  @override
+  String get dataSourcesDistributionDescription =>
+      'Hosts the openAIP data package and supporting airport and NOTAM area catalogs downloaded by Stork.';
+
+  @override
+  String get dataSourcesNotamsDescription =>
+      'NOTAM messages displayed on the map and in NOTAM details.';
+
+  @override
+  String get dataSourcesSlovakiaTitle => 'LPS SR · Slovakia';
+
+  @override
+  String get dataSourcesSlovakiaDescription =>
+      'Public GIS service providing current airspace reservations and activity in Slovakia.';
+
+  @override
+  String get dataSourcesCzechiaTitle => 'ŘLP ČR / AMC ČR · Czechia';
+
+  @override
+  String get dataSourcesCzechiaDescription =>
+      'Published airspace use plans (AUP) and updates (UUP) for airspace activity in Czechia.';
+
+  @override
+  String get dataSourcesForecastDescription =>
+      'Forecasts from the DWD ICON EU Native model, delivered by Open-Meteo. Stork interpolates forecast values for the planned arrival time and altitude and uses the wind to adjust route timing.';
+
+  @override
+  String get dataSourcesRadarDescription =>
+      'Precipitation radar imagery displayed as a map layer.';
+
+  @override
+  String get dataSourcesOgnDescription =>
+      'Live aircraft positions received through the Open Glider Network APRS feed.';
+
+  @override
+  String get dataSourcesDdbDescription =>
+      'Aircraft identification and registration details associated with OGN traffic targets.';
+
+  @override
+  String get dataSourcesPureTrackDescription =>
+      'An additional live aircraft position feed, available when PureTrack is enabled and connected.';
+
+  @override
+  String get dataSourcesGdl90Title => 'Local receiver · GDL90';
+
+  @override
+  String get dataSourcesGdl90Description =>
+      'Traffic received from connected GDL90-compatible devices such as Stratux or SkyEcho 2. The original traffic source depends on the receiver.';
+
+  @override
+  String get dataSourcesPhotonDescription =>
+      'City and municipality search using the Photon service hosted by Komoot. Airport search uses the aeronautical catalog.';
+
+  @override
+  String get dataSourcesIpDescription =>
+      'Approximate location based on the IP address when GPS location cannot be obtained.';
+
+  @override
+  String get dataSourcesDevicesTitle => 'GPS, sensors and onboard instruments';
+
+  @override
+  String get dataSourcesDevicesDescription =>
+      'Own position and sensor readings from the device, plus flight and engine telemetry from onboard instruments connected through DroneCAN/Cannelloni, depending on the available equipment.';
+
+  @override
+  String get dataSourcesOsmTitle => 'OpenStreetMap';
+
+  @override
+  String get dataSourcesProtomapsTitle => 'Protomaps';
+
+  @override
+  String get dataSourcesOpenAipTitle => 'openAIP';
+
+  @override
+  String get dataSourcesMapterhornTitle => 'Mapterhorn';
+
+  @override
+  String get dataSourcesNotamsTitle => 'notams.online';
+
+  @override
+  String get dataSourcesForecastTitle => 'Open-Meteo · DWD ICON EU';
+
+  @override
+  String get dataSourcesRadarTitle => 'RainViewer';
+
+  @override
+  String get dataSourcesOgnTitle => 'Open Glider Network · OGN';
+
+  @override
+  String get dataSourcesDdbTitle => 'OGN Device Database · DDB';
+
+  @override
+  String get dataSourcesPureTrackTitle => 'PureTrack';
+
+  @override
+  String get dataSourcesPhotonTitle => 'Photon · Komoot';
+
+  @override
+  String get dataSourcesIpTitle => 'ipapi.co';
 }

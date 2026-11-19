@@ -31,7 +31,7 @@ void main() {
     expect(AppTheme.darkTheme.cardTheme.shape, isNotNull);
   });
 
-  testWidgets('Settings shows the four sections and the gateway state', (
+  testWidgets('Settings shows the destinations and the gateway state', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -59,6 +59,7 @@ void main() {
         'Units and limits',
         'Traffic and alerts',
         'Instruments and connection',
+        'Data sources',
       ],
     );
     expect(find.text('Gateway disconnected'), findsOneWidget);

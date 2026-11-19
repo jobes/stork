@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/services/cannelloni_service.dart';
 import '../../../../core/widgets/stork_navigation_tile.dart';
@@ -153,6 +154,12 @@ class SettingsPage extends ConsumerWidget {
                     ? l10n.menuGatewayConnected
                     : l10n.menuGatewayDisconnected,
                 onTap: () => open(const GatewaySettingsPage()),
+              ),
+              StorkNavigationTile(
+                icon: Icons.source_outlined,
+                title: l10n.dataSourcesTitle,
+                subtitle: l10n.dataSourcesSummary,
+                onTap: () => context.push('/settings/data-sources'),
               ),
             ],
           ),
