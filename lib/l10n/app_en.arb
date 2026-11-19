@@ -1737,5 +1737,11 @@
   "dataSourcesDdbTitle": "OGN Device Database · DDB",
   "dataSourcesPureTrackTitle": "PureTrack",
   "dataSourcesPhotonTitle": "Photon · Komoot",
-  "dataSourcesIpTitle": "ipapi.co"
+  "dataSourcesIpTitle": "ipapi.co",
+  "startupPreparing": "Preparing your map",
+  "startupDescription": "Loading your settings and local map data.",
+  "startupFooter": "The map will open when preparation is complete.",
+  "startupFailed": "Preparation failed",
+  "startupFailedDescription": "Your settings are preserved. Please try again.",
+  "startupRetry": "Try again"
 }

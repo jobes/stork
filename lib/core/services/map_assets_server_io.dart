@@ -71,7 +71,8 @@ class MapAssetsServer {
     if (_server != null) return;
 
     try {
-      _pmtilesUrls['protomaps'] = await ProtomapsResolver.getLatestUrl();
+      // The bootstrap selects a stable cached URL; no network on server start.
+      _pmtilesUrls['protomaps'] = ProtomapsResolver.sessionUrl;
 
       final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       _server = server;

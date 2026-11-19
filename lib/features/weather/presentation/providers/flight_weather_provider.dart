@@ -1,3 +1,4 @@
+import '../../../../core/startup/deferred_startup_tasks.dart';
 import 'dart:async';
 import 'dart:collection';
 
@@ -356,6 +357,8 @@ Future<ForecastProfiles?> flightForecastProfiles(Ref ref) async {
   if (query == null) return null;
   ref.watch(flightForecastRefreshProvider);
   final repository = ref.watch(flightForecastRepositoryProvider);
+  await ref.read(deferredStartupTasksProvider).waitFor(StartupTask.weather);
+  if (!ref.mounted) return null;
   return repository.load(query);
 }
 
@@ -378,6 +381,8 @@ Future<ForecastReference> routeForecastReference(
       ref.watch(navigationProvider).value?.points ?? const <NavigationPoint>[];
   final index = point.waypointIndex;
   final waypoint = index != null && index < route.length ? route[index] : null;
+  await ref.read(deferredStartupTasksProvider).waitFor(StartupTask.weather);
+  if (!ref.mounted) return (terrainMeters: null, airportMeters: null);
   final terrainFuture = _ignoreErrors(
     ref.watch(forecastPointTerrainProvider(point.location).future),
     'Could not load terrain for $pointId',

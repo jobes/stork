@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:maplibre/maplibre.dart';
 import '../../../../core/utils/geo_utils.dart';
@@ -32,69 +33,11 @@ class FirUtils {
     if (_features != null) return;
     try {
       final jsonString = rawJson ?? await rootBundle.loadString(assetPath);
-      final Map<String, dynamic> data =
-          jsonDecode(jsonString) as Map<String, dynamic>;
-      final List<dynamic> featuresList = data['features'] as List<dynamic>;
-
-      final List<FirFeature> parsedFeatures = [];
-      for (final dynamic f in featuresList) {
-        final Map<String, dynamic> feature = f as Map<String, dynamic>;
-        final Map<String, dynamic> properties =
-            feature['properties'] as Map<String, dynamic>;
-        final Map<String, dynamic> geometry =
-            feature['geometry'] as Map<String, dynamic>;
-
-        final String icao =
-            properties['ICAO'] as String? ??
-            properties['name'] as String? ??
-            'UNKNOWN';
-        final double minLat =
-            double.tryParse(properties['MinLat']?.toString() ?? '') ?? -90.0;
-        final double minLon =
-            double.tryParse(properties['MinLon']?.toString() ?? '') ?? -180.0;
-        final double maxLat =
-            double.tryParse(properties['MaxLat']?.toString() ?? '') ?? 90.0;
-        final double maxLon =
-            double.tryParse(properties['MaxLon']?.toString() ?? '') ?? 180.0;
-
-        final String type = geometry['type'] as String;
-        final List<dynamic> coords = geometry['coordinates'] as List<dynamic>;
-        final List<List<List<List<double>>>> polygons = [];
-
-        List<List<List<double>>> parsePolygon(List<dynamic> polyCoords) {
-          final List<List<List<double>>> poly = [];
-          for (final dynamic ringObj in polyCoords) {
-            final List<List<double>> ring = [];
-            for (final dynamic pt in ringObj) {
-              ring.add([(pt[0] as num).toDouble(), (pt[1] as num).toDouble()]);
-            }
-            poly.add(ring);
-          }
-          return poly;
-        }
-
-        if (type == 'Polygon') {
-          polygons.add(parsePolygon(coords));
-        } else if (type == 'MultiPolygon') {
-          for (final dynamic polyObj in coords) {
-            polygons.add(parsePolygon(polyObj as List<dynamic>));
-          }
-        }
-
-        parsedFeatures.add(
-          FirFeature(
-            icao: icao,
-            minLat: minLat,
-            minLon: minLon,
-            maxLat: maxLat,
-            maxLon: maxLon,
-            polygons: polygons,
-          ),
-        );
-      }
-      // Store an unmodifiable list so callers of [features] cannot mutate the
-      // shared FIR index.
-      _features = List.unmodifiable(parsedFeatures);
+      _features = await compute(
+        _parseFirFeatures,
+        jsonString,
+        debugLabel: 'Prepare FIR index',
+      );
     } catch (_) {
       _features = null;
       rethrow;
@@ -205,4 +148,68 @@ class FirUtils {
 
     return result;
   }
+}
+
+List<FirFeature> _parseFirFeatures(String jsonString) {
+  final Map<String, dynamic> data =
+      jsonDecode(jsonString) as Map<String, dynamic>;
+  final List<dynamic> featuresList = data['features'] as List<dynamic>;
+
+  final List<FirFeature> parsedFeatures = [];
+  for (final dynamic f in featuresList) {
+    final Map<String, dynamic> feature = f as Map<String, dynamic>;
+    final Map<String, dynamic> properties =
+        feature['properties'] as Map<String, dynamic>;
+    final Map<String, dynamic> geometry =
+        feature['geometry'] as Map<String, dynamic>;
+
+    final String icao =
+        properties['ICAO'] as String? ??
+        properties['name'] as String? ??
+        'UNKNOWN';
+    final double minLat =
+        double.tryParse(properties['MinLat']?.toString() ?? '') ?? -90.0;
+    final double minLon =
+        double.tryParse(properties['MinLon']?.toString() ?? '') ?? -180.0;
+    final double maxLat =
+        double.tryParse(properties['MaxLat']?.toString() ?? '') ?? 90.0;
+    final double maxLon =
+        double.tryParse(properties['MaxLon']?.toString() ?? '') ?? 180.0;
+
+    final String type = geometry['type'] as String;
+    final List<dynamic> coords = geometry['coordinates'] as List<dynamic>;
+    final List<List<List<List<double>>>> polygons = [];
+
+    List<List<List<double>>> parsePolygon(List<dynamic> polyCoords) {
+      final List<List<List<double>>> poly = [];
+      for (final dynamic ringObj in polyCoords) {
+        final List<List<double>> ring = [];
+        for (final dynamic pt in ringObj) {
+          ring.add([(pt[0] as num).toDouble(), (pt[1] as num).toDouble()]);
+        }
+        poly.add(ring);
+      }
+      return poly;
+    }
+
+    if (type == 'Polygon') {
+      polygons.add(parsePolygon(coords));
+    } else if (type == 'MultiPolygon') {
+      for (final dynamic polyObj in coords) {
+        polygons.add(parsePolygon(polyObj as List<dynamic>));
+      }
+    }
+
+    parsedFeatures.add(
+      FirFeature(
+        icao: icao,
+        minLat: minLat,
+        minLon: minLon,
+        maxLat: maxLat,
+        maxLon: maxLon,
+        polygons: polygons,
+      ),
+    );
+  }
+  return List.unmodifiable(parsedFeatures);
 }

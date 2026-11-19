@@ -1366,5 +1366,11 @@
   "dataSourcesDdbTitle": "OGN Device Database · DDB",
   "dataSourcesPureTrackTitle": "PureTrack",
   "dataSourcesPhotonTitle": "Photon · Komoot",
-  "dataSourcesIpTitle": "ipapi.co"
+  "dataSourcesIpTitle": "ipapi.co",
+  "startupPreparing": "Pripravujeme mapu",
+  "startupDescription": "Načítavame vaše nastavenia a lokálne mapové údaje.",
+  "startupFooter": "Mapa sa otvorí po dokončení prípravy.",
+  "startupFailed": "Príprava sa nepodarila",
+  "startupFailedDescription": "Vaše nastavenia zostávajú zachované. Skúste to znova.",
+  "startupRetry": "Skúsiť znova"
 }

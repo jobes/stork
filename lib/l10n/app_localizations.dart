@@ -6437,6 +6437,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ipapi.co'**
   String get dataSourcesIpTitle;
+
+  /// No description provided for @startupPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing your map'**
+  String get startupPreparing;
+
+  /// No description provided for @startupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your settings and local map data.'**
+  String get startupDescription;
+
+  /// No description provided for @startupFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'The map will open when preparation is complete.'**
+  String get startupFooter;
+
+  /// No description provided for @startupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation failed'**
+  String get startupFailed;
+
+  /// No description provided for @startupFailedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your settings are preserved. Please try again.'**
+  String get startupFailedDescription;
+
+  /// No description provided for @startupRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get startupRetry;
 }
 
 class _AppLocalizationsDelegate

@@ -465,7 +465,7 @@ final class FlightForecastProfilesProvider
 }
 
 String _$flightForecastProfilesHash() =>
-    r'bcf739119331cb61835868d4e18c9caf93ca6b78';
+    r'5d7321f0c48b1a5cee4e01aca9e99a546653cdf7';
 
 @ProviderFor(forecastPointTerrain)
 final forecastPointTerrainProvider = ForecastPointTerrainFamily._();
@@ -607,7 +607,7 @@ final class RouteForecastReferenceProvider
 }
 
 String _$routeForecastReferenceHash() =>
-    r'b6a0adbeef37e6a45d5a017a8a2abc1ca0acff16';
+    r'5ff1e804f7f2225f037a509c59110dba258896a5';
 
 /// Terrain and airport reference for one forecast point. Resolving it per
 /// point keeps the route list, map markers, navigation details and hazard

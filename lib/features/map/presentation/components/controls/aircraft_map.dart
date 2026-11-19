@@ -6,6 +6,10 @@ import '../../../../../core/theme/stork_colors.dart';
 
 class AircraftMap extends StatefulWidget {
   final String style;
+  final Geographic initialCenter;
+  final double initialZoom;
+  final double initialPitch;
+  final double initialBearing;
   final Geographic? searchPin;
   final Function(MapController) onMapCreated;
   final Function(StyleController) onStyleLoaded;
@@ -15,6 +19,10 @@ class AircraftMap extends StatefulWidget {
   const AircraftMap({
     super.key,
     required this.style,
+    this.initialCenter = const Geographic(lon: 17.11, lat: 48.15),
+    this.initialZoom = 6,
+    this.initialPitch = 0,
+    this.initialBearing = 0,
     this.searchPin,
     required this.onMapCreated,
     required this.onStyleLoaded,
@@ -58,8 +66,10 @@ class _AircraftMapState extends State<AircraftMap> {
       onPointerMove: (_) => widget.onUserInteraction(),
       child: MapLibreMap(
         options: MapOptions(
-          initCenter: Geographic(lon: 0, lat: 0),
-          initZoom: 2,
+          initCenter: widget.initialCenter,
+          initZoom: widget.initialZoom,
+          initPitch: widget.initialPitch,
+          initBearing: widget.initialBearing,
           maxZoom: kMaxMapZoom.toDouble(),
           initStyle: _initialStyle,
           gestures: MapGestures(

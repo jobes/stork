@@ -1,3 +1,4 @@
+import '../startup/deferred_startup_tasks.dart';
 import 'dart:collection';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -141,10 +142,18 @@ class TileCache {
 
 @Riverpod(keepAlive: true)
 TerrainElevationService terrainElevationService(Ref ref) {
-  return TerrainElevationService();
+  final tasks = ref.watch(deferredStartupTasksProvider);
+  return TerrainElevationService(
+    beforeRemote: () async {
+      await tasks.waitFor(StartupTask.weather);
+      if (!ref.mounted) throw StateError('Terrain service disposed');
+    },
+  );
 }
 
 class TerrainElevationService {
+  TerrainElevationService({this.beforeRemote});
+  final Future<void> Function()? beforeRemote;
   static const int zoomLevel = kTerrainTileZoom;
   static const int _numTiles = 1 << zoomLevel; // 4096
   static const double _degToRad = pi / 180;
@@ -391,6 +400,7 @@ class TerrainElevationService {
     if (tileBytes == null || tileBytes.isEmpty) {
       if (!kIsWeb) {
         try {
+          if (beforeRemote != null) await beforeRemote!();
           final archive = await MapAssetsServer.getArchive('terrain');
           final tileId = ZXY(zoomLevel, tileX, tileY).toTileId();
           final remoteTile = await archive.tile(tileId);

@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maplibre/maplibre.dart' as ml;
 import 'package:stork/core/services/location_provider.dart';
+import 'package:stork/core/startup/initial_map_camera.dart';
 import 'package:stork/core/theme/stork_colors.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:stork/features/map/presentation/providers/airspace_activity_provider.dart';
@@ -16,6 +17,7 @@ import 'package:stork/features/map/presentation/providers/traffic_colors.dart';
 import 'package:stork/features/map/domain/models/notam.dart';
 import 'package:stork/features/map/domain/repositories/notam_repository.dart';
 import 'package:stork/features/navigation/domain/models/navigation_state.dart';
+import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
@@ -64,14 +66,27 @@ class _GpsPermissions extends FakeGeolocatorPlatform {
 }
 
 class _Telemetry extends TelemetryNotifier {
+  _Telemetry([
+    this.initialState = const TelemetryState(
+      latitude: 48,
+      longitude: 17,
+      groundSpeed: 30,
+      isFlying: true,
+      mapViewState: MapViewState.follow,
+    ),
+  ]);
+  final TelemetryState initialState;
   @override
-  TelemetryState build() => const TelemetryState(
-    latitude: 48,
-    longitude: 17,
-    groundSpeed: 30,
-    isFlying: true,
-    mapViewState: MapViewState.follow,
-  );
+  TelemetryState build() => initialState;
+
+  void changePosition(double? latitude, double? longitude) {
+    state = state.copyWith(
+      latitude: TelemetryValue(latitude),
+      longitude: TelemetryValue(longitude),
+    );
+  }
+
+  double? get latitude => state.latitude;
 
   MapViewState get view => state.mapViewState;
 
@@ -109,8 +124,11 @@ class _Settings extends AppSettingsNotifier {
 }
 
 class _Navigation extends NavigationNotifier {
+  _Navigation([this.initialState = const NavigationState()]);
+  final NavigationState initialState;
   @override
-  NavigationState build() => const NavigationState();
+  NavigationState build() => initialState;
+  void publish(NavigationState route) => state = AsyncData(route);
 }
 
 class _Notams extends Notams {
@@ -132,6 +150,7 @@ class _Style extends Fake implements ml.StyleController {
   final layers = <String, ml.StyleLayer>{};
   bool failNextNotamWrite = false;
   Future<void>? nextFavoritesLayerDelay;
+  Future<void>? nextRouteWriteDelay;
 
   @override
   Future<void> addSource(ml.Source source) async {}
@@ -160,6 +179,11 @@ class _Style extends Fake implements ml.StyleController {
     required String data,
   }) async {
     (updates[id] ??= []).add(data);
+    if (id == 'navigation-route-source') {
+      final delay = nextRouteWriteDelay;
+      nextRouteWriteDelay = null;
+      if (delay != null) await delay;
+    }
     if (id == 'notams-source' && failNextNotamWrite) {
       failNextNotamWrite = false;
       throw StateError('NOTAM source unavailable');
@@ -237,8 +261,14 @@ class _Map extends Fake implements ml.MapController {
 Future<
   ({MapCamera camera, _Map map, _Telemetry telemetry, _FilteredTraffic traffic})
 >
-_setupFollow(WidgetTester tester, {_Notams? notams}) async {
-  final telemetry = _Telemetry();
+_setupFollow(
+  WidgetTester tester, {
+  _Notams? notams,
+  _Navigation? navigation,
+  _Telemetry? initialTelemetry,
+  InitialMapCamera? initialCamera,
+}) async {
+  final telemetry = initialTelemetry ?? _Telemetry();
   final traffic = _FilteredTraffic();
   await tester.pumpWidget(
     ProviderScope(
@@ -248,7 +278,7 @@ _setupFollow(WidgetTester tester, {_Notams? notams}) async {
         trafficProvider.overrideWith(_Traffic.new),
         appSettingsProvider.overrideWith(_Settings.new),
         currentLocationProvider.overrideWithValue(const AsyncData(null)),
-        navigationProvider.overrideWith(_Navigation.new),
+        navigationProvider.overrideWith(() => navigation ?? _Navigation()),
         if (notams != null) notamsProvider.overrideWith(() => notams),
         favoritesProvider.overrideWith(_Favorites.new),
         airspaceActivityProvider.overrideWithValue(const {}),
@@ -269,7 +299,10 @@ _setupFollow(WidgetTester tester, {_Notams? notams}) async {
   );
   final camera = container.read(mapCameraProvider.notifier);
   final map = _Map();
-  camera.attachController(map);
+  if (initialCamera != null) {
+    container.read(initialMapCameraProvider.notifier).prepare(initialCamera);
+  }
+  camera.attachController(map, cameraPrepared: initialCamera != null);
   await camera.handleStyleLoaded(map.style);
   await tester.pump(const Duration(milliseconds: 200));
   map.viewportReads = 0;
@@ -278,7 +311,229 @@ _setupFollow(WidgetTester tester, {_Notams? notams}) async {
   return (camera: camera, map: map, telemetry: telemetry, traffic: traffic);
 }
 
+const _route = NavigationState(
+  isActive: true,
+  points: [
+    NavigationPoint(latitude: 49, longitude: 18, name: 'First'),
+    NavigationPoint(latitude: 50, longitude: 19, name: 'Second'),
+  ],
+);
+
+List<dynamic> _routeCoordinates(String data) =>
+    jsonDecode(data)['features'][0]['geometry']['coordinates'] as List;
+
 void main() {
+  testWidgets('startup route contains saved legs before any telemetry position', (
+    tester,
+  ) async {
+    final telemetry = _Telemetry(const TelemetryState());
+    final setup = await _setupFollow(
+      tester,
+      initialTelemetry: telemetry,
+      navigation: _Navigation(_route),
+      notams: _Notams(),
+    );
+    final prepared = jsonDecode(
+      setup.camera.prepareStyle('{"version":8,"sources":{},"layers":[]}'),
+    );
+    final line =
+        prepared['sources']['navigation-route-source']['data']['features'][0]['geometry']['coordinates']
+            as List;
+    expect(line.first[0], closeTo(18, 1e-9));
+    expect(line.first[1], closeTo(49, 1e-9));
+    expect(line.last[0], closeTo(19, 1e-9));
+    expect(line.last[1], closeTo(50, 1e-9));
+    expect(telemetry.latitude, isNull);
+  });
+
+  testWidgets(
+    'known startup origin is embedded and first GPS bypasses route throttling',
+    (tester) async {
+      final telemetry = _Telemetry(const TelemetryState());
+      final setup = await _setupFollow(
+        tester,
+        initialTelemetry: telemetry,
+        navigation: _Navigation(_route),
+        notams: _Notams(),
+        initialCamera: const InitialMapCamera(
+          center: ml.Geographic(lat: 48, lon: 17),
+          zoom: 6,
+          hasLocation: true,
+        ),
+      );
+      final prepared = jsonDecode(
+        setup.camera.prepareStyle('{"version":8,"sources":{},"layers":[]}'),
+      );
+      final initial =
+          prepared['sources']['navigation-route-source']['data']['features'][0]['geometry']['coordinates']
+              as List;
+      expect(initial.first[0], closeTo(17, 1e-9));
+      expect(initial.first[1], closeTo(48, 1e-9));
+      expect(telemetry.latitude, isNull);
+      telemetry.changePosition(48.1, 17.2);
+      final writes = setup.map.style.updates['navigation-route-source']!;
+      expect(writes, hasLength(1));
+      final line = _routeCoordinates(writes.single);
+      expect(line.first[0], closeTo(17.2, 1e-9));
+      expect(line.first[1], closeTo(48.1, 1e-9));
+      await tester.pump();
+    },
+  );
+
+  testWidgets('last GPS update is delivered even when no next sample arrives', (
+    tester,
+  ) async {
+    final telemetry = _Telemetry(
+      const TelemetryState(
+        latitude: 48,
+        longitude: 17,
+        mapViewState: MapViewState.overview,
+      ),
+    );
+    final setup = await _setupFollow(
+      tester,
+      initialTelemetry: telemetry,
+      navigation: _Navigation(_route),
+      notams: _Notams(),
+    );
+    telemetry.changePosition(48.01, 17.01);
+    await tester.pump(const Duration(milliseconds: 500));
+    telemetry.changePosition(48.02, 17.02);
+    await tester.pump(const Duration(milliseconds: 1299));
+    expect(setup.map.style.updates['navigation-route-source'], isNull);
+    await tester.pump(const Duration(milliseconds: 1));
+    final writes = setup.map.style.updates['navigation-route-source']!;
+    expect(writes, hasLength(1));
+    final line = _routeCoordinates(writes.single);
+    expect(line.first[0], closeTo(17.02, 1e-9));
+    expect(line.first[1], closeTo(48.02, 1e-9));
+    await tester.pump(const Duration(seconds: 5));
+    expect(writes, hasLength(1));
+  });
+
+  testWidgets('route edits supersede pending position updates immediately', (
+    tester,
+  ) async {
+    final navigation = _Navigation(_route);
+    final telemetry = _Telemetry(
+      const TelemetryState(
+        latitude: 48,
+        longitude: 17,
+        mapViewState: MapViewState.overview,
+      ),
+    );
+    final setup = await _setupFollow(
+      tester,
+      initialTelemetry: telemetry,
+      navigation: navigation,
+      notams: _Notams(),
+    );
+    telemetry.changePosition(48.01, 17.01);
+    navigation.publish(const NavigationState());
+    expect(
+      jsonDecode(
+        setup.map.style.updates['navigation-route-source']!.single,
+      )['features'],
+      isEmpty,
+    );
+    await tester.pump(const Duration(seconds: 3));
+    expect(setup.map.style.updates['navigation-route-source'], hasLength(1));
+  });
+
+  testWidgets(
+    'a slow native write is followed by the latest route and position',
+    (tester) async {
+      final navigation = _Navigation(_route);
+      final telemetry = _Telemetry(
+        const TelemetryState(
+          latitude: 48,
+          longitude: 17,
+          mapViewState: MapViewState.overview,
+        ),
+      );
+      final setup = await _setupFollow(
+        tester,
+        initialTelemetry: telemetry,
+        navigation: navigation,
+        notams: _Notams(),
+      );
+      final oldWrite = Completer<void>();
+      setup.map.style.nextRouteWriteDelay = oldWrite.future;
+      navigation.publish(_route.copyWith(points: [_route.points.first]));
+      telemetry.changePosition(48.1, 17.1);
+      navigation.publish(_route);
+      expect(setup.map.style.updates['navigation-route-source'], hasLength(1));
+      oldWrite.complete();
+      await tester.pump();
+      final writes = setup.map.style.updates['navigation-route-source']!;
+      expect(writes, hasLength(2));
+      final line = _routeCoordinates(writes.last);
+      expect(line.first[0], closeTo(17.1, 1e-9));
+      expect(line.last[0], closeTo(19, 1e-9));
+      await tester.pump(const Duration(seconds: 3));
+      expect(writes, hasLength(2));
+    },
+  );
+
+  testWidgets('leaving the map cancels its pending route update', (
+    tester,
+  ) async {
+    final telemetry = _Telemetry(
+      const TelemetryState(
+        latitude: 48,
+        longitude: 17,
+        mapViewState: MapViewState.overview,
+      ),
+    );
+    final setup = await _setupFollow(
+      tester,
+      initialTelemetry: telemetry,
+      navigation: _Navigation(_route),
+      notams: _Notams(),
+    );
+    telemetry.changePosition(48.1, 17.1);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 3));
+    expect(setup.map.style.updates['navigation-route-source'], isNull);
+  });
+
+  testWidgets('prepared style embeds GeoJSON without native layer writes', (
+    tester,
+  ) async {
+    final setup = await _setupFollow(tester, notams: _Notams());
+    setup.map.style.layers.clear();
+    setup.map.style.updates.clear();
+    final prepared = setup.camera.prepareStyle(
+      '{"version":8,"sources":{},"layers":[]}',
+    );
+    final document = jsonDecode(prepared);
+    final sources = document['sources'] as Map;
+    expect(
+      sources.keys,
+      containsAll([
+        'aircraft-source',
+        'navigation-route-source',
+        'favorites-source',
+        'traffic-source',
+        'notams-source',
+        'course-line-source',
+        'flight-weather-source',
+      ]),
+    );
+    expect(
+      sources['aircraft-source']['data']['features'][0]['geometry']['coordinates'],
+      [17, 48],
+    );
+    expect(setup.map.style.layers, isEmpty);
+    expect(setup.map.style.updates, isEmpty);
+    await setup.camera.handleStyleLoaded(
+      setup.map.style,
+      overlaysPrepared: true,
+    );
+    expect(setup.map.style.layers, isEmpty);
+    expect(setup.map.style.updates, isEmpty);
+  });
+
   testWidgets(
     'focusing a point stops following and keeps the selected center',
     (tester) async {

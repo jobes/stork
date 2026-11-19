@@ -48,4 +48,4 @@ final class MapRadarProvider
   }
 }
 
-String _$mapRadarHash() => r'45baf7cb21159feaca620ea07bf779c9e85971e0';
+String _$mapRadarHash() => r'705e41329eb225eb6ac22b077a4d95cfe8e4f0e5';
