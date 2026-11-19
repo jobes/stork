@@ -62,7 +62,8 @@ its controller subscriptions and tickers as before.
 frame. Independent groups are released at 1-second intervals: NOTAM, airspace
 activity, weather (including remote elevation/reference lookups), radar, and
 Protomaps catalog. A failed or slow group does not block the next. Telemetry
-reception and recording are not gated. Outside the application startup shell,
+reception and recording are not gated. Local terrain and airport reference
+lookups bypass the weather gate; only their network fallbacks wait for it. Outside the application startup shell,
 these services behave normally without a gate.
 
 The asset server binds locally without contacting the Protomaps catalog. Both
@@ -75,6 +76,11 @@ still require network access if they are not stored offline.
 Verification includes startup/retry widget tests, layout checks for light/dark,
 portrait/landscape and larger text, deferred task ordering, archive stability,
 inline overlay style validity, and the existing map/weather/server regressions.
+The startup handoff widget tests exercise the real bootstrap, style preparation
+and map page with a substitute native renderer, including retry after a local
+failure and automatic provider disposal when navigating away from the map.
+Offline reference tests hold the weather gate closed while resolving local
+terrain and airport data, and verify that remote fallback stays deferred.
 Native startup speed and first-gesture latency still require profile/release
 measurements on a device.
 

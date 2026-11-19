@@ -607,7 +607,7 @@ final class RouteForecastReferenceProvider
 }
 
 String _$routeForecastReferenceHash() =>
-    r'5ff1e804f7f2225f037a509c59110dba258896a5';
+    r'b6a0adbeef37e6a45d5a017a8a2abc1ca0acff16';
 
 /// Terrain and airport reference for one forecast point. Resolving it per
 /// point keeps the route list, map markers, navigation details and hazard

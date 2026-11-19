@@ -1,4 +1,6 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import '../../../../core/startup/deferred_startup_tasks.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/repositories/map_metadata_repository.dart';
@@ -32,6 +34,7 @@ class AirportMetadataCache extends _$AirportMetadataCache {
 
     // 2. Check offline SQLite database
     final dbFeature = await repo.fetchFeatureFromDb(airportId, 'apt');
+    if (!ref.mounted) return null;
     if (dbFeature != null) {
       final metadata = AirportMetadata.fromJson(dbFeature);
       if (metadata.latitude != null && metadata.longitude != null) {
@@ -59,6 +62,12 @@ class AirportMetadataCache extends _$AirportMetadataCache {
       }
 
       final future = () async {
+        // Local references are available immediately; only the remote fallback
+        // waits for the optional weather startup group.
+        await ref
+            .read(deferredStartupTasksProvider)
+            .waitFor(StartupTask.weather);
+        if (!ref.mounted) return;
         final parsedFeatures = await repo.fetchAirportsFromNetwork(
           lowerCountryCode,
         );
