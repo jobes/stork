@@ -317,7 +317,16 @@ Future<void> _removeWaypoint(
   final departure = ref.read(flightDepartureProvider.notifier);
   final plannedDeparture = ref.read(flightDepartureProvider);
   final messenger = ScaffoldMessenger.of(context);
-  await navigation.removePoint(index);
+  try {
+    await navigation.removePoint(index);
+  } catch (_) {
+    if (messenger.mounted) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.navigationWaypointRemovalFailed)),
+      );
+    }
+    return;
+  }
   if (!messenger.mounted) return;
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(

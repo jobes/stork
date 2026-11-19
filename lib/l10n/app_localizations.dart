@@ -2102,6 +2102,12 @@ abstract class AppLocalizations {
   /// **'Removed {name}.'**
   String navigationWaypointRemoved(String name);
 
+  /// No description provided for @navigationWaypointRemovalFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not remove the waypoint. Please try again.'**
+  String get navigationWaypointRemovalFailed;
+
   /// No description provided for @routeWeatherWarnings.
   ///
   /// In en, this message translates to:

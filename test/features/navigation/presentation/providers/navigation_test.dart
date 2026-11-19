@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:stork/features/navigation/data/repositories/navigation_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,6 +8,26 @@ import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/navigation/domain/models/navigation_state.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import '../../../../helpers/sensors_mock.dart';
+
+class _ControlledRepository extends NavigationRepository {
+  _ControlledRepository(super.prefs, this.initial);
+  final NavigationState initial;
+  final started = Completer<void>();
+  final removal = Completer<void>();
+  var saves = 0;
+
+  @override
+  NavigationState loadNavigationState() => initial;
+
+  @override
+  Future<void> saveNavigationState(NavigationState state) {
+    if (++saves == 1) {
+      started.complete();
+      return removal.future;
+    }
+    return Future.value();
+  }
+}
 
 void main() {
   group('NavigationNotifier Tests', () {
@@ -134,6 +156,56 @@ void main() {
         expect(stateEmpty.isActive, isFalse);
       },
     );
+
+    for (final concurrentEdit in [false, true]) {
+      test(
+        'failed removal rolls back without overwriting a newer edit ($concurrentEdit)',
+        () async {
+          const initial = NavigationState(
+            points: [
+              NavigationPoint(latitude: 48, longitude: 17, name: 'First'),
+            ],
+            isActive: true,
+            wasAutoAdvanced: true,
+          );
+          final repository = _ControlledRepository(
+            await SharedPreferences.getInstance(),
+            initial,
+          );
+          final isolated = ProviderContainer(
+            overrides: [
+              navigationAutoAdvanceProvider.overrideWith((ref) {}),
+              navigationRepositoryProvider.overrideWith(
+                (ref) async => repository,
+              ),
+            ],
+          );
+          addTearDown(isolated.dispose);
+          await isolated.read(navigationProvider.future);
+          final notifier = isolated.read(navigationProvider.notifier);
+          final removal = notifier.removePoint(0);
+          final failure = expectLater(removal, throwsStateError);
+          await repository.started.future;
+          expect(isolated.read(navigationProvider).value!.points, isEmpty);
+          expect(isolated.read(navigationProvider).value!.isActive, isFalse);
+          if (concurrentEdit) {
+            await notifier.addPoint(
+              const NavigationPoint(latitude: 49, longitude: 18, name: 'New'),
+            );
+          }
+          repository.removal.completeError(StateError('Save failed'));
+          await failure;
+          final state = isolated.read(navigationProvider).value!;
+          if (concurrentEdit) {
+            expect(state.points.single.name, 'New');
+          } else {
+            expect(state, same(initial));
+            expect(state.isActive, isTrue);
+            expect(state.wasAutoAdvanced, isTrue);
+          }
+        },
+      );
+    }
 
     test('reorderPoints moves points correctly', () async {
       final notifier = container.read(navigationProvider.notifier);

@@ -1059,6 +1059,10 @@ class AppLocalizationsSk extends AppLocalizations {
   }
 
   @override
+  String get navigationWaypointRemovalFailed =>
+      'Bod sa nepodarilo odstrániť. Skúste to znova.';
+
+  @override
   String routeWeatherWarnings(int count) {
     return 'Upozornenia na počasie na trase ($count)';
   }

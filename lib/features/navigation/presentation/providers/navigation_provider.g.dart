@@ -76,7 +76,7 @@ final class NavigationNotifierProvider
 }
 
 String _$navigationNotifierHash() =>
-    r'8f8eabcd2216c1db719c67372aa2f571b398102f';
+    r'ae5340567118f2f29ad96d926aeb019b82c520b7';
 
 abstract class _$NavigationNotifier extends $AsyncNotifier<NavigationState> {
   FutureOr<NavigationState> build();

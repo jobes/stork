@@ -17,7 +17,9 @@ part 'flight_forecast_repository.g.dart';
 const _batchSize = 20;
 
 class _StopForecastRequests implements Exception {
-  const _StopForecastRequests();
+  const _StopForecastRequests(this.statusCode);
+
+  final int statusCode;
 }
 
 class _LocationOutsideModel implements Exception {
@@ -120,7 +122,10 @@ class FlightForecastRepository {
       final batch = missing.skip(i).take(_batchSize).toList();
       try {
         await _refreshBatch(batch, query, now);
-      } on _StopForecastRequests {
+      } on _StopForecastRequests catch (error) {
+        debugPrint(
+          'Flight forecast requests stopped (HTTP ${error.statusCode}).',
+        );
         refreshFailed = true;
         break;
       } on Exception catch (error) {
@@ -193,7 +198,7 @@ class FlightForecastRepository {
       throw const _LocationOutsideModel();
     }
     if ([401, 403, 429].contains(response.statusCode)) {
-      throw const _StopForecastRequests();
+      throw _StopForecastRequests(response.statusCode);
     }
     if (response.statusCode != 200) {
       throw http.ClientException(

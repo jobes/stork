@@ -154,7 +154,12 @@ class NavigationNotifier extends _$NavigationNotifier {
       wasAutoAdvanced: false,
     );
     state = AsyncData(updated);
-    await _save(updated);
+    try {
+      await _save(updated);
+    } catch (_) {
+      if (identical(state.value, updated)) state = AsyncData(current);
+      rethrow;
+    }
   }
 
   Future<void> insertPoint(int index, NavigationPoint point) async {

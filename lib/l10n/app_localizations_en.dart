@@ -1058,6 +1058,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get navigationWaypointRemovalFailed =>
+      'Could not remove the waypoint. Please try again.';
+
+  @override
   String routeWeatherWarnings(int count) {
     return 'Weather warnings on the route ($count)';
   }

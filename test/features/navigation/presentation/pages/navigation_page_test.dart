@@ -1,3 +1,4 @@
+import 'package:stork/features/navigation/data/repositories/navigation_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,24 +12,40 @@ import 'package:stork/features/navigation/presentation/widgets/route_waypoint_ti
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
 
+class _FailingRepository extends NavigationRepository {
+  _FailingRepository(super.prefs);
+  bool failSaves = false;
+
+  @override
+  Future<void> saveNavigationState(state) async {
+    if (failSaves) throw StateError('Save failed');
+    await super.saveNavigationState(state);
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('NavigationPage Widget Tests', () {
     late ProviderContainer providerContainer;
 
-    Widget buildTestWidget() {
+    Widget buildTestWidget({NavigationRepository? repository, Locale? locale}) {
       return ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWith(
             (ref) => SharedPreferences.getInstance(),
           ),
           flightForecastProfilesProvider.overrideWith((ref) async => null),
+          if (repository != null)
+            navigationRepositoryProvider.overrideWith(
+              (ref) async => repository,
+            ),
         ],
         child: Consumer(
           builder: (context, ref, child) {
             providerContainer = ProviderScope.containerOf(context);
             return MaterialApp(
+              locale: locale,
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: const NavigationPage(),
@@ -316,6 +333,60 @@ void main() {
       final state = providerContainer.read(navigationProvider).value;
       expect(state?.points.first.name, 'Waypoint 2');
     });
+
+    for (final language in ['en', 'sk']) {
+      testWidgets(
+        'failed removal shows a localized error without Undo ($language)',
+        (tester) async {
+          SharedPreferences.setMockInitialValues({});
+          final repository = _FailingRepository(
+            await SharedPreferences.getInstance(),
+          );
+          await tester.pumpWidget(
+            buildTestWidget(repository: repository, locale: Locale(language)),
+          );
+          await tester.pump();
+          providerContainer
+              .read(telemetryProvider.notifier)
+              .updateGPS(latitude: 48.0, longitude: 17.0, groundSpeed: 0.0);
+          await tester.pumpAndSettle();
+          await providerContainer
+              .read(navigationProvider.notifier)
+              .addPoint(
+                const NavigationPoint(
+                  latitude: 49,
+                  longitude: 18,
+                  name: 'Waypoint 1',
+                ),
+              );
+          await tester.pumpAndSettle();
+          final previous = providerContainer.read(navigationProvider).value;
+          final l10n = AppLocalizations.of(
+            tester.element(find.byType(RouteWaypointTile)),
+          )!;
+          repository.failSaves = true;
+          await tester.tap(
+            find.descendant(
+              of: find.byType(RouteWaypointTile),
+              matching: find.byIcon(Icons.more_vert),
+            ),
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.text(l10n.navigationRemoveWaypoint));
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          expect(
+            find.text(l10n.navigationWaypointRemovalFailed),
+            findsOneWidget,
+          );
+          expect(find.text(l10n.undo), findsNothing);
+          expect(
+            providerContainer.read(navigationProvider).value,
+            same(previous),
+          );
+        },
+      );
+    }
 
     testWidgets('clears the planned departure when the route becomes empty', (
       WidgetTester tester,

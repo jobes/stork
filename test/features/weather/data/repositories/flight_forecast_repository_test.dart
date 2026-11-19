@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -244,27 +245,60 @@ void main() {
     },
   );
 
-  test('rate limiting stops all later batches', () async {
-    final start = DateTime.utc(2026, 11, 16, 14);
-    var requests = 0;
-    final client = MockClient((request) async {
-      requests++;
-      return http.Response('rate limited', 429);
-    });
-    addTearDown(client.close);
-    final result = await FlightForecastRepository(client).load(
-      ForecastQuery(
-        [
-          for (var i = 0; i < 21; i++)
-            (latitude: 48 + i / 100, longitude: 17.0),
-        ],
-        start,
-        start,
-      ),
+  for (final status in [401, 403, 429]) {
+    test(
+      'HTTP $status logs once, stops later batches and preserves cache',
+      () async {
+        final start = DateTime.utc(2026, 11, 16, 14);
+        var requests = 0;
+        var blocked = false;
+        final client = MockClient((request) async {
+          requests++;
+          if (blocked) return http.Response('unavailable', status);
+          final count = request.url.queryParameters['latitude']!
+              .split(',')
+              .length;
+          return http.Response(
+            jsonEncode([
+              for (var i = 0; i < count; i++)
+                {
+                  'elevation': 100,
+                  'hourly': {
+                    'time': [start.millisecondsSinceEpoch ~/ 1000],
+                  },
+                },
+            ]),
+            200,
+          );
+        });
+        addTearDown(client.close);
+        final query = ForecastQuery(
+          [
+            for (var i = 0; i < 21; i++)
+              (latitude: 48 + i / 100, longitude: 17.0),
+          ],
+          start,
+          start,
+        );
+        final repository = FlightForecastRepository(client);
+        final initial = await repository.load(query);
+        expect(initial.series, hasLength(21));
+        expect(requests, 2);
+        final messages = <String?>[];
+        final previousDebugPrint = debugPrint;
+        debugPrint = (String? message, {int? wrapWidth}) =>
+            messages.add(message);
+        addTearDown(() => debugPrint = previousDebugPrint);
+        blocked = true;
+        repository.requestRefresh();
+        final refreshed = await repository.load(query);
+        expect(requests, 3);
+        expect(refreshed.refreshFailed, isTrue);
+        expect(refreshed.series, initial.series);
+        expect(messages, ['Flight forecast requests stopped (HTTP $status).']);
+      },
     );
-    expect(requests, 1);
-    expect(result.refreshFailed, isTrue);
-  });
+  }
 
   test('manual refresh belongs to its queued load', () async {
     final start = DateTime.utc(2026, 11, 16, 14);

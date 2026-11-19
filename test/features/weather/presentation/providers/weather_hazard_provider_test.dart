@@ -32,6 +32,9 @@ class _Navigation extends NavigationNotifier {
 
   void changeRoute() =>
       state = const AsyncData(NavigationState(isActive: false));
+
+  void restoreRoute() =>
+      state = const AsyncData(NavigationState(isActive: true));
 }
 
 class _Plan extends FlightWeatherPlanNotifier {
@@ -144,6 +147,11 @@ void main() {
       (container.read(navigationProvider.notifier) as _Navigation)
           .changeRoute();
       expect(container.read(activeWeatherHazardsProvider), isEmpty);
+
+      (container.read(navigationProvider.notifier) as _Navigation)
+          .restoreRoute();
+      await container.read(weatherHazardDetailsProvider.future);
+      expect(container.read(activeWeatherHazardsProvider), hazards);
 
       (container.read(appSettingsProvider.notifier) as _Settings)
           .disableWeather();

@@ -510,6 +510,7 @@
   "navigationWaypointActions": "Waypoint actions",
   "navigationRouteActions": "Route actions",
   "navigationWaypointRemoved": "Removed {name}.",
+  "navigationWaypointRemovalFailed": "Could not remove the waypoint. Please try again.",
   "@navigationWaypointRemoved": {
     "placeholders": {
       "name": {

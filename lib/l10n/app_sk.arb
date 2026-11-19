@@ -419,6 +419,7 @@
   "navigationWaypointActions": "Akcie bodu",
   "navigationRouteActions": "Akcie trasy",
   "navigationWaypointRemoved": "Bod {name} bol odstránený.",
+  "navigationWaypointRemovalFailed": "Bod sa nepodarilo odstrániť. Skúste to znova.",
   "routeWeatherWarnings": "Upozornenia na počasie na trase ({count})",
   "routeWeatherDestinationWind": "Vietor v cieli",
   "departureTimeTitle": "Čas odletu",
