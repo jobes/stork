@@ -3385,4 +3385,116 @@ class AppLocalizationsSk extends AppLocalizations {
   String weatherExceededGust(String value, String limit) {
     return 'Prízemné nárazy $value prekračujú limit $limit';
   }
+
+  @override
+  String get dataSourcesTitle => 'Zdroje dát';
+
+  @override
+  String get dataSourcesSummary =>
+      'Poskytovatelia máp, leteckých dát, počasia a prevádzky';
+
+  @override
+  String get dataSourcesMaps => 'Mapy a terén';
+
+  @override
+  String get dataSourcesAviation => 'Letecké informácie';
+
+  @override
+  String get dataSourcesWeather => 'Počasie';
+
+  @override
+  String get dataSourcesTraffic => 'Letecká prevádzka';
+
+  @override
+  String get dataSourcesLocation => 'Vyhľadávanie a poloha';
+
+  @override
+  String get dataSourcesWebsite => 'Web';
+
+  @override
+  String get dataSourcesLinkFailed => 'Web sa nepodarilo otvoriť.';
+
+  @override
+  String get dataSourcesOsmDescription =>
+      'Geografické dáta podkladovej mapy vrátane sídiel, ciest a krajinných prvkov.';
+
+  @override
+  String get dataSourcesProtomapsDescription =>
+      'Vektorové dlaždice a podklady štýlu na zobrazenie základnej mapy OpenStreetMap.';
+
+  @override
+  String get dataSourcesOpenAipDescription =>
+      'Letecké mapové vrstvy a informácie o letiskách, vzdušných priestoroch, navigačných zariadeniach a rádiových frekvenciách vrátane obrázkov letísk.';
+
+  @override
+  String get dataSourcesMapterhornDescription =>
+      'Výškové dáta terénu na tieňovanie reliéfu a výpočet výšky nad terénom (AGL).';
+
+  @override
+  String get dataSourcesDistributionTitle =>
+      'Distribúcia dát Stork · Hugging Face';
+
+  @override
+  String get dataSourcesDistributionDescription =>
+      'Hostuje balík dát openAIP a pomocné katalógy letísk a oblastí NOTAM, ktoré Stork sťahuje.';
+
+  @override
+  String get dataSourcesNotamsDescription =>
+      'Správy NOTAM zobrazované na mape a v detailoch NOTAMov.';
+
+  @override
+  String get dataSourcesSlovakiaTitle => 'LPS SR · Slovensko';
+
+  @override
+  String get dataSourcesSlovakiaDescription =>
+      'Verejná GIS služba poskytujúca aktuálne rezervácie a aktivitu vzdušných priestorov na Slovensku.';
+
+  @override
+  String get dataSourcesCzechiaTitle => 'ŘLP ČR / AMC ČR · Česko';
+
+  @override
+  String get dataSourcesCzechiaDescription =>
+      'Publikované plány využitia vzdušného priestoru (AUP) a ich aktualizácie (UUP) pre aktivitu priestorov v Česku.';
+
+  @override
+  String get dataSourcesForecastDescription =>
+      'Predpovede modelu DWD ICON EU Native poskytované cez Open-Meteo. Stork interpoluje hodnoty pre plánovaný čas príletu a výšku a používa vietor na úpravu časov na trase.';
+
+  @override
+  String get dataSourcesRadarDescription =>
+      'Snímky zrážkového radaru zobrazované ako mapová vrstva.';
+
+  @override
+  String get dataSourcesOgnDescription =>
+      'Živé polohy lietadiel prijímané cez APRS zo siete Open Glider Network.';
+
+  @override
+  String get dataSourcesDdbDescription =>
+      'Identifikačné a registračné údaje lietadiel priradené k cieľom prevádzky OGN.';
+
+  @override
+  String get dataSourcesPureTrackDescription =>
+      'Ďalší živý zdroj polôh lietadiel dostupný pri zapnutom a pripojenom PureTracku.';
+
+  @override
+  String get dataSourcesGdl90Title => 'Lokálny prijímač · GDL90';
+
+  @override
+  String get dataSourcesGdl90Description =>
+      'Prevádzka prijímaná z pripojených zariadení kompatibilných s GDL90, napríklad Stratux alebo SkyEcho 2. Pôvod dát závisí od prijímača.';
+
+  @override
+  String get dataSourcesPhotonDescription =>
+      'Vyhľadávanie miest a obcí cez službu Photon hostovanú Komootom. Vyhľadávanie letísk používa letecký katalóg.';
+
+  @override
+  String get dataSourcesIpDescription =>
+      'Približná poloha podľa IP adresy, keď sa nepodarí získať GPS polohu.';
+
+  @override
+  String get dataSourcesDevicesTitle => 'GPS, senzory a palubné prístroje';
+
+  @override
+  String get dataSourcesDevicesDescription =>
+      'Vlastná poloha a údaje zo senzorov zariadenia spolu s letovou a motorovou telemetriou z palubných prístrojov pripojených cez DroneCAN/Cannelloni podľa dostupného vybavenia.';
 }

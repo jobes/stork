@@ -6179,6 +6179,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Surface gusts {value} exceed limit {limit}'**
   String weatherExceededGust(String value, String limit);
+
+  /// No description provided for @dataSourcesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data sources'**
+  String get dataSourcesTitle;
+
+  /// No description provided for @dataSourcesSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Providers of maps, aviation data, weather and traffic'**
+  String get dataSourcesSummary;
+
+  /// No description provided for @dataSourcesMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Maps and terrain'**
+  String get dataSourcesMaps;
+
+  /// No description provided for @dataSourcesAviation.
+  ///
+  /// In en, this message translates to:
+  /// **'Aeronautical information'**
+  String get dataSourcesAviation;
+
+  /// No description provided for @dataSourcesWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get dataSourcesWeather;
+
+  /// No description provided for @dataSourcesTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'Air traffic'**
+  String get dataSourcesTraffic;
+
+  /// No description provided for @dataSourcesLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Search and location'**
+  String get dataSourcesLocation;
+
+  /// No description provided for @dataSourcesWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get dataSourcesWebsite;
+
+  /// No description provided for @dataSourcesLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the website.'**
+  String get dataSourcesLinkFailed;
+
+  /// No description provided for @dataSourcesOsmDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Geographic data for the base map, including settlements, roads and landscape features.'**
+  String get dataSourcesOsmDescription;
+
+  /// No description provided for @dataSourcesProtomapsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Vector tiles and map styling resources used to display the OpenStreetMap base map.'**
+  String get dataSourcesProtomapsDescription;
+
+  /// No description provided for @dataSourcesOpenAipDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Aeronautical map layers and information about airports, airspaces, navigation aids and radio frequencies, including airport images.'**
+  String get dataSourcesOpenAipDescription;
+
+  /// No description provided for @dataSourcesMapterhornDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrain elevation data for hillshading and height above ground (AGL) calculations.'**
+  String get dataSourcesMapterhornDescription;
+
+  /// No description provided for @dataSourcesDistributionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stork data distribution · Hugging Face'**
+  String get dataSourcesDistributionTitle;
+
+  /// No description provided for @dataSourcesDistributionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Hosts the openAIP data package and supporting airport and NOTAM area catalogs downloaded by Stork.'**
+  String get dataSourcesDistributionDescription;
+
+  /// No description provided for @dataSourcesNotamsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTAM messages displayed on the map and in NOTAM details.'**
+  String get dataSourcesNotamsDescription;
+
+  /// No description provided for @dataSourcesSlovakiaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'LPS SR · Slovakia'**
+  String get dataSourcesSlovakiaTitle;
+
+  /// No description provided for @dataSourcesSlovakiaDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Public GIS service providing current airspace reservations and activity in Slovakia.'**
+  String get dataSourcesSlovakiaDescription;
+
+  /// No description provided for @dataSourcesCzechiaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ŘLP ČR / AMC ČR · Czechia'**
+  String get dataSourcesCzechiaTitle;
+
+  /// No description provided for @dataSourcesCzechiaDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Published airspace use plans (AUP) and updates (UUP) for airspace activity in Czechia.'**
+  String get dataSourcesCzechiaDescription;
+
+  /// No description provided for @dataSourcesForecastDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecasts from the DWD ICON EU Native model, delivered by Open-Meteo. Stork interpolates forecast values for the planned arrival time and altitude and uses the wind to adjust route timing.'**
+  String get dataSourcesForecastDescription;
+
+  /// No description provided for @dataSourcesRadarDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation radar imagery displayed as a map layer.'**
+  String get dataSourcesRadarDescription;
+
+  /// No description provided for @dataSourcesOgnDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Live aircraft positions received through the Open Glider Network APRS feed.'**
+  String get dataSourcesOgnDescription;
+
+  /// No description provided for @dataSourcesDdbDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Aircraft identification and registration details associated with OGN traffic targets.'**
+  String get dataSourcesDdbDescription;
+
+  /// No description provided for @dataSourcesPureTrackDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'An additional live aircraft position feed, available when PureTrack is enabled and connected.'**
+  String get dataSourcesPureTrackDescription;
+
+  /// No description provided for @dataSourcesGdl90Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Local receiver · GDL90'**
+  String get dataSourcesGdl90Title;
+
+  /// No description provided for @dataSourcesGdl90Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic received from connected GDL90-compatible devices such as Stratux or SkyEcho 2. The original traffic source depends on the receiver.'**
+  String get dataSourcesGdl90Description;
+
+  /// No description provided for @dataSourcesPhotonDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'City and municipality search using the Photon service hosted by Komoot. Airport search uses the aeronautical catalog.'**
+  String get dataSourcesPhotonDescription;
+
+  /// No description provided for @dataSourcesIpDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Approximate location based on the IP address when GPS location cannot be obtained.'**
+  String get dataSourcesIpDescription;
+
+  /// No description provided for @dataSourcesDevicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS, sensors and onboard instruments'**
+  String get dataSourcesDevicesTitle;
+
+  /// No description provided for @dataSourcesDevicesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Own position and sensor readings from the device, plus flight and engine telemetry from onboard instruments connected through DroneCAN/Cannelloni, depending on the available equipment.'**
+  String get dataSourcesDevicesDescription;
 }
 
 class _AppLocalizationsDelegate
