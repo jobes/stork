@@ -108,6 +108,43 @@ void main() {
     });
   });
 
+  test('returning listener bounds cancellation begun without listeners', () {
+    fakeAsync((time) {
+      final cancellation = Completer<void>();
+      final oldDevice = StreamController<int>(
+        onCancel: () => cancellation.future,
+      );
+      final newDevice = StreamController<int>();
+      var attempts = 0;
+      final source = RecoveringSensorStream<int>(
+        () => ++attempts == 1 ? oldDevice.stream : newDevice.stream,
+      );
+      final first = source.stream.listen((_) {});
+      time.flushMicrotasks();
+      first.cancel();
+      time.flushMicrotasks();
+      expect(time.pendingTimers, isEmpty);
+      final values = <int?>[];
+      source.stream.listen(values.add);
+      time.flushMicrotasks();
+      time.elapse(const Duration(seconds: 5));
+      expect(cancellation.isCompleted, isFalse);
+      expect(attempts, 2);
+      oldDevice.add(999);
+      newDevice.add(42);
+      time.flushMicrotasks();
+      expect(values.last, 42);
+      cancellation.complete();
+      time.flushMicrotasks();
+      expect(values, isNot(contains(999)));
+      source.dispose();
+      oldDevice.close();
+      newDevice.close();
+      time.flushMicrotasks();
+      expect(time.pendingTimers, isEmpty);
+    });
+  });
+
   test('a removed device cannot hold reconnection in cancellation forever', () {
     fakeAsync((time) {
       final cancellation = Completer<void>();

@@ -1,8 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'startup_timing.dart';
+
+part 'map_startup_provider.g.dart';
 
 enum MapStartupPhase { preparing, rendering, ready, failed }
 
@@ -17,12 +19,9 @@ class MapStartupState {
   bool get failed => phase == MapStartupPhase.failed;
 }
 
-final mapStartupProvider = NotifierProvider<MapStartup, MapStartupState>(
-  MapStartup.new,
-);
-
 /// A bounded, attempt-scoped gate. A late callback can never unlock a retry.
-class MapStartup extends Notifier<MapStartupState> {
+@Riverpod(keepAlive: true)
+class MapStartup extends _$MapStartup {
   static const preparationBudget = Duration(seconds: 15);
   static const renderingBudget = Duration(seconds: 15);
   Timer? _deadline;

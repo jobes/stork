@@ -58,6 +58,11 @@ class RecoveringSensorStream<T> {
 
   void _start() {
     final generation = ++_generation;
+    // Cancellation may have begun while there were no listeners and therefore
+    // no deadline. Bound that existing wait as soon as a consumer returns.
+    if (_cancelCompletion != null && _cancelDeadline == null) {
+      _cancelDeadline = Timer(retryDelay, _finishCancellation);
+    }
     _events.add(null);
     unawaited(_subscribe(generation));
   }

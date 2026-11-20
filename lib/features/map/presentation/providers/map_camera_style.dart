@@ -62,8 +62,11 @@ extension MapCameraStyle on MapCamera {
       if (inputsChanged || _lastFlightWeatherPalette != _forecastPalette()) {
         _updateFlightWeatherOnMap();
       }
+      // The prepared route may use a last-known origin that differs from live
+      // telemetry even when provider inputs did not change. Identical JSON is
+      // still skipped by the route writer's style/data comparison.
+      _updateNavigationRouteOnMap(force: true);
       if (inputsChanged) {
-        _updateNavigationRouteOnMap(force: true);
         updateNotamsOnMap();
         updateFavoritesOnMap();
         updateTrafficOnMap();

@@ -56,6 +56,9 @@ Detailed technical documentation covering the system architecture, mathematical 
 
 ### Prerequisites
 
+Active development targets are **Android and Linux**. Web is out of scope:
+we do not compile, test or maintain the web target.
+
 - Flutter SDK 3.47 or newer (Dart 3.13 or newer)
 - Android Studio / VS Code with Flutter extensions
 - A C toolchain (for the native `libcanard` FFI bindings)
@@ -96,12 +99,23 @@ git submodule update --init --recursive
 
 ### Linux release
 
+Install a C/C++ development toolchain (including Clang), CMake, Ninja,
+pkg-config, GTK 3 development headers and libepoxy development headers before
+building. On Debian/Ubuntu the packages include `build-essential`, `clang`,
+`cmake`, `ninja-build`, `pkg-config`, `libgtk-3-dev`, and **`libepoxy-dev`**.
+Sentry's native transport also requires the libcurl development package
+(`libcurl4-openssl-dev` on Debian/Ubuntu).
+
 Build and launch the desktop bundle:
 
 ```bash
 flutter build linux --release
 ./build/linux/x64/release/bundle/stork
 ```
+
+At runtime, Linux requires a **Vulkan 1.1-capable driver** for the bundled
+MapLibre renderer to display the map. Install the Vulkan driver appropriate for
+the machine's GPU; a working Flutter window alone does not establish map support.
 
 Keep the complete `bundle` directory when copying the application; its `lib`
 and `data` directories are required. Sensor availability is determined at runtime

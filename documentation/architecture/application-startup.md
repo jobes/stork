@@ -15,6 +15,9 @@ before services that capture API keys are created. Monitoring starts after local
 preparation, alongside native rendering. It is never awaited by the startup gate.
 `SentryWidget` stays mounted throughout startup, so delayed monitoring completion
 cannot replace the native map subtree. Monitoring failure does not prevent startup.
+Retry preserves pending monitoring initialization rather than starting a second
+Sentry initialization. A completed failure may retry. An initialization that
+never settles remains outside map readiness and is not restarted concurrently.
 
 The bootstrap loads display preferences, settings, navigation and favourites,
 starts the session's telemetry/recording services, prepares the FIR index off

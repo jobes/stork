@@ -121,9 +121,15 @@ void retryApplicationBootstrap(
       container.invalidate(dependency);
     }
   }
-  if (container.read(applicationRuntimeProvider.exists) &&
-      needsRetry(container.read(applicationRuntimeProvider))) {
-    container.invalidate(applicationRuntimeProvider);
+  if (container.read(applicationRuntimeProvider.exists)) {
+    final monitoring = container.read(applicationRuntimeProvider);
+    // Monitoring is outside bootstrap's critical path. Never overlap a pending
+    // SDK initialization with a second one, even when local work timed out.
+    if (!monitoring.isLoading &&
+        (monitoring.hasError ||
+            (monitoring is AsyncData<bool> && !monitoring.value))) {
+      container.invalidate(applicationRuntimeProvider);
+    }
   }
   if (container.read(displayPreferencesProvider.exists) &&
       needsRetry(container.read(displayPreferencesProvider))) {

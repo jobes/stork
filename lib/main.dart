@@ -58,6 +58,7 @@ class _StorkAppState extends ConsumerState<StorkApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    appRouter.routerDelegate.addListener(_onRouteChanged);
     ref.read(deferredStartupTasksProvider).hold();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -70,7 +71,20 @@ class _StorkAppState extends ConsumerState<StorkApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    appRouter.routerDelegate.removeListener(_onRouteChanged);
     super.dispose();
+  }
+
+  void _onRouteChanged() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final startup = ref.read(mapStartupProvider);
+      if (_handoffAttempt == startup.attempt &&
+          appRouter.routerDelegate.currentConfiguration.uri.path != '/') {
+        ref.read(mapStartupProvider.notifier).ready(startup.attempt);
+      }
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
   @override
@@ -122,7 +136,7 @@ class _StorkAppState extends ConsumerState<StorkApp>
         final gate = ref.read(mapStartupProvider.notifier);
         gate.rendering(startup.attempt);
         // A deep link to another page has no native map to wait for.
-        if (appRouter.routeInformationProvider.value.uri.path != '/') {
+        if (appRouter.routerDelegate.currentConfiguration.uri.path != '/') {
           gate.ready(startup.attempt);
         }
       });

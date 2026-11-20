@@ -183,9 +183,13 @@ class _Platform extends platform.MapLibrePlatform {
 
 void main() {
   final binding = _Binding();
-  for (final retry in [false, true]) {
+  for (final (retry, escape) in [
+    (false, false),
+    (true, false),
+    (false, true),
+  ]) {
     testWidgets(
-      'real startup hands prepared map to the page${retry ? ' after retry' : ''}',
+      'real startup hands prepared map to the page${retry ? ' after retry' : ''}${escape ? ' then leaves before rendering' : ''}',
       (tester) async {
         binding.rasterized = Completer<void>();
         rootBundle.clear();
@@ -332,6 +336,20 @@ void main() {
         );
         await tester.pump();
         expect(find.byType(StartupPage), findsOneWidget);
+        if (escape) {
+          appRouter.go('/favorites');
+          await tester.pump();
+          await tester.pump();
+          expect(container.read(mapStartupProvider).ready, isTrue);
+          expect(find.byType(StartupPage), findsNothing);
+          expect(find.byType(MapPage), findsNothing);
+          await tester.pumpWidget(const SizedBox.shrink());
+          container.dispose();
+          disposed = true;
+          appRouter.go('/');
+          await tester.pump();
+          return;
+        }
         if (!retry) {
           // Native creation/style load alone cannot unlock the map. A renderer
           // that never delivers a complete frame must expose a retry instead.

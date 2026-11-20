@@ -175,13 +175,22 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
             onClick: (event) {
               if (!state.isDownloading) _handleMapClick(event.point);
             },
-            onCameraMove: (_) => setState(() {}),
+            children: [
+              Builder(
+                builder: (context) {
+                  // Inherited camera notifications follow the displayed map
+                  // frame. The controller's projection uses that same frame.
+                  CameraPosition.of(context);
+                  if (_mapController == null) return const SizedBox.shrink();
+                  return _buildOverlayLayer(state, notifier);
+                },
+              ),
+            ],
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) =>
               Center(child: Text('${l10n.mapLoadingError}: $error')),
         ),
-        if (_mapController != null) _buildOverlayLayer(state, notifier),
         if (_isAdding)
           Positioned(
             top: 12,

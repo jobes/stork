@@ -146,6 +146,94 @@ ProviderContainer _container({
 
 void main() {
   test(
+    'monitoring retry remains single-flight after a previous error',
+    () async {
+      final pending = Completer<bool>();
+      var starts = 0;
+      final container = ProviderContainer(
+        retry: (_, _) => null,
+        overrides: [
+          applicationRuntimeProvider.overrideWith((_) async {
+            if (++starts == 1) throw StateError('First initialization failed');
+            return pending.future;
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      await expectLater(
+        container.read(applicationRuntimeProvider.future),
+        throwsStateError,
+      );
+      retryApplicationBootstrap(container, retryPending: true);
+      final retrying = container.read(applicationRuntimeProvider.future);
+      expect(container.read(applicationRuntimeProvider).isLoading, isTrue);
+      retryApplicationBootstrap(container, retryPending: true);
+      container.read(applicationRuntimeProvider.future);
+      expect(starts, 2);
+      pending.complete(true);
+      expect(await retrying, isTrue);
+    },
+  );
+  test(
+    'local retry never restarts pending monitoring initialization',
+    () async {
+      final pending = Completer<bool>();
+      var starts = 0;
+      final container = _container(
+        monitoring: pending.future,
+        started: (name) {
+          if (name == 'monitoring') starts++;
+        },
+      );
+      addTearDown(container.dispose);
+      final monitoring = container.read(applicationRuntimeProvider.future);
+      await container.read(applicationBootstrapProvider.future);
+      retryApplicationBootstrap(container, retryPending: true);
+      await container.read(applicationBootstrapProvider.future);
+      expect(starts, 1);
+      expect(container.read(applicationRuntimeProvider).isLoading, isTrue);
+      pending.complete(true);
+      expect(await monitoring, isTrue);
+    },
+  );
+
+  for (final throwsError in [false, true]) {
+    test(
+      'completed unsuccessful monitoring can retry (error=$throwsError)',
+      () async {
+        var starts = 0;
+        final container = ProviderContainer(
+          retry: (_, _) => null,
+          overrides: [
+            applicationRuntimeProvider.overrideWith((_) async {
+              if (++starts == 1) {
+                if (throwsError) throw StateError('Monitoring failed');
+                return false;
+              }
+              return true;
+            }),
+          ],
+        );
+        addTearDown(container.dispose);
+        if (throwsError) {
+          await expectLater(
+            container.read(applicationRuntimeProvider.future),
+            throwsStateError,
+          );
+        } else {
+          expect(
+            await container.read(applicationRuntimeProvider.future),
+            isFalse,
+          );
+        }
+        retryApplicationBootstrap(container, retryPending: true);
+        expect(await container.read(applicationRuntimeProvider.future), isTrue);
+        expect(starts, 2);
+      },
+    );
+  }
+
+  test(
     'retry recovers shared preferences before dependent local preparation',
     () async {
       SharedPreferences.setMockInitialValues({});

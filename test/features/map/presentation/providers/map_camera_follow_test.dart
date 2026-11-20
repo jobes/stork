@@ -416,6 +416,57 @@ List<dynamic> _routeCoordinates(String data) =>
 
 void main() {
   testWidgets(
+    'style load reconciles a changed fallback origin despite unchanged provider inputs',
+    (tester) async {
+      final setup = await _setupFollow(
+        tester,
+        notams: _Notams(),
+        navigation: _Navigation(_route),
+        initialTelemetry: _Telemetry(const TelemetryState()),
+        initialCamera: const InitialMapCamera(
+          center: ml.Geographic(lat: 47, lon: 16),
+          zoom: 6,
+          hasLocation: true,
+        ),
+      );
+      final prepared = setup.camera.prepareStyle(
+        '{"version":8,"sources":{},"layers":[]}',
+      );
+      setup.camera.refAccess
+          .read(initialMapCameraProvider.notifier)
+          .prepare(
+            const InitialMapCamera(
+              center: ml.Geographic(lat: 48, lon: 17),
+              zoom: 6,
+              hasLocation: true,
+            ),
+          );
+      setup.map.style.updates.clear();
+      await setup.camera.handleStyleLoaded(
+        setup.map.style,
+        overlaysPrepared: true,
+        preparedStyle: prepared,
+      );
+      await tester.pump();
+      final writes = setup.map.style.updates['navigation-route-source']!;
+      expect(writes, hasLength(1));
+      final origin = _routeCoordinates(writes.single).first as List;
+      expect(origin[0], closeTo(17, 1e-9));
+      expect(origin[1], closeTo(48, 1e-9));
+      final current = setup.camera.prepareStyle(
+        '{"version":8,"sources":{},"layers":[]}',
+      );
+      setup.map.style.updates.clear();
+      await setup.camera.handleStyleLoaded(
+        setup.map.style,
+        overlaysPrepared: true,
+        preparedStyle: current,
+      );
+      await tester.pump();
+      expect(setup.map.style.updates['navigation-route-source'], isNull);
+    },
+  );
+  testWidgets(
     'map clicks await 0.4 feature queries and preserve every category',
     (tester) async {
       final setup = await _setupFollow(tester, notams: _Notams());
