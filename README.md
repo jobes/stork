@@ -106,12 +106,14 @@ building. On Debian/Ubuntu the packages include `build-essential`, `clang`,
 Sentry's native transport also requires the libcurl development package
 (`libcurl4-openssl-dev` on Debian/Ubuntu).
 
-Build and launch the desktop bundle:
+Build the desktop bundle:
 
 ```bash
 flutter build linux --release
-./build/linux/x64/release/bundle/stork
 ```
+
+Launch `stork` from the bundle path printed by Flutter when the build completes.
+Use that path for the target architecture (for example, `x64` or `arm64`).
 
 At runtime, Linux requires a **Vulkan 1.1-capable driver** for the bundled
 MapLibre renderer to display the map. Install the Vulkan driver appropriate for
