@@ -280,6 +280,12 @@ class _Map extends Fake implements ml.MapController {
 
   void Function(ml.MapEvent)? onEvent;
   void Function(ml.CameraPosition)? onPresented;
+  ml.GeoBox viewportBounds = const ml.GeoBox(
+    south: 47,
+    north: 49,
+    west: 16,
+    east: 18,
+  );
   int viewportReads = 0;
   final animatedCenters = <ml.Geographic?>[];
 
@@ -347,7 +353,7 @@ class _Map extends Fake implements ml.MapController {
   @override
   ml.GeoBox getVisibleBounds() {
     viewportReads++;
-    return const ml.GeoBox(south: 47, north: 49, west: 16, east: 18);
+    return viewportBounds;
   }
 }
 
@@ -1398,6 +1404,38 @@ void main() {
       expect(updates, hasLength(5));
     },
   );
+
+  testWidgets('follow refreshes traffic every 500 ms while presentation lags', (
+    tester,
+  ) async {
+    final setup = await _setupFollow(tester);
+    final camera = setup.camera;
+    final map = setup.map;
+    final telemetry = setup.telemetry;
+    final traffic = camera.refAccess.read(trafficProvider.notifier) as _Traffic;
+    traffic.viewports.clear();
+    camera.handleCameraPresented(map.camera);
+    // Native target-camera events continue while presentation is behind.
+    map.onPresented = null;
+    telemetry.changeLatitude(48.01);
+    await tester.pump();
+    for (var tick = 1; tick <= 3; tick++) {
+      map.viewportBounds = ml.GeoBox(
+        south: 47 + tick.toDouble(),
+        north: 49 + tick.toDouble(),
+        west: 16,
+        east: 18,
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(map.viewportReads, tick - 1);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(map.viewportReads, tick);
+      expect(traffic.viewports.last, map.viewportBounds);
+      expect(map.style.updates['traffic-source'], hasLength(tick));
+      telemetry.changeLatitude(48.01 + tick * 0.01);
+      await tester.pump();
+    }
+  });
 
   testWidgets(
     'follow coalesces idle events and manual idle flushes immediately',

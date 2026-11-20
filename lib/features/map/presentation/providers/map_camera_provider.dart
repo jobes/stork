@@ -716,9 +716,7 @@ class MapCamera extends _$MapCamera {
       _trafficEndingCamera = event.camera;
       // Frame-by-frame follow can emit idle events between programmatic moves.
       // Share the existing viewport timer instead of rebuilding traffic per tick.
-      if (!_isFollowPaused &&
-          isMovingProgrammatically &&
-          ref.read(telemetryProvider).mapViewState == MapViewState.follow) {
+      if (_isFollowingCamera && isMovingProgrammatically) {
         _refreshTrafficAfterCameraMove = true;
         _scheduleTrafficViewportUpdate();
         return;
@@ -804,11 +802,18 @@ class MapCamera extends _$MapCamera {
     if (_trafficViewportDue) _updateTrafficFilter();
   }
 
+  bool get _isFollowingCamera =>
+      !_isFollowPaused &&
+      ref.read(telemetryProvider).mapViewState == MapViewState.follow;
+
   void _updateTrafficFilter() {
     if (_mapController == null) return;
     _trafficViewportDue = true;
     final endingCamera = _trafficEndingCamera;
-    if (endingCamera != null &&
+    // Continuous follow reads the currently displayed viewport on the throttle:
+    // waiting for the latest target would starve updates while it keeps moving.
+    if (!_isFollowingCamera &&
+        endingCamera != null &&
         (_presentedCamera != endingCamera ||
             _mapController!.camera != endingCamera)) {
       return;

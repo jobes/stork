@@ -12,6 +12,10 @@ typedef _ArchiveTileKey = (String, int, int, int);
 
 class MapAssetsServer {
   static HttpServer? _server;
+  static Future<void>? _starting;
+  @visibleForTesting
+  static Future<HttpServer> Function() bindServer = () =>
+      HttpServer.bind(InternetAddress.loopbackIPv4, 0);
   static String? _baseUrl;
   static AssetBundle bundle = rootBundle;
   static int _nextRadarTileRoute = 0;
@@ -66,14 +70,17 @@ class MapAssetsServer {
   }
 
   /// Starts the local assets server.
-  static Future<void> start() async {
-    if (_server != null) return;
+  static Future<void> start() {
+    if (_server != null) return Future.value();
+    return _starting ??= _start().whenComplete(() => _starting = null);
+  }
 
+  static Future<void> _start() async {
     try {
       // The bootstrap selects a stable cached URL; no network on server start.
       _pmtilesUrls['protomaps'] = ProtomapsResolver.sessionUrl;
 
-      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      final server = await bindServer();
       _server = server;
       _baseUrl = 'http://${server.address.host}:${server.port}';
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data' show Endian;
@@ -5,7 +6,7 @@ import 'dart:typed_data' show Endian;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/services/database/database_service_io.dart';
-import 'package:stork/core/services/map_assets_server.dart';
+import 'package:stork/core/services/map_assets_server_io.dart';
 
 class _FakeAssetBundle extends CachingAssetBundle {
   _FakeAssetBundle(this._assets);
@@ -22,9 +23,78 @@ class _FakeAssetBundle extends CachingAssetBundle {
   }
 }
 
+class _ServerBinder {
+  final gate = Completer<void>();
+  int binds = 0;
+  bool failNext = false;
+
+  Future<HttpServer> bind() async {
+    binds++;
+    await gate.future;
+    if (failNext) {
+      failNext = false;
+      throw const SocketException('test bind failure');
+    }
+    return HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+  }
+
+  Future<void> run(Future<void> Function() action) async {
+    final previous = MapAssetsServer.bindServer;
+    MapAssetsServer.bindServer = bind;
+    try {
+      await action();
+    } finally {
+      MapAssetsServer.bindServer = previous;
+    }
+  }
+}
+
 void main() {
   test('baseUrl throws StateError if start() was not called', () {
     expect(() => MapAssetsServer.baseUrl, throwsStateError);
+  });
+
+  test(
+    'concurrent starts share a bind and stop releases its listener',
+    () async {
+      final overrides = _ServerBinder();
+      addTearDown(MapAssetsServer.stop);
+      await overrides.run(() async {
+        final first = MapAssetsServer.start();
+        final second = MapAssetsServer.start();
+        expect(identical(first, second), isTrue);
+        expect(overrides.binds, 1);
+        overrides.gate.complete();
+        await Future.wait([first, second]);
+        final uri = Uri.parse(MapAssetsServer.baseUrl);
+        await MapAssetsServer.start();
+        expect(overrides.binds, 1);
+        expect(MapAssetsServer.baseUrl, uri.toString());
+        await MapAssetsServer.stop();
+        final rebound = await ServerSocket.bind(uri.host, uri.port);
+        await rebound.close();
+      });
+    },
+  );
+
+  test('a failed shared startup can retry binding', () async {
+    final overrides = _ServerBinder()..failNext = true;
+    addTearDown(MapAssetsServer.stop);
+    await overrides.run(() async {
+      final first = MapAssetsServer.start();
+      final second = MapAssetsServer.start();
+      expect(identical(first, second), isTrue);
+      final failure = expectLater(
+        Future.wait([first, second]),
+        throwsA(isA<SocketException>()),
+      );
+      overrides.gate.complete();
+      await failure;
+      expect(() => MapAssetsServer.baseUrl, throwsStateError);
+      await MapAssetsServer.start();
+      expect(overrides.binds, 2);
+      expect(Uri.parse(MapAssetsServer.baseUrl).port, isPositive);
+    });
   });
 
   group('MapAssetsServer after start', () {
