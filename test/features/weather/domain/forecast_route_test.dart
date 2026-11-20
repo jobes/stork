@@ -91,55 +91,52 @@ void main() {
     expect(first.distanceMeters, closeTo(5000, 1));
     expect(first.duration, const Duration(seconds: 2500));
   });
-  test(
-    'off-route timing samples lie on the current leg and retain profile locations',
-    () {
-      const origin = (latitude: 48.0, longitude: 17.0);
-      const waypoints = [(latitude: 48.5, longitude: 17.0, altitudeFeet: null)];
-      final route = ForecastRoute.plan(origin, waypoints, 20);
-      final before = route.forecastPoints(
-        position: origin,
-        points: waypoints,
-        departure: time,
-        groundSpeed: 20,
-        flying: false,
-        defaultAltitudeFeet: 2000,
-      );
-      const position = (latitude: 48.01, longitude: 17.05);
-      final during = route.forecastPoints(
-        position: position,
-        points: waypoints,
-        departure: time,
-        groundSpeed: 20,
-        flying: true,
-        defaultAltitudeFeet: 2000,
-      );
-      final sample = during.firstWhere((p) => p.id == 'sample-0');
-      final old = before.firstWhere((p) => p.id == sample.id);
-      expect(sample.profileLocation, old.profileLocation);
-      expect(sample.location, isNot(old.location));
-      expect(
-        forecastBearing(position, sample.location),
-        closeTo(
-          forecastBearing(position, (
-            latitude: waypoints.first.latitude,
-            longitude: waypoints.first.longitude,
-          )),
-          0.001,
+  test('off-route timing samples lie on the current leg and retain profile locations', () {
+    const origin = (latitude: 48.0, longitude: 17.0);
+    const waypoints = [(latitude: 48.5, longitude: 17.0, altitudeFeet: null)];
+    final route = ForecastRoute.plan(origin, waypoints, 20);
+    final before = route.forecastPoints(
+      position: origin,
+      points: waypoints,
+      departure: time,
+      groundSpeed: 20,
+      flying: false,
+      defaultAltitudeFeet: 2000,
+    );
+    const position = (latitude: 48.01, longitude: 17.05);
+    final during = route.forecastPoints(
+      position: position,
+      points: waypoints,
+      departure: time,
+      groundSpeed: 20,
+      flying: true,
+      defaultAltitudeFeet: 2000,
+    );
+    final sample = during.firstWhere((p) => p.id == 'sample-0');
+    final old = before.firstWhere((p) => p.id == sample.id);
+    expect(sample.profileLocation, old.profileLocation);
+    expect(sample.location, isNot(old.location));
+    expect(
+      forecastBearing(position, sample.location),
+      closeTo(
+        forecastBearing(position, (
+          latitude: waypoints.first.latitude,
+          longitude: waypoints.first.longitude,
+        )),
+        0.001,
+      ),
+    );
+    expect(
+      sample.distanceMeters,
+      closeTo(
+        GeoUtils.distanceBetween(
+          position.latitude,
+          position.longitude,
+          sample.location.latitude,
+          sample.location.longitude,
         ),
-      );
-      expect(
-        sample.distanceMeters,
-        closeTo(
-          GeoUtils.distanceBetween(
-            position.latitude,
-            position.longitude,
-            sample.location.latitude,
-            sample.location.longitude,
-          ),
-          0.01,
-        ),
-      );
-    },
-  );
+        0.01,
+      ),
+    );
+  });
 }

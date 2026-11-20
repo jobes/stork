@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../l10n/app_localizations.dart';
 import '../../../telemetry/presentation/providers/gdl90_provider.dart';
 import '../providers/settings_provider.dart';

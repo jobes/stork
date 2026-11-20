@@ -123,60 +123,57 @@ void main() {
     },
   );
 
-  test(
-    'refreshes only new or one-hour-old ICAOs and retains stale results on failure',
-    () async {
-      var now = DateTime.utc(2026, 11, 14);
-      final start = now;
-      final requests = <String>[];
-      var failLzbb = false;
-      final repository = HttpNotamRepository(
-        client: MockClient((request) async {
-          final code = request.url.queryParameters['location']!;
-          requests.add(code);
-          if (code == 'LZBB' && failLzbb) {
-            return http.Response('Unavailable', 503);
-          }
-          return http.Response(
-            jsonEncode({
-              'success': true,
-              'notams': [
-                if (code == 'LZBB')
-                  {'location': code, 'number': 'A1234/26', 'text': rawNotam},
-              ],
-            }),
-            200,
-          );
-        }),
-      );
-      await withClock(Clock(() => now), () async {
-        await repository.fetchNotamsByLocations(['LZBB']);
-        now = start.add(const Duration(minutes: 59));
-        await repository.fetchNotamsByLocations(['LZBB', 'LZIB']);
-        await repository.fetchNotamsByLocations(['LZIB']);
-        expect(repository.cachedNotams(['LZIB']).notams, isEmpty);
-        expect(requests, ['LZBB', 'LZIB']);
+  test('refreshes only new or one-hour-old ICAOs and retains stale results on failure', () async {
+    var now = DateTime.utc(2026, 11, 14);
+    final start = now;
+    final requests = <String>[];
+    var failLzbb = false;
+    final repository = HttpNotamRepository(
+      client: MockClient((request) async {
+        final code = request.url.queryParameters['location']!;
+        requests.add(code);
+        if (code == 'LZBB' && failLzbb) {
+          return http.Response('Unavailable', 503);
+        }
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'notams': [
+              if (code == 'LZBB')
+                {'location': code, 'number': 'A1234/26', 'text': rawNotam},
+            ],
+          }),
+          200,
+        );
+      }),
+    );
+    await withClock(Clock(() => now), () async {
+      await repository.fetchNotamsByLocations(['LZBB']);
+      now = start.add(const Duration(minutes: 59));
+      await repository.fetchNotamsByLocations(['LZBB', 'LZIB']);
+      await repository.fetchNotamsByLocations(['LZIB']);
+      expect(repository.cachedNotams(['LZIB']).notams, isEmpty);
+      expect(requests, ['LZBB', 'LZIB']);
 
-        now = start.add(const Duration(hours: 1));
-        failLzbb = true;
-        final stale = await repository.fetchNotamsByLocations(['LZBB', 'LZIB']);
-        expect(requests, ['LZBB', 'LZIB', 'LZBB', 'LZBB']);
-        expect(stale.notams.single.id, 'A1234/26');
-        expect(stale.oldestFetch, start);
-        expect(stale.failedLocations, ['LZBB']);
-        expect(stale.nextRefresh, now.add(const Duration(minutes: 5)));
+      now = start.add(const Duration(hours: 1));
+      failLzbb = true;
+      final stale = await repository.fetchNotamsByLocations(['LZBB', 'LZIB']);
+      expect(requests, ['LZBB', 'LZIB', 'LZBB', 'LZBB']);
+      expect(stale.notams.single.id, 'A1234/26');
+      expect(stale.oldestFetch, start);
+      expect(stale.failedLocations, ['LZBB']);
+      expect(stale.nextRefresh, now.add(const Duration(minutes: 5)));
 
-        failLzbb = false;
-        final fresh = await repository.fetchNotamsByLocations([
-          'LZBB',
-          'LZIB',
-        ], force: true);
-        expect(requests, ['LZBB', 'LZIB', 'LZBB', 'LZBB', 'LZBB', 'LZIB']);
-        expect(fresh.failedLocations, isEmpty);
-        expect(fresh.oldestFetch, now);
-      });
-    },
-  );
+      failLzbb = false;
+      final fresh = await repository.fetchNotamsByLocations([
+        'LZBB',
+        'LZIB',
+      ], force: true);
+      expect(requests, ['LZBB', 'LZIB', 'LZBB', 'LZBB', 'LZBB', 'LZIB']);
+      expect(fresh.failedLocations, isEmpty);
+      expect(fresh.oldestFetch, now);
+    });
+  });
   test(
     'publishes partial responses before remaining ICAO requests finish',
     () async {

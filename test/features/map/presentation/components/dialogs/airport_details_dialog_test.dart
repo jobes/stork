@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,8 +40,7 @@ void main() {
               body: AirportDetailsDialog(
                 airportId: '123',
                 countryCode: 'US',
-                fallbackName:
-                    '', // Empty fallbackName triggers the localized fallback title
+                fallbackName: '', // Empty fallbackName triggers the localized fallback title
               ),
             ),
           ),

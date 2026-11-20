@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/models/range_thresholds.dart';
 import '../utils/threshold_state_extension.dart';

@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -48,9 +49,8 @@ void main() {
 
   group('GpxExportService', () {
     test('returns null when telemetry entries are empty', () async {
-      when(
-        () => mockRepo.getGpxTelemetryForFlight(any()),
-      ).thenAnswer((_) async => []);
+      when(() => mockRepo.getGpxTelemetryForFlight(any()))
+          .thenAnswer((_) async => []);
 
       final result = await GpxExportService.generateFlightGpx(
         testFlight,
@@ -84,9 +84,8 @@ void main() {
         ),
       ];
 
-      when(
-        () => mockRepo.getGpxTelemetryForFlight(any()),
-      ).thenAnswer((_) async => entries);
+      when(() => mockRepo.getGpxTelemetryForFlight(any()))
+          .thenAnswer((_) async => entries);
 
       final result = await GpxExportService.generateFlightGpx(
         testFlight,

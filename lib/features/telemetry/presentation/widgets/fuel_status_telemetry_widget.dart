@@ -34,9 +34,8 @@ class FuelStatusTelemetryWidget extends ConsumerWidget {
     final double? rawLiters = fuelVolumeLiters;
 
     final fuelState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.fuel,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.fuel)
+          .select((status) => status.cardState),
     );
 
     // "Na widgete teplomer ukazuje hodnoty v %, ale cislo je pocet litrov."

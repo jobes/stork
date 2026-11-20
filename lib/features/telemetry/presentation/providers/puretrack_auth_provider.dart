@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../data/puretrack_auth_service.dart';
 import '../../data/puretrack_stream_service.dart';

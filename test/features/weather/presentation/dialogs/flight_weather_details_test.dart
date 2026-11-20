@@ -153,9 +153,8 @@ void main() {
             throttledTelemetryProvider.overrideWith(_WeatherTelemetry.new),
             flightWeatherPlanProvider.overrideWith(_Plan.new),
             for (final location in [_origin, _location, _destination])
-              forecastPointTerrainProvider(
-                location,
-              ).overrideWith((ref) async => terrain),
+              forecastPointTerrainProvider(location)
+                  .overrideWith((ref) async => terrain),
             flightForecastProfilesProvider.overrideWith((ref) async {
               profileRequests++;
               return (
@@ -328,9 +327,8 @@ void main() {
           ),
         ),
         for (final location in [_origin, _location, _destination])
-          forecastPointTerrainProvider(
-            location,
-          ).overrideWith((ref) async => null),
+          forecastPointTerrainProvider(location)
+              .overrideWith((ref) async => null),
         flightForecastProfilesProvider.overrideWith(
           (ref) async => (
             series: {

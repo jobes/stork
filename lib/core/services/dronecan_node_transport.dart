@@ -8,8 +8,12 @@ import 'package:stork/core/native/dronecan/param_get_set.dart';
 ///
 /// Returns at most [maxLength] bytes starting at [offset], an empty list at or
 /// past the end of the file, or `null` when [path] is not served.
-typedef DroneCanFileReadHandler =
-    List<int>? Function(int nodeId, String path, int offset, int maxLength);
+typedef DroneCanFileReadHandler = List<int>? Function(
+  int nodeId,
+  String path,
+  int offset,
+  int maxLength,
+);
 
 /// Transport-level operations required for DroneCAN node management.
 ///

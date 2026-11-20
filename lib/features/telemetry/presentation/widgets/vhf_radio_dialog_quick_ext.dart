@@ -51,9 +51,8 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                         .withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).dividerColor.withValues(alpha: 0.5),
+                      color: Theme.of(context).dividerColor
+                          .withValues(alpha: 0.5),
                     ),
                   ),
                   child: Row(
@@ -89,9 +88,9 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                                   : uiState.activeNameText,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -147,9 +146,9 @@ extension _VhfRadioDialogQuickExt on _VhfRadioDialogState {
                                   : uiState.standbyNameText,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'map_view_state.dart';
 
 enum TelemetryField {

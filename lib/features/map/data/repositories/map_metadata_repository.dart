@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/services/database/database_service.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../domain/airport_metadata.dart';

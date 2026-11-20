@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../../core/providers/shared_preferences_provider.dart';
 import '../../domain/models/navigation_state.dart';
 

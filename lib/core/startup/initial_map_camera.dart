@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
+
 import '../utils/geo_utils.dart';
 import '../../features/settings/domain/models/app_settings.dart';
 import '../../features/telemetry/domain/models/map_view_state.dart';

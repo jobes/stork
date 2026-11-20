@@ -173,9 +173,8 @@ class FavoritesPage extends ConsumerWidget {
         subtitle: Text(
           '${point.latitude.toStringAsFixed(4)}, '
           '${point.longitude.toStringAsFixed(4)}',
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: scheme.onSurfaceVariant),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),

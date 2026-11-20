@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:maplibre/maplibre.dart';
+
 import '../../../../core/utils/geo_utils.dart';
 
 class FirFeature {

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/native/dronecan/ice_status.dart';
 
@@ -226,34 +227,31 @@ void main() {
       );
     });
 
-    test(
-      'IceStatus hasError returns true when flagTemperatureEgtAboveNominal is set',
-      () {
-        final payload = generateIceStatusPayload(
-          state: IceStatus.stateRunning,
-          flags: IceStatus.flagTemperatureEgtAboveNominal,
-          engineLoadPercent: 85,
-          engineSpeedRpm: 5500,
-          sparkDwellTimeMs: 2.5,
-          atmosphericPressureKpa: 101.3,
-          intakeManifoldPressureKpa: 98.4,
-          intakeManifoldTemperature: 298.15,
-          coolantTemperature: 355.0,
-          oilPressure: 300.0,
-          oilTemperature: 365.0,
-          fuelPressure: 400.0,
-          fuelConsumptionRateCm3pm: 120.5,
-          estimatedConsumedFuelVolumeCm3: 5000.0,
-          throttlePositionPercent: 80,
-          ecuIndex: 1,
-          sparkPlugUsage: IceStatus.sparkPlugBothActive,
-          cylinders: [],
-        );
+    test('IceStatus hasError returns true when flagTemperatureEgtAboveNominal is set', () {
+      final payload = generateIceStatusPayload(
+        state: IceStatus.stateRunning,
+        flags: IceStatus.flagTemperatureEgtAboveNominal,
+        engineLoadPercent: 85,
+        engineSpeedRpm: 5500,
+        sparkDwellTimeMs: 2.5,
+        atmosphericPressureKpa: 101.3,
+        intakeManifoldPressureKpa: 98.4,
+        intakeManifoldTemperature: 298.15,
+        coolantTemperature: 355.0,
+        oilPressure: 300.0,
+        oilTemperature: 365.0,
+        fuelPressure: 400.0,
+        fuelConsumptionRateCm3pm: 120.5,
+        estimatedConsumedFuelVolumeCm3: 5000.0,
+        throttlePositionPercent: 80,
+        ecuIndex: 1,
+        sparkPlugUsage: IceStatus.sparkPlugBothActive,
+        cylinders: [],
+      );
 
-        final status = IceStatus.fromPayload(payload);
-        expect(status.hasError, isTrue);
-        expect(status.errorDescription, contains('EGT_ABOVE_NOMINAL'));
-      },
-    );
+      final status = IceStatus.fromPayload(payload);
+      expect(status.hasError, isTrue);
+      expect(status.errorDescription, contains('EGT_ABOVE_NOMINAL'));
+    });
   });
 }

@@ -271,12 +271,10 @@ void main() {
       final target = tester.getRect(indicator);
       final gpsRect = tester.getRect(gps);
       final menuRect = tester.getRect(menu);
-      final alerts =
-          ProviderScope.containerOf(
-                tester.element(indicator),
-                listen: false,
-              ).read(mapAlertsProvider.notifier)
-              as _StubMapAlerts;
+      final alerts = ProviderScope.containerOf(
+        tester.element(indicator),
+        listen: false,
+      ).read(mapAlertsProvider.notifier) as _StubMapAlerts;
 
       expect(target.size, const Size.square(48));
       expect(

@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stork/core/utils/aviation_math.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
+
 import '../../domain/models/vario_state.dart';
 import 'telemetry_provider.dart';
 

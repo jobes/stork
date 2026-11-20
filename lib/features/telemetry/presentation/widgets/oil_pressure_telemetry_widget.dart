@@ -32,9 +32,8 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
 
     final double? rawPressure = oilPressure;
     final pressureState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.oilPressure,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.oilPressure)
+          .select((status) => status.cardState),
     );
 
     final String valueStr = rawPressure != null

@@ -228,9 +228,8 @@ class _MapSearchDialogState extends ConsumerState<_MapSearchDialog> {
               child: Row(
                 children: [
                   IconButton(
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).closeButtonTooltip,
+                    tooltip: MaterialLocalizations.of(context)
+                        .closeButtonTooltip,
                     icon: const Icon(Icons.arrow_back),
                     onPressed: () => Navigator.of(context).pop(),
                   ),

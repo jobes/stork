@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ffi';
 import 'dart:math' as math;
+
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -953,9 +954,8 @@ class CannelloniService extends _$CannelloniService
       destinationNodeId: nodeId,
       dataTypeId: BeginFirmwareUpdateRequest.messageId,
       dataTypeSignature: BeginFirmwareUpdateRequest.messageSignature,
-      payload: BeginFirmwareUpdateRequest(
-        imageFileRemotePath: path,
-      ).toPayload(),
+      payload: BeginFirmwareUpdateRequest(imageFileRemotePath: path)
+          .toPayload(),
       timeout: timeout,
       transferIdKey: BeginFirmwareUpdateRequest,
     );

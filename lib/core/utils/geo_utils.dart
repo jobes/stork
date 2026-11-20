@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:maplibre/maplibre.dart';
 
 /// A collection of utility functions for geographical calculations.

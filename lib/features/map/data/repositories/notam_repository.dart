@@ -214,9 +214,8 @@ class HttpNotamRepository implements NotamRepository {
     String location,
     bool Function()? isCurrent,
   ) async {
-    final uri = Uri.parse(
-      ApiConstants.notamSearchUrl,
-    ).replace(queryParameters: {'location': location});
+    final uri = Uri.parse(ApiConstants.notamSearchUrl)
+        .replace(queryParameters: {'location': location});
     Future<http.Response> request() =>
         _client.get(uri).timeout(const Duration(seconds: 15));
 

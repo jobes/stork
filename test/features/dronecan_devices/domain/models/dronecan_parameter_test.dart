@@ -5,21 +5,18 @@ void main() {
   group('DroneCanParamValue', () {
     test('compares numeric values across integer and real types', () {
       expect(
-        const DroneCanParamValue.integer(
-          1,
-        ).sameAs(const DroneCanParamValue.real(1.0)),
+        const DroneCanParamValue.integer(1)
+            .sameAs(const DroneCanParamValue.real(1.0)),
         isTrue,
       );
       expect(
-        const DroneCanParamValue.integer(
-          1,
-        ).sameAs(const DroneCanParamValue.integer(2)),
+        const DroneCanParamValue.integer(1)
+            .sameAs(const DroneCanParamValue.integer(2)),
         isFalse,
       );
       expect(
-        const DroneCanParamValue.string(
-          'a',
-        ).sameAs(const DroneCanParamValue.string('a')),
+        const DroneCanParamValue.string('a')
+            .sameAs(const DroneCanParamValue.string('a')),
         isTrue,
       );
     });

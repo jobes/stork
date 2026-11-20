@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../controls/draggable_overlay.dart';
 
 class BaseDetailsDialog extends StatelessWidget {

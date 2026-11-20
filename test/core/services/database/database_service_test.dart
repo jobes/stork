@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/services/database/database_service.dart';
@@ -68,25 +69,22 @@ void main() {
       expect(nonNull['name'], equals('Valid Airport'));
     });
 
-    test(
-      'getOpenAipFeature returns null and swallows exception for malformed JSON string',
-      () async {
-        await DatabaseService.insertOpenAipFeatures([
-          {
-            'id': 'apt_malformed',
-            'json': '{invalid_json',
-            'country': 'US',
-            'type': 'airport',
-          },
-        ]);
+    test('getOpenAipFeature returns null and swallows exception for malformed JSON string', () async {
+      await DatabaseService.insertOpenAipFeatures([
+        {
+          'id': 'apt_malformed',
+          'json': '{invalid_json',
+          'country': 'US',
+          'type': 'airport',
+        },
+      ]);
 
-        final result = await DatabaseService.getOpenAipFeature(
-          'apt_malformed',
-          'airport',
-        );
-        expect(result, isNull);
-      },
-    );
+      final result = await DatabaseService.getOpenAipFeature(
+        'apt_malformed',
+        'airport',
+      );
+      expect(result, isNull);
+    });
 
     test(
       'getOpenAipFeature returns null when decoded JSON is not a Map',

@@ -50,9 +50,8 @@ class WeatherWarningSummary extends ConsumerWidget {
             children: [
               Text(
                 l10n.weatherRouteWarnings,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(color: color),
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(color: color),
               ),
               for (final detail in details) ...[
                 const SizedBox(height: 12),

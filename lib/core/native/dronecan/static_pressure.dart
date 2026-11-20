@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'dronecan_message.dart';
 
 class StaticPressure implements DroneCanMessage {

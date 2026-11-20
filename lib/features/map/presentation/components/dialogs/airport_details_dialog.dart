@@ -11,6 +11,7 @@ import '../../../domain/airport_metadata.dart';
 import '../../../utils/openaip_enums.dart';
 import '../../providers/airport_metadata_provider.dart';
 import 'base_details_dialog.dart';
+
 import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/utils/vhf_radio_frequency.dart';

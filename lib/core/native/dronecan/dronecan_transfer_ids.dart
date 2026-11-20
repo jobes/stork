@@ -1,4 +1,5 @@
 import 'dart:ffi';
+
 import 'package:ffi/ffi.dart';
 
 final Map<Type, Pointer<Uint8>> _transferIdRegistry = {};

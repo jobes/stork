@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'cannelloni_device.dart';
 import 'range_thresholds.dart';
 import 'widget_position.dart';

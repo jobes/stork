@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'bit_reader.dart';
 import 'dronecan_message.dart';
 
@@ -100,9 +101,8 @@ class VhfRadioFullStatus implements DroneCanMessage {
     for (int i = 0; i < activeStationNameLen; i++) {
       activeStationNameBytes.add(reader.readUint(8));
     }
-    final activeStationName = String.fromCharCodes(
-      activeStationNameBytes,
-    ).trim();
+    final activeStationName = String.fromCharCodes(activeStationNameBytes)
+        .trim();
 
     // standby_station_name: uint8[<=20]
     // Tail Array Optimization (TAO) applies (no length prefix, parsed from remaining bytes).
@@ -112,9 +112,8 @@ class VhfRadioFullStatus implements DroneCanMessage {
     for (int i = 0; i < standbyStationNameLen; i++) {
       standbyStationNameBytes.add(reader.readUint(8));
     }
-    final standbyStationName = String.fromCharCodes(
-      standbyStationNameBytes,
-    ).trim();
+    final standbyStationName = String.fromCharCodes(standbyStationNameBytes)
+        .trim();
 
     return VhfRadioFullStatus(
       radioInstance: radioInstance,

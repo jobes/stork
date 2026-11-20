@@ -12,12 +12,11 @@ typedef TimedRoutePoint = ({
   Set<RouteTimingSource> sources,
   Duration? windEffect,
 });
-typedef RouteWindLookup =
-    ForecastWind? Function(
-      ForecastRoutePoint point,
-      DateTime time,
-      double? altitudeMeters,
-    );
+typedef RouteWindLookup = ForecastWind? Function(
+  ForecastRoutePoint point,
+  DateTime time,
+  double? altitudeMeters,
+);
 
 const double maxGpsTrackDifference = 30;
 

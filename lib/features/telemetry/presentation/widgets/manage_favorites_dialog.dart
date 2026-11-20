@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../l10n/app_localizations.dart';
 import '../providers/favorite_frequencies_provider.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
@@ -249,9 +250,9 @@ class _ManageFavoritesDialogState extends ConsumerState<ManageFavoritesDialog> {
                               padding: const EdgeInsets.all(8.0),
                               child: Icon(
                                 Icons.drag_handle,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                             ),
                           ),

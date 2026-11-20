@@ -49,9 +49,8 @@ class EgtTelemetryWidget extends ConsumerWidget {
     }
 
     final worstState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.exhaustTemperature,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.exhaustTemperature)
+          .select((status) => status.cardState),
     );
 
     final palette = MapTelemetryPalette.of(context);

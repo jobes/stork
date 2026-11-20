@@ -28,8 +28,7 @@ class MapAssetsServer {
   }
 
   static final Map<String, String> _pmtilesUrls = {
-    'openaip':
-        'https://huggingface.co/datasets/jobes666/openaip-mptiles/resolve/main/openaip.pmtiles',
+    'openaip': 'https://huggingface.co/datasets/jobes666/openaip-mptiles/resolve/main/openaip.pmtiles',
     'protomaps': ProtomapsResolver.fallbackUrl,
     'terrain': 'https://download.mapterhorn.com/planet.pmtiles',
   };

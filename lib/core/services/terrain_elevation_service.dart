@@ -1,10 +1,13 @@
 import '../startup/deferred_startup_tasks.dart';
+
 import 'dart:collection';
 import 'dart:math';
 import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pmtiles/pmtiles.dart';
+
 import '../constants/map_constants.dart';
 import 'database/database_service.dart';
 import 'map_assets_server.dart';

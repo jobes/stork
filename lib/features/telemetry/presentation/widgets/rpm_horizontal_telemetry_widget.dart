@@ -39,9 +39,8 @@ class RpmHorizontalTelemetryWidget extends ConsumerWidget {
         : l10n.placeholderDash;
 
     final rpmState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.rpm,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.rpm)
+          .select((status) => status.cardState),
     );
 
     final bool isAbnormal =

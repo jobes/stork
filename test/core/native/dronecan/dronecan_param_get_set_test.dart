@@ -235,9 +235,8 @@ void main() {
         equals(_bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])),
       );
       expect(
-        const ExecuteOpcodeRequest(
-          ExecuteOpcodeRequest.opcodeErase,
-        ).toPayload(),
+        const ExecuteOpcodeRequest(ExecuteOpcodeRequest.opcodeErase)
+            .toPayload(),
         equals(_bytes([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])),
       );
     });

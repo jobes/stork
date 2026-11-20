@@ -82,24 +82,21 @@ void main() {
       expect(ReferenceDatum.msl.toLocalizedName(l10nEn), equals('MSL'));
     });
 
-    test(
-      'AirspaceLimit formatLimit formats flightLevel and standard units correctly',
-      () {
-        final flightLevelLimit = AirspaceLimit(
-          value: 95.0,
-          unit: OpenAipUnit.flightLevel,
-          referenceDatum: ReferenceDatum.std,
-        );
-        final feetLimit = AirspaceLimit(
-          value: 5000.0,
-          unit: OpenAipUnit.feet,
-          referenceDatum: ReferenceDatum.msl,
-        );
+    test('AirspaceLimit formatLimit formats flightLevel and standard units correctly', () {
+      final flightLevelLimit = AirspaceLimit(
+        value: 95.0,
+        unit: OpenAipUnit.flightLevel,
+        referenceDatum: ReferenceDatum.std,
+      );
+      final feetLimit = AirspaceLimit(
+        value: 5000.0,
+        unit: OpenAipUnit.feet,
+        referenceDatum: ReferenceDatum.msl,
+      );
 
-        expect(flightLevelLimit.formatLimit(l10nEn), equals('FL 95'));
-        expect(feetLimit.formatLimit(l10nEn), equals('5000 ft MSL'));
-      },
-    );
+      expect(flightLevelLimit.formatLimit(l10nEn), equals('FL 95'));
+      expect(feetLimit.formatLimit(l10nEn), equals('5000 ft MSL'));
+    });
 
     test('AirportImage formats URL endpoints correctly', () {
       final img = AirportImage(id: 'img1', filename: 'airport.jpg');

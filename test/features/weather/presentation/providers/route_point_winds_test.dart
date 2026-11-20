@@ -114,9 +114,8 @@ ProviderContainer _container({
       navigationProvider.overrideWith(_Navigation.new),
       flightWeatherPlanProvider.overrideWith(_Plan.new),
       routePointTimingProvider.overrideWith((ref) => timing ?? _timing()),
-      forecastPointTerrainProvider(
-        _location,
-      ).overrideWith((ref) async => terrain),
+      forecastPointTerrainProvider(_location)
+          .overrideWith((ref) async => terrain),
       flightForecastProfilesProvider.overrideWith(
         (ref) async => (
           series: {

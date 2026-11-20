@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:stork/features/navigation/data/repositories/navigation_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/navigation/domain/models/navigation_state.dart';
 import 'package:stork/features/navigation/presentation/providers/navigation_provider.dart';
 import 'package:stork/features/weather/presentation/providers/flight_weather_provider.dart';
+
 import '../../../../helpers/sensors_mock.dart';
 
 class _ControlledRepository extends NavigationRepository {
@@ -342,55 +344,49 @@ void main() {
       expect(fromLegacyJson.isAirport, isFalse);
     });
 
-    test(
-      'NavigationPoint.fromJson throws FormatException on invalid/missing fields',
-      () {
-        expect(
-          () => NavigationPoint.fromJson({}),
-          throwsA(isA<FormatException>()),
-        );
-        expect(
-          () => NavigationPoint.fromJson({'latitude': 48.0, 'longitude': 17.0}),
-          throwsA(isA<FormatException>()),
-        );
-        expect(
-          () => NavigationPoint.fromJson({
-            'latitude': 'invalid',
-            'longitude': 17.0,
-            'name': 'Point',
-          }),
-          throwsA(isA<FormatException>()),
-        );
-      },
-    );
+    test('NavigationPoint.fromJson throws FormatException on invalid/missing fields', () {
+      expect(
+        () => NavigationPoint.fromJson({}),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => NavigationPoint.fromJson({'latitude': 48.0, 'longitude': 17.0}),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => NavigationPoint.fromJson({
+          'latitude': 'invalid',
+          'longitude': 17.0,
+          'name': 'Point',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
 
-    test(
-      'NavigationState.fromJson parses correctly and throws FormatException on invalid types',
-      () {
-        final validJson = {
-          'points': [
-            {'latitude': 48.0, 'longitude': 17.0, 'name': 'Point 1'},
-          ],
-          'isActive': true,
-        };
-        final state = NavigationState.fromJson(validJson);
-        expect(state.points, hasLength(1));
-        expect(state.isActive, isTrue);
+    test('NavigationState.fromJson parses correctly and throws FormatException on invalid types', () {
+      final validJson = {
+        'points': [
+          {'latitude': 48.0, 'longitude': 17.0, 'name': 'Point 1'},
+        ],
+        'isActive': true,
+      };
+      final state = NavigationState.fromJson(validJson);
+      expect(state.points, hasLength(1));
+      expect(state.isActive, isTrue);
 
-        final invalidPointsJson = {'points': 'not_a_list'};
-        expect(
-          () => NavigationState.fromJson(invalidPointsJson),
-          throwsA(isA<FormatException>()),
-        );
+      final invalidPointsJson = {'points': 'not_a_list'};
+      expect(
+        () => NavigationState.fromJson(invalidPointsJson),
+        throwsA(isA<FormatException>()),
+      );
 
-        final invalidItemJson = {
-          'points': ['not_a_map'],
-        };
-        expect(
-          () => NavigationState.fromJson(invalidItemJson),
-          throwsA(isA<FormatException>()),
-        );
-      },
-    );
+      final invalidItemJson = {
+        'points': ['not_a_map'],
+      };
+      expect(
+        () => NavigationState.fromJson(invalidItemJson),
+        throwsA(isA<FormatException>()),
+      );
+    });
   });
 }

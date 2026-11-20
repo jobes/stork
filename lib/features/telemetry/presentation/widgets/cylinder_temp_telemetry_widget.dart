@@ -49,9 +49,8 @@ class CylinderTempTelemetryWidget extends ConsumerWidget {
     }
 
     final worstState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.cylinderTemperature,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.cylinderTemperature)
+          .select((status) => status.cardState),
     );
 
     final palette = MapTelemetryPalette.of(context);

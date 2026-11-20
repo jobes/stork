@@ -80,9 +80,8 @@ void main() {
           navigationProvider.overrideWith(_Navigation.new),
           flightWeatherPlanProvider.overrideWith(_Plan.new),
           routePointTimingProvider.overrideWith((ref) => timing),
-          forecastPointTerrainProvider(
-            _location,
-          ).overrideWith((ref) async => null),
+          forecastPointTerrainProvider(_location)
+              .overrideWith((ref) async => null),
           selectedAircraftProvider.overrideWith(
             (ref) => const Aircraft(
               id: 'one',

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
@@ -50,92 +51,82 @@ void main() {
       );
     });
 
-    test(
-      'Selected device not in discovered list remains connected if receiving data',
-      () async {
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith((ref) => mockRepo),
-            cannelloniServiceProvider.overrideWith(
-              () => TestCannelloniService(),
-            ),
-            discoveredDevicesProvider.overrideWith(
-              (ref) => Stream.value(<CannelloniDevice>[]),
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+    test('Selected device not in discovered list remains connected if receiving data', () async {
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith((ref) => mockRepo),
+          cannelloniServiceProvider.overrideWith(() => TestCannelloniService()),
+          discoveredDevicesProvider.overrideWith(
+            (ref) => Stream.value(<CannelloniDevice>[]),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        // Wait for providers to be loaded
-        await container.read(appSettingsProvider.future);
-        await container.read(discoveredDevicesProvider.future);
+      // Wait for providers to be loaded
+      await container.read(appSettingsProvider.future);
+      await container.read(discoveredDevicesProvider.future);
 
-        final service =
-            container.read(cannelloniServiceProvider.notifier)
-                as TestCannelloniService;
+      final service = container.read(
+        cannelloniServiceProvider.notifier,
+      ) as TestCannelloniService;
 
-        final socket = await RawDatagramSocket.bind(
-          InternetAddress.loopbackIPv4,
-          0,
-        );
-        service.socketForTesting = socket;
-        service.state = true;
-        service.lastDataReceivedTimeForTesting = DateTime.now();
+      final socket = await RawDatagramSocket.bind(
+        InternetAddress.loopbackIPv4,
+        0,
+      );
+      service.socketForTesting = socket;
+      service.state = true;
+      service.lastDataReceivedTimeForTesting = DateTime.now();
 
-        service.updateConnectionForTesting();
+      service.updateConnectionForTesting();
 
-        // The connection should NOT disconnect because lastDataReceivedTime is recent.
-        expect(service.state, isTrue);
-        expect(service.disconnectTimerForTesting, isNotNull);
+      // The connection should NOT disconnect because lastDataReceivedTime is recent.
+      expect(service.state, isTrue);
+      expect(service.disconnectTimerForTesting, isNotNull);
 
-        socket.close();
-      },
-    );
+      socket.close();
+    });
 
-    test(
-      'Selected device not in discovered list disconnects if no data received recently',
-      () async {
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith((ref) => mockRepo),
-            cannelloniServiceProvider.overrideWith(
-              () => TestCannelloniService(),
-            ),
-            discoveredDevicesProvider.overrideWith(
-              (ref) => Stream.value(<CannelloniDevice>[]),
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+    test('Selected device not in discovered list disconnects if no data received recently', () async {
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith((ref) => mockRepo),
+          cannelloniServiceProvider.overrideWith(() => TestCannelloniService()),
+          discoveredDevicesProvider.overrideWith(
+            (ref) => Stream.value(<CannelloniDevice>[]),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        // Wait for providers to be loaded
-        await container.read(appSettingsProvider.future);
-        await container.read(discoveredDevicesProvider.future);
+      // Wait for providers to be loaded
+      await container.read(appSettingsProvider.future);
+      await container.read(discoveredDevicesProvider.future);
 
-        final service =
-            container.read(cannelloniServiceProvider.notifier)
-                as TestCannelloniService;
+      final service = container.read(
+        cannelloniServiceProvider.notifier,
+      ) as TestCannelloniService;
 
-        final socket = await RawDatagramSocket.bind(
-          InternetAddress.loopbackIPv4,
-          0,
-        );
-        service.socketForTesting = socket;
-        service.state = true;
-        // Set last data received time to more than 3000ms ago
-        service.lastDataReceivedTimeForTesting = DateTime.now().subtract(
-          const Duration(seconds: 4),
-        );
+      final socket = await RawDatagramSocket.bind(
+        InternetAddress.loopbackIPv4,
+        0,
+      );
+      service.socketForTesting = socket;
+      service.state = true;
+      // Set last data received time to more than 3000ms ago
+      service.lastDataReceivedTimeForTesting = DateTime.now().subtract(
+        const Duration(seconds: 4),
+      );
 
-        service.updateConnectionForTesting();
+      service.updateConnectionForTesting();
 
-        // The connection should disconnect immediately
-        expect(service.state, isFalse);
-        expect(service.socketForTesting, isNull);
-        expect(service.disconnectTimerForTesting, isNull);
+      // The connection should disconnect immediately
+      expect(service.state, isFalse);
+      expect(service.socketForTesting, isNull);
+      expect(service.disconnectTimerForTesting, isNull);
 
-        socket.close();
-      },
-    );
+      socket.close();
+    });
   });
 }

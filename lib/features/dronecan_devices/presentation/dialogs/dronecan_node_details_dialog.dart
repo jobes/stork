@@ -152,9 +152,8 @@ class _NodeDetailsBodyState extends ConsumerState<_NodeDetailsBody> {
     if (mounted) setState(() => _busy = false);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   List<Widget> _nodeInfoRows(

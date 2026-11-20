@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/telemetry/domain/utils/cas_evaluator.dart';
 
@@ -17,25 +18,22 @@ void main() {
       expect(CasEvaluator.normalizeAngle(2 * math.pi), closeTo(0.0, 1e-6));
     });
 
-    test(
-      'calculateTurnRate calculates omega correctly including 0/360 wrap-around',
-      () {
-        final now = DateTime.now();
-        // Turning right from 350 deg (6.108 rad) to 10 deg (0.1745 rad) over 2 seconds -> +20 deg / 2s = 10 deg/s
-        final p1 = TrackHistoryPoint(
-          timestamp: now.subtract(const Duration(seconds: 2)),
-          trackRad: 350.0 * math.pi / 180.0,
-        );
-        final p2 = TrackHistoryPoint(
-          timestamp: now,
-          trackRad: 10.0 * math.pi / 180.0,
-        );
+    test('calculateTurnRate calculates omega correctly including 0/360 wrap-around', () {
+      final now = DateTime.now();
+      // Turning right from 350 deg (6.108 rad) to 10 deg (0.1745 rad) over 2 seconds -> +20 deg / 2s = 10 deg/s
+      final p1 = TrackHistoryPoint(
+        timestamp: now.subtract(const Duration(seconds: 2)),
+        trackRad: 350.0 * math.pi / 180.0,
+      );
+      final p2 = TrackHistoryPoint(
+        timestamp: now,
+        trackRad: 10.0 * math.pi / 180.0,
+      );
 
-        final omega = CasEvaluator.calculateTurnRate([p1, p2]);
-        final omegaDegPerSec = omega * 180.0 / math.pi;
-        expect(omegaDegPerSec, closeTo(10.0, 0.1));
-      },
-    );
+      final omega = CasEvaluator.calculateTurnRate([p1, p2]);
+      final omegaDegPerSec = omega * 180.0 / math.pi;
+      expect(omegaDegPerSec, closeTo(10.0, 0.1));
+    });
 
     test(
       'detectCircling detects sustained turn rate >= 12 deg/s over 5+ seconds',

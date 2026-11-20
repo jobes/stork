@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -95,45 +96,40 @@ void main() {
       },
     );
 
-    test(
-      'Recovers from malformed unique ID hex by regenerating and persisting a new one',
-      () async {
-        // 32-character string containing invalid hex characters like 'g'
-        const malformedHex = 'g1g2g3g4g5g6g7g8g9g0g1g2g3g4g5g6';
-        await prefs.setString('dronecan_unique_id', malformedHex);
+    test('Recovers from malformed unique ID hex by regenerating and persisting a new one', () async {
+      // 32-character string containing invalid hex characters like 'g'
+      const malformedHex = 'g1g2g3g4g5g6g7g8g9g0g1g2g3g4g5g6';
+      await prefs.setString('dronecan_unique_id', malformedHex);
 
-        final container = ProviderContainer(
-          overrides: [
-            cannelloniServiceProvider.overrideWith(
-              () => MockCannelloniService(),
-            ),
-            sharedPreferencesProvider.overrideWith((ref) => prefs),
-          ],
+      final container = ProviderContainer(
+        overrides: [
+          cannelloniServiceProvider.overrideWith(() => MockCannelloniService()),
+          sharedPreferencesProvider.overrideWith((ref) => prefs),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final service = container.read(cannelloniServiceProvider.notifier);
+      final uniqueId = await service.loadOrGenerateUniqueIdForTesting();
+
+      // Ensure that parsing failure didn't bubble up, but successfully recovered
+      expect(uniqueId.length, equals(16));
+
+      // Verify that a new valid hex has been generated and written back to prefs
+      final newHex = prefs.getString('dronecan_unique_id');
+      expect(newHex, isNotNull);
+      expect(newHex!.length, equals(32));
+      expect(newHex, isNot(equals(malformedHex)));
+
+      // Verify the new hex is valid by converting it back and comparing
+      final parsedBack = Uint8List(16);
+      for (int i = 0; i < 16; i++) {
+        parsedBack[i] = int.parse(
+          newHex.substring(i * 2, i * 2 + 2),
+          radix: 16,
         );
-        addTearDown(container.dispose);
-
-        final service = container.read(cannelloniServiceProvider.notifier);
-        final uniqueId = await service.loadOrGenerateUniqueIdForTesting();
-
-        // Ensure that parsing failure didn't bubble up, but successfully recovered
-        expect(uniqueId.length, equals(16));
-
-        // Verify that a new valid hex has been generated and written back to prefs
-        final newHex = prefs.getString('dronecan_unique_id');
-        expect(newHex, isNotNull);
-        expect(newHex!.length, equals(32));
-        expect(newHex, isNot(equals(malformedHex)));
-
-        // Verify the new hex is valid by converting it back and comparing
-        final parsedBack = Uint8List(16);
-        for (int i = 0; i < 16; i++) {
-          parsedBack[i] = int.parse(
-            newHex.substring(i * 2, i * 2 + 2),
-            radix: 16,
-          );
-        }
-        expect(parsedBack, equals(uniqueId));
-      },
-    );
+      }
+      expect(parsedBack, equals(uniqueId));
+    });
   });
 }

@@ -57,9 +57,8 @@ void main() {
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('sk'),
             builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.linear(1.3)),
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.linear(1.3)),
               child: child!,
             ),
             home: Scaffold(

@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
@@ -61,9 +62,8 @@ void main() {
 
     setUp(() {
       mockRepository = MockSettingsRepository();
-      when(
-        () => mockRepository.getSettings(),
-      ).thenAnswer((_) async => const AppSettings());
+      when(() => mockRepository.getSettings())
+          .thenAnswer((_) async => const AppSettings());
       when(() => mockRepository.saveSettings(any())).thenAnswer((_) async {});
     });
 
@@ -80,34 +80,31 @@ void main() {
       return container;
     }
 
-    test(
-      'updateTrafficFilterMaxHorizontalDistanceEnabled updates state and persists',
-      () async {
-        final container = createContainer();
-        addTearDown(container.dispose);
+    test('updateTrafficFilterMaxHorizontalDistanceEnabled updates state and persists', () async {
+      final container = createContainer();
+      addTearDown(container.dispose);
 
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
 
-        final result = await notifier
-            .updateTrafficFilterMaxHorizontalDistanceEnabled(false);
-        expect(result, isA<SettingsUpdateSuccess>());
+      final result = await notifier
+          .updateTrafficFilterMaxHorizontalDistanceEnabled(false);
+      expect(result, isA<SettingsUpdateSuccess>());
 
-        final state = container.read(appSettingsProvider).value;
-        expect(state?.trafficFilterMaxHorizontalDistanceEnabled, isFalse);
-        verify(
-          () => mockRepository.saveSettings(
-            any(
-              that: isA<AppSettings>().having(
-                (s) => s.trafficFilterMaxHorizontalDistanceEnabled,
-                'trafficFilterMaxHorizontalDistanceEnabled',
-                isFalse,
-              ),
+      final state = container.read(appSettingsProvider).value;
+      expect(state?.trafficFilterMaxHorizontalDistanceEnabled, isFalse);
+      verify(
+        () => mockRepository.saveSettings(
+          any(
+            that: isA<AppSettings>().having(
+              (s) => s.trafficFilterMaxHorizontalDistanceEnabled,
+              'trafficFilterMaxHorizontalDistanceEnabled',
+              isFalse,
             ),
           ),
-        ).called(1);
-      },
-    );
+        ),
+      ).called(1);
+    });
 
     test(
       'updateTrafficMaxHorizontalDistance clamps to lower boundary (1000.0)',
@@ -147,23 +144,20 @@ void main() {
       },
     );
 
-    test(
-      'updateTrafficFilterMaxVerticalDistanceEnabled updates state and persists',
-      () async {
-        final container = createContainer();
-        addTearDown(container.dispose);
+    test('updateTrafficFilterMaxVerticalDistanceEnabled updates state and persists', () async {
+      final container = createContainer();
+      addTearDown(container.dispose);
 
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
 
-        final result = await notifier
-            .updateTrafficFilterMaxVerticalDistanceEnabled(false);
-        expect(result, isA<SettingsUpdateSuccess>());
+      final result = await notifier
+          .updateTrafficFilterMaxVerticalDistanceEnabled(false);
+      expect(result, isA<SettingsUpdateSuccess>());
 
-        final state = container.read(appSettingsProvider).value;
-        expect(state?.trafficFilterMaxVerticalDistanceEnabled, isFalse);
-      },
-    );
+      final state = container.read(appSettingsProvider).value;
+      expect(state?.trafficFilterMaxVerticalDistanceEnabled, isFalse);
+    });
 
     test(
       'updateTrafficMaxVerticalDistance clamps to lower boundary (100.0)',

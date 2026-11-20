@@ -4,7 +4,9 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/native/dronecan/file_services.dart';
 import 'package:stork/features/dronecan_devices/data/services/firmware_upload_session.dart';
+
 import '../../helpers/fake_dronecan_node_transport.dart';
+
 import 'package:stork/features/dronecan_devices/domain/models/firmware_update_failure.dart';
 import 'package:stork/features/dronecan_devices/domain/models/firmware_update_progress.dart';
 

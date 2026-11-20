@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/features/favorites/data/repositories/favorites_repository.dart';
@@ -103,25 +104,22 @@ void main() {
       expect(saved.description, equals('My *local* airfield'));
     });
 
-    test(
-      'saveFavorites throws StateError when SharedPreferences.setString returns false',
-      () async {
-        final failurePrefs = FailureSharedPreferences();
-        final repository = FavoritesRepository(failurePrefs);
-        const favorite = FavoritePoint(
-          id: 'f1',
-          latitude: 48.0,
-          longitude: 17.0,
-          icon: PoiType.home,
-          name: 'Home',
-        );
+    test('saveFavorites throws StateError when SharedPreferences.setString returns false', () async {
+      final failurePrefs = FailureSharedPreferences();
+      final repository = FavoritesRepository(failurePrefs);
+      const favorite = FavoritePoint(
+        id: 'f1',
+        latitude: 48.0,
+        longitude: 17.0,
+        icon: PoiType.home,
+        name: 'Home',
+      );
 
-        await expectLater(
-          repository.saveFavorites([favorite]),
-          throwsA(isA<StateError>()),
-        );
-      },
-    );
+      await expectLater(
+        repository.saveFavorites([favorite]),
+        throwsA(isA<StateError>()),
+      );
+    });
   });
 }
 

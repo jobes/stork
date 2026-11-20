@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'bit_reader.dart';
 import 'dronecan_message.dart';
 

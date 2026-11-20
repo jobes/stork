@@ -562,9 +562,8 @@ Future<void> _openWeatherVisual(
       ),
       throttledTelemetryProvider.overrideWith(_WeatherVisualTelemetry.new),
       flightWeatherPlanProvider.overrideWith(_WeatherVisualPlan.new),
-      forecastPointTerrainProvider(
-        _weatherLocation,
-      ).overrideWith((ref) async => terrain),
+      forecastPointTerrainProvider(_weatherLocation)
+          .overrideWith((ref) async => terrain),
       flightForecastProfilesProvider.overrideWith(
         (ref) async => (
           series: unavailable
@@ -879,9 +878,9 @@ void main() {
       final loader = FontLoader(entry.key);
       for (final name in entry.value) {
         loader.addFont(
-          File(
-            'test/visual/fonts/$name',
-          ).readAsBytes().then((bytes) => ByteData.sublistView(bytes)),
+          File('test/visual/fonts/$name')
+              .readAsBytes()
+              .then((bytes) => ByteData.sublistView(bytes)),
         );
       }
       await loader.load();

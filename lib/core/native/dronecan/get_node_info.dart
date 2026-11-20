@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:stork/core/utils/time_utils.dart';
+
 import 'node_status.dart';
 import 'dronecan_message.dart';
 import 'tail_array.dart';

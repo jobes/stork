@@ -257,64 +257,55 @@ void main() {
     },
   );
 
-  test(
-    'every aircraft limit survives switching and reload without changing global units',
-    () async {
-      final thresholds = RangeThresholds(
-        inactiveMax: 1,
-        minError: 2,
-        minWarning: 3,
-        maxWarning: 4,
-        maxError: 5,
-      );
-      final initial = AppSettings(
+  test('every aircraft limit survives switching and reload without changing global units', () async {
+    final thresholds = RangeThresholds(
+      inactiveMax: 1,
+      minError: 2,
+      minWarning: 3,
+      maxWarning: 4,
+      maxError: 5,
+    );
+    final initial = AppSettings(
+      autoSelectDevice: false,
+      airplaneId: 'a',
+      speedUnit: SpeedUnit.knots,
+      flightSpeedThresholds: thresholds,
+      flightSpeedMaxRange: 55,
+      oilTempThresholds: thresholds,
+      oilTempMaxRange: 440,
+      oilPressureThresholds: thresholds,
+      oilPressureMaxRange: 900,
+      fuelThresholds: thresholds,
+      egtThresholds: thresholds,
+      egtMaxRange: 1400,
+      chtThresholds: thresholds,
+      chtMaxRange: 480,
+      rpmThresholds: thresholds,
+      rpmMaxRange: 7100,
+    );
+    await repository.saveSettings(initial);
+    final container = ProviderContainer(
+      overrides: [
+        settingsRepositoryProvider.overrideWith((ref) async => repository),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(appSettingsProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(appSettingsProvider.future);
+    final notifier = container.read(appSettingsProvider.notifier);
+    expect(await notifier.updateAirplaneId('b'), isA<SettingsUpdateSuccess>());
+    expect(
+      await repository.getSettings(),
+      const AppSettings(
         autoSelectDevice: false,
-        airplaneId: 'a',
+        airplaneId: 'b',
         speedUnit: SpeedUnit.knots,
-        flightSpeedThresholds: thresholds,
-        flightSpeedMaxRange: 55,
-        oilTempThresholds: thresholds,
-        oilTempMaxRange: 440,
-        oilPressureThresholds: thresholds,
-        oilPressureMaxRange: 900,
-        fuelThresholds: thresholds,
-        egtThresholds: thresholds,
-        egtMaxRange: 1400,
-        chtThresholds: thresholds,
-        chtMaxRange: 480,
-        rpmThresholds: thresholds,
-        rpmMaxRange: 7100,
-      );
-      await repository.saveSettings(initial);
-      final container = ProviderContainer(
-        overrides: [
-          settingsRepositoryProvider.overrideWith((ref) async => repository),
-        ],
-      );
-      addTearDown(container.dispose);
-      final sub = container.listen(appSettingsProvider, (_, _) {});
-      addTearDown(sub.close);
-      await container.read(appSettingsProvider.future);
-      final notifier = container.read(appSettingsProvider.notifier);
-      expect(
-        await notifier.updateAirplaneId('b'),
-        isA<SettingsUpdateSuccess>(),
-      );
-      expect(
-        await repository.getSettings(),
-        const AppSettings(
-          autoSelectDevice: false,
-          airplaneId: 'b',
-          speedUnit: SpeedUnit.knots,
-        ),
-      );
-      expect(
-        await notifier.updateAirplaneId('a'),
-        isA<SettingsUpdateSuccess>(),
-      );
-      expect(await SettingsRepository(preferences).getSettings(), initial);
-    },
-  );
+      ),
+    );
+    expect(await notifier.updateAirplaneId('a'), isA<SettingsUpdateSuccess>());
+    expect(await SettingsRepository(preferences).getSettings(), initial);
+  });
 
   test(
     'failed switch keeps the active profile and allows a later retry',

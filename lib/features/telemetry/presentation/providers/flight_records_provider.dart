@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import 'black_box_repository_provider.dart';
 import '../../domain/models/flight.dart';
 import 'unique_filters_provider.dart';

@@ -54,9 +54,8 @@ Future<void> showWaypointAltitudeDialog(
         .updatePointWeatherAltitude(currentIndex, result.altitude);
   } catch (_) {
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.weatherSaveFailed)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.weatherSaveFailed)));
     }
   }
 }

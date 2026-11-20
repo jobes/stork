@@ -69,9 +69,8 @@ class SpeedTelemetryWidget extends ConsumerWidget {
     final String unitLabel = speedUnit.getAbbreviation(l10n);
 
     final speedState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.speed,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.speed)
+          .select((status) => status.cardState),
     );
 
     final List<Widget> columnChildren = [];

@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/features/settings/data/repositories/pilot_repository.dart';
@@ -57,19 +58,16 @@ void main() {
       expect(() => repository.getPilots(), throwsA(isA<FormatException>()));
     });
 
-    test(
-      'getPilots throws TypeError when JSON structure does not match expected schema',
-      () async {
-        final repository = PilotRepository(prefs);
-        // "initialFlights" has invalid type (string instead of int)
-        await prefs.setString(
-          'app_pilots',
-          '[{"id": "1", "name": "John Doe", "initialFlights": "ten"}]',
-        );
+    test('getPilots throws TypeError when JSON structure does not match expected schema', () async {
+      final repository = PilotRepository(prefs);
+      // "initialFlights" has invalid type (string instead of int)
+      await prefs.setString(
+        'app_pilots',
+        '[{"id": "1", "name": "John Doe", "initialFlights": "ten"}]',
+      );
 
-        expect(() => repository.getPilots(), throwsA(isA<TypeError>()));
-      },
-    );
+      expect(() => repository.getPilots(), throwsA(isA<TypeError>()));
+    });
 
     test('savePilots successfully persists pilots', () async {
       final repository = PilotRepository(prefs);

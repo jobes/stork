@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart'
     show kIsWeb, debugPrint, visibleForTesting;
+
 import '../domain/models/gdl90_target.dart';
 import '../../../core/utils/socket_utils.dart';
 import 'gdl90_decoder.dart';
