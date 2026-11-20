@@ -97,6 +97,13 @@ git submodule update --init --recursive
     flutter run
     ```
 
+UI code imports `package:material_ui/material_ui.dart` and
+`package:cupertino_ui/cupertino_ui.dart` instead of Flutter's deprecated UI
+libraries. Use `appLocalizationsDelegates` from `lib/l10n/localizations.dart`
+when configuring an application. The SDK localization generator still emits a
+legacy delegate list; `l10n.yaml` suppresses its deprecation diagnostics only in
+generated files, while the application uses the migrated delegates.
+
 ### Linux release
 
 Install a C/C++ development toolchain (including Clang), CMake, Ninja,

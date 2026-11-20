@@ -2,7 +2,7 @@ import '../../../../support/prepared_map_style.dart';
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart';
@@ -12,7 +12,7 @@ import 'package:stork/core/services/style_provider.dart';
 import 'package:stork/features/offline_maps/domain/offline_maps_state.dart';
 import 'package:stork/features/offline_maps/presentation/pages/offline_maps_page.dart';
 import 'package:stork/features/offline_maps/presentation/providers/offline_maps_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 import '../../../../support/map_style_backend.dart';
 
@@ -83,7 +83,7 @@ Future<_OfflineMaps> _pumpPage(WidgetTester tester) async {
         ),
       ],
       child: const MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: OfflineMapsPage(),
       ),
@@ -111,7 +111,7 @@ void main() {
             ),
           ],
           child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: OfflineMapsPage(),
           ),

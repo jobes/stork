@@ -33,6 +33,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  material_ui: ^1.11.1
+  cupertino_ui: ^1.1.7
   intl: ^0.20.3
   clock: ^1.1.3
 

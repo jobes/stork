@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/features/map/presentation/components/dialogs/airport_details_dialog.dart';
 import 'package:stork/features/map/presentation/providers/airport_metadata_provider.dart';
 import 'package:stork/features/map/domain/airport_metadata.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 
 class FakeTelemetryNotifier extends TelemetryNotifier {
@@ -33,7 +33,7 @@ void main() {
             openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('en'),
             home: const Scaffold(
@@ -61,7 +61,7 @@ void main() {
             openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('sk'),
             home: const Scaffold(
@@ -93,7 +93,7 @@ void main() {
             openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('en'),
             home: const Scaffold(
@@ -121,7 +121,7 @@ void main() {
             openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('sk'),
             home: const Scaffold(
@@ -195,7 +195,7 @@ void main() {
           telemetryProvider.overrideWith(() => FakeTelemetryNotifier()),
         ],
         child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('en'),
           home: const Scaffold(
@@ -225,7 +225,7 @@ void main() {
           telemetryProvider.overrideWith(() => FakeTelemetryNotifier()),
         ],
         child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('sk'),
           home: const Scaffold(

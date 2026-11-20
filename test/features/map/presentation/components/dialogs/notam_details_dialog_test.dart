@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/map/domain/models/notam.dart';
 import 'package:stork/features/map/domain/repositories/notam_repository.dart';
 import 'package:stork/features/map/presentation/components/dialogs/notam_details_dialog.dart';
 import 'package:stork/features/map/presentation/providers/notams_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 class _Notams extends Notams {
   _Notams(this.initial, {this.save});
@@ -47,7 +47,7 @@ Future<void> _openDialog(
       overrides: [notamsProvider.overrideWith(() => notams)],
       child: MaterialApp(
         locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Builder(

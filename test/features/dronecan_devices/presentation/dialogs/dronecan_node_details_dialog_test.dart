@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
@@ -12,7 +12,7 @@ import 'package:stork/features/dronecan_devices/domain/models/dronecan_node_info
 import 'package:stork/features/dronecan_devices/domain/repositories/dronecan_node_repository.dart';
 import 'package:stork/features/dronecan_devices/presentation/dialogs/dronecan_node_details_dialog.dart';
 import 'package:stork/features/dronecan_devices/presentation/providers/dronecan_nodes_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 class _FakeRepository implements DroneCanNodeRepository {
   final List<int> restartRequests = [];
@@ -184,7 +184,7 @@ Future<void> _openDialog(WidgetTester tester, _FakeRepository repo) async {
       ],
       child: MaterialApp(
         locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Builder(

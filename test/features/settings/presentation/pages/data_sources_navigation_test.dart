@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,7 +8,7 @@ import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/pages/data_sources_page.dart';
 import 'package:stork/features/settings/presentation/pages/settings_page.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 import '../../../../helpers/source_logo_http.dart';
 
@@ -38,7 +38,7 @@ void main() {
           child: MaterialApp.router(
             routerConfig: appRouter,
             locale: const Locale('sk'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),

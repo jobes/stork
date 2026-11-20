@@ -7,7 +7,7 @@ import '../../../../support/map_style_backend.dart';
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show ThemeMode;
+import 'package:material_ui/material_ui.dart' show ThemeMode;
 import 'package:stork/features/settings/presentation/providers/display_preferences_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

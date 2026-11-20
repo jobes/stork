@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/navigation/presentation/widgets/route_waypoint_tile.dart';
 import 'package:stork/features/navigation/domain/models/navigation_leg.dart';
 import 'package:stork/features/navigation/domain/models/navigation_point.dart';
 import 'package:stork/features/settings/domain/models/speed_unit.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 const _point = NavigationPoint(latitude: 48.17, longitude: 17.21, name: 'LZIB');
 
 Widget _wrap(Widget child) => MaterialApp(
-  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: Scaffold(body: child),
 );

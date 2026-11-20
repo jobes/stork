@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -13,7 +13,7 @@ import 'package:stork/features/map/data/services/map_search.dart';
 import 'package:stork/features/map/domain/models/map_search_result.dart';
 import 'package:stork/features/map/domain/models/poi_type.dart';
 import 'package:stork/features/map/presentation/components/dialogs/map_search_dialog.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 class _Favorites extends FavoritesNotifier {
   _Favorites(this.points);
@@ -98,7 +98,7 @@ Future<void> _openSearch(
       ],
       child: MaterialApp(
         locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Builder(

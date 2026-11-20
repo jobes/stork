@@ -1,5 +1,5 @@
 import 'package:clock/clock.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/features/map/domain/airspace_metadata.dart';
@@ -8,7 +8,7 @@ import 'package:stork/features/map/domain/models/openaip_unit.dart';
 import 'package:stork/features/map/presentation/components/dialogs/airspace_details_dialog.dart';
 import 'package:stork/features/map/presentation/providers/airspace_metadata_provider.dart';
 import 'package:stork/features/map/presentation/providers/airspace_activity_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 AirspaceMetadata _metadata() {
   return AirspaceMetadata(
@@ -76,7 +76,7 @@ Widget _buildApp(
       airspaceActivityProvider.overrideWithValue(activities),
     ],
     child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: Locale(locale),
       home: Scaffold(body: AirspaceDetailsDialog(features: [_feature()])),

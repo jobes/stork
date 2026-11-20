@@ -3,7 +3,7 @@ import 'dart:ui' show Offset;
 
 import 'package:clock/clock.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/material.dart' show ThemeMode, Brightness;
+import 'package:material_ui/material_ui.dart' show ThemeMode, Brightness;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

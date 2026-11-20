@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'features/settings/presentation/providers/display_preferences_provider.dart';
-import 'l10n/app_localizations.dart';
+import 'l10n/localizations.dart';
 
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -153,7 +153,7 @@ class _StorkAppState extends ConsumerState<StorkApp>
     }
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: preferences?.language.locale,
       theme: AppTheme.lightTheme,

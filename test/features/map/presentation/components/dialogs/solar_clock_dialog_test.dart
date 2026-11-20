@@ -1,12 +1,12 @@
 import 'package:clock/clock.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/map/domain/models/solar_times.dart';
 import 'package:stork/features/map/presentation/components/dialogs/solar_clock_dialog.dart';
 import 'package:stork/features/map/presentation/providers/map_clock_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 class _Telemetry extends TelemetryNotifier {
   @override
@@ -53,7 +53,7 @@ void main() {
             )),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('sk'),
             builder: (context, child) => MediaQuery(
@@ -113,7 +113,7 @@ void main() {
           )),
         ],
         child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: Builder(

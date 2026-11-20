@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/core/utils/number_formatter.dart';
 import 'package:stork/features/telemetry/presentation/providers/favorite_frequencies_provider.dart';

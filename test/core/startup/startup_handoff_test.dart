@@ -3,7 +3,7 @@ import '../../support/map_style_backend.dart';
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -342,6 +342,11 @@ void main() {
           await tester.pump();
           expect(container.read(mapStartupProvider).ready, isTrue);
           expect(find.byType(StartupPage), findsNothing);
+          await tester.pumpAndSettle(
+            const Duration(milliseconds: 100),
+            EnginePhase.sendSemanticsUpdate,
+            const Duration(seconds: 3),
+          );
           expect(find.byType(MapPage), findsNothing);
           await tester.pumpWidget(const SizedBox.shrink());
           container.dispose();
@@ -440,9 +445,12 @@ void main() {
         // Keep the application scope and bootstrap alive while leaving the map;
         // its temporary style lease must not pin map providers afterwards.
         appRouter.go('/favorites');
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump();
+        // The extracted Material UI uses an animated route transition.
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 100),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 3),
+        );
         expect(find.byType(MapPage), findsNothing);
         expect(container.read(mapStyleProvider.exists), isFalse);
         expect(cameraDisposals, 1);

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/dronecan_devices/domain/models/dronecan_parameter.dart';
 import 'package:stork/features/dronecan_devices/presentation/dialogs/dronecan_parameter_edit_dialog.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 void main() {
   for (final input in ['1e309', '-1e309', '3.5e38', '-3.5e38']) {
@@ -48,7 +48,7 @@ Future<DroneCanParamValue? Function()> _submit(
   DroneCanParamValue? result;
   await tester.pumpWidget(
     MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
       home: Scaffold(

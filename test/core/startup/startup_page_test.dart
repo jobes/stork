@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +15,7 @@ import 'package:stork/core/startup/map_startup_provider.dart';
 import 'package:stork/core/theme/app_theme.dart';
 import 'package:stork/features/map/presentation/pages/map_page.dart';
 import 'package:stork/features/settings/presentation/providers/display_preferences_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 import 'package:stork/main.dart';
 
 class _Preferences extends DisplayPreferencesNotifier {
@@ -183,7 +183,7 @@ void main() {
         MaterialApp(
           theme: dark ? AppTheme.darkTheme : AppTheme.lightTheme,
           locale: const Locale('sk'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           builder: (_, child) => MediaQuery(
             data: MediaQueryData(

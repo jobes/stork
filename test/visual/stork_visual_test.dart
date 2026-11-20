@@ -5,7 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -89,7 +89,7 @@ import 'package:stork/features/telemetry/presentation/widgets/rpm_horizontal_tel
 import 'package:stork/features/telemetry/presentation/widgets/speed_telemetry_widget.dart';
 import 'package:stork/features/telemetry/presentation/widgets/vario_telemetry_widget.dart';
 import 'package:stork/features/telemetry/presentation/widgets/vhf_radio_telemetry_widget.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 import '../helpers/source_logo_http.dart';
 
@@ -404,7 +404,7 @@ Future<void> _pump(
               ? AppTheme.darkTheme
               : AppTheme.lightTheme,
           locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: const [Locale('en')],
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context).copyWith(

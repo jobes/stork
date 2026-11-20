@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A destination with a consistent icon, type and touch target.
 class StorkNavigationTile extends StatelessWidget {
