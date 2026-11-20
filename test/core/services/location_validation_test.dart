@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,17 +10,9 @@ import 'package:stork/core/services/location_service.dart';
 
 import '../../helpers/fake_geolocator_platform.dart';
 
-class _Sensors extends SensorsPlatform {
-  final acceleration = StreamController<AccelerometerEvent>.broadcast();
-  final magnetic = StreamController<MagnetometerEvent>.broadcast();
-  @override
-  Stream<AccelerometerEvent> accelerometerEventStream({
-    Duration samplingPeriod = SensorInterval.normalInterval,
-  }) => acceleration.stream;
-  @override
-  Stream<MagnetometerEvent> magnetometerEventStream({
-    Duration samplingPeriod = SensorInterval.normalInterval,
-  }) => magnetic.stream;
+class _Sensors {
+  final acceleration = StreamController<AccelerometerEvent?>.broadcast();
+  final magnetic = StreamController<MagnetometerEvent?>.broadcast();
 }
 
 class _Gps extends FakeGeolocatorPlatform {
@@ -37,14 +30,71 @@ class _Gps extends FakeGeolocatorPlatform {
 }
 
 void main() {
+  for (final platform in [
+    TargetPlatform.linux,
+    TargetPlatform.windows,
+    TargetPlatform.macOS,
+  ]) {
+    testWidgets('$platform accepts sensors and recovers after removal', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = platform;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final sensors = _Sensors();
+      final container = ProviderContainer(
+        overrides: [
+          accelerometerSourceProvider.overrideWithValue(
+            sensors.acceleration.stream,
+          ),
+          magnetometerSourceProvider.overrideWithValue(sensors.magnetic.stream),
+        ],
+      );
+      try {
+        container.listen(compassStreamProvider, (_, _) {});
+        await tester.pump();
+        final fallback = container.read(compassOrientationOffsetProvider);
+        expect(sensors.acceleration.hasListener, isTrue);
+        expect(sensors.magnetic.hasListener, isTrue);
+        sensors.acceleration.add(
+          AccelerometerEvent(-9.8, 0, 0, DateTime.now()),
+        );
+        sensors.magnetic.add(MagnetometerEvent(0, 1, 0, DateTime.now()));
+        await tester.pump();
+        expect(container.read(compassStreamProvider).requireValue, isNotNull);
+        expect(container.read(compassOrientationOffsetProvider), -90);
+
+        sensors.acceleration.add(null);
+        sensors.magnetic.add(null);
+        await tester.pump();
+        expect(container.read(compassStreamProvider).requireValue, isNull);
+        expect(container.read(compassOrientationOffsetProvider), fallback);
+        // A reconnect must wait for a fresh pair, not reuse pre-removal data.
+        sensors.magnetic.add(MagnetometerEvent(0, 1, 0, DateTime.now()));
+        await tester.pump();
+        expect(container.read(compassStreamProvider).requireValue, isNull);
+        sensors.acceleration.add(AccelerometerEvent(0, 0, 9.8, DateTime.now()));
+        await tester.pump();
+        expect(container.read(compassStreamProvider).requireValue, isNotNull);
+      } finally {
+        container.dispose();
+        await sensors.acceleration.close();
+        await sensors.magnetic.close();
+      }
+    });
+  }
+
   testWidgets(
     'non-finite sensor headings are ignored and valid headings still arrive',
     (tester) async {
-      final previous = SensorsPlatform.instance;
       final sensors = _Sensors();
-      SensorsPlatform.instance = sensors;
       final container = ProviderContainer(
-        overrides: [compassOrientationOffsetProvider.overrideWithValue(0)],
+        overrides: [
+          compassOrientationOffsetProvider.overrideWithValue(0),
+          accelerometerSourceProvider.overrideWithValue(
+            sensors.acceleration.stream,
+          ),
+          magnetometerSourceProvider.overrideWithValue(sensors.magnetic.stream),
+        ],
       );
       final headings = <double>[];
       container.listen(compassStreamProvider, (_, next) {
@@ -66,7 +116,6 @@ void main() {
       await tester.pump();
       expect(headings, [0]);
       container.dispose();
-      SensorsPlatform.instance = previous;
       await sensors.acceleration.close();
       await sensors.magnetic.close();
     },

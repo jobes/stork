@@ -94,6 +94,36 @@ git submodule update --init --recursive
     flutter run
     ```
 
+### Linux release
+
+Build and launch the desktop bundle:
+
+```bash
+flutter build linux --release
+./build/linux/x64/release/bundle/stork
+```
+
+Keep the complete `bundle` directory when copying the application; its `lib`
+and `data` directories are required. Sensor availability is determined at runtime
+on every platform. Missing or disconnected accelerometers/magnetometers use the
+viewport orientation fallback and no compass heading; available data takes over
+without restarting the application. Connections retry after 5 seconds, and
+10 seconds of silence also triggers recovery. Attached USB devices still need a
+driver/backend that exposes their data through a supported application source;
+the operating system name is never used to decide whether a sensor is present.
+
+On NVIDIA Linux desktops, Flutter 3.50.0 can shift and clip the entire application
+surface by half the window dimensions. Flutter 3.50.1 includes the fix for
+[Flutter #195885](https://github.com/flutter/flutter/issues/195885), as listed in
+its [changelog](https://github.com/flutter/flutter/blob/3.50.1/CHANGELOG.md).
+Changing map zoom or the Flutter widget layout does not fix that engine defect.
+
+The Linux release was verified on KDE Wayland with an NVIDIA RTX 4060 using
+Flutter 3.50.1 (2026-11-20): the loading screen cleared and the map, controls,
+airspaces, airports and traffic filled the window with the default renderers.
+Runtime sensor tests cover native channel setup, absence, connection, removal,
+silent failure and reconnection, including fresh heading samples after a dropout.
+
 ## 📂 Project Structure
 
 The project follows **Clean Architecture with Riverpod**, strictly three layers per feature: `data` → `domain` → `presentation`.

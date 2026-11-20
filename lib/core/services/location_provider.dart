@@ -1,7 +1,10 @@
 import 'dart:async';
+
 import 'package:clock/clock.dart';
+
 import 'dart:math';
 import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
@@ -9,11 +12,51 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:maplibre/maplibre.dart';
+
 import 'location_service.dart';
+import 'device_sensor_stream.dart';
 import '../../features/settings/presentation/providers/display_preferences_provider.dart';
 import '../../l10n/app_localizations.dart';
 
 part 'location_provider.g.dart';
+
+final accelerometerSourceProvider = Provider<Stream<AccelerometerEvent?>>((
+  ref,
+) {
+  final source = RecoveringSensorStream<AccelerometerEvent>(
+    () => deviceSensorEvents(
+      channel: 'accelerometer',
+      samplingMethod: 'setAccelerationSamplingPeriod',
+      decode: (values) => AccelerometerEvent(
+        values[0],
+        values[1],
+        values[2],
+        DateTime.fromMicrosecondsSinceEpoch(values[3].toInt()),
+      ),
+      browserEvents: accelerometerEventStream,
+    ),
+  );
+  ref.onDispose(source.dispose);
+  return source.stream;
+});
+
+final magnetometerSourceProvider = Provider<Stream<MagnetometerEvent?>>((ref) {
+  final source = RecoveringSensorStream<MagnetometerEvent>(
+    () => deviceSensorEvents(
+      channel: 'magnetometer',
+      samplingMethod: 'setMagnetometerSamplingPeriod',
+      decode: (values) => MagnetometerEvent(
+        values[0],
+        values[1],
+        values[2],
+        DateTime.fromMicrosecondsSinceEpoch(values[3].toInt()),
+      ),
+      browserEvents: magnetometerEventStream,
+    ),
+  );
+  ref.onDispose(source.dispose);
+  return source.stream;
+});
 
 /// Gets a single position fix from the device.
 @riverpod
@@ -449,7 +492,7 @@ class CompassOrientationOffset extends _$CompassOrientationOffset {
   double _gy = 0;
   double _gz = 0;
   bool _hasGravity = false;
-  StreamSubscription<AccelerometerEvent>? _sub;
+  StreamSubscription<AccelerometerEvent?>? _sub;
 
   @override
   double build() {
@@ -458,13 +501,14 @@ class CompassOrientationOffset extends _$CompassOrientationOffset {
     // rotation derived from gravity.
     final initial = _sizeBasedOffset();
     _sub?.cancel();
-    _sub = accelerometerEventStream().listen(
-      _onAccelerometerEvent,
-      onError: (Object _) {
-        // No accelerometer available (e.g. some desktop/web targets): keep the
-        // size-based fallback.
-      },
-    );
+    _sub = ref.watch(accelerometerSourceProvider).listen((event) {
+      if (event == null) {
+        _hasGravity = false;
+        state = _sizeBasedOffset();
+      } else {
+        _onAccelerometerEvent(event);
+      }
+    });
     ref.onDispose(() => _sub?.cancel());
     return initial;
   }
@@ -561,11 +605,26 @@ Stream<double?> compassStream(Ref ref) {
     controller.add((rawHeading + orientationOffset) % 360);
   }
 
-  final magSub = magnetometerEventStream().listen((mag) {
+  void unavailable() {
+    lastMag = null;
+    lastAcc = null;
+    lastUpdate = null;
+    controller.add(null);
+  }
+
+  final magSub = ref.watch(magnetometerSourceProvider).listen((mag) {
+    if (mag == null) {
+      unavailable();
+      return;
+    }
     lastMag = mag;
     tryEmit();
   });
-  final accSub = accelerometerEventStream().listen((acc) {
+  final accSub = ref.watch(accelerometerSourceProvider).listen((acc) {
+    if (acc == null) {
+      unavailable();
+      return;
+    }
     lastAcc = acc;
     tryEmit();
   });
