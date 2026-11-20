@@ -1,3 +1,5 @@
+import '../../../../support/prepared_map_style.dart';
+
 import 'dart:async';
 
 import 'package:clock/clock.dart';
@@ -121,7 +123,7 @@ ProviderContainer _container({
         () => _OnlineLinks(linkAvailable),
       ),
       offlineMapsProvider.overrideWith(_OfflineMaps.new),
-      mapStyleProvider.overrideWith((ref) async => '{}'),
+      mapStyleProvider.overrideWith((ref) async => testPreparedStyle('{}')),
       if (forecast != null)
         flightForecastProfilesProvider.overrideWith((ref) => forecast()),
     ],

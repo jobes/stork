@@ -98,7 +98,7 @@ class AirspaceHighlightLayers {
   Future<void> removeAll(StyleController style) async {
     for (final id in airspaceHighlightLayerIds) {
       try {
-        await style.removeLayer(id);
+        await style.layers.remove(id);
       } catch (_) {}
     }
   }
@@ -127,44 +127,48 @@ class AirspaceHighlightLayers {
     final inactiveFillPaint = layerPaint(styleJson, 'inactive-airspaces-fill');
     final inactiveLinePaint = layerPaint(styleJson, 'inactive-airspaces-line');
 
-    await style.addLayer(
-      FillStyleLayer(
-        id: 'active-airspaces-fill',
-        sourceId: 'openaip-data',
-        sourceLayerId: 'airspaces',
-        filter: airspaceSourceIdFilter(activeIds),
-        paint: activeFillPaint ?? const {},
-      ),
+    await style.layers.add(
+      StyleLayer.fromJson({
+        'type': 'fill',
+        'id': 'active-airspaces-fill',
+        'source': 'openaip-data',
+        'source-layer': 'airspaces',
+        'filter': airspaceSourceIdFilter(activeIds),
+        'paint': activeFillPaint ?? const <String, Object>{},
+      }),
       belowLayerId: below,
     );
-    await style.addLayer(
-      LineStyleLayer(
-        id: 'active-airspaces-line',
-        sourceId: 'openaip-data',
-        sourceLayerId: 'airspaces',
-        filter: airspaceSourceIdFilter(activeIds),
-        paint: activeLinePaint ?? const {},
-      ),
+    await style.layers.add(
+      StyleLayer.fromJson({
+        'type': 'line',
+        'id': 'active-airspaces-line',
+        'source': 'openaip-data',
+        'source-layer': 'airspaces',
+        'filter': airspaceSourceIdFilter(activeIds),
+        'paint': activeLinePaint ?? const <String, Object>{},
+      }),
       belowLayerId: below,
     );
-    await style.addLayer(
-      FillStyleLayer(
-        id: 'inactive-airspaces-fill',
-        sourceId: 'openaip-data',
-        sourceLayerId: 'airspaces',
-        filter: airspaceSourceIdFilter(inactiveIds),
-        paint: inactiveFillPaint ?? const {},
-      ),
+    await style.layers.add(
+      StyleLayer.fromJson({
+        'type': 'fill',
+        'id': 'inactive-airspaces-fill',
+        'source': 'openaip-data',
+        'source-layer': 'airspaces',
+        'filter': airspaceSourceIdFilter(inactiveIds),
+        'paint': inactiveFillPaint ?? const <String, Object>{},
+      }),
       belowLayerId: below,
     );
-    await style.addLayer(
-      LineStyleLayer(
-        id: 'inactive-airspaces-line',
-        sourceId: 'openaip-data',
-        sourceLayerId: 'airspaces',
-        filter: airspaceSourceIdFilter(inactiveIds),
-        paint: inactiveLinePaint ?? const {},
-      ),
+    await style.layers.add(
+      StyleLayer.fromJson({
+        'type': 'line',
+        'id': 'inactive-airspaces-line',
+        'source': 'openaip-data',
+        'source-layer': 'airspaces',
+        'filter': airspaceSourceIdFilter(inactiveIds),
+        'paint': inactiveLinePaint ?? const <String, Object>{},
+      }),
       belowLayerId: below,
     );
   }

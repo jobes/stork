@@ -1,3 +1,5 @@
+import '../../../../support/prepared_map_style.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -30,7 +32,9 @@ Future<_OfflineMaps> _pumpPage(WidgetTester tester) async {
     ProviderScope(
       overrides: [
         offlineMapsProvider.overrideWith(() => maps),
-        mapStyleProvider.overrideWith((ref) => Completer<String>().future),
+        mapStyleProvider.overrideWith(
+          (ref) => Completer<PreparedMapStyle>().future,
+        ),
       ],
       child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,

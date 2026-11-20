@@ -1,3 +1,5 @@
+import '../../../../support/prepared_map_style.dart';
+
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,7 +87,7 @@ ProviderContainer _container() {
       altitudeHealthProvider.overrideWith(_AltitudeHealth.new),
       networkLinkAvailabilityProvider.overrideWith(_OnlineLinks.new),
       offlineMapsProvider.overrideWith(_OfflineMaps.new),
-      mapStyleProvider.overrideWith((ref) async => '{}'),
+      mapStyleProvider.overrideWith((ref) async => testPreparedStyle('{}')),
       // Flight forecast is on by default; keep the async weather pipeline out
       // so only the 1 Hz ticker drives health refreshes in this test.
       activeWeatherHazardsProvider.overrideWith((ref) => const {}),

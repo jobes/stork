@@ -13,8 +13,13 @@ part of 'style_provider.dart';
 final mapStyleProvider = MapStyleProvider._();
 
 final class MapStyleProvider
-    extends $FunctionalProvider<AsyncValue<String>, String, FutureOr<String>>
-    with $FutureModifier<String>, $FutureProvider<String> {
+    extends
+        $FunctionalProvider<
+          AsyncValue<PreparedMapStyle>,
+          PreparedMapStyle,
+          FutureOr<PreparedMapStyle>
+        >
+    with $FutureModifier<PreparedMapStyle>, $FutureProvider<PreparedMapStyle> {
   MapStyleProvider._()
     : super(
         from: null,
@@ -31,13 +36,14 @@ final class MapStyleProvider
 
   @$internal
   @override
-  $FutureProviderElement<String> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $FutureProviderElement<PreparedMapStyle> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<String> create(Ref ref) {
+  FutureOr<PreparedMapStyle> create(Ref ref) {
     return mapStyle(ref);
   }
 }
 
-String _$mapStyleHash() => r'efe0d8597428609a4a34a8a509afbed6743579a0';
+String _$mapStyleHash() => r'5f310ddd955ade2da0cfc3d960eca17bde47bceb';

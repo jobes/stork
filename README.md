@@ -56,7 +56,7 @@ Detailed technical documentation covering the system architecture, mathematical 
 
 ### Prerequisites
 
-- Flutter SDK (latest stable version recommended)
+- Flutter SDK 3.47 or newer (Dart 3.13 or newer)
 - Android Studio / VS Code with Flutter extensions
 - A C toolchain (for the native `libcanard` FFI bindings)
 

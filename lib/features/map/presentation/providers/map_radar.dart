@@ -1,4 +1,5 @@
 import '../../../../core/startup/deferred_startup_tasks.dart';
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -98,8 +99,8 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
   }
 
   void onMapEvent(MapEvent event) {
-    if (event is MapEventStartMoveCamera &&
-        event.reason == CameraChangeReason.apiGesture) {
+    if (event is MapEventCameraMoveStart &&
+        event.reason == CameraChangeReason.gesture) {
       interruptPlayback();
     }
   }
@@ -406,7 +407,7 @@ class _RadarLayers {
       final source = _sources[frame] ?? await _addSource(frame, cancel);
       if (!attached || failed || cancel?.isCompleted == true) return;
       if (!source.staged) {
-        await style.addLayer(
+        await style.layers.add(
           _layer(frame, staging: true),
           belowLayerId: _below,
         );
@@ -459,8 +460,8 @@ class _RadarLayers {
     });
     source.close = route.close;
     _sources[frame] = source;
-    await style.addSource(
-      RasterSource(
+    await style.sources.add(
+      RasterSource.tiles(
         id: frame.id,
         tiles: [route.template],
         maxZoom: 7,
@@ -474,7 +475,7 @@ class _RadarLayers {
   Future<void> show(RadarFrame frame) async {
     if (!attached || failed || _visible == frame) return;
     final previous = _visible;
-    await style.addLayer(_layer(frame), belowLayerId: _below);
+    await style.layers.add(_layer(frame), belowLayerId: _below);
     if (!attached) return;
     _sources[frame]!.shown = true;
     _visible = frame;
@@ -484,7 +485,7 @@ class _RadarLayers {
   Future<void> _hide(RadarFrame frame) async {
     final source = _sources[frame];
     if (!attached || source == null || !source.shown) return;
-    await style.removeLayer('${frame.id}-visible');
+    await style.layers.remove('${frame.id}-visible');
     source.shown = false;
     if (_visible == frame) _visible = null;
   }
@@ -498,10 +499,10 @@ class _RadarLayers {
     }
     await _hide(frame);
     if (attached && source.staged) {
-      await style.removeLayer('${frame.id}-staging');
+      await style.layers.remove('${frame.id}-staging');
       source.staged = false;
     }
-    if (attached && source.added) await style.removeSource(frame.id);
+    if (attached && source.added) await style.sources.remove(frame.id);
     _sources.remove(frame);
   }
 
@@ -518,14 +519,15 @@ class _RadarLayers {
   }
 
   RasterStyleLayer _layer(RadarFrame frame, {bool staging = false}) =>
-      RasterStyleLayer(
-        id: '${frame.id}-${staging ? 'staging' : 'visible'}',
-        sourceId: frame.id,
-        paint: {
+      StyleLayer.fromJson({
+        'type': 'raster',
+        'id': '${frame.id}-${staging ? 'staging' : 'visible'}',
+        'source': frame.id,
+        'paint': {
           'raster-fade-duration': 0,
           // A nonzero opacity keeps the tile loader active without visibly
           // mixing other timestamps into the displayed frame.
           'raster-opacity': staging ? 0.0001 : 0.6,
         },
-      );
+      }) as RasterStyleLayer;
 }

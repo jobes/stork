@@ -1,3 +1,5 @@
+import '../../support/prepared_map_style.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -136,7 +138,9 @@ ProviderContainer _container({
       () => liveTelemetry ?? _Telemetry(telemetry),
     ),
     airspaceActivityProvider.overrideWithValue({}),
-    mapStyleProvider.overrideWith((_) async => '{"version":8}'),
+    mapStyleProvider.overrideWith(
+      (_) async => testPreparedStyle('{"version":8}'),
+    ),
   ],
 );
 
@@ -165,33 +169,30 @@ void main() {
     },
   );
 
-  test(
-    'real bootstrap keeps asynchronous settings mounted before the map exists',
-    () async {
-      final settingsReady = Completer<AppSettings>();
-      final favoritesReady = Completer<List<FavoritePoint>>();
-      final settings = _SlowSettings(settingsReady.future);
-      final container = _container(
-        settings: settings,
-        favorites: favoritesReady.future,
-      );
-      // Exercise the actual coordinator, not a replacement bootstrap future.
-      final startup = container.listen(applicationBootstrapProvider, (_, _) {});
-      await container.pump();
-      settingsReady.complete(const AppSettings());
-      await container.pump();
-      expect(settings.builds, 1);
-      expect(settings.listenedAfterLoading, isTrue);
-      expect(
-        container.read(appSettingsProvider).requireValue,
-        const AppSettings(),
-      );
-      // Favourites deliberately remain pending, so no platform/map services run.
-      expect(startup.read().isLoading, isTrue);
-      container.dispose();
-      favoritesReady.complete([]);
-    },
-  );
+  test('real bootstrap keeps asynchronous settings mounted before the map exists', () async {
+    final settingsReady = Completer<AppSettings>();
+    final favoritesReady = Completer<List<FavoritePoint>>();
+    final settings = _SlowSettings(settingsReady.future);
+    final container = _container(
+      settings: settings,
+      favorites: favoritesReady.future,
+    );
+    // Exercise the actual coordinator, not a replacement bootstrap future.
+    final startup = container.listen(applicationBootstrapProvider, (_, _) {});
+    await container.pump();
+    settingsReady.complete(const AppSettings());
+    await container.pump();
+    expect(settings.builds, 1);
+    expect(settings.listenedAfterLoading, isTrue);
+    expect(
+      container.read(appSettingsProvider).requireValue,
+      const AppSettings(),
+    );
+    // Favourites deliberately remain pending, so no platform/map services run.
+    expect(startup.read().isLoading, isTrue);
+    container.dispose();
+    favoritesReady.complete([]);
+  });
   test(
     'configuration gates services, then independent preparations overlap',
     () async {

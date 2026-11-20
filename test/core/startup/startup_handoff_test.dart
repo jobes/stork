@@ -1,3 +1,5 @@
+import '../../support/map_style_backend.dart';
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -64,7 +66,7 @@ class _Traffic extends Traffic {
   @override
   List<TrafficAircraft> build() => [];
   @override
-  void updateViewport(ml.LngLatBounds bounds) {}
+  void updateViewport(ml.GeoBox bounds) {}
 }
 
 class _Settings extends AppSettingsNotifier {
@@ -125,25 +127,15 @@ class _Radar extends MapRadar {
   Future<void> refresh({bool force = false}) async {}
 }
 
-class _Style extends Fake implements ml.StyleController {
+class _Style extends TestStyle {
   int addedLayers = 0;
   @override
-  Future<void> addSource(ml.Source source) async {}
-  @override
   Future<void> addLayer(
-    ml.StyleLayer layer, {
+    Map<String, Object?> json, {
     String? belowLayerId,
-    String? aboveLayerId,
-    int? atIndex,
   }) async {
     addedLayers++;
   }
-
-  @override
-  Future<void> updateGeoJsonSource({
-    required String id,
-    required String data,
-  }) async {}
 }
 
 class _NativeMap extends platform.MapLibreMapState {
@@ -154,13 +146,16 @@ class _NativeMap extends platform.MapLibreMapState {
   @override
   void initState() {
     super.initState();
-    camera = ml.MapCamera(
-      center: options.initCenter!,
-      zoom: options.initZoom,
-      pitch: options.initPitch,
-      bearing: options.initBearing,
+    final position = options.initCamera! as ml.CameraUpdatePosition;
+    camera = ml.CameraPosition(
+      center: position.center!,
+      zoom: position.zoom!,
+      pitch: position.pitch ?? 0,
+      bearing: position.bearing ?? 0,
     );
-    owner.styles.add(options.initStyle);
+    final json = (options.style as ml.MapStyleJson).json;
+    style.loadStyle(jsonDecode(json) as Map<String, dynamic>);
+    owner.styles.add(json);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       widget.onMapCreated?.call(this);
@@ -172,12 +167,8 @@ class _NativeMap extends platform.MapLibreMapState {
   Widget buildPlatformWidget(BuildContext context) =>
       const SizedBox.expand(key: ValueKey('native-map'));
   @override
-  ml.LngLatBounds getVisibleRegion() => const ml.LngLatBounds(
-    latitudeSouth: 47,
-    latitudeNorth: 49,
-    longitudeWest: 16,
-    longitudeEast: 18,
-  );
+  ml.GeoBox getVisibleBounds() =>
+      const ml.GeoBox(south: 47, north: 49, west: 16, east: 18);
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName}');
