@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import 'stork_colors.dart';
 
 /// Shared UI language for map chrome, menus, settings, forms and dialogs.

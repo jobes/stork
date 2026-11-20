@@ -1,9 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import '../../l10n/app_localizations.dart';
 import '../theme/stork_colors.dart';
 import 'startup_page.dart';
+import 'startup_timing.dart';
 
 /// Paints our own loader before compiling/building the full application shell.
 /// Merely scheduling full preparation post-frame can still contend with the
@@ -29,7 +31,10 @@ class _FirstFrameStartupState extends State<FirstFrameStartup> {
 
   Future<void> _afterFirstPaint() async {
     await WidgetsBinding.instance.waitUntilFirstFrameRasterized;
-    if (mounted) setState(() => _showApplication = true);
+    if (mounted) {
+      startupMilestone('First loader frame');
+      setState(() => _showApplication = true);
+    }
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
@@ -440,9 +440,8 @@ class _MapAlertDialog extends ConsumerWidget {
             if (notamSummary?.oldestFetch case final fetched?)
               Text(
                 l10n.notamOldestUpdate(
-                  MaterialLocalizations.of(
-                    context,
-                  ).formatShortDate(fetched.toLocal()),
+                  MaterialLocalizations.of(context)
+                      .formatShortDate(fetched.toLocal()),
                   _formatTime(context, fetched),
                 ),
                 style: theme.textTheme.bodySmall,
@@ -556,9 +555,8 @@ class _MapAlertHistoryDialog extends ConsumerWidget {
     MapAlertHistoryEntry entry,
   ) {
     final started = entry.alert.since;
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatShortDate(started.toLocal());
+    final date = MaterialLocalizations.of(context)
+        .formatShortDate(started.toLocal());
     final start = '$date · ${_formatTime(context, started)}';
     final end = entry.endedAt;
     if (end == null) {

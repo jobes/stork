@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'aircraft_type.dart';
 
 part 'aircraft.freezed.dart';

@@ -1,9 +1,12 @@
 import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:sqlite3/sqlite3.dart';
+
 import 'dart:io';
+
 import 'package:path/path.dart' as p;
 
 import 'package:stork/features/map/presentation/models/map_alert.dart';
@@ -18,6 +21,7 @@ import 'package:stork/features/telemetry/presentation/providers/black_box_provid
 import 'package:stork/core/services/database/black_box_database_io.dart';
 import 'package:stork/features/telemetry/presentation/providers/black_box_repository_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/flight_records_provider.dart';
+
 import '../../../../helpers/sensors_mock.dart';
 
 class MockAppSettingsNotifier extends AppSettingsNotifier {
@@ -417,214 +421,205 @@ void main() {
       });
     });
 
-    test(
-      'High-frequency telemetry changes are buffered and flushed at 1Hz with deltas',
-      () {
-        fakeAsync((async) {
-          final container = ProviderContainer(
-            overrides: [blackBoxDatabaseProvider.overrideWithValue(blackBoxDb)],
-          );
-          addTearDown(container.dispose);
+    test('High-frequency telemetry changes are buffered and flushed at 1Hz with deltas', () {
+      fakeAsync((async) {
+        final container = ProviderContainer(
+          overrides: [blackBoxDatabaseProvider.overrideWithValue(blackBoxDb)],
+        );
+        addTearDown(container.dispose);
 
-          final serviceSub = container.listen(
-            blackBoxServiceProvider,
-            (prev, next) {},
-          );
-          final telemetryNotifier = container.read(telemetryProvider.notifier);
+        final serviceSub = container.listen(
+          blackBoxServiceProvider,
+          (prev, next) {},
+        );
+        final telemetryNotifier = container.read(telemetryProvider.notifier);
 
-          // Start flying
+        // Start flying
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        async.elapse(const Duration(milliseconds: 100));
+
+        final activeUuid = container
+            .read(blackBoxServiceProvider.notifier)
+            .activeFlightUuid;
+        expect(activeUuid, isNotNull);
+
+        // Initial keyframe is buffered immediately. Let's make multiple rapid changes to RPM
+        telemetryNotifier.updateEngineRPM(2500);
+        async.elapse(const Duration(milliseconds: 50));
+        telemetryNotifier.updateEngineRPM(2600);
+        async.elapse(const Duration(milliseconds: 50));
+        telemetryNotifier.updateEngineRPM(2700);
+        async.elapse(const Duration(milliseconds: 50));
+
+        // Since it's within 1 second, the buffer hasn't flushed yet to DB
+        final allTelemetryRows = db.select('SELECT * FROM flight_telemetry');
+        var telemetryCount = allTelemetryRows.length;
+        expect(
+          telemetryCount,
+          equals(0),
+        ); // 0 because the flusher timer fires periodic 1s
+
+        // Advance past 1 second to trigger flushing
+        async.elapse(const Duration(milliseconds: 1100));
+
+        // Check DB rows
+        final rows = db.select(
+          'SELECT * FROM flight_telemetry WHERE flight_uuid = ? ORDER BY id',
+          [activeUuid],
+        );
+        expect(rows.length, equals(4)); // 1 initial keyframe + 3 RPM changes
+
+        // Check that only RPM changed in subsequent rows (others are NULL)
+        expect(rows[0]['is_snapshot'], equals(1)); // Initial keyframe
+        expect(rows[0]['latitude'], equals(48.0));
+        expect(
+          rows[0]['engine_rpm'],
+          isNull,
+        ); // RPM wasn't set yet in initial state
+
+        expect(
+          rows[1]['is_snapshot'],
+          equals(1),
+        ); // Snapshot frame because RPM null -> 2500
+        expect(rows[1]['latitude'], equals(48.0));
+        expect(rows[1]['engine_rpm'], equals(2500.0));
+
+        expect(rows[2]['is_snapshot'], equals(0)); // Delta frame
+        expect(rows[2]['latitude'], isNull); // unchanged
+        expect(rows[2]['engine_rpm'], equals(2600.0));
+
+        expect(rows[3]['is_snapshot'], equals(0)); // Delta frame
+        expect(rows[3]['latitude'], isNull); // unchanged
+        expect(rows[3]['engine_rpm'], equals(2700.0));
+
+        serviceSub.close();
+      });
+    });
+
+    test('Periodic keyframes are forced every 10 seconds and on sensor offline/online status changes', () {
+      fakeAsync((async) {
+        final container = ProviderContainer(
+          overrides: [blackBoxDatabaseProvider.overrideWithValue(blackBoxDb)],
+        );
+        addTearDown(container.dispose);
+
+        final serviceSub = container.listen(
+          blackBoxServiceProvider,
+          (prev, next) {},
+        );
+        final telemetryNotifier = container.read(telemetryProvider.notifier);
+
+        // Start flying
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        async.elapse(const Duration(milliseconds: 100));
+
+        // Wait 12 seconds while updating RPM occasionally (should trigger periodic keyframe)
+        for (int i = 0; i < 12; i++) {
+          telemetryNotifier.updateEngineRPM(2500 + i);
           telemetryNotifier.updateGPS(
             latitude: 48.0,
             longitude: 17.0,
             groundSpeed: 10.0,
           );
-          async.elapse(const Duration(milliseconds: 100));
-
-          final activeUuid = container
-              .read(blackBoxServiceProvider.notifier)
-              .activeFlightUuid;
-          expect(activeUuid, isNotNull);
-
-          // Initial keyframe is buffered immediately. Let's make multiple rapid changes to RPM
-          telemetryNotifier.updateEngineRPM(2500);
-          async.elapse(const Duration(milliseconds: 50));
-          telemetryNotifier.updateEngineRPM(2600);
-          async.elapse(const Duration(milliseconds: 50));
-          telemetryNotifier.updateEngineRPM(2700);
-          async.elapse(const Duration(milliseconds: 50));
-
-          // Since it's within 1 second, the buffer hasn't flushed yet to DB
-          final allTelemetryRows = db.select('SELECT * FROM flight_telemetry');
-          var telemetryCount = allTelemetryRows.length;
-          expect(
-            telemetryCount,
-            equals(0),
-          ); // 0 because the flusher timer fires periodic 1s
-
-          // Advance past 1 second to trigger flushing
-          async.elapse(const Duration(milliseconds: 1100));
-
-          // Check DB rows
-          final rows = db.select(
-            'SELECT * FROM flight_telemetry WHERE flight_uuid = ? ORDER BY id',
-            [activeUuid],
-          );
-          expect(rows.length, equals(4)); // 1 initial keyframe + 3 RPM changes
-
-          // Check that only RPM changed in subsequent rows (others are NULL)
-          expect(rows[0]['is_snapshot'], equals(1)); // Initial keyframe
-          expect(rows[0]['latitude'], equals(48.0));
-          expect(
-            rows[0]['engine_rpm'],
-            isNull,
-          ); // RPM wasn't set yet in initial state
-
-          expect(
-            rows[1]['is_snapshot'],
-            equals(1),
-          ); // Snapshot frame because RPM null -> 2500
-          expect(rows[1]['latitude'], equals(48.0));
-          expect(rows[1]['engine_rpm'], equals(2500.0));
-
-          expect(rows[2]['is_snapshot'], equals(0)); // Delta frame
-          expect(rows[2]['latitude'], isNull); // unchanged
-          expect(rows[2]['engine_rpm'], equals(2600.0));
-
-          expect(rows[3]['is_snapshot'], equals(0)); // Delta frame
-          expect(rows[3]['latitude'], isNull); // unchanged
-          expect(rows[3]['engine_rpm'], equals(2700.0));
-
-          serviceSub.close();
-        });
-      },
-    );
-
-    test(
-      'Periodic keyframes are forced every 10 seconds and on sensor offline/online status changes',
-      () {
-        fakeAsync((async) {
-          final container = ProviderContainer(
-            overrides: [blackBoxDatabaseProvider.overrideWithValue(blackBoxDb)],
-          );
-          addTearDown(container.dispose);
-
-          final serviceSub = container.listen(
-            blackBoxServiceProvider,
-            (prev, next) {},
-          );
-          final telemetryNotifier = container.read(telemetryProvider.notifier);
-
-          // Start flying
-          telemetryNotifier.updateGPS(
-            latitude: 48.0,
-            longitude: 17.0,
-            groundSpeed: 10.0,
-          );
-          async.elapse(const Duration(milliseconds: 100));
-
-          // Wait 12 seconds while updating RPM occasionally (should trigger periodic keyframe)
-          for (int i = 0; i < 12; i++) {
-            telemetryNotifier.updateEngineRPM(2500 + i);
-            telemetryNotifier.updateGPS(
-              latitude: 48.0,
-              longitude: 17.0,
-              groundSpeed: 10.0,
-            );
-            async.elapse(const Duration(seconds: 1));
-          }
-
-          final rows = db.select(
-            'SELECT * FROM flight_telemetry ORDER BY timestamp ASC',
-          );
-          final snapshots = rows.where((r) => r['is_snapshot'] == 1).toList();
-
-          // We should have at least 2 snapshots (the initial one + one after 10 seconds)
-          expect(snapshots.length, greaterThanOrEqualTo(2));
-
-          // Now test sensor online/offline status change: lose GPS by resetting it
-          final currentTelemetry = container.read(telemetryProvider);
-          telemetryNotifier.updateAll(
-            currentTelemetry.resetField(TelemetryField.latitude),
-          );
-          async.elapse(const Duration(milliseconds: 1100));
-
-          final updatedRows = db.select(
-            'SELECT * FROM flight_telemetry ORDER BY timestamp ASC',
-          );
-          final lastRow = updatedRows.last;
-
-          // GPS offline (latitude: null) should force a keyframe!
-          expect(lastRow['is_snapshot'], equals(1));
-          expect(lastRow['latitude'], isNull); // real null
-
-          serviceSub.close();
-        });
-      },
-    );
-
-    test(
-      'Telemetry is not buffered during flight creation progress, and is buffered after',
-      () {
-        fakeAsync((async) {
-          final mockDb = FakeDelayingBlackBoxDatabase();
-          mockDb.dbPathOverride = dbPath;
-          mockDb.database = db;
-          mockDb.setupTables(db);
-
-          final completer = Completer<void>();
-          mockDb.saveFlightCompleter = completer;
-
-          final container = ProviderContainer(
-            overrides: [blackBoxDatabaseProvider.overrideWithValue(mockDb)],
-          );
-          addTearDown(container.dispose);
-
-          final serviceSub = container.listen(
-            blackBoxServiceProvider,
-            (prev, next) {},
-          );
-          final telemetryNotifier = container.read(telemetryProvider.notifier);
-
-          // Start flying (triggers _startFlight which calls saveFlight but it's delayed)
-          telemetryNotifier.updateGPS(
-            latitude: 48.0,
-            longitude: 17.0,
-            groundSpeed: 10.0,
-          );
-          async.elapse(const Duration(milliseconds: 100));
-
-          // Update telemetry while saveFlight is in progress
-          telemetryNotifier.updateEngineRPM(2500);
-          async.elapse(const Duration(milliseconds: 100));
-
-          // Verify no telemetry in DB yet
-          expect(
-            db
-                .select('SELECT COUNT(*) as count FROM flight_telemetry')
-                .first['count'],
-            equals(0),
-          );
-
-          // Complete saveFlight
-          completer.complete();
-          async.elapse(const Duration(milliseconds: 100));
-
-          // Initial keyframe should be buffered/saved now (after flush timer fires)
           async.elapse(const Duration(seconds: 1));
-          final allTelemetry = db.select('SELECT * FROM flight_telemetry');
-          final countAfterInit = allTelemetry.length;
-          expect(countAfterInit, greaterThan(0));
+        }
 
-          // Assert the engine RPM sample of 2500 is eventually persisted
-          final hasRPM2500 = allTelemetry.any(
-            (row) => (row['engine_rpm'] as num?)?.toDouble() == 2500.0,
-          );
-          expect(hasRPM2500, isTrue);
+        final rows = db.select(
+          'SELECT * FROM flight_telemetry ORDER BY timestamp ASC',
+        );
+        final snapshots = rows.where((r) => r['is_snapshot'] == 1).toList();
 
-          serviceSub.close();
-        });
-      },
-    );
+        // We should have at least 2 snapshots (the initial one + one after 10 seconds)
+        expect(snapshots.length, greaterThanOrEqualTo(2));
+
+        // Now test sensor online/offline status change: lose GPS by resetting it
+        final currentTelemetry = container.read(telemetryProvider);
+        telemetryNotifier.updateAll(
+          currentTelemetry.resetField(TelemetryField.latitude),
+        );
+        async.elapse(const Duration(milliseconds: 1100));
+
+        final updatedRows = db.select(
+          'SELECT * FROM flight_telemetry ORDER BY timestamp ASC',
+        );
+        final lastRow = updatedRows.last;
+
+        // GPS offline (latitude: null) should force a keyframe!
+        expect(lastRow['is_snapshot'], equals(1));
+        expect(lastRow['latitude'], isNull); // real null
+
+        serviceSub.close();
+      });
+    });
+
+    test('Telemetry is not buffered during flight creation progress, and is buffered after', () {
+      fakeAsync((async) {
+        final mockDb = FakeDelayingBlackBoxDatabase();
+        mockDb.dbPathOverride = dbPath;
+        mockDb.database = db;
+        mockDb.setupTables(db);
+
+        final completer = Completer<void>();
+        mockDb.saveFlightCompleter = completer;
+
+        final container = ProviderContainer(
+          overrides: [blackBoxDatabaseProvider.overrideWithValue(mockDb)],
+        );
+        addTearDown(container.dispose);
+
+        final serviceSub = container.listen(
+          blackBoxServiceProvider,
+          (prev, next) {},
+        );
+        final telemetryNotifier = container.read(telemetryProvider.notifier);
+
+        // Start flying (triggers _startFlight which calls saveFlight but it's delayed)
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        async.elapse(const Duration(milliseconds: 100));
+
+        // Update telemetry while saveFlight is in progress
+        telemetryNotifier.updateEngineRPM(2500);
+        async.elapse(const Duration(milliseconds: 100));
+
+        // Verify no telemetry in DB yet
+        expect(
+          db
+              .select('SELECT COUNT(*) as count FROM flight_telemetry')
+              .first['count'],
+          equals(0),
+        );
+
+        // Complete saveFlight
+        completer.complete();
+        async.elapse(const Duration(milliseconds: 100));
+
+        // Initial keyframe should be buffered/saved now (after flush timer fires)
+        async.elapse(const Duration(seconds: 1));
+        final allTelemetry = db.select('SELECT * FROM flight_telemetry');
+        final countAfterInit = allTelemetry.length;
+        expect(countAfterInit, greaterThan(0));
+
+        // Assert the engine RPM sample of 2500 is eventually persisted
+        final hasRPM2500 = allTelemetry.any(
+          (row) => (row['engine_rpm'] as num?)?.toDouble() == 2500.0,
+        );
+        expect(hasRPM2500, isTrue);
+
+        serviceSub.close();
+      });
+    });
 
     test(
       'Failed telemetry batch inserts are requeued and retried on next flush',
@@ -717,105 +712,102 @@ void main() {
       },
     );
 
-    test(
-      'flightRecordsProvider recovers unfinished flights and updates on start/stop',
-      () {
-        fakeAsync((async) {
-          final mockDb = FakeDelayingBlackBoxDatabase();
-          mockDb.dbPathOverride = dbPath;
-          mockDb.database = db;
-          mockDb.setupTables(db);
-          mockDb.runStatsSynchronously = true;
+    test('flightRecordsProvider recovers unfinished flights and updates on start/stop', () {
+      fakeAsync((async) {
+        final mockDb = FakeDelayingBlackBoxDatabase();
+        mockDb.dbPathOverride = dbPath;
+        mockDb.database = db;
+        mockDb.setupTables(db);
+        mockDb.runStatsSynchronously = true;
 
-          // Seed an unfinished flight (endTime null) directly in the fake DB
-          final unfinishedFlight = Flight(
-            uuid: 'unfinished-uuid',
-            name: 'Unfinished Flight',
-            startTime: DateTime.now(),
-            pilotId: 'test-pilot',
-            airplaneId: 'test-plane',
-          );
-          // Save without awaiting; IoBlackBoxDatabase uses synchronous sqlite calls internally
-          mockDb.saveFlight(unfinishedFlight);
-          async.flushMicrotasks();
+        // Seed an unfinished flight (endTime null) directly in the fake DB
+        final unfinishedFlight = Flight(
+          uuid: 'unfinished-uuid',
+          name: 'Unfinished Flight',
+          startTime: DateTime.now(),
+          pilotId: 'test-pilot',
+          airplaneId: 'test-plane',
+        );
+        // Save without awaiting; IoBlackBoxDatabase uses synchronous sqlite calls internally
+        mockDb.saveFlight(unfinishedFlight);
+        async.flushMicrotasks();
 
-          final container = ProviderContainer(
-            overrides: [
-              blackBoxDatabaseProvider.overrideWithValue(mockDb),
-              appSettingsProvider.overrideWith(
-                () => MockAppSettingsNotifier(
-                  const AppSettings(
-                    pilotId: 'test-pilot',
-                    airplaneId: 'test-plane',
-                  ),
+        final container = ProviderContainer(
+          overrides: [
+            blackBoxDatabaseProvider.overrideWithValue(mockDb),
+            appSettingsProvider.overrideWith(
+              () => MockAppSettingsNotifier(
+                const AppSettings(
+                  pilotId: 'test-pilot',
+                  airplaneId: 'test-plane',
                 ),
               ),
-            ],
-          );
-          // Wait for recovery to finish
-          async.elapse(const Duration(seconds: 1));
-          async.flushMicrotasks();
+            ),
+          ],
+        );
+        // Wait for recovery to finish
+        async.elapse(const Duration(seconds: 1));
+        async.flushMicrotasks();
 
-          // Keep flightRecordsProvider listened so it retains its state
-          final recordsListener = container.listen(
-            flightRecordsProvider,
-            (prev, next) {},
-          );
+        // Keep flightRecordsProvider listened so it retains its state
+        final recordsListener = container.listen(
+          flightRecordsProvider,
+          (prev, next) {},
+        );
 
-          // Build black box service (triggers recovery)
-          final serviceSub = container.listen(
-            blackBoxServiceProvider,
-            (prev, next) {},
-          );
-          final telemetryNotifier = container.read(telemetryProvider.notifier);
+        // Build black box service (triggers recovery)
+        final serviceSub = container.listen(
+          blackBoxServiceProvider,
+          (prev, next) {},
+        );
+        final telemetryNotifier = container.read(telemetryProvider.notifier);
 
-          // Allow recovery to run – the provider should now contain the seeded flight with a recovered endTime
-          async.elapse(const Duration(milliseconds: 500));
-          async.flushMicrotasks();
-          async.elapse(const Duration(milliseconds: 100));
-          async.flushMicrotasks();
-          async.elapse(const Duration(milliseconds: 500));
-          async.flushMicrotasks();
+        // Allow recovery to run – the provider should now contain the seeded flight with a recovered endTime
+        async.elapse(const Duration(milliseconds: 500));
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 100));
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 500));
+        async.flushMicrotasks();
 
-          final recovered = container.read(flightRecordsProvider).value;
-          expect(recovered?.flights.length, equals(1));
-          expect(recovered?.flights.first.uuid, equals('unfinished-uuid'));
-          expect(
-            recovered?.flights.first.endTime,
-            isNotNull,
-            reason: 'recoverUnfinishedFlights should set a non‑null endTime',
-          );
+        final recovered = container.read(flightRecordsProvider).value;
+        expect(recovered?.flights.length, equals(1));
+        expect(recovered?.flights.first.uuid, equals('unfinished-uuid'));
+        expect(
+          recovered?.flights.first.endTime,
+          isNotNull,
+          reason: 'recoverUnfinishedFlights should set a non‑null endTime',
+        );
 
-          // Start a new flight – this should add a second entry
-          telemetryNotifier.updateGPS(
-            latitude: 48.0,
-            longitude: 17.0,
-            groundSpeed: 10.0,
-          );
-          async.elapse(const Duration(milliseconds: 100));
-          final afterStart = container.read(flightRecordsProvider).value;
-          expect(afterStart?.flights.length, equals(2));
-          // The newest flight should have a null endTime initially
-          final newFlight = afterStart?.flights.firstWhere(
-            (f) => f.uuid != 'unfinished-uuid',
-          );
-          expect(newFlight?.endTime, isNull);
+        // Start a new flight – this should add a second entry
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        async.elapse(const Duration(milliseconds: 100));
+        final afterStart = container.read(flightRecordsProvider).value;
+        expect(afterStart?.flights.length, equals(2));
+        // The newest flight should have a null endTime initially
+        final newFlight = afterStart?.flights.firstWhere(
+          (f) => f.uuid != 'unfinished-uuid',
+        );
+        expect(newFlight?.endTime, isNull);
 
-          // Stop the new flight – endTime should become non‑null
-          telemetryNotifier.updateGPS(groundSpeed: 0.0);
-          async.elapse(const Duration(milliseconds: 100));
-          final afterStop = container.read(flightRecordsProvider).value;
-          expect(afterStop?.flights.length, equals(2));
-          final stoppedFlight = afterStop?.flights.firstWhere(
-            (f) => f.uuid != 'unfinished-uuid',
-          );
-          expect(stoppedFlight?.endTime, isNotNull);
+        // Stop the new flight – endTime should become non‑null
+        telemetryNotifier.updateGPS(groundSpeed: 0.0);
+        async.elapse(const Duration(milliseconds: 100));
+        final afterStop = container.read(flightRecordsProvider).value;
+        expect(afterStop?.flights.length, equals(2));
+        final stoppedFlight = afterStop?.flights.firstWhere(
+          (f) => f.uuid != 'unfinished-uuid',
+        );
+        expect(stoppedFlight?.endTime, isNotNull);
 
-          serviceSub.close();
-          recordsListener.close();
-        });
-      },
-    );
+        serviceSub.close();
+        recordsListener.close();
+      });
+    });
 
     test(
       'A GPS dropout shorter than the grace period keeps the same flight',
@@ -894,88 +886,84 @@ void main() {
       },
     );
 
-    test(
-      'A GPS dropout longer than the grace period ends the flight and a new one starts on signal return',
-      () {
-        fakeAsync((async) {
-          final container = ProviderContainer(
-            overrides: [
-              blackBoxDatabaseProvider.overrideWithValue(blackBoxDb),
-              appSettingsProvider.overrideWith(
-                () => MockAppSettingsNotifier(
-                  const AppSettings(
-                    pilotId: 'test-pilot',
-                    airplaneId: 'test-plane',
-                  ),
+    test('A GPS dropout longer than the grace period ends the flight and a new one starts on signal return', () {
+      fakeAsync((async) {
+        final container = ProviderContainer(
+          overrides: [
+            blackBoxDatabaseProvider.overrideWithValue(blackBoxDb),
+            appSettingsProvider.overrideWith(
+              () => MockAppSettingsNotifier(
+                const AppSettings(
+                  pilotId: 'test-pilot',
+                  airplaneId: 'test-plane',
                 ),
               ),
-            ],
-          );
-          addTearDown(container.dispose);
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
 
-          final serviceSub = container.listen(
-            blackBoxServiceProvider,
-            (prev, next) {},
-          );
-          final telemetryNotifier = container.read(telemetryProvider.notifier);
+        final serviceSub = container.listen(
+          blackBoxServiceProvider,
+          (prev, next) {},
+        );
+        final telemetryNotifier = container.read(telemetryProvider.notifier);
 
-          void fly(int seconds) {
-            for (var i = 0; i < seconds; i++) {
-              async.elapse(const Duration(seconds: 1));
-              telemetryNotifier.updateGPS(
-                latitude: 48.0 + i * 0.001,
-                longitude: 17.0 + i * 0.001,
-                groundSpeed: 10.0,
-              );
-            }
+        void fly(int seconds) {
+          for (var i = 0; i < seconds; i++) {
+            async.elapse(const Duration(seconds: 1));
+            telemetryNotifier.updateGPS(
+              latitude: 48.0 + i * 0.001,
+              longitude: 17.0 + i * 0.001,
+              groundSpeed: 10.0,
+            );
           }
+        }
 
-          fly(5);
-          async.elapse(const Duration(milliseconds: 1100));
+        fly(5);
+        async.elapse(const Duration(milliseconds: 1100));
 
-          final firstUuid = container
-              .read(blackBoxServiceProvider.notifier)
-              .activeFlightUuid;
-          expect(firstUuid, isNotNull);
+        final firstUuid = container
+            .read(blackBoxServiceProvider.notifier)
+            .activeFlightUuid;
+        expect(firstUuid, isNotNull);
 
-          // GPS signal is lost for longer than the grace period.
-          async.elapse(const Duration(seconds: 30));
-          expect(container.read(telemetryProvider).isFlying, isFalse);
-          expect(
-            container.read(blackBoxServiceProvider.notifier).activeFlightUuid,
-            isNull,
-          );
-          async.elapse(const Duration(milliseconds: 1100));
+        // GPS signal is lost for longer than the grace period.
+        async.elapse(const Duration(seconds: 30));
+        expect(container.read(telemetryProvider).isFlying, isFalse);
+        expect(
+          container.read(blackBoxServiceProvider.notifier).activeFlightUuid,
+          isNull,
+        );
+        async.elapse(const Duration(milliseconds: 1100));
 
-          final endedFlight = db.select(
-            'SELECT * FROM flights WHERE uuid = ?',
-            [firstUuid],
-          );
-          expect(endedFlight, hasLength(1));
-          expect(endedFlight.first['end_time'], isNotNull);
+        final endedFlight = db.select('SELECT * FROM flights WHERE uuid = ?', [
+          firstUuid,
+        ]);
+        expect(endedFlight, hasLength(1));
+        expect(endedFlight.first['end_time'], isNotNull);
 
-          // GPS is back: a new flight is started.
-          telemetryNotifier.updateGPS(
-            latitude: 48.5,
-            longitude: 17.5,
-            groundSpeed: 10.0,
-          );
-          async.elapse(const Duration(milliseconds: 1100));
+        // GPS is back: a new flight is started.
+        telemetryNotifier.updateGPS(
+          latitude: 48.5,
+          longitude: 17.5,
+          groundSpeed: 10.0,
+        );
+        async.elapse(const Duration(milliseconds: 1100));
 
-          final newUuid = container
-              .read(blackBoxServiceProvider.notifier)
-              .activeFlightUuid;
-          expect(newUuid, isNotNull);
-          expect(newUuid, isNot(equals(firstUuid)));
-          expect(
-            db.select('SELECT COUNT(*) as count FROM flights').first['count'],
-            equals(2),
-          );
+        final newUuid = container
+            .read(blackBoxServiceProvider.notifier)
+            .activeFlightUuid;
+        expect(newUuid, isNotNull);
+        expect(newUuid, isNot(equals(firstUuid)));
+        expect(
+          db.select('SELECT COUNT(*) as count FROM flights').first['count'],
+          equals(2),
+        );
 
-          serviceSub.close();
-        });
-      },
-    );
+        serviceSub.close();
+      });
+    });
   });
 }
 

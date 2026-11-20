@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../core/utils/number_formatter.dart';
 import '../../../../l10n/app_localizations.dart';

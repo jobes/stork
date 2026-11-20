@@ -103,22 +103,19 @@ void main() {
       expect(aircraft, isNull);
     });
 
-    test(
-      'parseAprsLine parses packet with 3-decimal minutes and missing course/speed',
-      () {
-        const packet =
-            'FLR1EFCCC>OGFLR,qAS,K2B9:/172500h4432.073N/07306.442W^/A=000646 !W72! id061EFCCC +039fpm';
+    test('parseAprsLine parses packet with 3-decimal minutes and missing course/speed', () {
+      const packet =
+          'FLR1EFCCC>OGFLR,qAS,K2B9:/172500h4432.073N/07306.442W^/A=000646 !W72! id061EFCCC +039fpm';
 
-        final aircraft = service.parseAprsLine(packet);
+      final aircraft = service.parseAprsLine(packet);
 
-        expect(aircraft, isNotNull);
-        expect(aircraft!.latitude, closeTo(44.53455, 0.0001));
-        expect(aircraft.longitude, closeTo(-73.10736, 0.0001));
-        expect(aircraft.track, equals(0.0));
-        expect(aircraft.groundSpeed, equals(0.0));
-        expect(aircraft.altitude, closeTo(196.9, 0.1));
-      },
-    );
+      expect(aircraft, isNotNull);
+      expect(aircraft!.latitude, closeTo(44.53455, 0.0001));
+      expect(aircraft.longitude, closeTo(-73.10736, 0.0001));
+      expect(aircraft.track, equals(0.0));
+      expect(aircraft.groundSpeed, equals(0.0));
+      expect(aircraft.altitude, closeTo(196.9, 0.1));
+    });
 
     test('lookupDdb parses OGN DDB JSON response successfully', () async {
       final mockClient = MockHttpClient();
@@ -170,64 +167,55 @@ void main() {
       expect(result['cn'], equals('EL'));
     });
 
-    test(
-      'lookupDdbMultiple queries multiple IDs in a single request and returns a map',
-      () async {
-        final mockClient = MockHttpClient();
-        final testService = OgnAprsService(client: mockClient);
+    test('lookupDdbMultiple queries multiple IDs in a single request and returns a map', () async {
+      final mockClient = MockHttpClient();
+      final testService = OgnAprsService(client: mockClient);
 
-        const mockResponse =
-            '{"devices":['
-            '{"device_type":"F","device_id":"1EFCCC","aircraft_model":"AS 33Me","registration":"OY-XEL","cn":"EL","tracked":"Y","identified":"Y"},'
-            '{"device_type":"O","device_id":"2ABCDE","aircraft_model":"LS-6","registration":"D-EEAC","cn":"AC","tracked":"Y","identified":"Y"}'
-            ']}';
+      const mockResponse =
+          '{"devices":['
+          '{"device_type":"F","device_id":"1EFCCC","aircraft_model":"AS 33Me","registration":"OY-XEL","cn":"EL","tracked":"Y","identified":"Y"},'
+          '{"device_type":"O","device_id":"2ABCDE","aircraft_model":"LS-6","registration":"D-EEAC","cn":"AC","tracked":"Y","identified":"Y"}'
+          ']}';
 
-        when(
-          () => mockClient.get(
-            Uri.https('ddb.glidernet.org', '/download/', {
-              'j': '1',
-              'device_id': '1EFCCC,2ABCDE',
-            }),
-            headers: any(named: 'headers'),
-          ),
-        ).thenAnswer((_) async => http.Response(mockResponse, 200));
+      when(
+        () => mockClient.get(
+          Uri.https('ddb.glidernet.org', '/download/', {
+            'j': '1',
+            'device_id': '1EFCCC,2ABCDE',
+          }),
+          headers: any(named: 'headers'),
+        ),
+      ).thenAnswer((_) async => http.Response(mockResponse, 200));
 
-        final results = await testService.lookupDdbMultiple([
-          '1efccc',
-          '2abcde',
-        ]);
+      final results = await testService.lookupDdbMultiple(['1efccc', '2abcde']);
 
-        expect(results, isNotNull);
-        expect(results.length, equals(2));
+      expect(results, isNotNull);
+      expect(results.length, equals(2));
 
-        expect(results['1EFCCC']!['registration'], equals('OY-XEL'));
-        expect(results['1EFCCC']!['aircraftModel'], equals('AS 33Me'));
+      expect(results['1EFCCC']!['registration'], equals('OY-XEL'));
+      expect(results['1EFCCC']!['aircraftModel'], equals('AS 33Me'));
 
-        expect(results['2ABCDE']!['registration'], equals('D-EEAC'));
-        expect(results['2ABCDE']!['aircraftModel'], equals('LS-6'));
-      },
-    );
+      expect(results['2ABCDE']!['registration'], equals('D-EEAC'));
+      expect(results['2ABCDE']!['aircraftModel'], equals('LS-6'));
+    });
 
-    test(
-      'lookupDdbMultiple handles non-200 HTTP response gracefully without caching',
-      () async {
-        final mockClient = MockHttpClient();
-        final testService = OgnAprsService(client: mockClient);
+    test('lookupDdbMultiple handles non-200 HTTP response gracefully without caching', () async {
+      final mockClient = MockHttpClient();
+      final testService = OgnAprsService(client: mockClient);
 
-        when(
-          () => mockClient.get(
-            Uri.https('ddb.glidernet.org', '/download/', {
-              'j': '1',
-              'device_id': '1EFCCC',
-            }),
-            headers: any(named: 'headers'),
-          ),
-        ).thenAnswer((_) async => http.Response('Server Error', 500));
+      when(
+        () => mockClient.get(
+          Uri.https('ddb.glidernet.org', '/download/', {
+            'j': '1',
+            'device_id': '1EFCCC',
+          }),
+          headers: any(named: 'headers'),
+        ),
+      ).thenAnswer((_) async => http.Response('Server Error', 500));
 
-        final results = await testService.lookupDdbMultiple(['1EFCCC']);
-        expect(results, isEmpty);
-      },
-    );
+      final results = await testService.lookupDdbMultiple(['1EFCCC']);
+      expect(results, isEmpty);
+    });
 
     test(
       'lookupDdbMultiple handles HTTP client exception gracefully',

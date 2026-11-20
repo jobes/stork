@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,10 +11,11 @@ import 'package:stork/core/startup/application_bootstrap.dart';
 import 'package:stork/core/startup/application_runtime.dart';
 import 'package:stork/core/startup/first_frame_startup.dart';
 import 'package:stork/core/startup/startup_page.dart';
+import 'package:stork/core/startup/map_startup_provider.dart';
 import 'package:stork/core/theme/app_theme.dart';
 import 'package:stork/features/map/presentation/pages/map_page.dart';
 import 'package:stork/features/settings/presentation/providers/display_preferences_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 import 'package:stork/main.dart';
 
 class _Preferences extends DisplayPreferencesNotifier {
@@ -32,9 +33,9 @@ void main() {
       final loader = FontLoader(entry.key);
       for (final name in entry.value) {
         loader.addFont(
-          File(
-            'test/visual/fonts/$name',
-          ).readAsBytes().then(ByteData.sublistView),
+          File('test/visual/fonts/$name')
+              .readAsBytes()
+              .then(ByteData.sublistView),
         );
       }
       await loader.load();
@@ -83,6 +84,11 @@ void main() {
     await tester.pump(const Duration(seconds: 10));
     expect(find.text('Pripravujeme mapu'), findsOneWidget);
     expect(find.byType(MapPage), findsNothing);
+    await tester.pump(
+      MapStartup.preparationBudget - const Duration(seconds: 10),
+    );
+    expect(find.text('Príprava sa nepodarila'), findsOneWidget);
+    expect(find.text('Skúsiť znova'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
     pending.complete();
     await tester.pump();
@@ -101,6 +107,7 @@ void main() {
       ProviderScope(
         overrides: [
           displayPreferencesProvider.overrideWith(_Preferences.new),
+          applicationRuntimeProvider.overrideWith((_) async => false),
           applicationBootstrapProvider.overrideWith((_) {
             starts++;
             return pending.future;
@@ -135,6 +142,7 @@ void main() {
       ProviderScope(
         overrides: [
           displayPreferencesProvider.overrideWith(_Preferences.new),
+          applicationRuntimeProvider.overrideWith((_) async => false),
           applicationBootstrapProvider.overrideWith((_) {
             starts++;
             return starts == 1
@@ -175,7 +183,7 @@ void main() {
         MaterialApp(
           theme: dark ? AppTheme.darkTheme : AppTheme.lightTheme,
           locale: const Locale('sk'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           builder: (_, child) => MediaQuery(
             data: MediaQueryData(
@@ -205,9 +213,8 @@ void main() {
         await tester.runAsync(() async {
           final image = await boundary.toImage();
           final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-          await File(
-            '/tmp/stork-startup-$name.png',
-          ).writeAsBytes(bytes!.buffer.asUint8List());
+          await File('/tmp/stork-startup-$name.png')
+              .writeAsBytes(bytes!.buffer.asUint8List());
           image.dispose();
         });
       }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -56,9 +56,8 @@ class VhfRadioTelemetryWidget extends ConsumerWidget {
     final bool isRx = (radioFlags & 2) != 0;
     final bool isDual = (radioFlags & 4) != 0;
     final cardState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.radio,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.radio)
+          .select((status) => status.cardState),
     );
     final isErr = cardState == ThresholdState.maxError;
 

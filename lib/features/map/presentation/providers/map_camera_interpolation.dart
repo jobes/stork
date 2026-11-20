@@ -71,10 +71,12 @@ extension MapCameraInterpolation on MapCamera {
       _currentInterpolatedBearing = bearing;
 
       _mapController!.moveCamera(
-        center: currentCenter,
-        zoom: zoom,
-        pitch: pitch,
-        bearing: bearing,
+        CameraUpdate.position(
+          center: currentCenter,
+          zoom: zoom,
+          pitch: pitch,
+          bearing: bearing,
+        ),
       );
       _lastProgrammaticMoveTime = DateTime.now();
 
@@ -128,12 +130,14 @@ extension MapCameraInterpolation on MapCamera {
   }) {
     if (!_isAircraftSymbolInitialized || _mapController?.style == null) return;
 
-    _mapController!.style!.updateGeoJsonSource(
-      id: 'aircraft-source',
-      data: GeoJsonBuilder.buildAircraftGeoJson(
-        aircraftLat,
-        aircraftLon,
-        aircraftBearing,
+    _mapController!.style!.sources.updateGeoJsonData(
+      'aircraft-source',
+      GeoJsonData.text(
+        GeoJsonBuilder.buildAircraftGeoJson(
+          aircraftLat,
+          aircraftLon,
+          aircraftBearing,
+        ),
       ),
     );
 

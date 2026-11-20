@@ -180,8 +180,7 @@ const Map<String, String> notamTranslations = {
   'MAINT': 'Maintain, Maintenance',
   'MALS': 'Medium Intensity Approach Light System',
   'MALSF': 'Medium Intensity Approach Light System with Sequenced Flashers',
-  'MALSR':
-      'Medium Intensity Approach Light System with Runway Alignment Indicator Lights',
+  'MALSR': 'Medium Intensity Approach Light System with Runway Alignment Indicator Lights',
   'MAPT': 'Missed Approach Point',
   'MCA': 'Minimum Crossing Altitude',
   'MDA': 'Minimum Descent Altitude',
@@ -292,8 +291,7 @@ const Map<String, String> notamTranslations = {
   'SNGL': 'Single',
   'SPD': 'Speed',
   'SSALF': 'Simplified Short Approach Lighting with Sequence Flashers',
-  'SSALR':
-      'Simplified Short Approach Lighting with Runway Alignment Indicator Lights',
+  'SSALR': 'Simplified Short Approach Lighting with Runway Alignment Indicator Lights',
   'SSALS': 'Simplified Short Approach Lighting System',
   'SSR': 'Secondary Surveillance Radar',
   'STA': 'Straight-In Approach',

@@ -8,6 +8,7 @@ import 'package:stork/features/telemetry/presentation/providers/telemetry_provid
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/providers/aircraft_provider.dart';
+
 import '../../../helpers/sensors_mock.dart';
 
 void main() {
@@ -72,39 +73,36 @@ void main() {
       },
     );
 
-    test(
-      'auto-advances when time to next point is <= 60 seconds (using aircraft cruising speed)',
-      () async {
-        final notifier = container.read(navigationProvider.notifier);
+    test('auto-advances when time to next point is <= 60 seconds (using aircraft cruising speed)', () async {
+      final notifier = container.read(navigationProvider.notifier);
 
-        // Point 1 is at 48.004, 17.0 (~444 meters away)
-        const point1 = NavigationPoint(
-          latitude: 48.004,
-          longitude: 17.0,
-          name: 'Point 1',
-        );
-        const point2 = NavigationPoint(
-          latitude: 48.05,
-          longitude: 17.0,
-          name: 'Point 2',
-        );
-        await notifier.addPoint(point1);
-        await notifier.addPoint(point2);
+      // Point 1 is at 48.004, 17.0 (~444 meters away)
+      const point1 = NavigationPoint(
+        latitude: 48.004,
+        longitude: 17.0,
+        name: 'Point 1',
+      );
+      const point2 = NavigationPoint(
+        latitude: 48.05,
+        longitude: 17.0,
+        name: 'Point 2',
+      );
+      await notifier.addPoint(point1);
+      await notifier.addPoint(point2);
 
-        // Distance is ~444m. Speed is 10 m/s.
-        // Time is 44 seconds (<= 60 seconds) -> should auto-advance
-        container
-            .read(telemetryProvider.notifier)
-            .updateGPS(latitude: 48.0, longitude: 17.0, groundSpeed: 0.0);
+      // Distance is ~444m. Speed is 10 m/s.
+      // Time is 44 seconds (<= 60 seconds) -> should auto-advance
+      container
+          .read(telemetryProvider.notifier)
+          .updateGPS(latitude: 48.0, longitude: 17.0, groundSpeed: 0.0);
 
-        // Wait for notifier updates to settle
-        await Future.delayed(const Duration(milliseconds: 50));
+      // Wait for notifier updates to settle
+      await Future.delayed(const Duration(milliseconds: 50));
 
-        final state = await container.read(navigationProvider.future);
-        expect(state.points, hasLength(1));
-        expect(state.points[0].name, 'Point 2');
-      },
-    );
+      final state = await container.read(navigationProvider.future);
+      expect(state.points, hasLength(1));
+      expect(state.points[0].name, 'Point 2');
+    });
 
     test('auto-advances using ground speed when flying', () async {
       final notifier = container.read(navigationProvider.notifier);
@@ -140,48 +138,45 @@ void main() {
       expect(state.points[0].name, 'Point 2');
     });
 
-    test(
-      'auto-advances multiple points at once when all are under 60 seconds threshold',
-      () async {
-        final notifier = container.read(navigationProvider.notifier);
+    test('auto-advances multiple points at once when all are under 60 seconds threshold', () async {
+      final notifier = container.read(navigationProvider.notifier);
 
-        // Point 1 is at 48.002, 17.0 (~222m away)
-        // Point 2 is at 48.004, 17.0 (~222m from Point 1, cumulative ~444m away)
-        // Point 3 is at 48.050, 17.0 (~5.1km away, cumulative ~5.5km away)
-        const point1 = NavigationPoint(
-          latitude: 48.002,
-          longitude: 17.0,
-          name: 'Point 1',
-        );
-        const point2 = NavigationPoint(
-          latitude: 48.004,
-          longitude: 17.0,
-          name: 'Point 2',
-        );
-        const point3 = NavigationPoint(
-          latitude: 48.050,
-          longitude: 17.0,
-          name: 'Point 3',
-        );
+      // Point 1 is at 48.002, 17.0 (~222m away)
+      // Point 2 is at 48.004, 17.0 (~222m from Point 1, cumulative ~444m away)
+      // Point 3 is at 48.050, 17.0 (~5.1km away, cumulative ~5.5km away)
+      const point1 = NavigationPoint(
+        latitude: 48.002,
+        longitude: 17.0,
+        name: 'Point 1',
+      );
+      const point2 = NavigationPoint(
+        latitude: 48.004,
+        longitude: 17.0,
+        name: 'Point 2',
+      );
+      const point3 = NavigationPoint(
+        latitude: 48.050,
+        longitude: 17.0,
+        name: 'Point 3',
+      );
 
-        await notifier.addPoint(point1);
-        await notifier.addPoint(point2);
-        await notifier.addPoint(point3);
+      await notifier.addPoint(point1);
+      await notifier.addPoint(point2);
+      await notifier.addPoint(point3);
 
-        // Distance to point 1 is 222m. At 10m/s: time is 22s (<= 60s)
-        // Distance to point 2 is cumulative 444m. At 10m/s: time is 44s (<= 60s)
-        // Distance to point 3 is cumulative 5.5km. At 10m/s: time is 550s (> 60s)
-        container
-            .read(telemetryProvider.notifier)
-            .updateGPS(latitude: 48.0, longitude: 17.0, groundSpeed: 0.0);
+      // Distance to point 1 is 222m. At 10m/s: time is 22s (<= 60s)
+      // Distance to point 2 is cumulative 444m. At 10m/s: time is 44s (<= 60s)
+      // Distance to point 3 is cumulative 5.5km. At 10m/s: time is 550s (> 60s)
+      container
+          .read(telemetryProvider.notifier)
+          .updateGPS(latitude: 48.0, longitude: 17.0, groundSpeed: 0.0);
 
-        await Future.delayed(const Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
 
-        final state = await container.read(navigationProvider.future);
-        expect(state.points, hasLength(1));
-        expect(state.points[0].name, 'Point 3');
-      },
-    );
+      final state = await container.read(navigationProvider.future);
+      expect(state.points, hasLength(1));
+      expect(state.points[0].name, 'Point 3');
+    });
 
     test('does not auto-advance if navigation is inactive', () async {
       final notifier = container.read(navigationProvider.notifier);

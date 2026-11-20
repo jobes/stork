@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/providers/shared_preferences_provider.dart';
 import '../../domain/models/favorite_frequency.dart';
 

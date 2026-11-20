@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -31,9 +31,8 @@ class OilTempTelemetryWidget extends ConsumerWidget {
 
     final double? rawTemp = oilTemperature;
     final tempState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.oilTemperature,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.oilTemperature)
+          .select((status) => status.cardState),
     );
 
     final String valueStr = rawTemp != null

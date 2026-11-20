@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import '../domain/models/gdl90_target.dart';
 
 /// Decoded GDL90 Message container
@@ -334,9 +335,9 @@ class Gdl90Decoder {
 
     // Bytes 19..26: Call-sign (8 ASCII characters, space-padded, GDL90 ICD)
     final callsignBytes = payload.sublist(19, 27);
-    final rawCallsign = String.fromCharCodes(
-      callsignBytes,
-    ).replaceAll('\x00', '').trim();
+    final rawCallsign = String.fromCharCodes(callsignBytes)
+        .replaceAll('\x00', '')
+        .trim();
     final callsign = rawCallsign.isNotEmpty ? rawCallsign : null;
 
     final target = Gdl90Target(

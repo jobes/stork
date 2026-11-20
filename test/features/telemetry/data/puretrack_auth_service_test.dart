@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -29,12 +30,10 @@ void main() {
     });
 
     test('init loads token from storage if present', () async {
-      when(
-        () => mockStorage.read(key: 'puretrack_access_token'),
-      ).thenAnswer((_) async => 'mock_token_123');
-      when(
-        () => mockStorage.read(key: 'puretrack_username'),
-      ).thenAnswer((_) async => 'pilot@example.com');
+      when(() => mockStorage.read(key: 'puretrack_access_token'))
+          .thenAnswer((_) async => 'mock_token_123');
+      when(() => mockStorage.read(key: 'puretrack_username'))
+          .thenAnswer((_) async => 'pilot@example.com');
 
       final token = await authService.init();
 
@@ -48,12 +47,10 @@ void main() {
     });
 
     test('init sets unauthenticated if token not present', () async {
-      when(
-        () => mockStorage.read(key: 'puretrack_access_token'),
-      ).thenAnswer((_) async => null);
-      when(
-        () => mockStorage.read(key: 'puretrack_username'),
-      ).thenAnswer((_) async => null);
+      when(() => mockStorage.read(key: 'puretrack_access_token'))
+          .thenAnswer((_) async => null);
+      when(() => mockStorage.read(key: 'puretrack_username'))
+          .thenAnswer((_) async => null);
 
       final token = await authService.init();
 
@@ -129,15 +126,12 @@ void main() {
     test(
       'invalidateToken clears storage and sets state to tokenInvalid',
       () async {
-        when(
-          () => mockStorage.read(key: 'puretrack_access_token'),
-        ).thenAnswer((_) async => 'existing_token');
-        when(
-          () => mockStorage.read(key: 'puretrack_username'),
-        ).thenAnswer((_) async => null);
-        when(
-          () => mockStorage.delete(key: 'puretrack_access_token'),
-        ).thenAnswer((_) async => {});
+        when(() => mockStorage.read(key: 'puretrack_access_token'))
+            .thenAnswer((_) async => 'existing_token');
+        when(() => mockStorage.read(key: 'puretrack_username'))
+            .thenAnswer((_) async => null);
+        when(() => mockStorage.delete(key: 'puretrack_access_token'))
+            .thenAnswer((_) async => {});
 
         await authService.init();
         expect(authService.currentToken, equals('existing_token'));
@@ -149,24 +143,20 @@ void main() {
           authService.currentState,
           equals(PureTrackAuthState.tokenInvalid),
         );
-        verify(
-          () => mockStorage.delete(key: 'puretrack_access_token'),
-        ).called(1);
+        verify(() => mockStorage.delete(key: 'puretrack_access_token'))
+            .called(1);
       },
     );
 
     test(
       'logout clears secure storage and sets state to unauthenticated',
       () async {
-        when(
-          () => mockStorage.read(key: 'puretrack_access_token'),
-        ).thenAnswer((_) async => 'existing_token');
-        when(
-          () => mockStorage.read(key: 'puretrack_username'),
-        ).thenAnswer((_) async => 'pilot@example.com');
-        when(
-          () => mockStorage.delete(key: any(named: 'key')),
-        ).thenAnswer((_) async => {});
+        when(() => mockStorage.read(key: 'puretrack_access_token'))
+            .thenAnswer((_) async => 'existing_token');
+        when(() => mockStorage.read(key: 'puretrack_username'))
+            .thenAnswer((_) async => 'pilot@example.com');
+        when(() => mockStorage.delete(key: any(named: 'key')))
+            .thenAnswer((_) async => {});
 
         await authService.init();
         expect(authService.currentToken, equals('existing_token'));
@@ -180,9 +170,8 @@ void main() {
           authService.currentState,
           equals(PureTrackAuthState.unauthenticated),
         );
-        verify(
-          () => mockStorage.delete(key: 'puretrack_access_token'),
-        ).called(1);
+        verify(() => mockStorage.delete(key: 'puretrack_access_token'))
+            .called(1);
         verify(() => mockStorage.delete(key: 'puretrack_username')).called(1);
       },
     );

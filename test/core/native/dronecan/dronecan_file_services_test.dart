@@ -23,9 +23,8 @@ void main() {
 
     test('encodes the source node id and the path without a length prefix', () {
       expect(
-        const BeginFirmwareUpdateRequest(
-          imageFileRemotePath: 'fw.bin',
-        ).toPayload(),
+        const BeginFirmwareUpdateRequest(imageFileRemotePath: 'fw.bin')
+            .toPayload(),
         equals(_bytes([0x00, 0x66, 0x77, 0x2E, 0x62, 0x69, 0x6E])),
       );
       expect(
@@ -156,9 +155,8 @@ void main() {
         equals(_bytes([0x00, 0x00, 0x01, 0x02, 0x03])),
       );
       expect(
-        const FileReadResponse(
-          error: FileReadResponse.errorNotFound,
-        ).toPayload(),
+        const FileReadResponse(error: FileReadResponse.errorNotFound)
+            .toPayload(),
         equals(_bytes([0x02, 0x00])),
       );
     });
@@ -184,9 +182,9 @@ void main() {
 
     test('rejects more than one chunk of data', () {
       expect(
-        () => FileReadResponse(
-          data: List<int>.filled(fileReadChunkSize + 1, 0),
-        ).toPayload(),
+        () =>
+            FileReadResponse(data: List<int>.filled(fileReadChunkSize + 1, 0))
+                .toPayload(),
         throwsA(isA<ArgumentError>()),
       );
     });

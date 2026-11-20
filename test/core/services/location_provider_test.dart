@@ -93,9 +93,8 @@ void main() {
       expect(fakePlatform.getPositionStreamCallCount, 1);
       expect(
         notificationTitle(),
-        lookupAppLocalizations(
-          AppLanguage.system.resolvedLocale,
-        ).gpsNotificationTitle,
+        lookupAppLocalizations(AppLanguage.system.resolvedLocale)
+            .gpsNotificationTitle,
       );
 
       prefs.complete(await SharedPreferences.getInstance());
@@ -104,9 +103,8 @@ void main() {
       expect(fakePlatform.getPositionStreamCallCount, 2);
       expect(
         notificationTitle(),
-        lookupAppLocalizations(
-          AppLanguage.slovak.resolvedLocale,
-        ).gpsNotificationTitle,
+        lookupAppLocalizations(AppLanguage.slovak.resolvedLocale)
+            .gpsNotificationTitle,
       );
 
       await container
@@ -116,9 +114,8 @@ void main() {
       expect(fakePlatform.getPositionStreamCallCount, 3);
       expect(
         notificationTitle(),
-        lookupAppLocalizations(
-          AppLanguage.english.resolvedLocale,
-        ).gpsNotificationTitle,
+        lookupAppLocalizations(AppLanguage.english.resolvedLocale)
+            .gpsNotificationTitle,
       );
     },
   );

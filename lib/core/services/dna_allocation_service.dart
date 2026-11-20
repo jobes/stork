@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:stork/core/native/dronecan/dynamic_node_id_allocation.dart';
 

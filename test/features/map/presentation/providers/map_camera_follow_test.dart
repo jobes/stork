@@ -1,8 +1,13 @@
+import 'package:stork/features/map/presentation/providers/airspace_highlight_layers.dart';
+
 import 'dart:async';
+
+import '../../../../support/map_style_backend.dart';
+
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show ThemeMode;
+import 'package:material_ui/material_ui.dart' show ThemeMode;
 import 'package:stork/features/settings/presentation/providers/display_preferences_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -106,8 +111,10 @@ class _Traffic extends Traffic {
   @override
   List<TrafficAircraft> build() => [];
 
+  final viewports = <ml.GeoBox>[];
+
   @override
-  void updateViewport(ml.LngLatBounds bounds) {}
+  void updateViewport(ml.GeoBox bounds) => viewports.add(bounds);
 }
 
 class _FilteredTraffic extends FilteredTraffic {
@@ -169,9 +176,31 @@ class _Favorites extends FavoritesNotifier {
   Future<List<FavoritePoint>> build() async => [];
 }
 
-class _Style extends Fake implements ml.StyleController {
+class _Style extends TestStyle {
+  _Style() {
+    loadStyle({
+      'sources': {
+        for (final id in [
+          'course-line-source',
+          'navigation-route-source',
+          'notams-source',
+          'aircraft-source',
+          'traffic-source',
+          'favorites-source',
+          'flight-weather-source',
+        ])
+          id: {
+            'type': 'geojson',
+            'data': {'type': 'FeatureCollection', 'features': []},
+          },
+      },
+      'layers': [
+        for (final id in airspaceHighlightLayerIds)
+          {'id': id, 'type': 'background'},
+      ],
+    });
+  }
   final updates = <String, List<String>>{};
-  final layers = <String, ml.StyleLayer>{};
   final removedLayers = <String>[];
   bool failNextNotamWrite = false;
   Future<void>? nextFavoritesLayerDelay;
@@ -181,16 +210,11 @@ class _Style extends Fake implements ml.StyleController {
   bool failNextAircraftWrite = false;
 
   @override
-  Future<void> addSource(ml.Source source) async {}
-
-  @override
   Future<void> addLayer(
-    ml.StyleLayer layer, {
+    Map<String, Object?> json, {
     String? belowLayerId,
-    String? aboveLayerId,
-    int? atIndex,
   }) async {
-    layers[layer.id] = layer;
+    final layer = ml.StyleLayer.fromJson(json);
     if (layer.id == 'favorites-layer') {
       final delay = nextFavoritesLayerDelay;
       nextFavoritesLayerDelay = null;
@@ -204,10 +228,8 @@ class _Style extends Fake implements ml.StyleController {
   }
 
   @override
-  Future<void> updateGeoJsonSource({
-    required String id,
-    required String data,
-  }) async {
+  Future<void> setGeoJsonData(String id, ml.GeoJsonData geojson) async {
+    final data = geojson.toText();
     (updates[id] ??= []).add(data);
     if (id == 'aircraft-source') {
       if (failNextAircraftWrite) {
@@ -237,15 +259,9 @@ class _Style extends Fake implements ml.StyleController {
 class _UninitializedMap extends Fake implements ml.MapController {
   int moves = 0;
   @override
-  ml.MapCamera? get camera => null;
+  ml.CameraPosition? get camera => null;
   @override
-  Future<void> moveCamera({
-    ml.Geographic? center,
-    double? zoom,
-    double? bearing,
-    double? pitch,
-    EdgeInsets padding = EdgeInsets.zero,
-  }) async {
+  Future<void> moveCamera(ml.CameraUpdate update) async {
     moves++;
   }
 }
@@ -255,7 +271,7 @@ class _Map extends Fake implements ml.MapController {
   _Style style = _Style();
 
   @override
-  ml.MapCamera camera = const ml.MapCamera(
+  ml.CameraPosition camera = const ml.CameraPosition(
     center: ml.Geographic(lat: 48, lon: 17),
     zoom: 12,
     pitch: 0,
@@ -263,57 +279,81 @@ class _Map extends Fake implements ml.MapController {
   );
 
   void Function(ml.MapEvent)? onEvent;
+  void Function(ml.CameraPosition)? onPresented;
+  ml.GeoBox viewportBounds = const ml.GeoBox(
+    south: 47,
+    north: 49,
+    west: 16,
+    east: 18,
+  );
   int viewportReads = 0;
   final animatedCenters = <ml.Geographic?>[];
 
   @override
-  Future<void> moveCamera({
-    ml.Geographic? center,
-    double? zoom,
-    double? bearing,
-    double? pitch,
-    EdgeInsets padding = EdgeInsets.zero,
-  }) async {
-    camera = ml.MapCamera(
+  Future<void> moveCamera(ml.CameraUpdate update) async {
+    final position = update as ml.CameraUpdatePosition;
+    final center = position.center;
+    final zoom = position.zoom;
+    final bearing = position.bearing;
+    final pitch = position.pitch;
+    camera = ml.CameraPosition(
       center: center ?? camera.center,
       zoom: zoom ?? camera.zoom,
       bearing: bearing ?? camera.bearing,
       pitch: pitch ?? camera.pitch,
     );
-    onEvent?.call(ml.MapEventMoveCamera(camera: camera));
-    onEvent?.call(const ml.MapEventCameraIdle());
-  }
-
-  @override
-  Future<void> animateCamera({
-    ml.Geographic? center,
-    double? zoom,
-    double? bearing,
-    double? pitch,
-    Duration nativeDuration = const Duration(seconds: 2),
-    double webSpeed = 1.2,
-    Duration? webMaxDuration,
-    EdgeInsets padding = EdgeInsets.zero,
-  }) {
-    animatedCenters.add(center);
-    return moveCamera(
-      center: center,
-      zoom: zoom,
-      bearing: bearing,
-      pitch: pitch,
-      padding: padding,
+    onEvent?.call(
+      ml.MapEventCameraMove(
+        camera: camera,
+        reason: ml.CameraChangeReason.programmatic,
+      ),
+    );
+    onPresented?.call(camera);
+    onEvent?.call(
+      ml.MapEventCameraMoveEnd(
+        camera: camera,
+        reason: ml.CameraChangeReason.programmatic,
+      ),
     );
   }
 
   @override
-  ml.LngLatBounds getVisibleRegion() {
+  Future<ml.CameraAnimationResult> animateCamera(
+    ml.CameraUpdate update, {
+    ml.CameraAnimation animation = const ml.CameraAnimation.ease(),
+  }) async {
+    animatedCenters.add((update as ml.CameraUpdatePosition).center);
+    await moveCamera(update);
+    return ml.CameraAnimationResult.completed;
+  }
+
+  Future<void>? featureQueryGate;
+  int featureQueryGateAt = 1;
+  final queriedLayers = <List<String>>[];
+
+  @override
+  Future<List<ml.RenderedFeature>> queryRenderedFeatures(
+    ml.QueryGeometry geometry, {
+    List<String>? layerIds,
+    ml.Expression<bool>? filter,
+  }) async {
+    queriedLayers.add(layerIds!);
+    if (queriedLayers.length == featureQueryGateAt) await featureQueryGate;
+    return [
+      ml.RenderedFeature(
+        id: layerIds.first,
+        properties: {
+          'name': layerIds.first,
+          'metadata': {'nested': true},
+        },
+      ),
+    ];
+  }
+
+  @override
+  ml.GeoBox getVisibleBounds() {
     viewportReads++;
-    return const ml.LngLatBounds(
-      latitudeSouth: 47,
-      latitudeNorth: 49,
-      longitudeWest: 16,
-      longitudeEast: 18,
-    );
+    return viewportBounds;
   }
 }
 
@@ -371,6 +411,7 @@ _setupFollow(
   map.viewportReads = 0;
   map.style.updates.clear();
   map.onEvent = camera.handleMapEvent;
+  map.onPresented = camera.handleCameraPresented;
   return (camera: camera, map: map, telemetry: telemetry, traffic: traffic);
 }
 
@@ -386,6 +427,191 @@ List<dynamic> _routeCoordinates(String data) =>
     jsonDecode(data)['features'][0]['geometry']['coordinates'] as List;
 
 void main() {
+  testWidgets(
+    'style load reconciles a changed fallback origin despite unchanged provider inputs',
+    (tester) async {
+      final setup = await _setupFollow(
+        tester,
+        notams: _Notams(),
+        navigation: _Navigation(_route),
+        initialTelemetry: _Telemetry(const TelemetryState()),
+        initialCamera: const InitialMapCamera(
+          center: ml.Geographic(lat: 47, lon: 16),
+          zoom: 6,
+          hasLocation: true,
+        ),
+      );
+      final prepared = setup.camera.prepareStyle(
+        '{"version":8,"sources":{},"layers":[]}',
+      );
+      setup.camera.refAccess
+          .read(initialMapCameraProvider.notifier)
+          .prepare(
+            const InitialMapCamera(
+              center: ml.Geographic(lat: 48, lon: 17),
+              zoom: 6,
+              hasLocation: true,
+            ),
+          );
+      setup.map.style.updates.clear();
+      await setup.camera.handleStyleLoaded(
+        setup.map.style,
+        overlaysPrepared: true,
+        preparedStyle: prepared,
+      );
+      await tester.pump();
+      final writes = setup.map.style.updates['navigation-route-source']!;
+      expect(writes, hasLength(1));
+      final origin = _routeCoordinates(writes.single).first as List;
+      expect(origin[0], closeTo(17, 1e-9));
+      expect(origin[1], closeTo(48, 1e-9));
+      final current = setup.camera.prepareStyle(
+        '{"version":8,"sources":{},"layers":[]}',
+      );
+      setup.map.style.updates.clear();
+      await setup.camera.handleStyleLoaded(
+        setup.map.style,
+        overlaysPrepared: true,
+        preparedStyle: current,
+      );
+      await tester.pump();
+      expect(setup.map.style.updates['navigation-route-source'], isNull);
+    },
+  );
+  testWidgets(
+    'map clicks await 0.4 feature queries and preserve every category',
+    (tester) async {
+      final setup = await _setupFollow(tester, notams: _Notams());
+      setup.camera.handleMapEvent(
+        ml.MapEventCameraMoveEnd(
+          camera: setup.map.camera,
+          reason: ml.CameraChangeReason.programmatic,
+        ),
+      );
+      final gate = Completer<void>();
+      setup.map.featureQueryGate = gate.future;
+      final result = Completer<List<dynamic>>();
+      ml.Geographic? tappedPoint;
+      const coordinate = ml.Geographic(lat: 48, lon: 17);
+      setup.camera.handleMapEvent(
+        const ml.MapEventClick(point: coordinate, screenPoint: Offset(10, 20)),
+        onFeaturesTapped: (features, point) {
+          tappedPoint = point;
+          result.complete(features);
+        },
+      );
+      await tester.pump();
+      expect(result.isCompleted, isFalse);
+      setup.camera.handleMapEvent(
+        ml.MapEventCameraMoveEnd(
+          camera: setup.map.camera,
+          reason: ml.CameraChangeReason.programmatic,
+        ),
+      );
+      gate.complete();
+      await tester.pump();
+      expect(result.isCompleted, isTrue);
+      final features = await result.future;
+      expect(tappedPoint, coordinate);
+      expect(features.map((feature) => feature['layerType']), [
+        'airport',
+        'airspace',
+        'place',
+        'notam',
+        'favorite',
+        'traffic',
+        'flight-weather',
+      ]);
+      expect(setup.map.queriedLayers, hasLength(7));
+      expect(features.first['properties']['metadata'], {'nested': true});
+    },
+  );
+
+  for (final query in [1, 7]) {
+    testWidgets(
+      'map clicks discard results when camera changes at query $query',
+      (tester) async {
+        final setup = await _setupFollow(tester, notams: _Notams());
+        final gate = Completer<void>();
+        setup.map.featureQueryGate = gate.future;
+        setup.map.featureQueryGateAt = query;
+        setup.camera.handleMapEvent(
+          ml.MapEventCameraMove(
+            camera: setup.map.camera,
+            reason: ml.CameraChangeReason.programmatic,
+          ),
+        );
+        var taps = 0;
+        setup.camera.handleMapEvent(
+          const ml.MapEventClick(
+            point: ml.Geographic(lat: 48, lon: 17),
+            screenPoint: Offset(10, 20),
+          ),
+          onFeaturesTapped: (_, _) => taps++,
+        );
+        await tester.pump();
+        expect(setup.map.queriedLayers, hasLength(query));
+        setup.camera.handleMapEvent(
+          ml.MapEventCameraMove(
+            camera: ml.CameraPosition(
+              center: const ml.Geographic(lat: 48.1, lon: 17.1),
+              zoom: setup.map.camera.zoom,
+              pitch: setup.map.camera.pitch,
+              bearing: setup.map.camera.bearing,
+            ),
+            reason: ml.CameraChangeReason.gesture,
+          ),
+        );
+        gate.complete();
+        await tester.pump();
+        expect(taps, 0);
+      },
+    );
+  }
+
+  testWidgets('final traffic viewport waits for the ending presented camera', (
+    tester,
+  ) async {
+    final setup = await _setupFollow(tester);
+    final traffic =
+        setup.camera.refAccess.read(trafficProvider.notifier) as _Traffic;
+    traffic.viewports.clear();
+    final oldCamera = setup.map.camera;
+    setup.camera.handleCameraPresented(oldCamera);
+    setup.camera.handleUserInteraction();
+    final ending = ml.CameraPosition(
+      center: const ml.Geographic(lat: 49, lon: 18),
+      zoom: oldCamera.zoom,
+      pitch: oldCamera.pitch,
+      bearing: oldCamera.bearing,
+    );
+    setup.camera.handleMapEvent(
+      ml.MapEventCameraMove(
+        camera: ending,
+        reason: ml.CameraChangeReason.gesture,
+      ),
+    );
+    setup.camera.handleMapEvent(
+      ml.MapEventCameraMoveEnd(
+        camera: ending,
+        reason: ml.CameraChangeReason.gesture,
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(setup.map.viewportReads, 0);
+    setup.camera.handleCameraPresented(oldCamera);
+    expect(setup.map.viewportReads, 0);
+    setup.map.camera = ending;
+    setup.camera.handleCameraPresented(ending);
+    expect(setup.map.viewportReads, 1);
+    expect(
+      traffic.viewports.single,
+      const ml.GeoBox(south: 47, north: 49, west: 16, east: 18),
+    );
+    setup.camera.handleCameraPresented(ending);
+    expect(setup.map.viewportReads, 1);
+  });
+
   testWidgets(
     'an exact prepared snapshot does not move an uninitialized native camera',
     (tester) async {
@@ -419,7 +645,7 @@ void main() {
           hasLocation: true,
         ),
       );
-      final prepared = jsonDecode(
+      final prepared = _decodePrepared(
         setup.camera.prepareStyle('{"version":8,"sources":{},"layers":[]}'),
       );
       final line =
@@ -536,7 +762,8 @@ void main() {
       );
       await tester.pump();
       expect(
-        setup.map.style.layers['flight-weather-wind']!.paint['text-color'],
+        (setup.map.style.layers['flight-weather-wind']!.toJson()['paint']
+            as Map)['text-color'],
         '#E4F2FC',
       );
     },
@@ -562,7 +789,7 @@ void main() {
       '{"version":8,"sources":{},"layers":[]}',
     );
     notams.fail();
-    final failed = jsonDecode(
+    final failed = _decodePrepared(
       setup.camera.prepareStyle('{"version":8,"sources":{},"layers":[]}'),
     );
     expect(failed['sources']['notams-source']['data']['features'], isEmpty);
@@ -663,7 +890,7 @@ void main() {
       navigation: _Navigation(_route),
       notams: _Notams(),
     );
-    final prepared = jsonDecode(
+    final prepared = _decodePrepared(
       setup.camera.prepareStyle('{"version":8,"sources":{},"layers":[]}'),
     );
     final line =
@@ -691,7 +918,7 @@ void main() {
           hasLocation: true,
         ),
       );
-      final prepared = jsonDecode(
+      final prepared = _decodePrepared(
         setup.camera.prepareStyle('{"version":8,"sources":{},"layers":[]}'),
       );
       final initial =
@@ -831,12 +1058,12 @@ void main() {
     tester,
   ) async {
     final setup = await _setupFollow(tester, notams: _Notams());
-    setup.map.style.layers.clear();
+    setup.map.style.layers.dispose();
     setup.map.style.updates.clear();
     final prepared = setup.camera.prepareStyle(
       '{"version":8,"sources":{},"layers":[]}',
     );
-    final document = jsonDecode(prepared);
+    final document = jsonDecode(prepared.json);
     final sources = document['sources'] as Map;
     expect(
       sources.keys,
@@ -991,8 +1218,8 @@ void main() {
   testWidgets('NOTAM fill and outline use the shared colour', (tester) async {
     final setup = await _setupFollow(tester);
     final layers = setup.map.style.layers;
-    final fill = layers['notams-fill-layer']!.paint;
-    final outline = layers['notams-line-layer']!.paint;
+    final fill = layers['notams-fill-layer']!.toJson()['paint'] as Map;
+    final outline = layers['notams-line-layer']!.toJson()['paint'] as Map;
     expect(fill['fill-color'], mapColorHex(StorkColors.notam));
     expect(outline['line-color'], fill['fill-color']);
     expect(fill['fill-opacity'], 0.25);
@@ -1189,6 +1416,38 @@ void main() {
     },
   );
 
+  testWidgets('follow refreshes traffic every 500 ms while presentation lags', (
+    tester,
+  ) async {
+    final setup = await _setupFollow(tester);
+    final camera = setup.camera;
+    final map = setup.map;
+    final telemetry = setup.telemetry;
+    final traffic = camera.refAccess.read(trafficProvider.notifier) as _Traffic;
+    traffic.viewports.clear();
+    camera.handleCameraPresented(map.camera);
+    // Native target-camera events continue while presentation is behind.
+    map.onPresented = null;
+    telemetry.changeLatitude(48.01);
+    await tester.pump();
+    for (var tick = 1; tick <= 3; tick++) {
+      map.viewportBounds = ml.GeoBox(
+        south: 47 + tick.toDouble(),
+        north: 49 + tick.toDouble(),
+        west: 16,
+        east: 18,
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(map.viewportReads, tick - 1);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(map.viewportReads, tick);
+      expect(traffic.viewports.last, map.viewportBounds);
+      expect(map.style.updates['traffic-source'], hasLength(tick));
+      telemetry.changeLatitude(48.01 + tick * 0.01);
+      await tester.pump();
+    }
+  });
+
   testWidgets(
     'follow coalesces idle events and manual idle flushes immediately',
     (tester) async {
@@ -1225,7 +1484,12 @@ void main() {
 
       await tester.pump(const Duration(milliseconds: 100));
       camera.handleUserInteraction();
-      camera.handleMapEvent(const ml.MapEventCameraIdle());
+      camera.handleMapEvent(
+        ml.MapEventCameraMoveEnd(
+          camera: map.camera,
+          reason: ml.CameraChangeReason.programmatic,
+        ),
+      );
       expect(trafficUpdates(), 3);
       expect(map.viewportReads, 2);
 
@@ -1235,3 +1499,6 @@ void main() {
     },
   );
 }
+
+dynamic _decodePrepared(dynamic prepared) =>
+    jsonDecode(prepared.json as String);

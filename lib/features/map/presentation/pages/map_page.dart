@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +11,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
 import '../../../../core/startup/initial_map_camera.dart';
+import '../../../../core/startup/map_startup_provider.dart';
 import '../../../../core/services/location_provider.dart';
 
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
@@ -294,9 +296,13 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
     }
     final initialCamera = _initialCamera;
     final styleAsync = ref.watch(mapStyleProvider);
+    final startupAttempt = ref.watch(
+      mapStartupProvider.select((startup) => startup.attempt),
+    );
     ref.listen(mapStyleProvider, (_, next) {
       if (next case AsyncError(:final error, :final stackTrace)) {
         debugPrint('MapPage: failed to load map style: $error\n$stackTrace');
+        ref.read(mapStartupProvider.notifier).fail(startupAttempt, error);
       }
     });
     final mapViewState = ref.watch(
@@ -417,6 +423,13 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 // from throttling the platform-channel source updates instead.
                 return RepaintBoundary(
                   child: AircraftMap(
+                    key: ValueKey(startupAttempt),
+                    onInitialViewReady: () => ref
+                        .read(mapStartupProvider.notifier)
+                        .ready(startupAttempt),
+                    onInitialViewError: (error) => ref
+                        .read(mapStartupProvider.notifier)
+                        .fail(startupAttempt, error),
                     style: style,
                     initialCenter:
                         initialCamera?.center ??
@@ -426,20 +439,19 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                     initialBearing: initialCamera?.bearing ?? 0,
                     searchPin: _municipalityPin,
                     onUserInteraction: cameraController.handleUserInteraction,
+                    onCameraPresented: cameraController.handleCameraPresented,
                     onMapCreated: (controller) =>
                         cameraController.attachController(
                           controller,
                           cameraPrepared: initialCamera != null,
                           preparedCamera: initialCamera,
                         ),
-                    onStyleLoaded: (style, preparedStyle) {
+                    onStyleLoaded: (style, preparedStyle) async {
                       _radar.attachStyle(style);
-                      unawaited(
-                        cameraController.handleStyleLoaded(
-                          style,
-                          overlaysPrepared: true,
-                          preparedStyle: preparedStyle,
-                        ),
+                      await cameraController.handleStyleLoaded(
+                        style,
+                        overlaysPrepared: true,
+                        preparedStyle: preparedStyle,
                       );
                     },
                     onEvent: (event) {

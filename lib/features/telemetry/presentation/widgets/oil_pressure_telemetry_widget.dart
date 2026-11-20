@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/number_formatter.dart';
@@ -32,9 +32,8 @@ class OilPressureTelemetryWidget extends ConsumerWidget {
 
     final double? rawPressure = oilPressure;
     final pressureState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.oilPressure,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.oilPressure)
+          .select((status) => status.cardState),
     );
 
     final String valueStr = rawPressure != null

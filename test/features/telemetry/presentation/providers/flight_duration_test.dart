@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/flight_duration_provider.dart';
+
 import '../../../../helpers/sensors_mock.dart';
 
 void main() {
@@ -35,83 +36,77 @@ void main() {
       }
     }
 
-    test(
-      'Initial duration is zero, distance is zero, startTime is null, and isFlying is false',
-      () {
+    test('Initial duration is zero, distance is zero, startTime is null, and isFlying is false', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final summary = container.read(flightDurationProvider);
+      final isFlying = container.read(telemetryProvider).isFlying;
+
+      expect(summary.duration, equals(Duration.zero));
+      expect(summary.distanceMeters, equals(0.0));
+      expect(summary.startTime, isNull);
+      expect(isFlying, isFalse);
+    });
+
+    test('Starts counting up and records startTime/distance when isFlying becomes true', () {
+      fakeAsync((async) {
         final container = ProviderContainer();
         addTearDown(container.dispose);
 
-        final summary = container.read(flightDurationProvider);
-        final isFlying = container.read(telemetryProvider).isFlying;
+        final durationSub = container.listen(
+          flightDurationProvider,
+          (prev, next) {},
+        );
+        final telemetryNotifier = container.read(telemetryProvider.notifier);
 
+        // Start flying by updating ground speed above threshold (2.77) with initial coordinate
+        telemetryNotifier.updateGPS(
+          latitude: 48.0,
+          longitude: 17.0,
+          groundSpeed: 10.0,
+        );
+        expect(container.read(telemetryProvider).isFlying, isTrue);
+
+        var summary = container.read(flightDurationProvider);
         expect(summary.duration, equals(Duration.zero));
+        expect(summary.startTime, isNotNull);
         expect(summary.distanceMeters, equals(0.0));
-        expect(summary.startTime, isNull);
-        expect(isFlying, isFalse);
-      },
-    );
 
-    test(
-      'Starts counting up and records startTime/distance when isFlying becomes true',
-      () {
-        fakeAsync((async) {
-          final container = ProviderContainer();
-          addTearDown(container.dispose);
+        // Advance 1 second, simulating coordinates changing to (48.0001, 17.0001)
+        elapseFlight(
+          async,
+          telemetryNotifier,
+          const Duration(seconds: 1),
+          startLat: 48.0,
+          startLon: 17.0,
+          stepLat: 0.0001,
+          stepLon: 0.0001,
+        );
 
-          final durationSub = container.listen(
-            flightDurationProvider,
-            (prev, next) {},
-          );
-          final telemetryNotifier = container.read(telemetryProvider.notifier);
+        summary = container.read(flightDurationProvider);
+        expect(summary.duration, equals(const Duration(seconds: 1)));
+        expect(summary.distanceMeters, isPositive);
 
-          // Start flying by updating ground speed above threshold (2.77) with initial coordinate
-          telemetryNotifier.updateGPS(
-            latitude: 48.0,
-            longitude: 17.0,
-            groundSpeed: 10.0,
-          );
-          expect(container.read(telemetryProvider).isFlying, isTrue);
+        // Advance another 5 seconds with coordinates changing further
+        final prevDistance = summary.distanceMeters;
+        elapseFlight(
+          async,
+          telemetryNotifier,
+          const Duration(seconds: 5),
+          startLat: 48.0001,
+          startLon: 17.0001,
+          stepLat: 0.0001,
+          stepLon: 0.0001,
+        );
 
-          var summary = container.read(flightDurationProvider);
-          expect(summary.duration, equals(Duration.zero));
-          expect(summary.startTime, isNotNull);
-          expect(summary.distanceMeters, equals(0.0));
+        summary = container.read(flightDurationProvider);
+        expect(summary.duration, equals(const Duration(seconds: 6)));
+        expect(summary.distanceMeters, greaterThan(prevDistance));
 
-          // Advance 1 second, simulating coordinates changing to (48.0001, 17.0001)
-          elapseFlight(
-            async,
-            telemetryNotifier,
-            const Duration(seconds: 1),
-            startLat: 48.0,
-            startLon: 17.0,
-            stepLat: 0.0001,
-            stepLon: 0.0001,
-          );
-
-          summary = container.read(flightDurationProvider);
-          expect(summary.duration, equals(const Duration(seconds: 1)));
-          expect(summary.distanceMeters, isPositive);
-
-          // Advance another 5 seconds with coordinates changing further
-          final prevDistance = summary.distanceMeters;
-          elapseFlight(
-            async,
-            telemetryNotifier,
-            const Duration(seconds: 5),
-            startLat: 48.0001,
-            startLon: 17.0001,
-            stepLat: 0.0001,
-            stepLon: 0.0001,
-          );
-
-          summary = container.read(flightDurationProvider);
-          expect(summary.duration, equals(const Duration(seconds: 6)));
-          expect(summary.distanceMeters, greaterThan(prevDistance));
-
-          durationSub.close();
-        });
-      },
-    );
+        durationSub.close();
+      });
+    });
 
     test(
       'Stops counting and keeps last duration and distance when landing',

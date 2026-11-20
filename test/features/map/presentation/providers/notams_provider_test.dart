@@ -179,62 +179,59 @@ void main() {
     succeeds: true,
   );
 
-  test(
-    '10 NM and route changes recalculate ICAOs, hourly refresh only fetches NOTAMs',
-    () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      fakeAsync((time) {
-        final catalogs = _Catalogs();
-        var requests = 0;
-        final repository = HttpNotamRepository(
-          loadPreferences: () async => prefs,
-          client: MockClient((_) async {
-            requests++;
-            return Response('{"success":true,"notams":[]}', 200);
-          }),
-        );
-        final container = ProviderContainer.test(
-          overrides: [
-            telemetryProvider.overrideWith(_Telemetry.new),
-            navigationProvider.overrideWith(_Navigation.new),
-            offlineMapsProvider.overrideWith(_OfflineMaps.new),
-            notamRepositoryProvider.overrideWithValue(repository),
-            notamCatalogRepositoryProvider.overrideWithValue(catalogs),
-          ],
-        );
-        container.listen(notamsProvider, (_, _) {});
-        void settle() => time.elapse(Duration.zero);
+  test('10 NM and route changes recalculate ICAOs, hourly refresh only fetches NOTAMs', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    fakeAsync((time) {
+      final catalogs = _Catalogs();
+      var requests = 0;
+      final repository = HttpNotamRepository(
+        loadPreferences: () async => prefs,
+        client: MockClient((_) async {
+          requests++;
+          return Response('{"success":true,"notams":[]}', 200);
+        }),
+      );
+      final container = ProviderContainer.test(
+        overrides: [
+          telemetryProvider.overrideWith(_Telemetry.new),
+          navigationProvider.overrideWith(_Navigation.new),
+          offlineMapsProvider.overrideWith(_OfflineMaps.new),
+          notamRepositoryProvider.overrideWithValue(repository),
+          notamCatalogRepositoryProvider.overrideWithValue(catalogs),
+        ],
+      );
+      container.listen(notamsProvider, (_, _) {});
+      void settle() => time.elapse(Duration.zero);
 
-        settle();
-        expect(catalogs.selections, 1);
-        expect(requests, 1);
+      settle();
+      expect(catalogs.selections, 1);
+      expect(requests, 1);
 
-        (container.read(telemetryProvider.notifier) as _Telemetry).move(48.1);
-        settle();
-        expect(catalogs.selections, 1);
+      (container.read(telemetryProvider.notifier) as _Telemetry).move(48.1);
+      settle();
+      expect(catalogs.selections, 1);
 
-        (container.read(telemetryProvider.notifier) as _Telemetry).move(48.18);
-        settle();
-        expect(catalogs.selections, 2);
-        expect(requests, 1);
+      (container.read(telemetryProvider.notifier) as _Telemetry).move(48.18);
+      settle();
+      expect(catalogs.selections, 2);
+      expect(requests, 1);
 
-        (container.read(navigationProvider.notifier) as _Navigation)
-            .replaceRoute();
-        settle();
-        expect(catalogs.selections, 3);
-        expect(requests, 1);
+      (container.read(navigationProvider.notifier) as _Navigation)
+          .replaceRoute();
+      settle();
+      expect(catalogs.selections, 3);
+      expect(requests, 1);
 
-        time.elapse(const Duration(hours: 1));
-        expect(catalogs.selections, 3);
-        expect(requests, 2);
+      time.elapse(const Duration(hours: 1));
+      expect(catalogs.selections, 3);
+      expect(requests, 2);
 
-        container.read(notamsProvider.notifier).refresh();
-        settle();
-        expect(catalogs.selections, 3);
-        expect(requests, 3);
-        container.dispose();
-      });
-    },
-  );
+      container.read(notamsProvider.notifier).refresh();
+      settle();
+      expect(catalogs.selections, 3);
+      expect(requests, 3);
+      container.dispose();
+    });
+  });
 }

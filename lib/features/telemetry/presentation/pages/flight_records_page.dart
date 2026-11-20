@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -118,9 +118,8 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
       final file = await GpxExportService.generateFlightGpx(flight, repo);
       if (!context.mounted) return;
       if (file == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.noTelemetryRecords)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.noTelemetryRecords)));
         return;
       }
 
@@ -129,9 +128,8 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
       );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${l10n.shareError}: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${l10n.shareError}: $e')));
       }
     }
   }
@@ -269,18 +267,16 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                           Icon(
                             Icons.flight_takeoff_outlined,
                             size: 64,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withAlpha(128),
+                            color: Theme.of(context).colorScheme.primary
+                                .withAlpha(128),
                           ),
                           const SizedBox(height: 16),
                           Text(
                             l10n.flightRecordsEmpty,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface.withAlpha(150),
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withAlpha(150),
                                 ),
                           ),
                         ],
@@ -301,13 +297,12 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                       }
 
                       final flight = state.flights[index];
-                      final startTimeStr = DateFormat.yMd(
-                        l10n.localeName,
-                      ).add_Hm().format(flight.startTime.toLocal());
+                      final startTimeStr = DateFormat.yMd(l10n.localeName)
+                          .add_Hm()
+                          .format(flight.startTime.toLocal());
                       final endTimeStr = flight.endTime != null
-                          ? DateFormat.Hm(
-                              l10n.localeName,
-                            ).format(flight.endTime!.toLocal())
+                          ? DateFormat.Hm(l10n.localeName)
+                                .format(flight.endTime!.toLocal())
                           : l10n.placeholderDash;
 
                       final duration = flight.endTime != null
@@ -329,25 +324,24 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                           ),
                         ),
                         child: Theme(
-                          data: Theme.of(
-                            context,
-                          ).copyWith(dividerColor: Colors.transparent),
+                          data: Theme.of(context)
+                              .copyWith(dividerColor: Colors.transparent),
                           child: ExpansionTile(
                             leading: CircleAvatar(
                               backgroundColor: isRecording
-                                  ? Theme.of(
-                                      context,
-                                    ).colorScheme.primaryContainer
-                                  : Theme.of(
-                                      context,
-                                    ).colorScheme.surfaceContainerHighest,
+                                  ? Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer
+                                  : Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest,
                               child: Icon(
                                 isRecording ? Icons.sensors : Icons.flight,
                                 color: isRecording
                                     ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
+                                    : Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                               ),
                             ),
                             title: Text(
@@ -447,9 +441,9 @@ class _FlightRecordsPageState extends ConsumerState<FlightRecordsPage> {
                                               const SizedBox(height: 4),
                                               Text(
                                                 flight.notes!,
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.bodyMedium,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium,
                                               ),
                                             ],
                                           ),
@@ -565,9 +559,8 @@ class _InfoChip extends StatelessWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withAlpha(130),
+                    color: Theme.of(context).colorScheme.onSurface
+                        .withAlpha(130),
                   ),
                 ),
                 Text(

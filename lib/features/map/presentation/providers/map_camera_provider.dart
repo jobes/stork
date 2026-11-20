@@ -1,38 +1,37 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/material.dart'
-    show ThemeMode, Brightness, WidgetsBinding, WidgetsBindingObserver;
+import 'package:material_ui/material_ui.dart'
+    show WidgetsBinding, WidgetsBindingObserver;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/location_provider.dart';
 import '../../../../core/startup/initial_map_camera.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/display_preferences_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../../settings/domain/models/aircraft_type.dart';
-import '../../../settings/domain/models/altitude_unit.dart';
-import '../../../settings/domain/models/speed_unit.dart' as app;
-import '../../../weather/domain/flight_forecast.dart';
 import '../../../weather/presentation/providers/flight_weather_provider.dart';
 import '../../../weather/presentation/providers/route_waypoint_weather_provider.dart';
 import '../../../telemetry/domain/models/map_view_state.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../telemetry/presentation/providers/traffic_provider.dart';
-import '../../../telemetry/presentation/providers/agl_provider.dart';
 import '../../../navigation/presentation/providers/navigation_provider.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
 import 'notams_provider.dart';
 import 'airspace_activity_provider.dart';
 import 'airspace_highlight_layers.dart';
 import 'map_overlay_style.dart';
+import 'map_style_preparer.dart';
+import 'map_style_data.dart';
+export 'map_style_data.dart'
+    show kTrafficLookaheadPeriodSeconds, kTrafficBaseIconSizePx;
 export 'map_overlay_style.dart'
     show kAircraftIconSize, kTrafficIconSize, kPoiIconSize;
 import '../../domain/utils/airspace_activity_utils.dart';
@@ -46,9 +45,6 @@ part 'map_camera_airspace.dart';
 part 'map_camera_notam.dart';
 part 'map_camera_weather.dart';
 
-const double kTrafficLookaheadPeriodSeconds = 10.0;
-const double kTrafficBaseIconSizePx = 64.0;
-
 class _WeatherBrightnessObserver extends WidgetsBindingObserver {
   _WeatherBrightnessObserver(this.onChange);
   final void Function() onChange;
@@ -61,6 +57,11 @@ class MapCamera extends _$MapCamera {
   Ref get refAccess => ref;
 
   MapController? _mapController;
+  int _cameraRevision = 0;
+  CameraPosition? _eventCamera;
+  CameraPosition? _presentedCamera;
+  CameraPosition? _trafficEndingCamera;
+  bool _trafficViewportDue = false;
   final _controllerCompleter = Completer<MapController>();
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
@@ -71,13 +72,6 @@ class MapCamera extends _$MapCamera {
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
   int _styleLoadGeneration = 0;
-  final _preparedStyles = <String, _PreparedOverlaySnapshot>{};
-  Object? _preparedOverlayInputs;
-  Map<String, String> _preparedSourceData = const {};
-  List<_NotamMapFeature> _preparedNotamFeatures = const [];
-  ForecastPalette? _preparedForecastPalette;
-  List<String> _preparedActiveAirspaceIds = const [];
-  List<String> _preparedInactiveAirspaceIds = const [];
   StyleController? _flightWeatherStyle;
   ForecastPalette? _lastFlightWeatherPalette;
   String? _lastFlightWeatherGeoJson;
@@ -89,7 +83,7 @@ class MapCamera extends _$MapCamera {
   bool _notamLayerDirty = false;
   bool _notamLayerWriting = false;
   StyleController? _notamStyle;
-  List<_NotamMapFeature>? _lastNotamMapFeatures = const [];
+  List<NotamMapFeature>? _lastNotamMapFeatures = const [];
 
   List<String>? _lastActiveAirspaceIds;
   List<String>? _lastInactiveAirspaceIds;
@@ -154,12 +148,14 @@ class MapCamera extends _$MapCamera {
           if (next.latitude != previous?.latitude ||
               next.longitude != previous?.longitude ||
               next.heading != previous?.heading) {
-            _mapController!.style!.updateGeoJsonSource(
-              id: 'aircraft-source',
-              data: GeoJsonBuilder.buildAircraftGeoJson(
-                next.latitude,
-                next.longitude,
-                next.heading,
+            _mapController!.style!.sources.updateGeoJsonData(
+              'aircraft-source',
+              GeoJsonData.text(
+                GeoJsonBuilder.buildAircraftGeoJson(
+                  next.latitude,
+                  next.longitude,
+                  next.heading,
+                ),
               ),
             );
           }
@@ -388,6 +384,11 @@ class MapCamera extends _$MapCamera {
     bool cameraPrepared = false,
     InitialMapCamera? preparedCamera,
   }) {
+    _cameraRevision++;
+    _eventCamera = controller.camera;
+    _presentedCamera = null;
+    _trafficEndingCamera = null;
+    _trafficViewportDue = false;
     _mapController = controller;
     if (!_controllerCompleter.isCompleted) {
       _controllerCompleter.complete(controller);
@@ -469,19 +470,24 @@ class MapCamera extends _$MapCamera {
       try {
         if (animate) {
           await _mapController!.animateCamera(
-            center: center,
-            zoom: zoom,
-            pitch: pitch,
-            bearing: bearing,
-            nativeDuration: duration ?? const Duration(seconds: 2),
-            webMaxDuration: duration,
+            CameraUpdate.position(
+              center: center,
+              zoom: zoom,
+              pitch: pitch,
+              bearing: bearing,
+            ),
+            animation: CameraAnimation.fly(
+              duration: duration ?? const Duration(seconds: 2),
+            ),
           );
         } else {
           _mapController!.moveCamera(
-            center: center,
-            zoom: zoom,
-            pitch: pitch,
-            bearing: bearing,
+            CameraUpdate.position(
+              center: center,
+              zoom: zoom,
+              pitch: pitch,
+              bearing: bearing,
+            ),
           );
         }
       } finally {
@@ -692,24 +698,32 @@ class MapCamera extends _$MapCamera {
     MapEvent event, {
     Function(List<dynamic> features, Geographic coordinate)? onFeaturesTapped,
   }) {
-    if (event is MapEventMoveCamera) {
+    final eventCamera = switch (event) {
+      MapEventCameraMove(:final camera) => camera,
+      MapEventCameraMoveEnd(:final camera) => camera,
+      _ => null,
+    };
+    if (eventCamera != null && eventCamera != _eventCamera) {
+      _eventCamera = eventCamera;
+      _cameraRevision++;
+    }
+    if (event is MapEventCameraMove) {
+      _trafficEndingCamera = null;
       handleUserInteraction(isExplicitInteraction: false);
       _scheduleTrafficViewportUpdate();
     }
-    if (event is MapEventCameraIdle) {
+    if (event is MapEventCameraMoveEnd) {
+      _trafficEndingCamera = event.camera;
       // Frame-by-frame follow can emit idle events between programmatic moves.
       // Share the existing viewport timer instead of rebuilding traffic per tick.
-      if (!_isFollowPaused &&
-          isMovingProgrammatically &&
-          ref.read(telemetryProvider).mapViewState == MapViewState.follow) {
+      if (_isFollowingCamera && isMovingProgrammatically) {
         _refreshTrafficAfterCameraMove = true;
         _scheduleTrafficViewportUpdate();
         return;
       }
       _moveThrottleTimer?.cancel();
-      _refreshTrafficAfterCameraMove = false;
+      _refreshTrafficAfterCameraMove = true;
       _updateTrafficFilter();
-      updateTrafficOnMap();
     }
     if (event is MapEventClick) {
       debugPrint('Map clicked at ${event.point}');
@@ -722,10 +736,7 @@ class MapCamera extends _$MapCamera {
   void _scheduleTrafficViewportUpdate() {
     if (_moveThrottleTimer?.isActive ?? false) return;
     _moveThrottleTimer = Timer(const Duration(milliseconds: 500), () {
-      final refreshTraffic = _refreshTrafficAfterCameraMove;
-      _refreshTrafficAfterCameraMove = false;
       _updateTrafficFilter();
-      if (refreshTraffic) updateTrafficOnMap();
     });
   }
 
@@ -738,121 +749,19 @@ class MapCamera extends _$MapCamera {
 
     final traffic = trafficList ?? ref.read(filteredTrafficProvider);
     if (traffic == null || traffic.isEmpty) {
-      _mapController!.style!.updateGeoJsonSource(
-        id: 'traffic-source',
-        data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
+      _mapController!.style!.sources.updateGeoJsonData(
+        'traffic-source',
+        GeoJsonData.text(
+          jsonEncode({'type': 'FeatureCollection', 'features': []}),
+        ),
       );
       return;
     }
 
-    _mapController!.style!.updateGeoJsonSource(
-      id: 'traffic-source',
-      data: _buildTrafficGeoJson(traffic),
+    _mapController!.style!.sources.updateGeoJsonData(
+      'traffic-source',
+      GeoJsonData.text(_buildTrafficGeoJson(traffic)),
     );
-  }
-
-  String _buildTrafficGeoJson(List<TrafficAircraft> traffic) {
-    if (traffic.isEmpty) return emptyFlightWeatherGeoJson;
-    final now = DateTime.now();
-
-    final telemetry = ref.read(telemetryProvider);
-    final settings = ref.read(appSettingsProvider).value;
-    final resolvedAlt = ref.read(resolvedAltitudeProvider).mslValue;
-    final myAlt = resolvedAlt ?? telemetry.gpsAltitude ?? 0.0;
-    final altUnit = settings?.heightUnit ?? AltitudeUnit.meters;
-
-    final features = traffic.map((ac) {
-      final acType = AircraftType.fromOgnCode(ac.aircraftType);
-      final isFlying = ac.groundSpeed > 1.0;
-      final iconId = acType.trafficMapIconId;
-
-      double possiblePositionRatio = 0.0;
-      if (isFlying && ac.groundSpeed > 0) {
-        final elapsedSeconds =
-            now.difference(ac.lastSeen).inMilliseconds / 1000.0;
-        final delay = elapsedSeconds + kTrafficLookaheadPeriodSeconds;
-
-        if (delay > 0) {
-          final distanceMeters = ac.groundSpeed * delay;
-          final startCoord = Geographic(lat: ac.latitude, lon: ac.longitude);
-          final destCoord = GeoUtils.calculateDestination(
-            startCoord,
-            ac.track,
-            distanceMeters,
-          );
-
-          try {
-            final p1 = _mapController!.toScreenLocation(startCoord);
-            final p2 = _mapController!.toScreenLocation(destCoord);
-            final distancePoints = (p1 - p2).distance;
-            possiblePositionRatio = distancePoints / kTrafficBaseIconSizePx;
-          } catch (_) {
-            possiblePositionRatio = 0.0;
-          }
-        }
-      }
-
-      final String altitudeTagStr;
-      if (ac.isCollisionThreat) {
-        final language =
-            ref.read(displayPreferencesProvider).value?.language ??
-            AppLanguage.system;
-        final l10n = lookupAppLocalizations(language.resolvedLocale);
-        final diffMeters = ac.altitude - myAlt;
-        final unitLabel = altUnit.getLabel(l10n);
-        final String tagNum;
-        if (altUnit == AltitudeUnit.feet ||
-            altUnit == AltitudeUnit.flightLevel) {
-          final diffFeet = (diffMeters / 0.3048).round();
-          if (diffFeet > 0) {
-            tagNum = l10n.aboveAltLabel('$diffFeet$unitLabel');
-          } else if (diffFeet < 0) {
-            tagNum = l10n.belowAltLabel('${diffFeet.abs()}$unitLabel');
-          } else {
-            tagNum = l10n.sameAltLabel;
-          }
-        } else {
-          final diffM = diffMeters.round();
-          if (diffM > 0) {
-            tagNum = l10n.aboveAltLabel('$diffM$unitLabel');
-          } else if (diffM < 0) {
-            tagNum = l10n.belowAltLabel('${diffM.abs()}$unitLabel');
-          } else {
-            tagNum = l10n.sameAltLabel;
-          }
-        }
-        final String trend = ac.verticalSpeed > 0.5
-            ? ' ▲'
-            : (ac.verticalSpeed < -0.5 ? ' ▼' : '');
-        altitudeTagStr = '$tagNum$trend';
-      } else {
-        altitudeTagStr = '';
-      }
-
-      return {
-        'type': 'Feature',
-        'id': ac.id,
-        'geometry': {
-          'type': 'Point',
-          'coordinates': [ac.longitude, ac.latitude],
-        },
-        'properties': {
-          'id': ac.id,
-          'heading': ac.track,
-          'title': ac.callsign,
-          'altitude': ac.altitude,
-          'groundSpeed': ac.groundSpeed,
-          'verticalSpeed': ac.verticalSpeed,
-          'icon-image': iconId,
-          'altitudeTag': altitudeTagStr,
-          'isThreat': ac.isCollisionThreat,
-          'isFlying': isFlying,
-          'possiblePositionRatio': possiblePositionRatio,
-        },
-      };
-    }).toList();
-
-    return jsonEncode({'type': 'FeatureCollection', 'features': features});
   }
 
   // Other telemetry can republish the same traffic. The viewport and periodic
@@ -884,11 +793,39 @@ class MapCamera extends _$MapCamera {
     return true;
   }
 
+  // Called by a MapLibreMap child observing the camera of the shown texture.
+  void handleCameraPresented(CameraPosition camera) {
+    if (_presentedCamera != null && _presentedCamera != camera) {
+      _cameraRevision++;
+    }
+    _presentedCamera = camera;
+    if (_trafficViewportDue) _updateTrafficFilter();
+  }
+
+  bool get _isFollowingCamera =>
+      !_isFollowPaused &&
+      ref.read(telemetryProvider).mapViewState == MapViewState.follow;
+
   void _updateTrafficFilter() {
     if (_mapController == null) return;
+    _trafficViewportDue = true;
+    final endingCamera = _trafficEndingCamera;
+    // Continuous follow reads the currently displayed viewport on the throttle:
+    // waiting for the latest target would starve updates while it keeps moving.
+    if (!_isFollowingCamera &&
+        endingCamera != null &&
+        (_presentedCamera != endingCamera ||
+            _mapController!.camera != endingCamera)) {
+      return;
+    }
+    _trafficViewportDue = false;
     try {
-      final bounds = _mapController!.getVisibleRegion();
+      final bounds = _mapController!.getVisibleBounds();
       ref.read(trafficProvider.notifier).updateViewport(bounds);
+      if (_refreshTrafficAfterCameraMove) {
+        _refreshTrafficAfterCameraMove = false;
+        updateTrafficOnMap();
+      }
     } catch (e) {
       debugPrint('Failed to update traffic filter bounds: $e');
     }
@@ -898,10 +835,16 @@ class MapCamera extends _$MapCamera {
     MapEventClick event,
     Function(List<dynamic> features, Geographic coordinate) onFeaturesTapped,
   ) async {
-    if (_mapController == null) return;
+    final controller = _mapController;
+    if (controller == null) return;
+    final revision = _cameraRevision;
+    bool isCurrent() =>
+        ref.mounted &&
+        identical(controller, _mapController) &&
+        revision == _cameraRevision;
     try {
-      final airportFeatures = _mapController!.featuresAtPoint(
-        event.screenPoint,
+      final airportFeatures = await controller.queryRenderedFeatures(
+        QueryGeometry.point(event.screenPoint),
         layerIds: [
           'airport_clicktarget',
           'airport_runway',
@@ -916,28 +859,28 @@ class MapCamera extends _$MapCamera {
         ],
       );
 
-      final airspaceFeatures = _mapController!.featuresAtPoint(
-        event.screenPoint,
+      final airspaceFeatures = await controller.queryRenderedFeatures(
+        QueryGeometry.point(event.screenPoint),
         layerIds: ['airspace_clicktarget'],
       );
 
-      final placeFeatures = _mapController!.featuresAtPoint(
-        event.screenPoint,
+      final placeFeatures = await controller.queryRenderedFeatures(
+        QueryGeometry.point(event.screenPoint),
         layerIds: ['places_locality'],
       );
 
-      final notamFeatures = _mapController!.featuresAtPoint(
-        event.screenPoint,
+      final notamFeatures = await controller.queryRenderedFeatures(
+        QueryGeometry.point(event.screenPoint),
         layerIds: ['notams-fill-layer'],
       );
 
-      final favoriteFeatures = _mapController!.featuresAtPoint(
-        event.screenPoint,
+      final favoriteFeatures = await controller.queryRenderedFeatures(
+        QueryGeometry.point(event.screenPoint),
         layerIds: ['favorites-layer'],
       );
 
-      final trafficFeatures = _mapController!.featuresAtPoint(
-        event.screenPoint,
+      final trafficFeatures = await controller.queryRenderedFeatures(
+        QueryGeometry.point(event.screenPoint),
         layerIds: ['traffic-layer'],
       );
 
@@ -987,8 +930,8 @@ class MapCamera extends _$MapCamera {
 
       if (_flightWeatherStyle != null &&
           identical(_flightWeatherStyle, _mapController?.style)) {
-        final forecastFeatures = _mapController!.featuresAtPoint(
-          event.screenPoint,
+        final forecastFeatures = await controller.queryRenderedFeatures(
+          QueryGeometry.point(event.screenPoint),
           layerIds: [
             forecastHitLayer,
             forecastWindLayer,
@@ -1005,9 +948,11 @@ class MapCamera extends _$MapCamera {
         }
       }
 
+      if (!isCurrent()) return;
       debugPrint('Tapped features: $featureMaps');
       onFeaturesTapped(featureMaps, event.point);
     } catch (e) {
+      if (!isCurrent()) return;
       debugPrint('Error querying map features: $e');
       onFeaturesTapped(const [], event.point);
     }
@@ -1070,9 +1015,9 @@ class MapCamera extends _$MapCamera {
 
   Future<void> _writeNavigationRoute(StyleController style, String data) async {
     try {
-      await style.updateGeoJsonSource(
-        id: 'navigation-route-source',
-        data: data,
+      await style.sources.updateGeoJsonData(
+        'navigation-route-source',
+        GeoJsonData.text(data),
       );
       if (ref.mounted && identical(style, _mapController?.style)) {
         _lastNavigationRouteUpdate = (style: style, data: data);
@@ -1106,26 +1051,29 @@ class MapCamera extends _$MapCamera {
     }
   }
 
-  Geographic? _navigationPosition(double? latitude, double? longitude) =>
-      GeoUtils.validatedPosition(latitude, longitude);
+  MapStyleData get _styleData => MapStyleData(
+    ref,
+    routeOrigin: _lastKnownRouteOrigin,
+    toScreenLocation: _mapController?.toScreenLocation,
+  );
 
   String _buildNavigationGeoJson() {
     final telemetry = ref.read(telemetryProvider);
-    final livePosition = _navigationPosition(
+    final position = _navigationPosition(
       telemetry.latitude,
       telemetry.longitude,
     );
-    if (livePosition != null) _lastKnownRouteOrigin = livePosition;
-    final prepared = ref.read(initialMapCameraProvider);
-    return GeoJsonBuilder.buildNavigationRouteGeoJson(
-      ref.read(navigationProvider).value,
-      origin:
-          _lastKnownRouteOrigin ??
-          (prepared?.hasLocation == true
-              ? _navigationPosition(prepared!.center.lat, prepared.center.lon)
-              : null),
-    );
+    if (position != null) _lastKnownRouteOrigin = position;
+    return _styleData.buildNavigationGeoJson();
   }
+
+  String _buildTrafficGeoJson(List<TrafficAircraft> traffic) =>
+      _styleData.buildTrafficGeoJson(traffic);
+
+  String _buildFavoritesGeoJson() => _styleData.buildFavoritesGeoJson();
+
+  Geographic? _navigationPosition(double? latitude, double? longitude) =>
+      GeoUtils.validatedPosition(latitude, longitude);
 
   void updateFavoritesOnMap() {
     if (_mapController == null ||
@@ -1134,32 +1082,9 @@ class MapCamera extends _$MapCamera {
       return;
     }
 
-    _mapController!.style!.updateGeoJsonSource(
-      id: 'favorites-source',
-      data: _buildFavoritesGeoJson(),
+    _mapController!.style!.sources.updateGeoJsonData(
+      'favorites-source',
+      GeoJsonData.text(_buildFavoritesGeoJson()),
     );
-  }
-
-  String _buildFavoritesGeoJson() {
-    final favorites = ref.read(favoritesProvider).value ?? [];
-
-    final features = favorites.map((f) {
-      return {
-        'type': 'Feature',
-        'id': f.id,
-        'geometry': {
-          'type': 'Point',
-          'coordinates': [f.longitude, f.latitude],
-        },
-        'properties': {
-          'id': f.id,
-          'icon-image': f.icon.mapIconId,
-          'name': f.name,
-          'description': f.description,
-        },
-      };
-    }).toList();
-
-    return jsonEncode({'type': 'FeatureCollection', 'features': features});
   }
 }

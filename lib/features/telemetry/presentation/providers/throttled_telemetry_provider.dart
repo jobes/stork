@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import 'telemetry_provider.dart';
 
 part 'throttled_telemetry_provider.g.dart';
@@ -9,9 +11,8 @@ part 'throttled_telemetry_provider.g.dart';
 class ThrottledTelemetry extends _$ThrottledTelemetry {
   Timer? _timer;
   TelemetryState? _latestRaw;
-  DateTime _lastUpdateTime = DateTime.fromMillisecondsSinceEpoch(
-    0,
-  ).subtract(const Duration(days: 1));
+  DateTime _lastUpdateTime = DateTime.fromMillisecondsSinceEpoch(0)
+      .subtract(const Duration(days: 1));
 
   @override
   TelemetryState build() {

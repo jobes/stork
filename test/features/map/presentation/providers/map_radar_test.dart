@@ -1,4 +1,7 @@
 import 'dart:async';
+
+import '../../../../support/map_style_backend.dart';
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -40,7 +43,15 @@ http.Response _manifest(
   200,
 );
 
-class _Style implements StyleController {
+class _Style extends TestStyle {
+  _Style() {
+    loadStyle({
+      'sources': {},
+      'layers': [
+        {'id': 'obstacle_clicktarget', 'type': 'background'},
+      ],
+    });
+  }
   bool autoLoad = true;
   int _nextRoute = 0;
   final _tiles = <String, Future<Uint8List?> Function(int, int, int)>{};
@@ -54,53 +65,39 @@ class _Style implements StyleController {
   }
 
   Future<Uint8List?> loadTile(RasterSource source) =>
-      _tiles[source.tiles!.single]!(0, 0, 0);
+      _tiles[(source as RasterSourceTiles).tiles.single]!(0, 0, 0);
 
-  final sources = <String, RasterSource>{};
-  final layers = <String, RasterStyleLayer>{};
   final shown = <String>[];
 
   @override
-  Future<void> addSource(Source source) async {
-    expectSync(sources, isNot(contains(source.id)));
-    sources[source.id] = source as RasterSource;
-  }
+  Future<void> addSource(Source source) async {}
 
   @override
   Future<void> addLayer(
-    StyleLayer layer, {
+    Map<String, Object?> json, {
     String? belowLayerId,
-    String? aboveLayerId,
-    int? atIndex,
   }) async {
+    final layer = StyleLayer.fromJson(json);
     expectSync(belowLayerId, 'obstacle_clicktarget');
-    expectSync(layers, isNot(contains(layer.id)));
     final raster = layer as RasterStyleLayer;
-    expectSync(sources, contains(raster.sourceId));
-    layers[raster.id] = raster;
+    expectSync(sources[raster.sourceId], isNotNull);
     if (raster.id.endsWith('-visible')) {
       shown.add(raster.sourceId);
     } else if (autoLoad) {
-      unawaited(loadTile(sources[raster.sourceId]!));
+      unawaited(loadTile(sources[raster.sourceId]! as RasterSource));
     }
   }
 
   @override
-  Future<void> removeLayer(String id) async {
-    expectSync(layers.remove(id), isNotNull);
-  }
+  Future<void> removeLayer(String id) async {}
 
   @override
   Future<void> removeSource(String id) async {
     expectSync(
-      layers.values.map((layer) => layer.sourceId),
+      layers.whereType<RasterStyleLayer>().map((layer) => layer.sourceId),
       isNot(contains(id)),
     );
-    expectSync(sources.remove(id), isNotNull);
   }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 MapRadar _radar(_Style style, http.Client client) {
@@ -213,36 +210,40 @@ void main() {
   testWidgets('loads history on demand and restores the latest raster', (
     tester,
   ) async {
-    final style = _Style();
-    final latest = _recentTime;
-    final radar = _radar(
-      style,
-      MockClient(
-        (request) async => request.url.host == 'api.rainviewer.com'
-            ? _manifest(latest)
-            : _tile(),
-      ),
-    );
-    radar.attachStyle(style);
-    await tester.pump();
-    expect(radar.value.latest, _utc(latest));
-    final latestSource = style.sources.values.single;
-    expect(latestSource.maxZoom, 7);
+    // Keep playback away from the live frame's 20-minute expiry boundary.
+    // Expiry and recovery are covered by their own test below.
+    await withClock(Clock.fixed(DateTime.utc(2026, 11, 20, 12, 5)), () async {
+      final style = _Style();
+      final latest = _recentTime;
+      final radar = _radar(
+        style,
+        MockClient(
+          (request) async => request.url.host == 'api.rainviewer.com'
+              ? _manifest(latest)
+              : _tile(),
+        ),
+      );
+      addTearDown(radar.dispose);
+      radar.attachStyle(style);
+      await tester.pump();
+      expect(radar.value.latest, _utc(latest));
+      final latestSource = style.sources.single as RasterSource;
+      expect(latestSource.maxZoom, 7);
 
-    final playback = radar.play();
-    await tester.pump();
-    expect(radar.value.preparing, isFalse);
-    expect(style.sources, hasLength(7));
+      final playback = radar.play();
+      await tester.pump();
+      expect(radar.value.preparing, isFalse);
+      expect(style.sources, hasLength(7));
 
-    for (var offset = 6; offset > 0; offset--) {
-      expect(radar.value.playing, _utc(latest - offset * _step));
-      await tester.pump(const Duration(milliseconds: 750));
-    }
-    await playback;
-    expect(radar.value.playing, isNull);
-    expect(style.sources.keys, [latestSource.id]);
-    expect(style.shown.last, latestSource.id);
-    radar.dispose();
+      for (var offset = 6; offset > 0; offset--) {
+        expect(radar.value.playing, _utc(latest - offset * _step));
+        await tester.pump(const Duration(milliseconds: 750));
+      }
+      await playback;
+      expect(radar.value.playing, isNull);
+      expect(style.sources.map((source) => source.id), [latestSource.id]);
+      expect(style.shown.last, latestSource.id);
+    });
   });
 
   testWidgets('gesture stops playback and a later refresh can replace latest', (
@@ -267,7 +268,7 @@ void main() {
     expect(radar.value.playing, isNotNull);
 
     radar.onMapEvent(
-      const MapEventStartMoveCamera(reason: CameraChangeReason.apiGesture),
+      const MapEventCameraMoveStart(reason: CameraChangeReason.gesture),
     );
     await tester.pump();
     await playback;
@@ -302,16 +303,16 @@ void main() {
       expect(radar.value.latest, isNull);
       expect(style.shown, isEmpty);
 
-      await style.loadTile(style.sources.values.single);
+      await style.loadTile(style.sources.single as RasterSource);
       await tester.pump();
       expect(radar.value.latest, _utc(latest));
 
       failTile = true;
-      await style.loadTile(style.sources.values.single);
+      await style.loadTile(style.sources.single as RasterSource);
       await tester.pump();
       expect(radar.value.unavailable, isTrue);
       expect(radar.value.latest, isNull);
-      expect(style.layers, isEmpty);
+      expect(style.layers.whereType<RasterStyleLayer>(), isEmpty);
       expect(style.sources, isEmpty);
 
       failTile = false;
@@ -342,7 +343,7 @@ void main() {
 
     await tester.pump(const Duration(minutes: 20));
     expect(radar.value.unavailable, isTrue);
-    expect(style.layers, isEmpty);
+    expect(style.layers.whereType<RasterStyleLayer>(), isEmpty);
     await radar.refresh(force: true);
     expect(radar.value.unavailable, isTrue);
 
@@ -368,14 +369,14 @@ void main() {
       );
       radar.attachStyle(style);
       await tester.pump();
-      final live = style.sources.values.single;
+      final live = style.sources.single as RasterSource;
 
       await radar.play();
 
       expect(radar.value.latest, _utc(latest));
       expect(radar.value.unavailable, isFalse);
       expect(radar.value.historyUnavailable, isTrue);
-      expect(style.sources.values.single, same(live));
+      expect(style.sources.single as RasterSource, same(live));
       expect(style.shown, [live.id]);
       radar.dispose();
     },
@@ -399,7 +400,7 @@ void main() {
     );
     radar.attachStyle(style);
     await tester.pump();
-    final live = style.sources.values.single;
+    final live = style.sources.single as RasterSource;
 
     final playback = radar.play();
     await tester.pump();
@@ -407,7 +408,7 @@ void main() {
 
     expect(radar.value.historyUnavailable, isTrue);
     expect(radar.value.unavailable, isFalse);
-    expect(style.sources.values.single, same(live));
+    expect(style.sources.single as RasterSource, same(live));
     expect(style.shown, [live.id]);
 
     expect(await style.loadTile(live), isNotNull);
@@ -431,7 +432,7 @@ void main() {
     radar.attachStyle(style);
     await tester.pump();
     await tester.pump(const Duration(seconds: 14));
-    final loading = style.loadTile(style.sources.values.single);
+    final loading = style.loadTile(style.sources.single as RasterSource);
     await tester.pump(const Duration(seconds: 14));
 
     expect(radar.value.unavailable, isFalse);

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/dronecan_devices/data/services/firmware_file_picker.dart';
@@ -14,7 +14,7 @@ import 'package:stork/features/dronecan_devices/domain/repositories/dronecan_nod
 import 'package:stork/features/dronecan_devices/presentation/dialogs/dronecan_firmware_update_dialog.dart';
 import 'package:stork/features/dronecan_devices/presentation/providers/dronecan_firmware_update_provider.dart';
 import 'package:stork/features/dronecan_devices/presentation/providers/dronecan_nodes_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 class _FakeRepository implements DroneCanNodeRepository {
   StreamController<FirmwareUpdateProgress>? controller;
@@ -98,7 +98,7 @@ Future<void> _openDialog(
       ],
       child: MaterialApp(
         locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Builder(

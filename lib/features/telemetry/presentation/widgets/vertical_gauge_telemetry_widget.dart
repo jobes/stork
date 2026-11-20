@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../settings/domain/models/range_thresholds.dart';
 import 'telemetry_card.dart';

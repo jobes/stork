@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 import '../../domain/models/aircraft.dart';
@@ -406,13 +407,11 @@ class _AircraftSettingsDialogState
                 (a) => a.id == widget.aircraft.id,
                 orElse: () => widget.aircraft,
               );
-              final validOgnId = RegExp(
-                r'^[0-9A-Fa-f]{6}$',
-              ).hasMatch(currentAircraft.ognDeviceId.trim());
+              final validOgnId = RegExp(r'^[0-9A-Fa-f]{6}$')
+                  .hasMatch(currentAircraft.ognDeviceId.trim());
               if (val && !validOgnId) {
-                ScaffoldMessenger.of(
-                  widget.parentContext,
-                ).showSnackBar(SnackBar(content: Text(l10n.invalidOgnId)));
+                ScaffoldMessenger.of(widget.parentContext)
+                    .showSnackBar(SnackBar(content: Text(l10n.invalidOgnId)));
                 setState(() {
                   _sendLivePosition = false;
                 });
@@ -476,9 +475,8 @@ class _AircraftSettingsDialogState
                     currentAircraft.copyWith(ognDeviceId: id),
                   );
                   if (widget.parentContext.mounted) {
-                    ScaffoldMessenger.of(
-                      widget.parentContext,
-                    ).showSnackBar(SnackBar(content: Text(l10n.save)));
+                    ScaffoldMessenger.of(widget.parentContext)
+                        .showSnackBar(SnackBar(content: Text(l10n.save)));
                   }
                 },
                 style: ElevatedButton.styleFrom(

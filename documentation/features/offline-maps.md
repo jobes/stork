@@ -73,3 +73,33 @@ For the transparent tile serving proxy to work, the map style definitions must b
 - **Offline Consistency**: This ensures that all map layers are requested solely through the local caching proxy, enabling transparent offline fallback for all vector data, aircraft layers, and hillshade terrain.
 
 
+
+### Prepared styles (MapLibre 0.4)
+
+`mapStyleProvider` loads and rewrites the base style through `StyleService`, then
+`MapStyleData` captures current overlay data. The pure `MapStylePreparer` returns a
+`PreparedMapStyle`: JSON containing the initial overlay sources, layers and airspace
+filters, paired with a `PreparedOverlaySnapshot` whose source map and lists are
+unmodifiable defensive copies. Preparation requires no map controller.
+
+`AircraftMap` passes that exact prepared result back when its style loads. It
+coalesces pending style changes and uses `MapOptions.style` to load the latest
+JSON. `MapCamera` uses the attached snapshot to catch up data changed during
+loading, while keeping the existing telemetry interpolation, route throttling,
+NOTAM batching, weather palette updates and traffic viewport filtering. There is
+no string-keyed snapshot cache or eviction dependency.
+
+At startup, the prepared map renders behind the opaque loading screen. The
+screen is removed only after controller/overlay initialization, MapLibre's fully
+rendered initial view and a Flutter compositing frame. Fresh online overlays and
+catalog updates are deferred until the map is interactive. Uncached base map
+resources can still require network access; preparation and rendering each have
+a 15-second deadline with an explicit retry screen on failure. See
+[Application startup](../architecture/application-startup.md) for the readiness
+contract and device measurements.
+
+The upgrade retains the SQLite/PMTiles download and local HTTP serving path;
+MapLibre's native offline-region storage is not used. Android's existing API 26
+minimum and cleartext setting continue to support the loopback tile server.
+The package requires Flutter 3.47 / Dart 3.13; the Apple project scaffolds require
+iOS 15 and macOS 14.3. Web uses the package's MapLibre GL JS 6 and PMTiles loader.

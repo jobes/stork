@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stork/features/settings/data/repositories/aircraft_repository.dart';
@@ -66,19 +67,16 @@ void main() {
       },
     );
 
-    test(
-      'getAircrafts throws TypeError when JSON structure does not match expected schema',
-      () async {
-        final repository = AircraftRepository(prefs);
-        // "initialFlights" has invalid type (string instead of int)
-        await prefs.setString(
-          'app_aircrafts',
-          '[{"id": "1", "name": "Cessna", "initialFlights": "ten"}]',
-        );
+    test('getAircrafts throws TypeError when JSON structure does not match expected schema', () async {
+      final repository = AircraftRepository(prefs);
+      // "initialFlights" has invalid type (string instead of int)
+      await prefs.setString(
+        'app_aircrafts',
+        '[{"id": "1", "name": "Cessna", "initialFlights": "ten"}]',
+      );
 
-        expect(() => repository.getAircrafts(), throwsA(isA<TypeError>()));
-      },
-    );
+      expect(() => repository.getAircrafts(), throwsA(isA<TypeError>()));
+    });
 
     test(
       'each aircraft stores its own flight profile with fresh defaults',

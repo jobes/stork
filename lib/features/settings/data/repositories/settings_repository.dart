@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../../core/constants/map_constants.dart';
 import '../../domain/models/app_settings.dart';
 
@@ -42,9 +44,9 @@ class SettingsRepository {
   ];
 
   static const _pilotFields = <String>['widgetPositions'];
-  static final _defaults =
-      json.decode(json.encode(const AppSettings().toJson()))
-          as Map<String, dynamic>;
+  static final _defaults = json.decode(
+    json.encode(const AppSettings().toJson()),
+  ) as Map<String, dynamic>;
   static final _defaultSettingsJson = json.encode(const AppSettings().toJson());
 
   // A distinct namespace prevents a null (guest) profile from colliding with

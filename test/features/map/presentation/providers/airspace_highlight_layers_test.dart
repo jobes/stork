@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'dart:typed_data';
+
+import '../../../../support/map_style_backend.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
@@ -19,8 +20,7 @@ Map<String, dynamic> _styleWithHitTest() {
     {"id": "inactive-airspaces-line", "type": "line", "paint": {"line-color": "#2E7D32", "line-width": 1.5}}
   ]
 }
-''')
-      as Map<String, dynamic>;
+''') as Map<String, dynamic>;
 }
 
 /// Style JSON without the `airspace_clicktarget` hit-test layer.
@@ -33,57 +33,40 @@ Map<String, dynamic> _styleWithoutHitTest() {
 }
 
 /// Records every style mutation so tests can assert what was applied.
-class FakeStyleController extends StyleController {
+class FakeStyleController extends TestStyle {
+  FakeStyleController() {
+    loadStyle({
+      'sources': {
+        'openaip-data': {'type': 'vector', 'tiles': <String>[]},
+      },
+      'layers': [
+        {
+          'id': 'airspace_clicktarget',
+          'type': 'fill',
+          'source': 'openaip-data',
+        },
+        for (final id in airspaceHighlightLayerIds)
+          {'id': id, 'type': 'fill', 'source': 'openaip-data'},
+      ],
+    });
+  }
   final List<String> removedLayerIds = [];
   final List<({StyleLayer layer, String? belowLayerId})> addedLayers = [];
-
   @override
   Future<void> addLayer(
-    StyleLayer layer, {
+    Map<String, Object?> json, {
     String? belowLayerId,
-    String? aboveLayerId,
-    int? atIndex,
   }) async {
-    addedLayers.add((layer: layer, belowLayerId: belowLayerId));
+    addedLayers.add((
+      layer: StyleLayer.fromJson(json),
+      belowLayerId: belowLayerId,
+    ));
   }
 
   @override
   Future<void> removeLayer(String id) async {
     removedLayerIds.add(id);
   }
-
-  @override
-  Future<void> addSource(Source source) async {}
-
-  @override
-  Future<void> updateGeoJsonSource({
-    required String id,
-    required String data,
-  }) async {}
-
-  @override
-  Future<void> removeSource(String id) async {}
-
-  @override
-  Future<List<String>> getAttributions() async => const [];
-
-  @override
-  List<String> getAttributionsSync() => const [];
-
-  @override
-  List<String> getLayerIds() => addedLayers.map((e) => e.layer.id).toList();
-
-  @override
-  Future<void> addImage(String id, Uint8List bytes) async {}
-
-  @override
-  Future<void> removeImage(String id) async {}
-
-  @override
-  void setProjection(MapProjection projection) {}
-
-  @override
-  void dispose() {}
 }
 
 void main() {
@@ -139,27 +122,42 @@ void main() {
       expect(activeFill.id, 'active-airspaces-fill');
       expect(activeFill.sourceId, 'openaip-data');
       expect(activeFill.sourceLayerId, 'airspaces');
-      expect(activeFill.filter, airspaceSourceIdFilter(['asp1', 'asp2']));
-      expect(activeFill.paint, {'fill-color': '#9C27B0', 'fill-opacity': 0.35});
+      expect(
+        activeFill.filter?.toJson(),
+        airspaceSourceIdFilter(['asp1', 'asp2']),
+      );
+      expect(activeFill.toJson()['paint'], {
+        'fill-color': '#9C27B0',
+        'fill-opacity': 0.35,
+      });
       expect(fake.addedLayers[0].belowLayerId, 'airspace_clicktarget');
 
       final activeLine = fake.addedLayers[1].layer as LineStyleLayer;
       expect(activeLine.id, 'active-airspaces-line');
-      expect(activeLine.filter, airspaceSourceIdFilter(['asp1', 'asp2']));
-      expect(activeLine.paint, {'line-color': '#FF1744', 'line-width': 3.0});
+      expect(
+        activeLine.filter?.toJson(),
+        airspaceSourceIdFilter(['asp1', 'asp2']),
+      );
+      expect(activeLine.toJson()['paint'], {
+        'line-color': '#FF1744',
+        'line-width': 3.0,
+      });
 
       final inactiveFill = fake.addedLayers[2].layer as FillStyleLayer;
       expect(inactiveFill.id, 'inactive-airspaces-fill');
-      expect(inactiveFill.filter, airspaceSourceIdFilter(['asp3']));
-      expect(inactiveFill.paint, {
+      expect(inactiveFill.filter?.toJson(), airspaceSourceIdFilter(['asp3']));
+      expect(inactiveFill.toJson()['paint'], {
         'fill-color': '#4CAF50',
         'fill-opacity': 0.15,
       });
 
       final inactiveLine = fake.addedLayers[3].layer as LineStyleLayer;
       expect(inactiveLine.id, 'inactive-airspaces-line');
-      expect(inactiveLine.filter, airspaceSourceIdFilter(['asp3']));
-      expect(inactiveLine.paint, {'line-color': '#2E7D32', 'line-width': 1.5});
+      expect(inactiveLine.filter?.toJson(), airspaceSourceIdFilter(['asp3']));
+      expect(inactiveLine.toJson()['paint'], {
+        'line-color': '#2E7D32',
+        'line-width': 1.5,
+      });
     });
 
     test(
@@ -219,7 +217,7 @@ void main() {
 
       expect(fake.addedLayers, hasLength(4));
       for (final added in fake.addedLayers) {
-        expect(added.layer.paint, isEmpty);
+        expect(added.layer.toJson()['paint'] ?? {}, isEmpty);
         expect(added.belowLayerId, 'airspace_clicktarget');
       }
     });
@@ -253,7 +251,7 @@ void main() {
         // The second application carries the new filters.
         final secondActiveFill = fake.addedLayers[4].layer as FillStyleLayer;
         expect(
-          secondActiveFill.filter,
+          secondActiveFill.filter?.toJson(),
           airspaceSourceIdFilter(['asp1', 'asp2']),
         );
       },

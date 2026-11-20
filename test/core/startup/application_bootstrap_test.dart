@@ -1,6 +1,8 @@
+import '../../support/prepared_map_style.dart';
+
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maplibre/maplibre.dart';
@@ -136,11 +138,101 @@ ProviderContainer _container({
       () => liveTelemetry ?? _Telemetry(telemetry),
     ),
     airspaceActivityProvider.overrideWithValue({}),
-    mapStyleProvider.overrideWith((_) async => '{"version":8}'),
+    mapStyleProvider.overrideWith(
+      (_) async => testPreparedStyle('{"version":8}'),
+    ),
   ],
 );
 
 void main() {
+  test(
+    'monitoring retry remains single-flight after a previous error',
+    () async {
+      final pending = Completer<bool>();
+      var starts = 0;
+      final container = ProviderContainer(
+        retry: (_, _) => null,
+        overrides: [
+          applicationRuntimeProvider.overrideWith((_) async {
+            if (++starts == 1) throw StateError('First initialization failed');
+            return pending.future;
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      await expectLater(
+        container.read(applicationRuntimeProvider.future),
+        throwsStateError,
+      );
+      retryApplicationBootstrap(container, retryPending: true);
+      final retrying = container.read(applicationRuntimeProvider.future);
+      expect(container.read(applicationRuntimeProvider).isLoading, isTrue);
+      retryApplicationBootstrap(container, retryPending: true);
+      container.read(applicationRuntimeProvider.future);
+      expect(starts, 2);
+      pending.complete(true);
+      expect(await retrying, isTrue);
+    },
+  );
+  test(
+    'local retry never restarts pending monitoring initialization',
+    () async {
+      final pending = Completer<bool>();
+      var starts = 0;
+      final container = _container(
+        monitoring: pending.future,
+        started: (name) {
+          if (name == 'monitoring') starts++;
+        },
+      );
+      addTearDown(container.dispose);
+      final monitoring = container.read(applicationRuntimeProvider.future);
+      await container.read(applicationBootstrapProvider.future);
+      retryApplicationBootstrap(container, retryPending: true);
+      await container.read(applicationBootstrapProvider.future);
+      expect(starts, 1);
+      expect(container.read(applicationRuntimeProvider).isLoading, isTrue);
+      pending.complete(true);
+      expect(await monitoring, isTrue);
+    },
+  );
+
+  for (final throwsError in [false, true]) {
+    test(
+      'completed unsuccessful monitoring can retry (error=$throwsError)',
+      () async {
+        var starts = 0;
+        final container = ProviderContainer(
+          retry: (_, _) => null,
+          overrides: [
+            applicationRuntimeProvider.overrideWith((_) async {
+              if (++starts == 1) {
+                if (throwsError) throw StateError('Monitoring failed');
+                return false;
+              }
+              return true;
+            }),
+          ],
+        );
+        addTearDown(container.dispose);
+        if (throwsError) {
+          await expectLater(
+            container.read(applicationRuntimeProvider.future),
+            throwsStateError,
+          );
+        } else {
+          expect(
+            await container.read(applicationRuntimeProvider.future),
+            isFalse,
+          );
+        }
+        retryApplicationBootstrap(container, retryPending: true);
+        expect(await container.read(applicationRuntimeProvider.future), isTrue);
+        expect(starts, 2);
+      },
+    );
+  }
+
   test(
     'retry recovers shared preferences before dependent local preparation',
     () async {
@@ -165,75 +257,66 @@ void main() {
     },
   );
 
-  test(
-    'real bootstrap keeps asynchronous settings mounted before the map exists',
-    () async {
-      final settingsReady = Completer<AppSettings>();
-      final favoritesReady = Completer<List<FavoritePoint>>();
-      final settings = _SlowSettings(settingsReady.future);
-      final container = _container(
-        settings: settings,
-        favorites: favoritesReady.future,
-      );
-      // Exercise the actual coordinator, not a replacement bootstrap future.
-      final startup = container.listen(applicationBootstrapProvider, (_, _) {});
-      await container.pump();
-      settingsReady.complete(const AppSettings());
-      await container.pump();
-      expect(settings.builds, 1);
-      expect(settings.listenedAfterLoading, isTrue);
-      expect(
-        container.read(appSettingsProvider).requireValue,
-        const AppSettings(),
-      );
-      // Favourites deliberately remain pending, so no platform/map services run.
-      expect(startup.read().isLoading, isTrue);
-      container.dispose();
-      favoritesReady.complete([]);
-    },
-  );
-  test(
-    'configuration gates services, then independent preparations overlap',
-    () async {
-      final configuration = Completer<void>();
-      final monitoring = Completer<bool>();
-      final fir = Completer<void>();
-      final assets = Completer<void>();
-      final database = Completer<void>();
-      final settingsReady = Completer<AppSettings>();
-      final started = <String>[];
-      final container = _container(
-        configuration: configuration.future,
-        monitoring: monitoring.future,
-        fir: () => fir.future,
-        assets: assets.future,
-        database: database.future,
-        settings: _SlowSettings(settingsReady.future),
-        started: started.add,
-      );
-      addTearDown(container.dispose);
-      final startup = container.listen(applicationBootstrapProvider, (_, _) {});
-      await container.pump();
-      expect(started, ['configuration']);
-      configuration.complete();
-      await Future<void>.delayed(Duration.zero);
-      await container.pump();
-      expect(
-        started,
-        containsAll(['monitoring', 'fir', 'assets', 'database', 'position']),
-      );
-      expect(startup.read().isLoading, isTrue);
-      settingsReady.complete(const AppSettings());
-      fir.complete();
-      assets.complete();
-      database.complete();
-      await container.pump();
-      expect(startup.read().isLoading, isTrue);
-      monitoring.complete(false);
-      await container.read(applicationBootstrapProvider.future);
-      expect(startup.read().hasValue, isTrue);
-    },
-  );
+  test('real bootstrap keeps asynchronous settings mounted before the map exists', () async {
+    final settingsReady = Completer<AppSettings>();
+    final favoritesReady = Completer<List<FavoritePoint>>();
+    final settings = _SlowSettings(settingsReady.future);
+    final container = _container(
+      settings: settings,
+      favorites: favoritesReady.future,
+    );
+    // Exercise the actual coordinator, not a replacement bootstrap future.
+    final startup = container.listen(applicationBootstrapProvider, (_, _) {});
+    await container.pump();
+    settingsReady.complete(const AppSettings());
+    await container.pump();
+    expect(settings.builds, 1);
+    expect(settings.listenedAfterLoading, isTrue);
+    expect(
+      container.read(appSettingsProvider).requireValue,
+      const AppSettings(),
+    );
+    // Favourites deliberately remain pending, so no platform/map services run.
+    expect(startup.read().isLoading, isTrue);
+    container.dispose();
+    favoritesReady.complete([]);
+  });
+  test('configuration gates local preparation but slow monitoring never gates the map', () async {
+    final configuration = Completer<void>();
+    final monitoring = Completer<bool>();
+    final fir = Completer<void>();
+    final assets = Completer<void>();
+    final database = Completer<void>();
+    final settingsReady = Completer<AppSettings>();
+    final started = <String>[];
+    final container = _container(
+      configuration: configuration.future,
+      monitoring: monitoring.future,
+      fir: () => fir.future,
+      assets: assets.future,
+      database: database.future,
+      settings: _SlowSettings(settingsReady.future),
+      started: started.add,
+    );
+    addTearDown(container.dispose);
+    final startup = container.listen(applicationBootstrapProvider, (_, _) {});
+    await container.pump();
+    expect(started, ['configuration']);
+    configuration.complete();
+    await Future<void>.delayed(Duration.zero);
+    await container.pump();
+    expect(started, containsAll(['fir', 'assets', 'database', 'position']));
+    expect(startup.read().isLoading, isTrue);
+    settingsReady.complete(const AppSettings());
+    fir.complete();
+    assets.complete();
+    database.complete();
+    await container.pump();
+    await container.read(applicationBootstrapProvider.future);
+    expect(startup.read().hasValue, isTrue);
+    expect(started, isNot(contains('monitoring')));
+    monitoring.complete(false);
+  });
 
   test('valid telemetry does not wait for last-known position', () async {
     final position = Completer<Geographic?>();

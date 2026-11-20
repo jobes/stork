@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../data/repositories/navigation_repository.dart';
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';

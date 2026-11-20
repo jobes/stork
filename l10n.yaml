@@ -1,4 +1,8 @@
 arb-dir: lib/l10n
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
-
+# The SDK generator still emits legacy Material/Cupertino delegates. Runtime
+# callers use the migrated delegates in lib/l10n/localizations.dart instead.
+header: |
+  // Generated legacy delegate list is unused; see localizations.dart.
+  // ignore_for_file: deprecated_member_use

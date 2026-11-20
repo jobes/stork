@@ -41,7 +41,6 @@ final applicationBootstrapProvider = FutureProvider<PreparedApplication>(
     await measureStartup(
       'Local preparation',
       () => Future.wait([
-        ref.watch(applicationRuntimeProvider.future),
         ref.read(startupFirIndexProvider.future),
         ref.read(startupMapAssetsProvider.future),
         ref.read(startupOfflineDatabaseProvider.future),
@@ -100,10 +99,15 @@ final applicationBootstrapProvider = FutureProvider<PreparedApplication>(
 
 /// Retry failed local dependencies as well as the coordinator. Reading only
 /// existing providers avoids starting unrelated work on a failed early boot.
-void retryApplicationBootstrap(ProviderContainer container) {
+void retryApplicationBootstrap(
+  ProviderContainer container, {
+  bool retryPending = false,
+}) {
+  bool needsRetry(AsyncValue value) =>
+      value.hasError || (retryPending && value.isLoading && !value.hasValue);
   container.invalidate(applicationBootstrapProvider);
   if (container.read(sharedPreferencesProvider.exists) &&
-      container.read(sharedPreferencesProvider).hasError) {
+      needsRetry(container.read(sharedPreferencesProvider))) {
     container.invalidate(sharedPreferencesProvider);
   }
   for (final dependency in [
@@ -113,28 +117,34 @@ void retryApplicationBootstrap(ProviderContainer container) {
     startupOfflineDatabaseProvider,
   ]) {
     if (container.read(dependency.exists) &&
-        container.read(dependency).hasError) {
+        needsRetry(container.read(dependency))) {
       container.invalidate(dependency);
     }
   }
-  if (container.read(applicationRuntimeProvider.exists) &&
-      container.read(applicationRuntimeProvider).hasError) {
-    container.invalidate(applicationRuntimeProvider);
+  if (container.read(applicationRuntimeProvider.exists)) {
+    final monitoring = container.read(applicationRuntimeProvider);
+    // Monitoring is outside bootstrap's critical path. Never overlap a pending
+    // SDK initialization with a second one, even when local work timed out.
+    if (!monitoring.isLoading &&
+        (monitoring.hasError ||
+            (monitoring is AsyncData<bool> && !monitoring.value))) {
+      container.invalidate(applicationRuntimeProvider);
+    }
   }
   if (container.read(displayPreferencesProvider.exists) &&
-      container.read(displayPreferencesProvider).hasError) {
+      needsRetry(container.read(displayPreferencesProvider))) {
     container.invalidate(displayPreferencesProvider);
   }
   if (container.read(appSettingsProvider.exists) &&
-      container.read(appSettingsProvider).hasError) {
+      needsRetry(container.read(appSettingsProvider))) {
     container.invalidate(appSettingsProvider);
   }
   if (container.read(navigationProvider.exists) &&
-      container.read(navigationProvider).hasError) {
+      needsRetry(container.read(navigationProvider))) {
     container.invalidate(navigationProvider);
   }
   if (container.read(favoritesProvider.exists) &&
-      container.read(favoritesProvider).hasError) {
+      needsRetry(container.read(favoritesProvider))) {
     container.invalidate(favoritesProvider);
   }
   container.invalidate(mapStyleProvider);

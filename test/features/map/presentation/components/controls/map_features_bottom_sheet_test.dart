@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
@@ -17,7 +18,7 @@ import 'package:stork/features/map/presentation/providers/airport_metadata_provi
 import 'package:stork/features/map/presentation/providers/airspace_metadata_provider.dart';
 import 'package:stork/features/map/domain/airspace_metadata.dart';
 import 'package:stork/features/map/domain/airport_metadata.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 void main() {
   testWidgets('NOTAM icon uses the same colour in both themes', (tester) async {
@@ -27,7 +28,7 @@ void main() {
           child: MaterialApp(
             theme: ThemeData(brightness: brightness),
             themeAnimationDuration: Duration.zero,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: const Scaffold(
               body: MapFeaturesBottomSheet(
@@ -74,7 +75,7 @@ void main() {
             openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: MapFeaturesBottomSheet(
@@ -121,7 +122,7 @@ void main() {
             openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: MapFeaturesBottomSheet(
@@ -167,7 +168,7 @@ void main() {
             openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: MapFeaturesBottomSheet(
@@ -213,7 +214,7 @@ void main() {
             openAipApiKeyProvider.overrideWith((ref) => 'test-key'),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: MapFeaturesBottomSheet(
@@ -253,7 +254,7 @@ void main() {
         ProviderScope(
           overrides: [openAipApiKeyProvider.overrideWith((ref) => 'test-key')],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: MapFeaturesBottomSheet(
@@ -330,7 +331,7 @@ void main() {
           ).overrideWith((ref) async => null),
         ],
         child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: AirspaceDetailsDialog(features: features)),
         ),
@@ -393,7 +394,7 @@ void main() {
             ).overrideWith((ref) async => null),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: AirspaceDetailsDialog(features: features)),
           ),
@@ -439,7 +440,7 @@ void main() {
             }),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('en'),
             home: Scaffold(body: AirspaceDetailsDialog(features: features)),
@@ -477,7 +478,7 @@ void main() {
             }),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('sk'),
             home: Scaffold(body: AirspaceDetailsDialog(features: features)),
@@ -535,7 +536,7 @@ void main() {
             ).overrideWith((ref) async => mockMetadata),
           ],
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('en'),
             home: Scaffold(body: AirspaceDetailsDialog(features: features)),
@@ -618,7 +619,7 @@ void main() {
             builder: (context, ref, child) {
               providerContainer = ProviderScope.containerOf(context);
               return MaterialApp(
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                localizationsDelegates: appLocalizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 home: Scaffold(
                   body: MapFeaturesBottomSheet(
@@ -701,7 +702,7 @@ void main() {
             builder: (context, ref, child) {
               providerContainer = ProviderScope.containerOf(context);
               return MaterialApp(
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                localizationsDelegates: appLocalizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 home: Scaffold(
                   body: MapFeaturesBottomSheet(
@@ -760,7 +761,7 @@ void main() {
             builder: (context, ref, child) {
               providerContainer = ProviderScope.containerOf(context);
               return MaterialApp(
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                localizationsDelegates: appLocalizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 home: Scaffold(
                   body: MapFeaturesBottomSheet(
@@ -833,7 +834,7 @@ void main() {
         UncontrolledProviderScope(
           container: container,
           child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: MapFeaturesBottomSheet(

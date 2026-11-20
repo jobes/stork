@@ -98,11 +98,8 @@ abstract class NotamCatalog with _$NotamCatalog {
   }
 
   static List<double> _coordinate(Object? input) {
-    if (input case [
-      num lon,
-      num lat,
-      ...,
-    ] when lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90) {
+    if (input case [num lon, num lat, ...]
+        when lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90) {
       return [lon.toDouble(), lat.toDouble()];
     }
     throw const FormatException('Invalid NOTAM catalog coordinate');

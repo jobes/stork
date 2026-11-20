@@ -43,66 +43,60 @@ void main() {
       expect(TelemetryField.gpsSatelliteCount.deserialize(null), isNull);
     });
 
-    test(
-      'TelemetryState.copyWithField double cast safety with deserialized values',
-      () {
-        var state = const TelemetryState();
+    test('TelemetryState.copyWithField double cast safety with deserialized values', () {
+      var state = const TelemetryState();
 
-        final fields = [
-          TelemetryField.latitude,
-          TelemetryField.longitude,
-          TelemetryField.heading,
-          TelemetryField.groundSpeed,
-          TelemetryField.indicatedAirSpeed,
-          TelemetryField.airPressure,
-          TelemetryField.gpsAltitude,
-          TelemetryField.gpsHorizontalAccuracy,
-          TelemetryField.gpsVerticalAccuracy,
-        ];
+      final fields = [
+        TelemetryField.latitude,
+        TelemetryField.longitude,
+        TelemetryField.heading,
+        TelemetryField.groundSpeed,
+        TelemetryField.indicatedAirSpeed,
+        TelemetryField.airPressure,
+        TelemetryField.gpsAltitude,
+        TelemetryField.gpsHorizontalAccuracy,
+        TelemetryField.gpsVerticalAccuracy,
+      ];
 
-        for (final field in fields) {
-          final val = field.deserialize(10); // SQLite returned whole number
-          expect(val, isA<double>());
-          final updatedState = state.copyWithField(field, val);
-          expect(updatedState.getFieldValue(field), equals(10.0));
-        }
-      },
-    );
+      for (final field in fields) {
+        final val = field.deserialize(10); // SQLite returned whole number
+        expect(val, isA<double>());
+        final updatedState = state.copyWithField(field, val);
+        expect(updatedState.getFieldValue(field), equals(10.0));
+      }
+    });
 
-    test(
-      'TelemetryState.copyWithField cylinderHeadTemperature and exhaustGasTemperature supports both List and JSON String',
-      () {
-        var state = const TelemetryState();
+    test('TelemetryState.copyWithField cylinderHeadTemperature and exhaustGasTemperature supports both List and JSON String', () {
+      var state = const TelemetryState();
 
-        // Test List input
-        var updatedState = state.copyWithField(
-          TelemetryField.cylinderHeadTemperature,
-          [450.5, 451.0],
-        );
-        expect(updatedState.cylinderHeadTemperatures, equals([450.5, 451.0]));
+      // Test List input
+      var updatedState = state.copyWithField(
+        TelemetryField.cylinderHeadTemperature,
+        [450.5, 451.0],
+      );
+      expect(updatedState.cylinderHeadTemperatures, equals([450.5, 451.0]));
 
-        // Test JSON String input
-        updatedState = state.copyWithField(
-          TelemetryField.cylinderHeadTemperature,
-          '[450.5, 451.0]',
-        );
-        expect(updatedState.cylinderHeadTemperatures, equals([450.5, 451.0]));
+      // Test JSON String input
+      updatedState = state.copyWithField(
+        TelemetryField.cylinderHeadTemperature,
+        '[450.5, 451.0]',
+      );
+      expect(updatedState.cylinderHeadTemperatures, equals([450.5, 451.0]));
 
-        // Test List input for EGT
-        updatedState = state.copyWithField(
-          TelemetryField.exhaustGasTemperature,
-          [650.5, 651.0],
-        );
-        expect(updatedState.exhaustGasTemperatures, equals([650.5, 651.0]));
+      // Test List input for EGT
+      updatedState = state.copyWithField(TelemetryField.exhaustGasTemperature, [
+        650.5,
+        651.0,
+      ]);
+      expect(updatedState.exhaustGasTemperatures, equals([650.5, 651.0]));
 
-        // Test JSON String input for EGT
-        updatedState = state.copyWithField(
-          TelemetryField.exhaustGasTemperature,
-          '[650.5, 651.0]',
-        );
-        expect(updatedState.exhaustGasTemperatures, equals([650.5, 651.0]));
-      },
-    );
+      // Test JSON String input for EGT
+      updatedState = state.copyWithField(
+        TelemetryField.exhaustGasTemperature,
+        '[650.5, 651.0]',
+      );
+      expect(updatedState.exhaustGasTemperatures, equals([650.5, 651.0]));
+    });
   });
 
   group('GPS fix timestamp', () {

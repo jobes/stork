@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,69 +58,64 @@ void main() {
       expect(metadata.frequencies!.first.value, equals('118.305'));
     });
 
-    test(
-      'AirspaceMetadata serialization and deserialization of unknown and unclassified classes',
-      () {
-        final unclassifiedMetadata = AirspaceMetadata(
-          id: 'asp_unclassified',
-          name: 'Unclassified Airspace',
-          icaoClass: AirspaceClass.unclassified,
-          type: AirspaceType.ctr,
-          country: 'SK',
-          limitLower: AirspaceLimit(
-            value: 0,
-            unit: OpenAipUnit.meters,
-            referenceDatum: ReferenceDatum.gnd,
-          ),
-          limitUpper: AirspaceLimit(
-            value: 8000,
-            unit: OpenAipUnit.feet,
-            referenceDatum: ReferenceDatum.msl,
-          ),
-        );
+    test('AirspaceMetadata serialization and deserialization of unknown and unclassified classes', () {
+      final unclassifiedMetadata = AirspaceMetadata(
+        id: 'asp_unclassified',
+        name: 'Unclassified Airspace',
+        icaoClass: AirspaceClass.unclassified,
+        type: AirspaceType.ctr,
+        country: 'SK',
+        limitLower: AirspaceLimit(
+          value: 0,
+          unit: OpenAipUnit.meters,
+          referenceDatum: ReferenceDatum.gnd,
+        ),
+        limitUpper: AirspaceLimit(
+          value: 8000,
+          unit: OpenAipUnit.feet,
+          referenceDatum: ReferenceDatum.msl,
+        ),
+      );
 
-        final unknownMetadata = AirspaceMetadata(
-          id: 'asp_unknown',
-          name: 'Unknown Airspace',
-          icaoClass: AirspaceClass.unknown,
-          type: AirspaceType.ctr,
-          country: 'SK',
-          limitLower: AirspaceLimit(
-            value: 0,
-            unit: OpenAipUnit.meters,
-            referenceDatum: ReferenceDatum.gnd,
-          ),
-          limitUpper: AirspaceLimit(
-            value: 8000,
-            unit: OpenAipUnit.feet,
-            referenceDatum: ReferenceDatum.msl,
-          ),
-        );
+      final unknownMetadata = AirspaceMetadata(
+        id: 'asp_unknown',
+        name: 'Unknown Airspace',
+        icaoClass: AirspaceClass.unknown,
+        type: AirspaceType.ctr,
+        country: 'SK',
+        limitLower: AirspaceLimit(
+          value: 0,
+          unit: OpenAipUnit.meters,
+          referenceDatum: ReferenceDatum.gnd,
+        ),
+        limitUpper: AirspaceLimit(
+          value: 8000,
+          unit: OpenAipUnit.feet,
+          referenceDatum: ReferenceDatum.msl,
+        ),
+      );
 
-        // Serialize
-        final unclassifiedJson = unclassifiedMetadata.toJson();
-        final unknownJson = unknownMetadata.toJson();
+      // Serialize
+      final unclassifiedJson = unclassifiedMetadata.toJson();
+      final unknownJson = unknownMetadata.toJson();
 
-        expect(unclassifiedJson['icaoClass'], equals(8));
-        expect(unknownJson['icaoClass'], equals(9));
+      expect(unclassifiedJson['icaoClass'], equals(8));
+      expect(unknownJson['icaoClass'], equals(9));
 
-        // Deserialize
-        final restoredUnclassified = AirspaceMetadata.fromJson(
-          unclassifiedJson,
-        );
-        final restoredUnknown = AirspaceMetadata.fromJson(unknownJson);
+      // Deserialize
+      final restoredUnclassified = AirspaceMetadata.fromJson(unclassifiedJson);
+      final restoredUnknown = AirspaceMetadata.fromJson(unknownJson);
 
-        expect(
-          restoredUnclassified.icaoClass,
-          equals(AirspaceClass.unclassified),
-        );
-        expect(restoredUnknown.icaoClass, equals(AirspaceClass.unknown));
+      expect(
+        restoredUnclassified.icaoClass,
+        equals(AirspaceClass.unclassified),
+      );
+      expect(restoredUnknown.icaoClass, equals(AirspaceClass.unknown));
 
-        // Verify no data loss on round-trip for limit values
-        expect(restoredUnclassified.limitLower.value, equals(0.0));
-        expect(restoredUnclassified.limitUpper.value, equals(8000.0));
-      },
-    );
+      // Verify no data loss on round-trip for limit values
+      expect(restoredUnclassified.limitLower.value, equals(0.0));
+      expect(restoredUnclassified.limitUpper.value, equals(8000.0));
+    });
   });
 
   group('AirspaceMetadataCache Concurrent Downloads', () {
@@ -192,70 +188,67 @@ void main() {
       },
     );
 
-    test(
-      'airspaceMetadata provider disposes KeepAliveLink on failure to allow retries',
-      () async {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+    test('airspaceMetadata provider disposes KeepAliveLink on failure to allow retries', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
 
-        var requestCount = 0;
-        final mockClient = MockClient((request) async {
-          requestCount++;
-          if (requestCount == 1) {
-            return http.Response('Internal Server Error', 500);
-          }
-          return http.Response(
-            json.encode({
-              'features': [
-                {
-                  'type': 'Feature',
-                  'properties': {
-                    'id': 'asp-retry',
-                    'name': 'Test Airspace Retry',
-                    'icaoClass': 2,
-                    'type': 7,
-                    'country': 'US',
-                  },
+      var requestCount = 0;
+      final mockClient = MockClient((request) async {
+        requestCount++;
+        if (requestCount == 1) {
+          return http.Response('Internal Server Error', 500);
+        }
+        return http.Response(
+          json.encode({
+            'features': [
+              {
+                'type': 'Feature',
+                'properties': {
+                  'id': 'asp-retry',
+                  'name': 'Test Airspace Retry',
+                  'icaoClass': 2,
+                  'type': 7,
+                  'country': 'US',
                 },
-              ],
-            }),
-            200,
-          );
-        });
+              },
+            ],
+          }),
+          200,
+        );
+      });
 
-        await http.runWithClient(() async {
-          // Listen to keep provider alive during the test call
-          final sub = container.listen(
-            airspaceMetadataProvider('asp-retry', 'US'),
-            (previous, next) {},
-          );
+      await http.runWithClient(() async {
+        // Listen to keep provider alive during the test call
+        final sub = container.listen(
+          airspaceMetadataProvider('asp-retry', 'US'),
+          (previous, next) {},
+        );
 
-          // Wait until the provider completes its first load (either has value or error)
-          AsyncValue<AirspaceMetadata?> state;
-          do {
-            await Future.delayed(const Duration(milliseconds: 10));
-            state = container.read(airspaceMetadataProvider('asp-retry', 'US'));
-          } while (state is AsyncLoading && !state.hasError);
+        // Wait until the provider completes its first load (either has value or error)
+        AsyncValue<AirspaceMetadata?> state;
+        do {
+          await Future.delayed(const Duration(milliseconds: 10));
+          state = container.read(airspaceMetadataProvider('asp-retry', 'US'));
+        } while (state is AsyncLoading && !state.hasError);
 
-          // Verify it failed on the first call
-          expect(state.hasError, isTrue);
-          expect(requestCount, equals(1));
+        // Verify it failed on the first call
+        expect(state.hasError, isTrue);
+        expect(requestCount, equals(1));
 
-          // Close the subscription to let the provider auto-dispose
-          sub.close();
+        // Close the subscription to let the provider auto-dispose
+        sub.close();
 
-          // Wait to let disposal register
-          await Future.delayed(Duration.zero);
+        // Wait to let disposal register
+        await Future.delayed(Duration.zero);
 
-          // Second attempt - should retry and succeed because the previous one was auto-disposed
-          final secondCall = await container.read(
-            airspaceMetadataProvider('asp-retry', 'US').future,
-          );
-          expect(secondCall, isNotNull);
-          expect(secondCall?.name, equals('Test Airspace Retry'));
-          expect(requestCount, equals(2));
-        }, () => mockClient);
-      },
-    );
+        // Second attempt - should retry and succeed because the previous one was auto-disposed
+        final secondCall = await container.read(
+          airspaceMetadataProvider('asp-retry', 'US').future,
+        );
+        expect(secondCall, isNotNull);
+        expect(secondCall?.name, equals('Test Airspace Retry'));
+        expect(requestCount, equals(2));
+      }, () => mockClient);
+    });
   });
 }

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'flight_statistics.dart';
 
 part 'flight.freezed.dart';

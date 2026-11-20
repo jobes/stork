@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -34,9 +34,8 @@ class FuelStatusTelemetryWidget extends ConsumerWidget {
     final double? rawLiters = fuelVolumeLiters;
 
     final fuelState = ref.watch(
-      instrumentStatusProvider(
-        TelemetryInstrument.fuel,
-      ).select((status) => status.cardState),
+      instrumentStatusProvider(TelemetryInstrument.fuel)
+          .select((status) => status.cardState),
     );
 
     // "Na widgete teplomer ukazuje hodnoty v %, ale cislo je pocet litrov."

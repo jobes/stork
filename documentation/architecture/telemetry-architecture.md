@@ -173,6 +173,28 @@ late final DecayableField<double> _heading = DecayableField<double>(
   4. The UI immediately reflects the missing data (e.g. showing offline indicators or warning states).
 - **Persistent Support State**: Flags indicating sensor presence (e.g., `isEngineRpmSupported`, `isFuelSupported`) **persist as `true`** even after data decays. This ensures widgets stay visible and show error/timeout states rather than vanishing completely.
 
+### Device sensor availability
+
+`accelerometerSourceProvider` and `magnetometerSourceProvider` each own a shared
+`RecoveringSensorStream`. Availability comes from data, initialization failures,
+stream errors/completion and a 10-second silence watchdog, not an OS allowlist.
+They emit `null` on loss and retry after 5 seconds; late callbacks from an older
+connection cannot replace current data. Cancellation is serialized and bounded,
+and retries/watchdogs stop when consumers leave or the provider is disposed.
+
+Native connections await the sensors_plus sampling method before subscribing to
+the event channel, so an absent backend does not leak an unawaited configuration
+exception. Web uses the plugin's browser implementation. This selects the
+transport, not whether physical hardware exists. The native channel payload
+retains the plugin's x/y/z values and microsecond timestamp format.
+
+The compass and orientation share one acceleration subscription. Losing either
+sensor clears the cached heading inputs; recovery requires fresh acceleration
+and magnetic samples. Orientation drops stale gravity and returns to the
+viewport fallback until new acceleration arrives. USB hardware must be exposed
+by a compatible driver/backend; this change does not implement a USB protocol.
+GPS uses its separate existing geolocator/DroneCAN/GDL90 paths and recovery.
+
 ### GPS Loss During Flight (30-second Grace Period)
 
 Because the GPS fields decay after 2 seconds, a GPS dropout while airborne used to end the flight almost immediately and start a new one as soon as the fix returned. [TelemetryNotifier](../../lib/features/telemetry/presentation/providers/telemetry_provider.dart) now keeps the flight state (`isFlying`) for `gpsLossGracePeriod` (**30 seconds**), measured from the last valid fix (`_lastGpsFixTime`, refreshed by every `updateGPS` call that carries a latitude):

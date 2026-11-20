@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+
 import 'bit_reader.dart';
 import 'dronecan_message.dart';
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/theme/app_theme.dart';
@@ -6,7 +6,7 @@ import 'package:stork/features/settings/domain/models/aircraft.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/domain/models/pilot.dart';
 import 'package:stork/features/settings/presentation/components/profile_header_card.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 void main() {
   testWidgets('profile header follows shared theme and preserves selectors', (
@@ -16,7 +16,7 @@ void main() {
       ProviderScope(
         child: MaterialApp(
           theme: AppTheme.lightTheme,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ProfileHeaderCard(

@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:maplibre/maplibre.dart';
+
 import '../../../../core/theme/stork_colors.dart';
 import 'traffic_colors.dart';
 
@@ -39,7 +41,7 @@ const forecastDark = (
 /// Shared by initial style preparation and subsequent style reloads.
 class MapOverlayStyle {
   const MapOverlayStyle({required this.sources, required this.layers});
-  final List<GeoJsonSource> sources;
+  final List<GeoJsonSourceData> sources;
   final List<StyleLayer> layers;
 
   factory MapOverlayStyle.build({
@@ -58,48 +60,55 @@ class MapOverlayStyle {
     return MapOverlayStyle(
       sources: [
         for (final entry in data.entries)
-          GeoJsonSource(id: entry.key, data: entry.value),
+          GeoJsonSourceData(id: entry.key, data: GeoJsonData.text(entry.value)),
       ],
       layers: [
-        LineStyleLayer(
-          id: 'course-line-border',
-          sourceId: 'course-line-source',
-          paint: {'line-color': '#000000', 'line-width': 5.0},
-        ),
-        LineStyleLayer(
-          id: 'course-line-white',
-          sourceId: 'course-line-source',
-          filter: ['==', 'isEven', false],
-          paint: {'line-color': '#FFFFFF', 'line-width': 3.0},
-        ),
-        LineStyleLayer(
-          id: 'navigation-route-border',
-          sourceId: 'navigation-route-source',
-          paint: {'line-color': '#000000', 'line-width': 6.0},
-        ),
-        LineStyleLayer(
-          id: 'navigation-route-line',
-          sourceId: 'navigation-route-source',
-          paint: {'line-color': '#FF9800', 'line-width': 3.5},
-        ),
-        FillStyleLayer(
-          id: 'notams-fill-layer',
-          sourceId: 'notams-source',
-          paint: {'fill-color': notamColor, 'fill-opacity': 0.25},
-        ),
-        LineStyleLayer(
-          id: 'notams-line-layer',
-          sourceId: 'notams-source',
-          paint: {
+        StyleLayer.fromJson({
+          'type': 'line',
+          'id': 'course-line-border',
+          'source': 'course-line-source',
+          'paint': {'line-color': '#000000', 'line-width': 5.0},
+        }),
+        StyleLayer.fromJson({
+          'type': 'line',
+          'id': 'course-line-white',
+          'source': 'course-line-source',
+          'filter': ['==', 'isEven', false],
+          'paint': {'line-color': '#FFFFFF', 'line-width': 3.0},
+        }),
+        StyleLayer.fromJson({
+          'type': 'line',
+          'id': 'navigation-route-border',
+          'source': 'navigation-route-source',
+          'paint': {'line-color': '#000000', 'line-width': 6.0},
+        }),
+        StyleLayer.fromJson({
+          'type': 'line',
+          'id': 'navigation-route-line',
+          'source': 'navigation-route-source',
+          'paint': {'line-color': '#FF9800', 'line-width': 3.5},
+        }),
+        StyleLayer.fromJson({
+          'type': 'fill',
+          'id': 'notams-fill-layer',
+          'source': 'notams-source',
+          'paint': {'fill-color': notamColor, 'fill-opacity': 0.25},
+        }),
+        StyleLayer.fromJson({
+          'type': 'line',
+          'id': 'notams-line-layer',
+          'source': 'notams-source',
+          'paint': {
             'line-color': notamColor,
             'line-width': 2.0,
             'line-dasharray': [2.0, 2.0],
           },
-        ),
-        SymbolStyleLayer(
-          id: 'aircraft-layer',
-          sourceId: 'aircraft-source',
-          layout: {
+        }),
+        StyleLayer.fromJson({
+          'type': 'symbol',
+          'id': 'aircraft-layer',
+          'source': 'aircraft-source',
+          'layout': {
             'icon-image': 'aircraft-icon',
             'icon-rotate': ['get', 'heading'],
             'icon-rotation-alignment': 'map',
@@ -108,11 +117,12 @@ class MapOverlayStyle {
             'icon-ignore-placement': true,
             'icon-size': kAircraftIconSize,
           },
-        ),
-        SymbolStyleLayer(
-          id: 'traffic-possible-layer',
-          sourceId: 'traffic-source',
-          layout: {
+        }),
+        StyleLayer.fromJson({
+          'type': 'symbol',
+          'id': 'traffic-possible-layer',
+          'source': 'traffic-source',
+          'layout': {
             'icon-image': 'possibleLoc',
             'icon-size': ['get', 'possiblePositionRatio'],
             'icon-rotate': ['get', 'heading'],
@@ -123,11 +133,12 @@ class MapOverlayStyle {
             'icon-optional': false,
             'icon-anchor': 'bottom',
           },
-        ),
-        SymbolStyleLayer(
-          id: 'traffic-layer',
-          sourceId: 'traffic-source',
-          layout: {
+        }),
+        StyleLayer.fromJson({
+          'type': 'symbol',
+          'id': 'traffic-layer',
+          'source': 'traffic-source',
+          'layout': {
             'icon-image': ['get', 'icon-image'],
             'icon-rotate': ['get', 'heading'],
             'icon-rotation-alignment': 'map',
@@ -143,7 +154,7 @@ class MapOverlayStyle {
             'text-allow-overlap': true,
             'text-ignore-placement': true,
           },
-          paint: {
+          'paint': {
             'icon-color': [
               'case',
               [
@@ -173,11 +184,12 @@ class MapOverlayStyle {
             'text-halo-color': '#000000',
             'text-halo-width': 1.5,
           },
-        ),
-        SymbolStyleLayer(
-          id: 'favorites-layer',
-          sourceId: 'favorites-source',
-          layout: {
+        }),
+        StyleLayer.fromJson({
+          'type': 'symbol',
+          'id': 'favorites-layer',
+          'source': 'favorites-source',
+          'layout': {
             'icon-image': ['get', 'icon-image'],
             'icon-size': kPoiIconSize,
             'icon-allow-overlap': true,
@@ -190,19 +202,21 @@ class MapOverlayStyle {
             'text-allow-overlap': true,
             'text-ignore-placement': true,
           },
-          paint: {'text-color': '#000000', 'text-halo-width': 0},
-        ),
-        const CircleStyleLayer(
-          id: forecastHitLayer,
-          sourceId: forecastSource,
-          filter: ['!=', 'kind', 'aircraft'],
-          paint: {'circle-radius': 14.0, 'circle-opacity': 0.0},
-        ),
-        CircleStyleLayer(
-          id: 'flight-weather-markers',
-          sourceId: forecastSource,
-          filter: ['in', 'kind', 'waypoint', 'sample'],
-          paint: {
+          'paint': {'text-color': '#000000', 'text-halo-width': 0},
+        }),
+        StyleLayer.fromJson({
+          'type': 'circle',
+          'id': forecastHitLayer,
+          'source': forecastSource,
+          'filter': ['!=', 'kind', 'aircraft'],
+          'paint': {'circle-radius': 14.0, 'circle-opacity': 0.0},
+        }),
+        StyleLayer.fromJson({
+          'type': 'circle',
+          'id': 'flight-weather-markers',
+          'source': forecastSource,
+          'filter': ['in', 'kind', 'waypoint', 'sample'],
+          'paint': {
             'circle-radius': [
               'match',
               ['get', 'kind'],
@@ -220,12 +234,13 @@ class MapOverlayStyle {
             ],
             'circle-stroke-width': 1.5,
           },
-        ),
-        SymbolStyleLayer(
-          id: 'flight-weather-point-wind',
-          sourceId: forecastSource,
-          filter: ['!=', 'kind', 'aircraft'],
-          layout: {
+        }),
+        StyleLayer.fromJson({
+          'type': 'symbol',
+          'id': 'flight-weather-point-wind',
+          'source': forecastSource,
+          'filter': ['!=', 'kind', 'aircraft'],
+          'layout': {
             'text-field': ['get', 'arrow'],
             'text-font': ['Roboto Regular,Noto Sans Regular'],
             'text-size': windArrowSize,
@@ -234,19 +249,20 @@ class MapOverlayStyle {
             'text-allow-overlap': true,
             'text-ignore-placement': true,
           },
-          paint: {
+          'paint': {
             'text-color': palette.text,
             'text-halo-color': palette.halo,
             'text-halo-width': 2.0 * fontScale,
             'text-translate': [pointArrowOffsetX, 0.0],
             'text-translate-anchor': 'viewport',
           },
-        ),
-        SymbolStyleLayer(
-          id: 'flight-weather-point-label',
-          sourceId: forecastSource,
-          filter: ['!=', 'kind', 'aircraft'],
-          layout: {
+        }),
+        StyleLayer.fromJson({
+          'type': 'symbol',
+          'id': 'flight-weather-point-label',
+          'source': forecastSource,
+          'filter': ['!=', 'kind', 'aircraft'],
+          'layout': {
             'text-field': ['get', 'label'],
             'text-font': ['Roboto Regular,Noto Sans Regular'],
             'text-size': windLabelSize,
@@ -255,19 +271,20 @@ class MapOverlayStyle {
             'text-allow-overlap': true,
             'text-ignore-placement': true,
           },
-          paint: {
+          'paint': {
             'text-color': palette.text,
             'text-halo-color': palette.halo,
             'text-halo-width': 2.0 * fontScale,
             'text-translate': [pointLabelOffsetX, 0.0],
             'text-translate-anchor': 'viewport',
           },
-        ),
-        SymbolStyleLayer(
-          id: forecastWindLayer,
-          sourceId: forecastSource,
-          filter: ['==', 'kind', 'aircraft'],
-          layout: {
+        }),
+        StyleLayer.fromJson({
+          'type': 'symbol',
+          'id': forecastWindLayer,
+          'source': forecastSource,
+          'filter': ['==', 'kind', 'aircraft'],
+          'layout': {
             'text-field': ['get', 'arrow'],
             'text-font': ['Roboto Regular,Noto Sans Regular'],
             'text-size': windArrowSize,
@@ -276,7 +293,7 @@ class MapOverlayStyle {
             'text-allow-overlap': true,
             'text-ignore-placement': true,
           },
-          paint: {
+          'paint': {
             'text-color': palette.text,
             'text-halo-color': palette.halo,
             'text-halo-width': 2.0 * fontScale,
@@ -285,12 +302,13 @@ class MapOverlayStyle {
             'text-translate': [windOffsetX, 0.0],
             'text-translate-anchor': 'viewport',
           },
-        ),
-        SymbolStyleLayer(
-          id: forecastLabelLayer,
-          sourceId: forecastSource,
-          filter: ['==', 'kind', 'aircraft'],
-          layout: {
+        }),
+        StyleLayer.fromJson({
+          'type': 'symbol',
+          'id': forecastLabelLayer,
+          'source': forecastSource,
+          'filter': ['==', 'kind', 'aircraft'],
+          'layout': {
             'text-field': ['get', 'label'],
             'text-font': ['Roboto Regular,Noto Sans Regular'],
             'text-size': windLabelSize,
@@ -299,14 +317,14 @@ class MapOverlayStyle {
             'text-allow-overlap': true,
             'text-ignore-placement': true,
           },
-          paint: {
+          'paint': {
             'text-color': palette.text,
             'text-halo-color': palette.halo,
             'text-halo-width': 2.0 * fontScale,
             'text-translate': [windOffsetX, windLabelOffsetY],
             'text-translate-anchor': 'viewport',
           },
-        ),
+        }),
       ],
     );
   }
@@ -320,7 +338,7 @@ class MapOverlayStyle {
     for (final source in sources) {
       styleSources[source.id] = {
         'type': 'geojson',
-        'data': jsonDecode(source.data),
+        'data': source.data.toJson(),
         'maxzoom': source.maxZoom,
         'tolerance': source.tolerance,
       };
@@ -333,20 +351,5 @@ class MapOverlayStyle {
     return jsonEncode(style);
   }
 
-  static Map<String, dynamic> layerJson(StyleLayer layer) => {
-    'id': layer.id,
-    'type': switch (layer) {
-      LineStyleLayer() => 'line',
-      FillStyleLayer() => 'fill',
-      SymbolStyleLayer() => 'symbol',
-      CircleStyleLayer() => 'circle',
-      _ => throw UnsupportedError('Unsupported overlay ${layer.runtimeType}'),
-    },
-    if (layer is StyleLayerWithSource) 'source': layer.sourceId,
-    'minzoom': layer.minZoom,
-    'maxzoom': layer.maxZoom,
-    if (layer.filter != null) 'filter': layer.filter,
-    'layout': layer.layout,
-    'paint': layer.paint,
-  };
+  static Map<String, Object?> layerJson(StyleLayer layer) => layer.toJson();
 }

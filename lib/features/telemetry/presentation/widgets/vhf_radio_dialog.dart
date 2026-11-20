@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/core/utils/number_formatter.dart';
 import 'package:stork/features/telemetry/presentation/providers/favorite_frequencies_provider.dart';
@@ -6,6 +6,7 @@ import 'package:stork/features/telemetry/presentation/providers/nearby_frequenci
 import 'package:stork/features/telemetry/presentation/providers/vhf_radio_dialog_notifier.dart';
 import 'package:stork/features/telemetry/presentation/utils/radio_popup_util.dart';
 import 'package:stork/features/telemetry/presentation/widgets/manage_favorites_dialog.dart';
+
 import '../../../../l10n/app_localizations.dart';
 import '../../../map/presentation/components/dialogs/base_details_dialog.dart';
 

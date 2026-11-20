@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/native/dronecan/fix2.dart';
 
@@ -248,56 +249,53 @@ void main() {
       expect(fix2.verticalAccuracy, closeTo(0.5, 0.001));
     });
 
-    test(
-      'Parses covLen = 18 covariance correctly, splits pos/vel, and calculates EPH/EPV',
-      () {
-        final payload = generateFix2Payload(
-          mode: 2,
-          subMode: 1,
-          covariance: [
-            // First 9 elements: position covariance
-            0.09, // index 0 (varN)
-            9.99, // index 1
-            9.99, // index 2
-            9.99, // index 3
-            0.16, // index 4 (varE)
-            9.99, // index 5
-            1.0, // index 6
-            2.0, // index 7
-            0.25, // index 8 (varD)
-            // Next 9 elements: velocity covariance
-            4.0, // index 9
-            5.0, // index 10
-            6.0, // index 11
-            7.0, // index 12
-            8.0, // index 13
-            9.0, // index 14
-            10.0, // index 15
-            11.0, // index 16
-            12.0, // index 17
-          ],
-          pdop: 1.5,
-        );
-        final fix2 = Fix2.fromPayload(payload);
+    test('Parses covLen = 18 covariance correctly, splits pos/vel, and calculates EPH/EPV', () {
+      final payload = generateFix2Payload(
+        mode: 2,
+        subMode: 1,
+        covariance: [
+          // First 9 elements: position covariance
+          0.09, // index 0 (varN)
+          9.99, // index 1
+          9.99, // index 2
+          9.99, // index 3
+          0.16, // index 4 (varE)
+          9.99, // index 5
+          1.0, // index 6
+          2.0, // index 7
+          0.25, // index 8 (varD)
+          // Next 9 elements: velocity covariance
+          4.0, // index 9
+          5.0, // index 10
+          6.0, // index 11
+          7.0, // index 12
+          8.0, // index 13
+          9.0, // index 14
+          10.0, // index 15
+          11.0, // index 16
+          12.0, // index 17
+        ],
+        pdop: 1.5,
+      );
+      final fix2 = Fix2.fromPayload(payload);
 
-        expect(fix2.mode, equals(2));
-        expect(fix2.subMode, equals(1));
-        expect(fix2.positionCovariance.length, equals(9));
-        expect(fix2.velocityCovariance.length, equals(9));
+      expect(fix2.mode, equals(2));
+      expect(fix2.subMode, equals(1));
+      expect(fix2.positionCovariance.length, equals(9));
+      expect(fix2.velocityCovariance.length, equals(9));
 
-        expect(fix2.positionCovariance[0], closeTo(0.09, 0.001));
-        expect(fix2.positionCovariance[4], closeTo(0.16, 0.001));
-        expect(fix2.positionCovariance[8], closeTo(0.25, 0.001));
+      expect(fix2.positionCovariance[0], closeTo(0.09, 0.001));
+      expect(fix2.positionCovariance[4], closeTo(0.16, 0.001));
+      expect(fix2.positionCovariance[8], closeTo(0.25, 0.001));
 
-        expect(fix2.velocityCovariance[0], closeTo(4.0, 0.001));
-        expect(fix2.velocityCovariance[8], closeTo(12.0, 0.001));
+      expect(fix2.velocityCovariance[0], closeTo(4.0, 0.001));
+      expect(fix2.velocityCovariance[8], closeTo(12.0, 0.001));
 
-        // horAcc = sqrt(posCov[0] + posCov[4]) = 0.5
-        expect(fix2.horizontalAccuracy, closeTo(0.5, 0.001));
-        // vertAcc = sqrt(posCov[8]) = 0.5
-        expect(fix2.verticalAccuracy, closeTo(0.5, 0.001));
-      },
-    );
+      // horAcc = sqrt(posCov[0] + posCov[4]) = 0.5
+      expect(fix2.horizontalAccuracy, closeTo(0.5, 0.001));
+      // vertAcc = sqrt(posCov[8]) = 0.5
+      expect(fix2.verticalAccuracy, closeTo(0.5, 0.001));
+    });
 
     group('hasValidFix', () {
       test('is true for a 3D fix with satellites and non-zero position', () {

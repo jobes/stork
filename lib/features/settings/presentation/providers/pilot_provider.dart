@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../domain/models/pilot.dart';
 import '../../data/repositories/pilot_repository.dart';
 import '../../../telemetry/presentation/providers/black_box_repository_provider.dart';

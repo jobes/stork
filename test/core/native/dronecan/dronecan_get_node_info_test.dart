@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/native/dronecan/get_node_info.dart';
 import 'package:stork/core/native/dronecan/node_status.dart';
@@ -67,18 +68,15 @@ void main() {
       );
     });
 
-    test(
-      'Async factory create works with valid uniqueId and fails with invalid length',
-      () async {
-        final response = await GetNodeInfoResponse.create(validUniqueId);
-        expect(response.uniqueId, equals(validUniqueId));
+    test('Async factory create works with valid uniqueId and fails with invalid length', () async {
+      final response = await GetNodeInfoResponse.create(validUniqueId);
+      expect(response.uniqueId, equals(validUniqueId));
 
-        await expectLater(
-          GetNodeInfoResponse.create(invalidUniqueIdTooShort),
-          throwsArgumentError,
-        );
-      },
-    );
+      await expectLater(
+        GetNodeInfoResponse.create(invalidUniqueIdTooShort),
+        throwsArgumentError,
+      );
+    });
 
     test('fromPayload decodes a serialized response', () {
       final response = GetNodeInfoResponse(

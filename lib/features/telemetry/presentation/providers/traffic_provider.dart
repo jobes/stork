@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:maplibre/maplibre.dart';
+
 import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../settings/presentation/providers/aircraft_provider.dart';
@@ -236,9 +238,8 @@ class Traffic extends _$Traffic {
   void processPureTrackPacket(PureTrackPacket packet) {
     final settings = ref.read(appSettingsProvider).value;
     if (settings != null && !settings.pureTrackEnabled) return;
-    final mappedType = AircraftType.fromPureTrackType(
-      packet.aircraftType,
-    ).ognCode;
+    final mappedType = AircraftType.fromPureTrackType(packet.aircraftType)
+        .ognCode;
     final aircraft = TrafficAircraft(
       id: packet.canonicalId,
       callsign: packet.callsign,
@@ -459,9 +460,9 @@ class Traffic extends _$Traffic {
 
   Timer? _filterDebounceTimer;
   DateTime? _lastFilterSentTime;
-  LngLatBounds? _lastSentBounds;
+  GeoBox? _lastSentBounds;
 
-  void updateViewport(LngLatBounds bounds) {
+  void updateViewport(GeoBox bounds) {
     final now = DateTime.now();
     final timeSinceLastSent = _lastFilterSentTime != null
         ? now.difference(_lastFilterSentTime!)
@@ -470,11 +471,10 @@ class Traffic extends _$Traffic {
     bool significantShift = false;
     if (_lastSentBounds != null) {
       final oldCenterLat =
-          (_lastSentBounds!.latitudeNorth + _lastSentBounds!.latitudeSouth) / 2;
-      final oldCenterLon =
-          (_lastSentBounds!.longitudeEast + _lastSentBounds!.longitudeWest) / 2;
-      final newCenterLat = (bounds.latitudeNorth + bounds.latitudeSouth) / 2;
-      final newCenterLon = (bounds.longitudeEast + bounds.longitudeWest) / 2;
+          (_lastSentBounds!.north + _lastSentBounds!.south) / 2;
+      final oldCenterLon = (_lastSentBounds!.east + _lastSentBounds!.west) / 2;
+      final newCenterLat = (bounds.north + bounds.south) / 2;
+      final newCenterLon = (bounds.east + bounds.west) / 2;
 
       final dist = GeoUtils.distanceBetween(
         oldCenterLat,
@@ -503,31 +503,31 @@ class Traffic extends _$Traffic {
     });
   }
 
-  void _sendFilter(LngLatBounds bounds) {
+  void _sendFilter(GeoBox bounds) {
     _lastFilterSentTime = DateTime.now();
     _lastSentBounds = bounds;
     if (_inboundConnection != null) {
       final filterCommand =
-          'filter a/${bounds.latitudeNorth.toStringAsFixed(4)}/${bounds.longitudeWest.toStringAsFixed(4)}/${bounds.latitudeSouth.toStringAsFixed(4)}/${bounds.longitudeEast.toStringAsFixed(4)}';
+          'filter a/${bounds.north.toStringAsFixed(4)}/${bounds.west.toStringAsFixed(4)}/${bounds.south.toStringAsFixed(4)}/${bounds.east.toStringAsFixed(4)}';
       _inboundConnection!.updateFilter(filterCommand);
     }
 
     ref
         .read(pureTrackStreamServiceProvider)
         .updateViewport(
-          lat1: bounds.latitudeNorth,
-          long1: bounds.longitudeWest,
-          lat2: bounds.latitudeSouth,
-          long2: bounds.longitudeEast,
+          lat1: bounds.north,
+          long1: bounds.west,
+          lat2: bounds.south,
+          long2: bounds.east,
         );
 
     // Purge targets outside current viewport (plus 0.5° margin ~ 55km) to keep DB target count minimal and clean
     const margin = 0.5;
     final purgedIds = _aggregator.purgeTargetsOutside(
-      latNorth: bounds.latitudeNorth + margin,
-      lonWest: bounds.longitudeWest - margin,
-      latSouth: bounds.latitudeSouth - margin,
-      lonEast: bounds.longitudeEast + margin,
+      latNorth: bounds.north + margin,
+      lonWest: bounds.west - margin,
+      latSouth: bounds.south - margin,
+      lonEast: bounds.east + margin,
     );
     for (final id in purgedIds) {
       _trackHistories.remove(id);
@@ -555,9 +555,8 @@ class Traffic extends _$Traffic {
     if (settings.ognEnabled &&
         activeAircraft != null &&
         activeAircraft.sendLivePosition &&
-        RegExp(
-          r'^[0-9A-Fa-f]{6}$',
-        ).hasMatch(activeAircraft.ognDeviceId.trim())) {
+        RegExp(r'^[0-9A-Fa-f]{6}$')
+            .hasMatch(activeAircraft.ognDeviceId.trim())) {
       _startOutboundTracking(activeAircraft);
     } else {
       _stopOutboundTracking();

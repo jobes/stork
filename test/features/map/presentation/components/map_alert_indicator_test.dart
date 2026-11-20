@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/features/map/domain/repositories/notam_repository.dart';
@@ -14,7 +14,7 @@ import 'package:stork/features/telemetry/domain/models/flight_alert_record.dart'
 import 'package:stork/features/telemetry/domain/models/map_view_state.dart';
 import 'package:stork/features/telemetry/presentation/providers/telemetry_provider.dart';
 import 'package:stork/features/telemetry/presentation/providers/temperature_trend_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 class _StubMapAlerts extends MapAlerts {
   _StubMapAlerts(this.alerts);
@@ -73,7 +73,7 @@ Widget _app({
     ],
     child: MaterialApp(
       locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: MediaQuery(
         data: MediaQueryData(disableAnimations: disableAnimations),
@@ -271,12 +271,10 @@ void main() {
       final target = tester.getRect(indicator);
       final gpsRect = tester.getRect(gps);
       final menuRect = tester.getRect(menu);
-      final alerts =
-          ProviderScope.containerOf(
-                tester.element(indicator),
-                listen: false,
-              ).read(mapAlertsProvider.notifier)
-              as _StubMapAlerts;
+      final alerts = ProviderScope.containerOf(
+        tester.element(indicator),
+        listen: false,
+      ).read(mapAlertsProvider.notifier) as _StubMapAlerts;
 
       expect(target.size, const Size.square(48));
       expect(

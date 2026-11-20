@@ -21,34 +21,31 @@ void main() {
       );
     });
 
-    test(
-      'calculateDestination projects coordinates accurately for aircraft heading & speed',
-      () {
-        final start = Geographic(lat: 48.1486, lon: 17.1077);
-        const heading = 90.0; // Eastbound
-        const speedMps = 30.0; // 30 m/s
-        const delaySeconds = 20.0; // 20s
-        const distanceMeters = speedMps * delaySeconds; // 600 meters
+    test('calculateDestination projects coordinates accurately for aircraft heading & speed', () {
+      final start = Geographic(lat: 48.1486, lon: 17.1077);
+      const heading = 90.0; // Eastbound
+      const speedMps = 30.0; // 30 m/s
+      const delaySeconds = 20.0; // 20s
+      const distanceMeters = speedMps * delaySeconds; // 600 meters
 
-        final destination = GeoUtils.calculateDestination(
-          start,
-          heading,
-          distanceMeters,
-        );
+      final destination = GeoUtils.calculateDestination(
+        start,
+        heading,
+        distanceMeters,
+      );
 
-        // Eastward movement should increase longitude while keeping latitude nearly equal
-        expect(destination.lat, closeTo(start.lat, 0.001));
-        expect(destination.lon, greaterThan(start.lon));
+      // Eastward movement should increase longitude while keeping latitude nearly equal
+      expect(destination.lat, closeTo(start.lat, 0.001));
+      expect(destination.lon, greaterThan(start.lon));
 
-        final calculatedDistance = GeoUtils.distanceBetween(
-          start.lat,
-          start.lon,
-          destination.lat,
-          destination.lon,
-        );
-        expect(calculatedDistance, closeTo(600.0, 1.0));
-      },
-    );
+      final calculatedDistance = GeoUtils.distanceBetween(
+        start.lat,
+        start.lon,
+        destination.lat,
+        destination.lon,
+      );
+      expect(calculatedDistance, closeTo(600.0, 1.0));
+    });
 
     test(
       'TrafficAircraft data structures retain lastSeen and track correctly',

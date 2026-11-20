@@ -107,9 +107,8 @@ class MapAlerts extends _$MapAlerts {
     );
     for (final kind in _instrumentKinds) {
       ref.listen(
-        instrumentStatusProvider(
-          kind.instrument!,
-        ).select((status) => status.supported ? status.issue : null),
+        instrumentStatusProvider(kind.instrument!)
+            .select((status) => status.supported ? status.issue : null),
         (_, _) => _scheduleRecompute(),
       );
     }

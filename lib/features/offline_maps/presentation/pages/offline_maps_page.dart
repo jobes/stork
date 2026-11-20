@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:intl/intl.dart';
+
 import 'dart:math';
 
 import '../../../../core/utils/number_formatter.dart';
@@ -158,30 +159,38 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
         styleAsync.when(
           data: (style) => MapLibreMap(
             options: MapOptions(
-              initCenter: Geographic(lon: 0, lat: 0),
-              initZoom: 1,
-              initStyle: style,
+              initCamera: const CameraUpdate.position(
+                center: Geographic(lon: 0, lat: 0),
+                zoom: 1,
+              ),
+              style: MapStyle.json(style.json),
               minZoom: 1,
               maxZoom: 6,
-              gestures: _shouldDisableMapGestures
-                  ? const MapGestures.none()
-                  : const MapGestures.all(rotate: false, pitch: false),
+              movements: _shouldDisableMapGestures
+                  ? const MapMovements.none()
+                  : const MapMovements(rotate: false, pitch: false),
             ),
             onMapCreated: (controller) =>
                 setState(() => _mapController = controller),
-            onEvent: (event) {
-              if (event is MapEventClick && !state.isDownloading) {
-                _handleMapClick(event.point);
-              } else if (event is MapEventMoveCamera) {
-                setState(() {});
-              }
+            onClick: (event) {
+              if (!state.isDownloading) _handleMapClick(event.point);
             },
+            children: [
+              Builder(
+                builder: (context) {
+                  // Inherited camera notifications follow the displayed map
+                  // frame. The controller's projection uses that same frame.
+                  CameraPosition.of(context);
+                  if (_mapController == null) return const SizedBox.shrink();
+                  return _buildOverlayLayer(state, notifier);
+                },
+              ),
+            ],
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) =>
               Center(child: Text('${l10n.mapLoadingError}: $error')),
         ),
-        if (_mapController != null) _buildOverlayLayer(state, notifier),
         if (_isAdding)
           Positioned(
             top: 12,
@@ -595,9 +604,8 @@ class _OfflineMapsPageState extends ConsumerState<OfflineMapsPage> {
       padding: const EdgeInsets.only(top: 8.0),
       child: Text(
         l10n.noAreasSelected,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+        style: Theme.of(context).textTheme.bodySmall
+            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
     );
   }

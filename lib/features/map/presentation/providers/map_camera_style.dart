@@ -1,138 +1,38 @@
 part of 'map_camera_provider.dart';
 
-typedef _PreparedOverlaySnapshot = ({
-  Object inputs,
-  Map<String, String> sources,
-  ForecastPalette palette,
-  List<_NotamMapFeature> notams,
-  List<String> activeIds,
-  List<String> inactiveIds,
-});
-
 extension MapCameraStyle on MapCamera {
-  /// Builds every local overlay before the native map exists. Online-only
-  /// data starts empty and is filled by the existing live subscriptions.
-  String prepareStyle(String baseStyle) {
-    _preparedOverlayInputs = _overlayInputs();
-    final overlays = _prepareOverlays();
-    _preparedSourceData = {
-      for (final source in overlays.sources) source.id: source.data,
-    };
-    _preparedForecastPalette = _forecastPalette();
-    final activities = splitAirspaceActivityIds(
-      refAccess.read(airspaceActivityProvider),
-      clock.now(),
-    );
-    _preparedActiveAirspaceIds = List.of(activities.activeIds);
-    _preparedInactiveAirspaceIds = List.of(activities.inactiveIds);
-    final preparedStyle = overlays.embedIn(
-      baseStyle,
-      filters: {
-        for (final id in ['active-airspaces-fill', 'active-airspaces-line'])
-          id: airspaceSourceIdFilter(_preparedActiveAirspaceIds),
-        for (final id in ['inactive-airspaces-fill', 'inactive-airspaces-line'])
-          id: airspaceSourceIdFilter(_preparedInactiveAirspaceIds),
-      },
-    );
-    _preparedStyles[preparedStyle] = (
-      inputs: _preparedOverlayInputs!,
-      sources: Map.unmodifiable(_preparedSourceData),
-      palette: _preparedForecastPalette!,
-      notams: List.unmodifiable(_preparedNotamFeatures),
-      activeIds: List.unmodifiable(_preparedActiveAirspaceIds),
-      inactiveIds: List.unmodifiable(_preparedInactiveAirspaceIds),
-    );
-    // The widget coalesces style requests. An evicted snapshot is safe too:
-    // handleStyleLoaded performs a full catch-up rather than assuming it matches.
-    while (_preparedStyles.length > 8) {
-      _preparedStyles.remove(_preparedStyles.keys.first);
-    }
-    return preparedStyle;
-  }
-
-  Object _overlayInputs() => (
-    refAccess.read(telemetryProvider),
-    refAccess.read(navigationProvider).value,
-    refAccess.read(favoritesProvider).value,
-    refAccess.read(notamsProvider),
-    refAccess.read(flightWeatherPlanProvider),
-    refAccess.read(routePointWindsProvider),
-    refAccess.read(displayPreferencesProvider).value,
-    refAccess.read(appSettingsProvider).value,
-    refAccess.read(filteredTrafficProvider),
-  );
-
-  MapOverlayStyle _prepareOverlays() {
-    final telemetry = refAccess.read(telemetryProvider);
-    final settings = refAccess.read(appSettingsProvider).value;
-    final noticesState = refAccess.read(notamsProvider);
-    final notices =
-        (noticesState.hasError ? null : noticesState.value)?.notams ?? [];
-    final visible = <_NotamMapFeature>[
-      for (final notam in notices)
-        if (notam.radius > 0)
-          (
-            key: notam.key,
-            id: notam.id,
-            title: notam.featureName.isEmpty ? notam.msg : notam.featureName,
-            lat: notam.latitude,
-            lon: notam.longitude,
-            radius: notam.radius,
-          ),
-    ];
-    _preparedNotamFeatures = visible;
-    return MapOverlayStyle.build(
-      fontScale: settings?.mapFontSize ?? 1,
-      palette: _forecastPalette(),
-      data: {
-        'course-line-source': GeoJsonBuilder.buildCourseLineGeoJson(
-          telemetry,
-          settings,
-        ),
-        'navigation-route-source': _buildNavigationGeoJson(),
-        'notams-source': _buildNotamGeoJson(visible),
-        'aircraft-source': GeoJsonBuilder.buildAircraftGeoJson(
-          telemetry.latitude,
-          telemetry.longitude,
-          telemetry.heading,
-        ),
-        'traffic-source': _buildTrafficGeoJson(
-          refAccess.read(filteredTrafficProvider),
-        ),
-        'favorites-source': _buildFavoritesGeoJson(),
-        forecastSource: buildFlightWeatherGeoJson(_flightWeatherInput()),
-      },
-    );
-  }
+  PreparedMapStyle prepareStyle(String baseStyle) =>
+      _styleData.prepare(baseStyle);
 
   Future<void> handleStyleLoaded(
     StyleController style, {
     bool overlaysPrepared = false,
-    String? preparedStyle,
+    PreparedMapStyle? preparedStyle,
   }) async {
     bool isCurrentStyle() =>
         refAccess.mounted && identical(style, _mapController?.style);
 
     if (!isCurrentStyle()) return;
     final generation = ++_styleLoadGeneration;
-    final snapshot = overlaysPrepared ? _preparedStyles[preparedStyle] : null;
+    final snapshot = overlaysPrepared ? preparedStyle?.snapshot : null;
     final hasSnapshot = snapshot != null;
     _notamStyle = null;
     _flightWeatherStyle = null;
     try {
       if (!overlaysPrepared) {
-        final overlays = _prepareOverlays();
+        final overlays = _styleData.overlays();
         for (final source in overlays.sources) {
-          await style.addSource(source);
+          if (style.sources[source.id] == null) await style.sources.add(source);
           if (!isCurrentStyle()) return;
         }
         for (final layer in overlays.layers) {
-          await style.addLayer(layer);
+          if (style.layers[layer.id] == null) await style.layers.add(layer);
           if (!isCurrentStyle()) return;
         }
       }
       if (generation != _styleLoadGeneration || !isCurrentStyle()) return;
-      final inputsChanged = !hasSnapshot || snapshot.inputs != _overlayInputs();
+      final inputsChanged =
+          !hasSnapshot || !snapshot.matchesInputs(_styleData.inputs());
       _routeUpdateTimer?.cancel();
       _routeUpdateTimer = null;
       _routeRetryTimer?.cancel();
@@ -162,19 +62,24 @@ extension MapCameraStyle on MapCamera {
       if (inputsChanged || _lastFlightWeatherPalette != _forecastPalette()) {
         _updateFlightWeatherOnMap();
       }
+      // The prepared route may use a last-known origin that differs from live
+      // telemetry even when provider inputs did not change. Identical JSON is
+      // still skipped by the route writer's style/data comparison.
+      _updateNavigationRouteOnMap(force: true);
       if (inputsChanged) {
-        _updateNavigationRouteOnMap(force: true);
         updateNotamsOnMap();
         updateFavoritesOnMap();
         updateTrafficOnMap();
         try {
           final telemetry = refAccess.read(telemetryProvider);
-          await style.updateGeoJsonSource(
-            id: 'aircraft-source',
-            data: GeoJsonBuilder.buildAircraftGeoJson(
-              telemetry.latitude,
-              telemetry.longitude,
-              telemetry.heading,
+          await style.sources.updateGeoJsonData(
+            'aircraft-source',
+            GeoJsonData.text(
+              GeoJsonBuilder.buildAircraftGeoJson(
+                telemetry.latitude,
+                telemetry.longitude,
+                telemetry.heading,
+              ),
             ),
           );
         } catch (error) {
@@ -202,6 +107,9 @@ extension MapCameraStyle on MapCamera {
       debugPrint('Aircraft symbols initialized 😎');
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');
+      // The initial-view gate must expose a retry if interaction setup failed.
+      // Recoverable live source writes are handled by their own retry paths.
+      rethrow;
     }
   }
 
@@ -214,7 +122,10 @@ extension MapCameraStyle on MapCamera {
 
     _lastCourseLineUpdate = update;
     try {
-      await style.updateGeoJsonSource(id: 'course-line-source', data: data);
+      await style.sources.updateGeoJsonData(
+        'course-line-source',
+        GeoJsonData.text(data),
+      );
     } catch (_) {
       if (_lastCourseLineUpdate == update) _lastCourseLineUpdate = null;
       rethrow;

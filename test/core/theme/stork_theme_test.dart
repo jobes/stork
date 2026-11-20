@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
@@ -7,7 +7,7 @@ import 'package:stork/core/widgets/stork_navigation_tile.dart';
 import 'package:stork/features/settings/domain/models/app_settings.dart';
 import 'package:stork/features/settings/presentation/pages/settings_page.dart';
 import 'package:stork/features/settings/presentation/providers/settings_provider.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 
 class _Settings extends AppSettingsNotifier {
   @override
@@ -43,7 +43,7 @@ void main() {
         child: MaterialApp(
           theme: AppTheme.lightTheme,
           locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const SettingsPage(),
         ),

@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../data/repositories/black_box_repository_impl.dart';
 import '../../../../core/services/database/black_box_database.dart';
 

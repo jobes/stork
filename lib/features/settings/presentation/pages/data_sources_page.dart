@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -20,8 +20,7 @@ class DataSourcesPage extends StatelessWidget {
               _DataSource(
                 title: l10n.dataSourcesOsmTitle,
                 description: l10n.dataSourcesOsmDescription,
-                logoUrl:
-                    'https://www.openstreetmap.org/assets/favicon-96x96-6ffbc38962fddb870f9577b76430a0ee4db5fb4eca485f850cd45436d7f3eb87.png',
+                logoUrl: 'https://www.openstreetmap.org/assets/favicon-96x96-6ffbc38962fddb870f9577b76430a0ee4db5fb4eca485f850cd45436d7f3eb87.png',
                 website: 'https://www.openstreetmap.org/',
               ),
               const Divider(height: 1),
@@ -42,16 +41,14 @@ class DataSourcesPage extends StatelessWidget {
               _DataSource(
                 title: l10n.dataSourcesMapterhornTitle,
                 description: l10n.dataSourcesMapterhornDescription,
-                logoUrl:
-                    'https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png',
+                logoUrl: 'https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png',
                 website: 'https://mapterhorn.com/',
               ),
               const Divider(height: 1),
               _DataSource(
                 title: l10n.dataSourcesDistributionTitle,
                 description: l10n.dataSourcesDistributionDescription,
-                logoUrl:
-                    'https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.png',
+                logoUrl: 'https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.png',
                 website:
                     'https://huggingface.co/datasets/jobes666/openaip-mptiles',
               ),

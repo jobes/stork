@@ -1,7 +1,9 @@
+import '../../support/map_style_backend.dart';
+
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,6 +23,7 @@ import 'package:stork/core/startup/deferred_startup_tasks.dart';
 import 'package:stork/core/startup/first_frame_startup.dart';
 import 'package:stork/core/startup/local_map_preparation.dart';
 import 'package:stork/core/startup/startup_page.dart';
+import 'package:stork/core/startup/map_startup_provider.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:stork/features/map/data/repositories/radar_repository.dart';
 import 'package:stork/features/map/domain/repositories/notam_repository.dart';
@@ -64,7 +67,7 @@ class _Traffic extends Traffic {
   @override
   List<TrafficAircraft> build() => [];
   @override
-  void updateViewport(ml.LngLatBounds bounds) {}
+  void updateViewport(ml.GeoBox bounds) {}
 }
 
 class _Settings extends AppSettingsNotifier {
@@ -125,25 +128,15 @@ class _Radar extends MapRadar {
   Future<void> refresh({bool force = false}) async {}
 }
 
-class _Style extends Fake implements ml.StyleController {
+class _Style extends TestStyle {
   int addedLayers = 0;
   @override
-  Future<void> addSource(ml.Source source) async {}
-  @override
   Future<void> addLayer(
-    ml.StyleLayer layer, {
+    Map<String, Object?> json, {
     String? belowLayerId,
-    String? aboveLayerId,
-    int? atIndex,
   }) async {
     addedLayers++;
   }
-
-  @override
-  Future<void> updateGeoJsonSource({
-    required String id,
-    required String data,
-  }) async {}
 }
 
 class _NativeMap extends platform.MapLibreMapState {
@@ -154,13 +147,16 @@ class _NativeMap extends platform.MapLibreMapState {
   @override
   void initState() {
     super.initState();
-    camera = ml.MapCamera(
-      center: options.initCenter!,
-      zoom: options.initZoom,
-      pitch: options.initPitch,
-      bearing: options.initBearing,
+    final position = options.initCamera! as ml.CameraUpdatePosition;
+    camera = ml.CameraPosition(
+      center: position.center!,
+      zoom: position.zoom!,
+      pitch: position.pitch ?? 0,
+      bearing: position.bearing ?? 0,
     );
-    owner.styles.add(options.initStyle);
+    final json = (options.style as ml.MapStyleJson).json;
+    style.loadStyle(jsonDecode(json) as Map<String, dynamic>);
+    owner.styles.add(json);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       widget.onMapCreated?.call(this);
@@ -172,12 +168,8 @@ class _NativeMap extends platform.MapLibreMapState {
   Widget buildPlatformWidget(BuildContext context) =>
       const SizedBox.expand(key: ValueKey('native-map'));
   @override
-  ml.LngLatBounds getVisibleRegion() => const ml.LngLatBounds(
-    latitudeSouth: 47,
-    latitudeNorth: 49,
-    longitudeWest: 16,
-    longitudeEast: 18,
-  );
+  ml.GeoBox getVisibleBounds() =>
+      const ml.GeoBox(south: 47, north: 49, west: 16, east: 18);
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName}');
@@ -191,9 +183,14 @@ class _Platform extends platform.MapLibrePlatform {
 
 void main() {
   final binding = _Binding();
-  for (final retry in [false, true]) {
+  for (final (retry, escape, refreshFails) in [
+    (false, false, false),
+    (true, false, false),
+    (false, true, false),
+    (false, false, true),
+  ]) {
     testWidgets(
-      'real startup hands prepared map to the page${retry ? ' after retry' : ''}',
+      'real startup hands prepared map to the page${retry ? ' after retry' : ''}${escape ? ' then leaves before rendering' : ''}${refreshFails ? ' with a failed refreshed preparation' : ''}',
       (tester) async {
         binding.rasterized = Completer<void>();
         rootBundle.clear();
@@ -220,15 +217,24 @@ void main() {
         final settingsInstances = <_Settings>[];
         var firAttempts = 0;
         var cameraDisposals = 0;
+        var stylePreparations = 0;
+        final refreshedStyleReady = Completer<void>();
+        final monitoring = Completer<bool>();
         final container = ProviderContainer(
           retry: (_, _) => null,
           overrides: [
             applicationConfigurationProvider.overrideWith((_) async {}),
-            applicationRuntimeProvider.overrideWith((_) async => false),
+            applicationRuntimeProvider.overrideWith((_) => monitoring.future),
             startupFirIndexProvider.overrideWith((_) async {
               if (++firAttempts == 1 && retry) {
                 throw StateError('FIR unavailable');
               }
+            }),
+            mapStyleProvider.overrideWith((ref) async {
+              if (++stylePreparations > 1 && !retry && !escape) {
+                await refreshedStyleReady.future;
+              }
+              return mapStyle(ref);
             }),
             startupMapAssetsProvider.overrideWith((_) async {}),
             startupOfflineDatabaseProvider.overrideWith((_) async {}),
@@ -320,20 +326,128 @@ void main() {
           isTrue,
           reason: '${container.read(applicationBootstrapProvider)}',
         );
-        // Disposal hooks do not keep these auto-disposed providers alive.
+        for (var i = 0; i < 5; i++) {
+          await tester.pump();
+        }
+        expect(find.byType(StartupPage), findsOneWidget);
+        expect(find.byType(MapPage), findsOneWidget);
+        expect(
+          tester
+              .widget<IgnorePointer>(
+                find.byKey(const ValueKey('startup-interaction-gate')),
+              )
+              .ignoring,
+          isTrue,
+        );
+        final oldMap = tester.state<_NativeMap>(find.byType(ml.MapLibreMap));
+        oldMap.widget.onRenderFrame?.call(
+          const ml.MapEventRenderFrame(fullyRendered: false),
+        );
+        await tester.pump();
+        expect(find.byType(StartupPage), findsOneWidget);
+        if (escape) {
+          appRouter.go('/favorites');
+          await tester.pump();
+          await tester.pump();
+          expect(container.read(mapStartupProvider).ready, isTrue);
+          expect(find.byType(StartupPage), findsNothing);
+          await tester.pumpAndSettle(
+            const Duration(milliseconds: 100),
+            EnginePhase.sendSemanticsUpdate,
+            const Duration(seconds: 3),
+          );
+          expect(find.byType(MapPage), findsNothing);
+          await tester.pumpWidget(const SizedBox.shrink());
+          container.dispose();
+          disposed = true;
+          appRouter.go('/');
+          await tester.pump();
+          return;
+        }
+        if (!retry) {
+          // Native creation/style load alone cannot unlock the map. A renderer
+          // that never delivers a complete frame must expose a retry instead.
+          await tester.pump(MapStartup.renderingBudget);
+          expect(find.text('Príprava sa nepodarila'), findsOneWidget);
+          await tester.tap(find.text('Skúsiť znova'));
+          // Riverpod retains the successful bootstrap while refreshing. It must
+          // not hand that old result to the new startup attempt across frames.
+          await tester.pump();
+          await tester.pump();
+          final refreshing = container.read(applicationBootstrapProvider);
+          expect(refreshing.isLoading, isTrue);
+          expect(refreshing.hasValue, isTrue);
+          expect(find.byType(StartupPage), findsOneWidget);
+          expect(find.byType(MapPage), findsNothing);
+          expect(native.styles, hasLength(1));
+          expect(weatherReleased, isFalse);
+          if (refreshFails) {
+            refreshedStyleReady.completeError(
+              StateError('Refreshed preparation failed'),
+            );
+            for (var i = 0; i < 5; i++) {
+              await tester.pump();
+            }
+            expect(
+              container.read(applicationBootstrapProvider).hasError,
+              isTrue,
+            );
+            expect(find.byType(StartupPage), findsOneWidget);
+            expect(find.text('Príprava sa nepodarila'), findsOneWidget);
+            expect(find.text('Skúsiť znova'), findsOneWidget);
+            expect(find.byType(MapPage), findsNothing);
+            expect(weatherReleased, isFalse);
+            await tester.pumpWidget(const SizedBox.shrink());
+            container.dispose();
+            disposed = true;
+            await tester.pump();
+            return;
+          }
+          refreshedStyleReady.complete();
+          for (var i = 0; i < 50 && native.styles.length < 2; i++) {
+            await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 2)),
+            );
+            await tester.pump(const Duration(milliseconds: 10));
+          }
+          expect(native.styles, hasLength(2));
+          oldMap.widget.onRenderMap?.call(
+            const ml.MapEventRenderMap(fullyRendered: true),
+          );
+          await tester.pump();
+          expect(find.byType(StartupPage), findsOneWidget);
+        }
+        final currentMap = tester.state<_NativeMap>(
+          find.byType(ml.MapLibreMap),
+        );
+        currentMap.widget.onRenderMap?.call(
+          const ml.MapEventRenderMap(fullyRendered: true),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(find.byType(StartupPage), findsNothing);
+        // Even monitoring that never settled did not gate the map. Completing
+        // it later must not replace the native map subtree.
+        monitoring.complete(true);
+        await tester.pump();
+        expect(
+          tester.state<_NativeMap>(find.byType(ml.MapLibreMap)),
+          same(currentMap),
+        );
+        expect(
+          tester
+              .widget<IgnorePointer>(
+                find.byKey(const ValueKey('startup-interaction-gate')),
+              )
+              .ignoring,
+          isFalse,
+        );
         container
             .read(mapCameraProvider.notifier)
             .refAccess
             .onDispose(() => cameraDisposals++);
-        // The style provider's lifecycle is observed below through existence;
-        // the real map camera disposal proves the preparation lease was released.
-        for (var i = 0; i < 5; i++) {
-          await tester.pump();
-        }
-        expect(find.byType(StartupPage), findsNothing);
-        expect(find.byType(MapPage), findsOneWidget);
         expect(find.byKey(const ValueKey('native-map')), findsOneWidget);
-        expect(native.styles, hasLength(1));
+        expect(native.styles, hasLength(retry ? 1 : 2));
         expect(
           tester
               .state<_NativeMap>(find.byType(ml.MapLibreMap))
@@ -347,7 +461,7 @@ void main() {
         );
         expect(settingsInstances.length, retry ? 2 : 1);
         expect(firAttempts, retry ? 2 : 1);
-        final style = jsonDecode(native.styles.single);
+        final style = jsonDecode(native.styles.last);
         final line =
             style['sources']['navigation-route-source']['data']['features'][0]['geometry']['coordinates']
                 as List;
@@ -374,9 +488,12 @@ void main() {
         // Keep the application scope and bootstrap alive while leaving the map;
         // its temporary style lease must not pin map providers afterwards.
         appRouter.go('/favorites');
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.pump();
+        // The extracted Material UI uses an animated route transition.
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 100),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 3),
+        );
         expect(find.byType(MapPage), findsNothing);
         expect(container.read(mapStyleProvider.exists), isFalse);
         expect(cameraDisposals, 1);

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -65,9 +65,8 @@ class _ThresholdsEditorDialogState extends State<ThresholdsEditorDialog> {
 
   void _save() {
     if (!_form.currentState!.validate()) return;
-    Navigator.of(
-      context,
-    ).pop([for (var i = 0; i < _draft.length; i++) _readValue(i)!]);
+    Navigator.of(context)
+        .pop([for (var i = 0; i < _draft.length; i++) _readValue(i)!]);
   }
 
   @override

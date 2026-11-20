@@ -11,27 +11,17 @@ extension on MapCamera {
       fontScale: refAccess.read(appSettingsProvider).value?.mapFontSize ?? 1,
       palette: palette,
     );
-    if (addSource) await style.addSource(overlays.sources.single);
+    if (addSource) await style.sources.add(overlays.sources.single);
     for (final layer in overlays.layers.where(
       (layer) =>
           layer is StyleLayerWithSource && layer.sourceId == forecastSource,
     )) {
-      await style.addLayer(layer);
+      await style.layers.add(layer);
     }
     _lastFlightWeatherPalette = palette;
   }
 
-  ForecastPalette _forecastPalette() {
-    final mode =
-        refAccess.read(displayPreferencesProvider).value?.themeMode ??
-        ThemeMode.system;
-    final dark =
-        mode == ThemeMode.dark ||
-        (mode == ThemeMode.system &&
-            SchedulerBinding.instance.platformDispatcher.platformBrightness ==
-                Brightness.dark);
-    return dark ? forecastDark : forecastLight;
-  }
+  ForecastPalette _forecastPalette() => _styleData.forecastPalette();
 
   Future<void> _updateFlightWeatherPalette() async =>
       _updateFlightWeatherOnMap();
@@ -45,7 +35,7 @@ extension on MapCamera {
       forecastWindLayer,
       forecastLabelLayer,
     ]) {
-      await style.removeLayer(id);
+      await style.layers.remove(id);
     }
     await _addFlightWeatherLayers(style, addSource: false);
   }
@@ -94,7 +84,10 @@ extension on MapCamera {
             continue;
           }
           if (geoJson != _lastFlightWeatherGeoJson) {
-            await style.updateGeoJsonSource(id: forecastSource, data: geoJson);
+            await style.sources.updateGeoJsonData(
+              forecastSource,
+              GeoJsonData.text(geoJson),
+            );
             if (identical(style, _flightWeatherStyle)) {
               _lastFlightWeatherGeoJson = geoJson;
             }
@@ -109,60 +102,6 @@ extension on MapCamera {
     }
   }
 
-  FlightWeatherMapInput _flightWeatherInput() {
-    final settings = refAccess.read(appSettingsProvider).value;
-    final enabled = settings?.showFlightWeather ?? false;
-    final points = refAccess.read(flightWeatherPlanProvider);
-    final route = refAccess.read(navigationProvider).value?.points ?? [];
-    final favorites = refAccess.read(favoritesProvider).value ?? [];
-    final start = points.isEmpty ? null : points.first;
-    final aircraftAtStart = start != null && isAircraftForecastPoint(start.id);
-    if (!enabled || !aircraftAtStart) {
-      return (
-        enabled: enabled,
-        points: points,
-        route: route,
-        favorites: favorites,
-        winds: const {},
-      );
-    }
-    final unit = settings?.windSpeedUnit ?? app.SpeedUnit.kmh;
-    final language =
-        refAccess.read(displayPreferencesProvider).value?.language ??
-        AppLanguage.system;
-    final l10n = lookupAppLocalizations(language.resolvedLocale);
-    final unitLabel = unit.getAbbreviation(l10n);
-    final pointWinds = refAccess.read(routePointWindsProvider);
-    final winds = <String, ForecastWindMarker>{};
-    for (final point in points) {
-      final data = pointWinds[point.id];
-      final isAircraft = isAircraftForecastPoint(point.id);
-      if (data == null && !isAircraft) continue;
-      final wind = data?.wind;
-      final speed = wind == null
-          ? null
-          : unit.convertFromMs(wind.speedMs).round();
-      final gust = data?.gustMs;
-      winds[point.id] = (
-        arrow: wind == null
-            ? '·'
-            : wind.speedMs < 0.05
-            ? '○'
-            : '↑',
-        direction: wind == null ? 0.0 : (wind.directionFrom + 180) % 360,
-        label: [
-          if (speed != null) '$speed $unitLabel',
-          if (gust != null)
-            '${l10n.weatherGustMapLabel} ${unit.convertFromMs(gust).round()}',
-        ].join('\n'),
-      );
-    }
-    return (
-      enabled: enabled,
-      points: points,
-      route: route,
-      favorites: favorites,
-      winds: winds,
-    );
-  }
+  FlightWeatherMapInput _flightWeatherInput() =>
+      _styleData.flightWeatherInput();
 }

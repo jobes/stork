@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/native/dronecan/dynamic_node_id_allocation.dart';
 
@@ -37,19 +38,16 @@ void main() {
       },
     );
 
-    test(
-      'Deserialization fromPayload parses nodeId and firstPartOfUniqueId correctly',
-      () {
-        // 0x55 means: firstPartOfUniqueId is true (LSB set), nodeId is (0x55 >> 1) = 42
-        // Note: firstPartOfUniqueId is parsed as false in the implementation (hardcoded)
-        final payload = Uint8List.fromList([0x55, 1, 2, 3, 4, 5]);
-        final msg = DynamicNodeIdAllocation.fromPayload(payload);
+    test('Deserialization fromPayload parses nodeId and firstPartOfUniqueId correctly', () {
+      // 0x55 means: firstPartOfUniqueId is true (LSB set), nodeId is (0x55 >> 1) = 42
+      // Note: firstPartOfUniqueId is parsed as false in the implementation (hardcoded)
+      final payload = Uint8List.fromList([0x55, 1, 2, 3, 4, 5]);
+      final msg = DynamicNodeIdAllocation.fromPayload(payload);
 
-        expect(msg.nodeId, equals(42));
-        expect(msg.firstPartOfUniqueId, isFalse);
-        expect(msg.uniqueId, equals(Uint8List.fromList([1, 2, 3, 4, 5])));
-      },
-    );
+      expect(msg.nodeId, equals(42));
+      expect(msg.firstPartOfUniqueId, isFalse);
+      expect(msg.uniqueId, equals(Uint8List.fromList([1, 2, 3, 4, 5])));
+    });
 
     test('Round-trip parity', () {
       final uniqueId = Uint8List.fromList([9, 8, 7, 6, 5, 4, 3, 2, 1]);

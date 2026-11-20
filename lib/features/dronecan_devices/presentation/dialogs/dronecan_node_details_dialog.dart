@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/core/services/cannelloni_service.dart';
 import 'package:stork/core/utils/hex_utils.dart';
@@ -152,9 +152,8 @@ class _NodeDetailsBodyState extends ConsumerState<_NodeDetailsBody> {
     if (mounted) setState(() => _busy = false);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   List<Widget> _nodeInfoRows(

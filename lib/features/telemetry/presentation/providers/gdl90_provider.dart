@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../settings/domain/models/app_settings.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../data/gdl90_service.dart';

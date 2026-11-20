@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../domain/models/aircraft.dart';
 
 import '../../../../core/providers/shared_preferences_provider.dart';

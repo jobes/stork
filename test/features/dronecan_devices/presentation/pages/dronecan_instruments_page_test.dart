@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stork/core/services/cannelloni_service_io.dart';
@@ -9,7 +9,7 @@ import 'package:stork/features/dronecan_devices/presentation/pages/dronecan_inst
 import 'package:stork/features/dronecan_devices/presentation/providers/dronecan_node_actions_provider.dart';
 import 'package:stork/features/dronecan_devices/presentation/providers/dronecan_nodes_provider.dart';
 import 'package:stork/features/dronecan_devices/presentation/utils/dronecan_formatters.dart';
-import 'package:stork/l10n/app_localizations.dart';
+import 'package:stork/l10n/localizations.dart';
 import 'package:stork/l10n/app_localizations_en.dart';
 
 class _ConnectedCannelloniService extends CannelloniService {
@@ -50,7 +50,7 @@ Widget _buildPage({
     ],
     child: const MaterialApp(
       locale: Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: DroneCanInstrumentsPage(),
     ),

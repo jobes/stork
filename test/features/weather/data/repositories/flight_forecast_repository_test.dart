@@ -11,82 +11,74 @@ import 'package:stork/features/weather/domain/flight_forecast.dart';
 import 'package:stork/features/weather/domain/forecast_query.dart';
 
 void main() {
-  test(
-    'batches locations, reuses hourly profiles and keeps them for a failed refresh',
-    () async {
-      final start = DateTime.utc(2026, 11, 16, 14);
-      var now = start;
-      var requestCount = 0;
-      var offline = false;
-      final client = MockClient((request) async {
-        requestCount++;
-        expect(request.url.host, 'api.open-meteo.com');
-        expect(request.url.queryParameters['models'], 'dwd_icon_eu_native');
-        expect(request.url.queryParameters['latitude'], '48.1700,48.8780');
-        expect(
-          request.url.queryParameters['hourly'],
-          contains('wind_gusts_10m'),
-        );
-        if (offline) return http.Response('offline', 503);
-        return http.Response(
-          jsonEncode([
-            for (final height in [165, 996])
-              {
-                'elevation': height,
-                'hourly': {
-                  'time': [
-                    start.millisecondsSinceEpoch ~/ 1000,
-                    start
-                            .add(const Duration(hours: 1))
-                            .millisecondsSinceEpoch ~/
-                        1000,
-                  ],
-                  'wind_gusts_10m': [18, 36],
-                },
+  test('batches locations, reuses hourly profiles and keeps them for a failed refresh', () async {
+    final start = DateTime.utc(2026, 11, 16, 14);
+    var now = start;
+    var requestCount = 0;
+    var offline = false;
+    final client = MockClient((request) async {
+      requestCount++;
+      expect(request.url.host, 'api.open-meteo.com');
+      expect(request.url.queryParameters['models'], 'dwd_icon_eu_native');
+      expect(request.url.queryParameters['latitude'], '48.1700,48.8780');
+      expect(request.url.queryParameters['hourly'], contains('wind_gusts_10m'));
+      if (offline) return http.Response('offline', 503);
+      return http.Response(
+        jsonEncode([
+          for (final height in [165, 996])
+            {
+              'elevation': height,
+              'hourly': {
+                'time': [
+                  start.millisecondsSinceEpoch ~/ 1000,
+                  start.add(const Duration(hours: 1)).millisecondsSinceEpoch ~/
+                      1000,
+                ],
+                'wind_gusts_10m': [18, 36],
               },
-          ]),
-          200,
-        );
-      });
-      addTearDown(client.close);
-      final query = ForecastQuery(
-        [
-          (latitude: 48.17, longitude: 17.21),
-          (latitude: 48.878, longitude: 19.226),
-        ],
-        start,
-        start.add(const Duration(hours: 1)),
+            },
+        ]),
+        200,
       );
+    });
+    addTearDown(client.close);
+    final query = ForecastQuery(
+      [
+        (latitude: 48.17, longitude: 17.21),
+        (latitude: 48.878, longitude: 19.226),
+      ],
+      start,
+      start.add(const Duration(hours: 1)),
+    );
 
-      await withClock(Clock(() => now), () async {
-        final repository = FlightForecastRepository(client);
-        final initial = await repository.load(query);
-        expect(initial.series.length, 2);
-        expect(initial.refreshFailed, isFalse);
-        expect(requestCount, 1);
+    await withClock(Clock(() => now), () async {
+      final repository = FlightForecastRepository(client);
+      final initial = await repository.load(query);
+      expect(initial.series.length, 2);
+      expect(initial.refreshFailed, isFalse);
+      expect(requestCount, 1);
 
-        now = start.add(const Duration(minutes: 5));
-        await repository.load(query);
-        expect(requestCount, 1);
+      now = start.add(const Duration(minutes: 5));
+      await repository.load(query);
+      expect(requestCount, 1);
 
-        offline = true;
-        now = start.add(forecastRefreshInterval);
-        final refreshed = await repository.load(query);
-        expect(requestCount, 2);
-        expect(refreshed.refreshFailed, isTrue);
-        expect(
-          refreshed.series.values.first
-              .at(start.add(const Duration(minutes: 30)))!
-              .gustMs,
-          10,
-        );
-        expect(
-          refreshed.series.values.first.at(start.add(const Duration(hours: 2))),
-          isNull,
-        );
-      });
-    },
-  );
+      offline = true;
+      now = start.add(forecastRefreshInterval);
+      final refreshed = await repository.load(query);
+      expect(requestCount, 2);
+      expect(refreshed.refreshFailed, isTrue);
+      expect(
+        refreshed.series.values.first
+            .at(start.add(const Duration(minutes: 30)))!
+            .gustMs,
+        10,
+      );
+      expect(
+        refreshed.series.values.first.at(start.add(const Duration(hours: 2))),
+        isNull,
+      );
+    });
+  });
 
   test('a restarted session never shows a forecast fetched earlier', () async {
     final start = DateTime.utc(2026, 11, 16, 14);

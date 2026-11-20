@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stork/core/services/mdns_service.dart';
@@ -97,51 +98,45 @@ void main() {
       expect(mockRepository.currentSettings.mapFontSize, equals(1.5));
     });
 
-    test(
-      'Rejects an empty GDL90 bind IP without persisting it, and trims valid ones',
-      () async {
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith(
-              (ref) async => mockRepository,
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+    test('Rejects an empty GDL90 bind IP without persisting it, and trims valid ones', () async {
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        // Keep the provider alive by listening to it
-        final sub = container.listen(appSettingsProvider, (_, _) {});
-        addTearDown(sub.close);
+      // Keep the provider alive by listening to it
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
 
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
 
-        // Whitespace-only input must fail without touching state or repository
-        final emptyResult = await notifier.updateGdl90BindIp('   ');
-        expect(emptyResult, isA<SettingsUpdateFailure>());
-        expect(
-          container.read(appSettingsProvider),
-          isA<AsyncData<AppSettings>>(),
-        );
-        expect(
-          container.read(appSettingsProvider).value?.gdl90BindIp,
-          equals('0.0.0.0'),
-        );
-        expect(mockRepository.currentSettings.gdl90BindIp, equals('0.0.0.0'));
+      // Whitespace-only input must fail without touching state or repository
+      final emptyResult = await notifier.updateGdl90BindIp('   ');
+      expect(emptyResult, isA<SettingsUpdateFailure>());
+      expect(
+        container.read(appSettingsProvider),
+        isA<AsyncData<AppSettings>>(),
+      );
+      expect(
+        container.read(appSettingsProvider).value?.gdl90BindIp,
+        equals('0.0.0.0'),
+      );
+      expect(mockRepository.currentSettings.gdl90BindIp, equals('0.0.0.0'));
 
-        // Non-empty input is trimmed and persisted via the normal path
-        final validResult = await notifier.updateGdl90BindIp(' 192.168.1.7 ');
-        expect(validResult, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.gdl90BindIp,
-          equals('192.168.1.7'),
-        );
-        expect(
-          mockRepository.currentSettings.gdl90BindIp,
-          equals('192.168.1.7'),
-        );
-      },
-    );
+      // Non-empty input is trimmed and persisted via the normal path
+      final validResult = await notifier.updateGdl90BindIp(' 192.168.1.7 ');
+      expect(validResult, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.gdl90BindIp,
+        equals('192.168.1.7'),
+      );
+      expect(mockRepository.currentSettings.gdl90BindIp, equals('192.168.1.7'));
+    });
 
     test('Serializes sequential writes to the repository', () async {
       mockRepository.delay = const Duration(milliseconds: 20);
@@ -181,86 +176,80 @@ void main() {
       );
     });
 
-    test(
-      'Handles failure by rolling back to repository settings on a single update',
-      () async {
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith(
-              (ref) async => mockRepository,
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+    test('Handles failure by rolling back to repository settings on a single update', () async {
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        // Keep the provider alive by listening to it
-        final sub = container.listen(appSettingsProvider, (_, _) {});
-        addTearDown(sub.close);
+      // Keep the provider alive by listening to it
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
 
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
 
-        // Set repository to fail
-        mockRepository.shouldThrow = true;
+      // Set repository to fail
+      mockRepository.shouldThrow = true;
 
-        final result = await notifier.updateFontSize(1.5);
+      final result = await notifier.updateFontSize(1.5);
 
-        expect(result, isA<SettingsUpdateFailure>());
+      expect(result, isA<SettingsUpdateFailure>());
 
-        // State should be AsyncError containing the last known repoSettings (1.0)
-        final state = container.read(appSettingsProvider);
-        expect(state, isA<AsyncError<AppSettings>>());
-        expect(state.value?.mapFontSize, equals(1.0));
-        expect(mockRepository.currentSettings.mapFontSize, equals(1.0));
-      },
-    );
+      // State should be AsyncError containing the last known repoSettings (1.0)
+      final state = container.read(appSettingsProvider);
+      expect(state, isA<AsyncError<AppSettings>>());
+      expect(state.value?.mapFontSize, equals(1.0));
+      expect(mockRepository.currentSettings.mapFontSize, equals(1.0));
+    });
 
-    test(
-      'Reconciles state on concurrent updates to prevent silent overwriting of newer updates',
-      () async {
-        mockRepository.delay = const Duration(milliseconds: 20);
+    test('Reconciles state on concurrent updates to prevent silent overwriting of newer updates', () async {
+      mockRepository.delay = const Duration(milliseconds: 20);
 
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith(
-              (ref) async => mockRepository,
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        // Keep the provider alive by listening to it
-        final sub = container.listen(appSettingsProvider, (_, _) {});
-        addTearDown(sub.close);
+      // Keep the provider alive by listening to it
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
 
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
 
-        // Configure mock to only fail for 1.5 update, but succeed for 2.0
-        mockRepository.shouldThrowFor = (s) => s.mapFontSize == 1.5;
+      // Configure mock to only fail for 1.5 update, but succeed for 2.0
+      mockRepository.shouldThrowFor = (s) => s.mapFontSize == 1.5;
 
-        final firstFuture = notifier.updateFontSize(1.5);
-        final secondFuture = notifier.updateFontSize(2.0);
+      final firstFuture = notifier.updateFontSize(1.5);
+      final secondFuture = notifier.updateFontSize(2.0);
 
-        // Optimistic state is 2.0
-        expect(
-          container.read(appSettingsProvider).value?.mapFontSize,
-          equals(2.0),
-        );
+      // Optimistic state is 2.0
+      expect(
+        container.read(appSettingsProvider).value?.mapFontSize,
+        equals(2.0),
+      );
 
-        final firstResult = await firstFuture;
-        final secondResult = await secondFuture;
+      final firstResult = await firstFuture;
+      final secondResult = await secondFuture;
 
-        expect(firstResult, isA<SettingsUpdateFailure>());
-        expect(secondResult, isA<SettingsUpdateSuccess>());
+      expect(firstResult, isA<SettingsUpdateFailure>());
+      expect(secondResult, isA<SettingsUpdateSuccess>());
 
-        // Final state should be successfully set to 2.0 (not silently overwritten with 1.0)
-        final state = container.read(appSettingsProvider);
-        expect(state, isA<AsyncData<AppSettings>>());
-        expect(state.value?.mapFontSize, equals(2.0));
-        expect(mockRepository.currentSettings.mapFontSize, equals(2.0));
-      },
-    );
+      // Final state should be successfully set to 2.0 (not silently overwritten with 1.0)
+      final state = container.read(appSettingsProvider);
+      expect(state, isA<AsyncData<AppSettings>>());
+      expect(state.value?.mapFontSize, equals(2.0));
+      expect(mockRepository.currentSettings.mapFontSize, equals(2.0));
+    });
 
     test(
       'updateAutoSelectDevice triggers auto-selection and handles failures',
@@ -306,271 +295,257 @@ void main() {
       },
     );
 
-    test(
-      'updateAutoSelectDevice propagates inner failures from _tryAutoSelectDevice',
-      () async {
-        const device = CannelloniDevice(
-          name: 'device1',
-          hostname: 'host1',
-          ip: '127.0.0.1',
-          port: 1234,
-        );
+    test('updateAutoSelectDevice propagates inner failures from _tryAutoSelectDevice', () async {
+      const device = CannelloniDevice(
+        name: 'device1',
+        hostname: 'host1',
+        ip: '127.0.0.1',
+        port: 1234,
+      );
 
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith(
-              (ref) async => mockRepository,
-            ),
-            discoveredDevicesProvider.overrideWith(
-              (ref) => Stream.value([device]),
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
-
-        final sub = container.listen(appSettingsProvider, (_, _) {});
-        addTearDown(sub.close);
-
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
-
-        // Configure repository to fail when updating the selected device
-        // (which happens in the second repository save call during auto-selection)
-        mockRepository.shouldThrowFor = (settings) =>
-            settings.selectedDevice != null;
-
-        final result = await notifier.updateAutoSelectDevice(true);
-
-        // It should return SettingsUpdateFailure because of the failed auto-selection update
-        expect(result, isA<SettingsUpdateFailure>());
-      },
-    );
-
-    test(
-      'updateFlightSpeedMaxRange updates max range and clamps thresholds if necessary',
-      () async {
-        mockRepository.currentSettings = const AppSettings(
-          flightSpeedMaxRange: 200.0,
-          speedUnit: SpeedUnit.ms,
-          flightSpeedThresholds: RangeThresholds.raw(
-            inactiveMax: 10.0,
-            minError: 60.0,
-            minWarning: 75.0,
-            maxWarning: 110.0,
-            maxError: 125.0,
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
           ),
-        );
-
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith(
-              (ref) async => mockRepository,
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
-
-        final sub = container.listen(appSettingsProvider, (_, _) {});
-        addTearDown(sub.close);
-
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
-
-        // 1. Update to 150.0 (no clamping needed as all are <= 150)
-        final result1 = await notifier.updateFlightSpeedMaxRange(150.0);
-        expect(result1, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(150.0),
-        );
-        expect(
-          container
-              .read(appSettingsProvider)
-              .value
-              ?.flightSpeedThresholds
-              .maxError,
-          equals(125.0),
-        );
-
-        // 2. Update to 100.0 (requires clamping maxError and maxWarning to 100.0)
-        final result2 = await notifier.updateFlightSpeedMaxRange(100.0);
-        expect(result2, isA<SettingsUpdateSuccess>());
-
-        final currentSettings = container.read(appSettingsProvider).value!;
-        expect(currentSettings.flightSpeedMaxRange, equals(100.0));
-        expect(currentSettings.flightSpeedThresholds.maxError, equals(100.0));
-        expect(currentSettings.flightSpeedThresholds.maxWarning, equals(100.0));
-        expect(currentSettings.flightSpeedThresholds.minWarning, equals(75.0));
-        expect(currentSettings.flightSpeedThresholds.minError, equals(60.0));
-        expect(currentSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
-
-        // 3. Update to 50.0 (clamps everything except inactiveMax to 50.0)
-        final result3 = await notifier.updateFlightSpeedMaxRange(50.0);
-        expect(result3, isA<SettingsUpdateSuccess>());
-
-        final finalSettings = container.read(appSettingsProvider).value!;
-        expect(finalSettings.flightSpeedMaxRange, equals(50.0));
-        expect(finalSettings.flightSpeedThresholds.maxError, equals(50.0));
-        expect(finalSettings.flightSpeedThresholds.maxWarning, equals(50.0));
-        expect(finalSettings.flightSpeedThresholds.minWarning, equals(50.0));
-        expect(finalSettings.flightSpeedThresholds.minError, equals(50.0));
-        expect(finalSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
-      },
-    );
-
-    test(
-      'updateFlightSpeedMaxRange defensive validation for invalid/NaN/infinite/negative values',
-      () async {
-        mockRepository.currentSettings = const AppSettings(
-          flightSpeedMaxRange: 200.0,
-          speedUnit: SpeedUnit.ms,
-          flightSpeedThresholds: RangeThresholds.raw(
-            inactiveMax: 10.0,
-            minError: 60.0,
-            minWarning: 75.0,
-            maxWarning: 110.0,
-            maxError: 125.0,
+          discoveredDevicesProvider.overrideWith(
+            (ref) => Stream.value([device]),
           ),
-        );
+        ],
+      );
+      addTearDown(container.dispose);
 
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith(
-              (ref) async => mockRepository,
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
 
-        final sub = container.listen(appSettingsProvider, (_, _) {});
-        addTearDown(sub.close);
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
 
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
+      // Configure repository to fail when updating the selected device
+      // (which happens in the second repository save call during auto-selection)
+      mockRepository.shouldThrowFor = (settings) =>
+          settings.selectedDevice != null;
 
-        // NaN should fallback to default (38.89)
-        final resNaN = await notifier.updateFlightSpeedMaxRange(double.nan);
-        expect(resNaN, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(38.89),
-        );
+      final result = await notifier.updateAutoSelectDevice(true);
 
-        // Infinite should fallback to default (38.89)
-        final resInf = await notifier.updateFlightSpeedMaxRange(
-          double.infinity,
-        );
-        expect(resInf, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(38.89),
-        );
+      // It should return SettingsUpdateFailure because of the failed auto-selection update
+      expect(result, isA<SettingsUpdateFailure>());
+    });
 
-        // Zero should fallback to default (38.89)
-        final resZero = await notifier.updateFlightSpeedMaxRange(0.0);
-        expect(resZero, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(38.89),
-        );
+    test('updateFlightSpeedMaxRange updates max range and clamps thresholds if necessary', () async {
+      mockRepository.currentSettings = const AppSettings(
+        flightSpeedMaxRange: 200.0,
+        speedUnit: SpeedUnit.ms,
+        flightSpeedThresholds: RangeThresholds.raw(
+          inactiveMax: 10.0,
+          minError: 60.0,
+          minWarning: 75.0,
+          maxWarning: 110.0,
+          maxError: 125.0,
+        ),
+      );
 
-        // Negative should fallback to default (38.89)
-        final resNeg = await notifier.updateFlightSpeedMaxRange(-50.0);
-        expect(resNeg, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(38.89),
-        );
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        // Values below 10.0 should clamp to 10.0
-        final resTooSmall = await notifier.updateFlightSpeedMaxRange(5.0);
-        expect(resTooSmall, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(10.0),
-        );
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
 
-        // Values above 1000.0 should clamp to 1000.0
-        final resTooLarge = await notifier.updateFlightSpeedMaxRange(1500.0);
-        expect(resTooLarge, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.flightSpeedMaxRange,
-          equals(1000.0),
-        );
-      },
-    );
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
 
-    test(
-      'updateOilTempMaxRange/updateEgtMaxRange/updateChtMaxRange convert limits using active temperatureUnit',
-      () async {
-        mockRepository.currentSettings = const AppSettings(
-          temperatureUnit: TemperatureUnit.celsius,
-          oilTempMaxRange: 413.15,
-          egtMaxRange: 1223.15,
-          chtMaxRange: 433.15,
-        );
+      // 1. Update to 150.0 (no clamping needed as all are <= 150)
+      final result1 = await notifier.updateFlightSpeedMaxRange(150.0);
+      expect(result1, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.flightSpeedMaxRange,
+        equals(150.0),
+      );
+      expect(
+        container
+            .read(appSettingsProvider)
+            .value
+            ?.flightSpeedThresholds
+            .maxError,
+        equals(125.0),
+      );
 
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith(
-              (ref) async => mockRepository,
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+      // 2. Update to 100.0 (requires clamping maxError and maxWarning to 100.0)
+      final result2 = await notifier.updateFlightSpeedMaxRange(100.0);
+      expect(result2, isA<SettingsUpdateSuccess>());
 
-        final sub = container.listen(appSettingsProvider, (_, _) {});
-        addTearDown(sub.close);
+      final currentSettings = container.read(appSettingsProvider).value!;
+      expect(currentSettings.flightSpeedMaxRange, equals(100.0));
+      expect(currentSettings.flightSpeedThresholds.maxError, equals(100.0));
+      expect(currentSettings.flightSpeedThresholds.maxWarning, equals(100.0));
+      expect(currentSettings.flightSpeedThresholds.minWarning, equals(75.0));
+      expect(currentSettings.flightSpeedThresholds.minError, equals(60.0));
+      expect(currentSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
 
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
+      // 3. Update to 50.0 (clamps everything except inactiveMax to 50.0)
+      final result3 = await notifier.updateFlightSpeedMaxRange(50.0);
+      expect(result3, isA<SettingsUpdateSuccess>());
 
-        // 1. For oilTempMaxRange in Celsius: maxRangeLimit in Kelvin is 1000.0, which converts to 726.85 C.
-        // Try passing a value above the max limit (800.0 C).
-        // It should clamp to 726.85 C, which stores as 1000.0 Kelvin.
-        final resMaxOilTemp = await notifier.updateOilTempMaxRange(800.0);
-        expect(resMaxOilTemp, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.oilTempMaxRange,
-          closeTo(1000.0, 0.0001),
-        );
+      final finalSettings = container.read(appSettingsProvider).value!;
+      expect(finalSettings.flightSpeedMaxRange, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.maxError, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.maxWarning, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.minWarning, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.minError, equals(50.0));
+      expect(finalSettings.flightSpeedThresholds.inactiveMax, equals(10.0));
+    });
 
-        // 2. For oilTempMaxRange in Kelvin: minRangeLimit is 50.0 Kelvin.
-        // Change temperature unit to Kelvin first.
-        await notifier.updateTemperatureUnit(TemperatureUnit.kelvin);
-        // Try passing a value below the min limit (30.0 Kelvin).
-        // It should clamp to 50.0 Kelvin.
-        final resMinOilTemp = await notifier.updateOilTempMaxRange(30.0);
-        expect(resMinOilTemp, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.oilTempMaxRange,
-          closeTo(50.0, 0.0001),
-        );
+    test('updateFlightSpeedMaxRange defensive validation for invalid/NaN/infinite/negative values', () async {
+      mockRepository.currentSettings = const AppSettings(
+        flightSpeedMaxRange: 200.0,
+        speedUnit: SpeedUnit.ms,
+        flightSpeedThresholds: RangeThresholds.raw(
+          inactiveMax: 10.0,
+          minError: 60.0,
+          minWarning: 75.0,
+          maxWarning: 110.0,
+          maxError: 125.0,
+        ),
+      );
 
-        // Change temperature unit back to Celsius for remaining tests
-        await notifier.updateTemperatureUnit(TemperatureUnit.celsius);
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        // 3. For egtMaxRange in Celsius: maxRangeLimit in Kelvin is 2000.0, which converts to 1726.85 C.
-        // Try passing a value above the max limit, e.g., 1800.0 C.
-        // It should clamp to 1726.85 C, which stores as 2000.0 Kelvin.
-        final resMaxEgt = await notifier.updateEgtMaxRange(1800.0);
-        expect(resMaxEgt, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.egtMaxRange,
-          closeTo(2000.0, 0.0001),
-        );
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
 
-        // 4. For chtMaxRange in Celsius: maxRangeLimit in Kelvin is 1000.0, which converts to 726.85 C.
-        // Try passing a value above the max limit, e.g., 800.0 C.
-        // It should clamp to 726.85 C, which stores as 1000.0 Kelvin.
-        final resMaxCht = await notifier.updateChtMaxRange(800.0);
-        expect(resMaxCht, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.chtMaxRange,
-          closeTo(1000.0, 0.0001),
-        );
-      },
-    );
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      // NaN should fallback to default (38.89)
+      final resNaN = await notifier.updateFlightSpeedMaxRange(double.nan);
+      expect(resNaN, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.flightSpeedMaxRange,
+        equals(38.89),
+      );
+
+      // Infinite should fallback to default (38.89)
+      final resInf = await notifier.updateFlightSpeedMaxRange(double.infinity);
+      expect(resInf, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.flightSpeedMaxRange,
+        equals(38.89),
+      );
+
+      // Zero should fallback to default (38.89)
+      final resZero = await notifier.updateFlightSpeedMaxRange(0.0);
+      expect(resZero, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.flightSpeedMaxRange,
+        equals(38.89),
+      );
+
+      // Negative should fallback to default (38.89)
+      final resNeg = await notifier.updateFlightSpeedMaxRange(-50.0);
+      expect(resNeg, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.flightSpeedMaxRange,
+        equals(38.89),
+      );
+
+      // Values below 10.0 should clamp to 10.0
+      final resTooSmall = await notifier.updateFlightSpeedMaxRange(5.0);
+      expect(resTooSmall, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.flightSpeedMaxRange,
+        equals(10.0),
+      );
+
+      // Values above 1000.0 should clamp to 1000.0
+      final resTooLarge = await notifier.updateFlightSpeedMaxRange(1500.0);
+      expect(resTooLarge, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.flightSpeedMaxRange,
+        equals(1000.0),
+      );
+    });
+
+    test('updateOilTempMaxRange/updateEgtMaxRange/updateChtMaxRange convert limits using active temperatureUnit', () async {
+      mockRepository.currentSettings = const AppSettings(
+        temperatureUnit: TemperatureUnit.celsius,
+        oilTempMaxRange: 413.15,
+        egtMaxRange: 1223.15,
+        chtMaxRange: 433.15,
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
+
+      // 1. For oilTempMaxRange in Celsius: maxRangeLimit in Kelvin is 1000.0, which converts to 726.85 C.
+      // Try passing a value above the max limit (800.0 C).
+      // It should clamp to 726.85 C, which stores as 1000.0 Kelvin.
+      final resMaxOilTemp = await notifier.updateOilTempMaxRange(800.0);
+      expect(resMaxOilTemp, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.oilTempMaxRange,
+        closeTo(1000.0, 0.0001),
+      );
+
+      // 2. For oilTempMaxRange in Kelvin: minRangeLimit is 50.0 Kelvin.
+      // Change temperature unit to Kelvin first.
+      await notifier.updateTemperatureUnit(TemperatureUnit.kelvin);
+      // Try passing a value below the min limit (30.0 Kelvin).
+      // It should clamp to 50.0 Kelvin.
+      final resMinOilTemp = await notifier.updateOilTempMaxRange(30.0);
+      expect(resMinOilTemp, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.oilTempMaxRange,
+        closeTo(50.0, 0.0001),
+      );
+
+      // Change temperature unit back to Celsius for remaining tests
+      await notifier.updateTemperatureUnit(TemperatureUnit.celsius);
+
+      // 3. For egtMaxRange in Celsius: maxRangeLimit in Kelvin is 2000.0, which converts to 1726.85 C.
+      // Try passing a value above the max limit, e.g., 1800.0 C.
+      // It should clamp to 1726.85 C, which stores as 2000.0 Kelvin.
+      final resMaxEgt = await notifier.updateEgtMaxRange(1800.0);
+      expect(resMaxEgt, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.egtMaxRange,
+        closeTo(2000.0, 0.0001),
+      );
+
+      // 4. For chtMaxRange in Celsius: maxRangeLimit in Kelvin is 1000.0, which converts to 726.85 C.
+      // Try passing a value above the max limit, e.g., 800.0 C.
+      // It should clamp to 726.85 C, which stores as 1000.0 Kelvin.
+      final resMaxCht = await notifier.updateChtMaxRange(800.0);
+      expect(resMaxCht, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.chtMaxRange,
+        closeTo(1000.0, 0.0001),
+      );
+    });
 
     test('resetWidgetPositions clears all saved widget positions', () async {
       mockRepository.currentSettings = const AppSettings(
@@ -659,113 +634,110 @@ void main() {
       expect(mockRepository.currentSettings.qnh, equals(1020.5));
     });
 
-    test(
-      'updateQnh defensive validation for invalid/NaN/infinite/negative/out-of-range values',
-      () async {
-        final container = ProviderContainer(
-          overrides: [
-            settingsRepositoryProvider.overrideWith(
-              (ref) async => mockRepository,
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+    test('updateQnh defensive validation for invalid/NaN/infinite/negative/out-of-range values', () async {
+      final container = ProviderContainer(
+        overrides: [
+          settingsRepositoryProvider.overrideWith(
+            (ref) async => mockRepository,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        final sub = container.listen(appSettingsProvider, (_, _) {});
-        addTearDown(sub.close);
+      final sub = container.listen(appSettingsProvider, (_, _) {});
+      addTearDown(sub.close);
 
-        await container.read(appSettingsProvider.future);
-        final notifier = container.read(appSettingsProvider.notifier);
+      await container.read(appSettingsProvider.future);
+      final notifier = container.read(appSettingsProvider.notifier);
 
-        // NaN should fallback to default (AviationMath.standardPressureHpa)
-        final resNaN = await notifier.updateQnh(double.nan);
-        expect(resNaN, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
-        expect(
-          mockRepository.currentSettings.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
+      // NaN should fallback to default (AviationMath.standardPressureHpa)
+      final resNaN = await notifier.updateQnh(double.nan);
+      expect(resNaN, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
+      expect(
+        mockRepository.currentSettings.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
 
-        // Infinite should fallback to default (AviationMath.standardPressureHpa)
-        final resInf = await notifier.updateQnh(double.infinity);
-        expect(resInf, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
-        expect(
-          mockRepository.currentSettings.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
+      // Infinite should fallback to default (AviationMath.standardPressureHpa)
+      final resInf = await notifier.updateQnh(double.infinity);
+      expect(resInf, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
+      expect(
+        mockRepository.currentSettings.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
 
-        // Negative infinity should fallback to default (AviationMath.standardPressureHpa)
-        final resNegInf = await notifier.updateQnh(double.negativeInfinity);
-        expect(resNegInf, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
-        expect(
-          mockRepository.currentSettings.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
+      // Negative infinity should fallback to default (AviationMath.standardPressureHpa)
+      final resNegInf = await notifier.updateQnh(double.negativeInfinity);
+      expect(resNegInf, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
+      expect(
+        mockRepository.currentSettings.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
 
-        // Zero should fallback to default (AviationMath.standardPressureHpa)
-        final resZero = await notifier.updateQnh(0.0);
-        expect(resZero, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
-        expect(
-          mockRepository.currentSettings.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
+      // Zero should fallback to default (AviationMath.standardPressureHpa)
+      final resZero = await notifier.updateQnh(0.0);
+      expect(resZero, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
+      expect(
+        mockRepository.currentSettings.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
 
-        // Negative should fallback to default (AviationMath.standardPressureHpa)
-        final resNeg = await notifier.updateQnh(-50.0);
-        expect(resNeg, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
-        expect(
-          mockRepository.currentSettings.qnh,
-          equals(AviationMath.standardPressureHpa),
-        );
+      // Negative should fallback to default (AviationMath.standardPressureHpa)
+      final resNeg = await notifier.updateQnh(-50.0);
+      expect(resNeg, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
+      expect(
+        mockRepository.currentSettings.qnh,
+        equals(AviationMath.standardPressureHpa),
+      );
 
-        // Out-of-range low value should clamp to AviationMath.minQnhHpa
-        final resTooSmall = await notifier.updateQnh(
-          AviationMath.minQnhHpa - 0.1,
-        );
-        expect(resTooSmall, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.qnh,
-          equals(AviationMath.minQnhHpa),
-        );
-        expect(
-          mockRepository.currentSettings.qnh,
-          equals(AviationMath.minQnhHpa),
-        );
+      // Out-of-range low value should clamp to AviationMath.minQnhHpa
+      final resTooSmall = await notifier.updateQnh(
+        AviationMath.minQnhHpa - 0.1,
+      );
+      expect(resTooSmall, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.qnh,
+        equals(AviationMath.minQnhHpa),
+      );
+      expect(
+        mockRepository.currentSettings.qnh,
+        equals(AviationMath.minQnhHpa),
+      );
 
-        // Out-of-range high value should clamp to AviationMath.maxQnhHpa
-        final resTooLarge = await notifier.updateQnh(
-          AviationMath.maxQnhHpa + 0.1,
-        );
-        expect(resTooLarge, isA<SettingsUpdateSuccess>());
-        expect(
-          container.read(appSettingsProvider).value?.qnh,
-          equals(AviationMath.maxQnhHpa),
-        );
-        expect(
-          mockRepository.currentSettings.qnh,
-          equals(AviationMath.maxQnhHpa),
-        );
-      },
-    );
+      // Out-of-range high value should clamp to AviationMath.maxQnhHpa
+      final resTooLarge = await notifier.updateQnh(
+        AviationMath.maxQnhHpa + 0.1,
+      );
+      expect(resTooLarge, isA<SettingsUpdateSuccess>());
+      expect(
+        container.read(appSettingsProvider).value?.qnh,
+        equals(AviationMath.maxQnhHpa),
+      );
+      expect(
+        mockRepository.currentSettings.qnh,
+        equals(AviationMath.maxQnhHpa),
+      );
+    });
 
     test(
       'hideAircraft adds a normalized aircraft id and persists it',

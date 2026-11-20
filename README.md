@@ -56,7 +56,10 @@ Detailed technical documentation covering the system architecture, mathematical 
 
 ### Prerequisites
 
-- Flutter SDK (latest stable version recommended)
+Active development targets are **Android and Linux**. Web is out of scope:
+we do not compile, test or maintain the web target.
+
+- Flutter SDK 3.47 or newer (Dart 3.13 or newer)
 - Android Studio / VS Code with Flutter extensions
 - A C toolchain (for the native `libcanard` FFI bindings)
 
@@ -93,6 +96,56 @@ git submodule update --init --recursive
     ```bash
     flutter run
     ```
+
+UI code imports `package:material_ui/material_ui.dart` and
+`package:cupertino_ui/cupertino_ui.dart` instead of Flutter's deprecated UI
+libraries. Use `appLocalizationsDelegates` from `lib/l10n/localizations.dart`
+when configuring an application. The SDK localization generator still emits a
+legacy delegate list; `l10n.yaml` suppresses its deprecation diagnostics only in
+generated files, while the application uses the migrated delegates.
+
+### Linux release
+
+Install a C/C++ development toolchain (including Clang), CMake, Ninja,
+pkg-config, GTK 3 development headers and libepoxy development headers before
+building. On Debian/Ubuntu the packages include `build-essential`, `clang`,
+`cmake`, `ninja-build`, `pkg-config`, `libgtk-3-dev`, and **`libepoxy-dev`**.
+Sentry's native transport also requires the libcurl development package
+(`libcurl4-openssl-dev` on Debian/Ubuntu).
+
+Build the desktop bundle:
+
+```bash
+flutter build linux --release
+```
+
+Launch `stork` from the bundle path printed by Flutter when the build completes.
+Use that path for the target architecture (for example, `x64` or `arm64`).
+
+At runtime, Linux requires a **Vulkan 1.1-capable driver** for the bundled
+MapLibre renderer to display the map. Install the Vulkan driver appropriate for
+the machine's GPU; a working Flutter window alone does not establish map support.
+
+Keep the complete `bundle` directory when copying the application; its `lib`
+and `data` directories are required. Sensor availability is determined at runtime
+on every platform. Missing or disconnected accelerometers/magnetometers use the
+viewport orientation fallback and no compass heading; available data takes over
+without restarting the application. Connections retry after 5 seconds, and
+10 seconds of silence also triggers recovery. Attached USB devices still need a
+driver/backend that exposes their data through a supported application source;
+the operating system name is never used to decide whether a sensor is present.
+
+On NVIDIA Linux desktops, Flutter 3.50.0 can shift and clip the entire application
+surface by half the window dimensions. Flutter 3.50.1 includes the fix for
+[Flutter #195885](https://github.com/flutter/flutter/issues/195885), as listed in
+its [changelog](https://github.com/flutter/flutter/blob/3.50.1/CHANGELOG.md).
+Changing map zoom or the Flutter widget layout does not fix that engine defect.
+
+The Linux release was verified on KDE Wayland with an NVIDIA RTX 4060 using
+Flutter 3.50.1 (2026-11-20): the loading screen cleared and the map, controls,
+airspaces, airports and traffic filled the window with the default renderers.
+Runtime sensor tests cover native channel setup, absence, connection, removal,
+silent failure and reconnection, including fresh heading samples after a dropout.
 
 ## 📂 Project Structure
 

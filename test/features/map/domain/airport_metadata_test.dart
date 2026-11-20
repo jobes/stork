@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,93 +39,90 @@ void main() {
       },
     );
 
-    test(
-      'AirportMetadata.fromJson handles null and malformed elements in trafficType, frequencies, runways, images',
-      () {
-        final json = {
-          'id': 'airport_123',
-          'name': 'Test Airport',
-          'type': 3,
-          'trafficType': [1, null, 'not_a_num', 2],
-          'country': 'US',
-          'frequencies': [
-            {
-              'id': 'f1',
-              'value': '118.1',
-              'unit': 2,
-              'type': 14,
-              'name': 'Tower',
-              'primary': true,
-              'publicUse': true,
-            },
-            null,
-            'malformed_frequency',
-            123,
-            {
-              'id': 'f2',
-              'value': '121.9',
-              'unit': 2,
-              'type': 9,
-              'name': 'Ground',
-              'primary': false,
-              'publicUse': true,
-            },
-          ],
-          'runways': [
-            {
-              'id': 'r1',
-              'designator': '09/27',
-              'trueHeading': 90.0,
-              'pilotCtrlLighting': false,
-            },
-            null,
-            'malformed_runway',
-            [1, 2],
-            {
-              'id': 'r2',
-              'designator': '18/36',
-              'trueHeading': 180.0,
-              'pilotCtrlLighting': true,
-            },
-          ],
-          'images': [
-            {'id': 'img1', 'filename': 'pic1.png'},
-            null,
-            'malformed_image',
-            {'id': 'img2', 'filename': 'pic2.png'},
-          ],
-        };
+    test('AirportMetadata.fromJson handles null and malformed elements in trafficType, frequencies, runways, images', () {
+      final json = {
+        'id': 'airport_123',
+        'name': 'Test Airport',
+        'type': 3,
+        'trafficType': [1, null, 'not_a_num', 2],
+        'country': 'US',
+        'frequencies': [
+          {
+            'id': 'f1',
+            'value': '118.1',
+            'unit': 2,
+            'type': 14,
+            'name': 'Tower',
+            'primary': true,
+            'publicUse': true,
+          },
+          null,
+          'malformed_frequency',
+          123,
+          {
+            'id': 'f2',
+            'value': '121.9',
+            'unit': 2,
+            'type': 9,
+            'name': 'Ground',
+            'primary': false,
+            'publicUse': true,
+          },
+        ],
+        'runways': [
+          {
+            'id': 'r1',
+            'designator': '09/27',
+            'trueHeading': 90.0,
+            'pilotCtrlLighting': false,
+          },
+          null,
+          'malformed_runway',
+          [1, 2],
+          {
+            'id': 'r2',
+            'designator': '18/36',
+            'trueHeading': 180.0,
+            'pilotCtrlLighting': true,
+          },
+        ],
+        'images': [
+          {'id': 'img1', 'filename': 'pic1.png'},
+          null,
+          'malformed_image',
+          {'id': 'img2', 'filename': 'pic2.png'},
+        ],
+      };
 
-        final metadata = AirportMetadata.fromJson(json);
+      final metadata = AirportMetadata.fromJson(json);
 
-        expect(metadata.id, equals('airport_123'));
-        expect(metadata.name, equals('Test Airport'));
+      expect(metadata.id, equals('airport_123'));
+      expect(metadata.name, equals('Test Airport'));
 
-        // trafficType should filter out null and string
-        expect(metadata.trafficType, equals([1, 2]));
+      // trafficType should filter out null and string
+      expect(metadata.trafficType, equals([1, 2]));
 
-        // frequencies should parse 2 valid maps, ignoring null/string/int
-        expect(metadata.frequencies.length, equals(2));
-        expect(metadata.frequencies[0].id, equals('f1'));
-        expect(metadata.frequencies[0].name, equals('Tower'));
-        expect(metadata.frequencies[1].id, equals('f2'));
-        expect(metadata.frequencies[1].name, equals('Ground'));
+      // frequencies should parse 2 valid maps, ignoring null/string/int
+      expect(metadata.frequencies.length, equals(2));
+      expect(metadata.frequencies[0].id, equals('f1'));
+      expect(metadata.frequencies[0].name, equals('Tower'));
+      expect(metadata.frequencies[1].id, equals('f2'));
+      expect(metadata.frequencies[1].name, equals('Ground'));
 
-        // runways should parse 2 valid maps, ignoring null/string/list
-        expect(metadata.runways.length, equals(2));
-        expect(metadata.runways[0].id, equals('r1'));
-        expect(metadata.runways[0].designator, equals('09/27'));
-        expect(metadata.runways[1].id, equals('r2'));
-        expect(metadata.runways[1].designator, equals('18/36'));
+      // runways should parse 2 valid maps, ignoring null/string/list
+      expect(metadata.runways.length, equals(2));
+      expect(metadata.runways[0].id, equals('r1'));
+      expect(metadata.runways[0].designator, equals('09/27'));
+      expect(metadata.runways[1].id, equals('r2'));
+      expect(metadata.runways[1].designator, equals('18/36'));
 
-        // images should parse 2 valid maps, ignoring null/string
-        expect(metadata.images.length, equals(2));
-        expect(metadata.images[0].id, equals('img1'));
-        expect(metadata.images[0].filename, equals('pic1.png'));
-        expect(metadata.images[1].id, equals('img2'));
-        expect(metadata.images[1].filename, equals('pic2.png'));
-      },
-    );
+      // images should parse 2 valid maps, ignoring null/string
+      expect(metadata.images.length, equals(2));
+      expect(metadata.images[0].id, equals('img1'));
+      expect(metadata.images[0].filename, equals('pic1.png'));
+      expect(metadata.images[1].id, equals('img2'));
+      expect(metadata.images[1].filename, equals('pic2.png'));
+    });
   });
 
   group('AirportMetadataCache Concurrent Downloads', () {
@@ -240,42 +238,39 @@ void main() {
       }, () => mockClient);
     });
 
-    test(
-      'Downloads and decodes UTF-8 characters correctly (e.g. Austrian/Hungarian/German)',
-      () async {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+    test('Downloads and decodes UTF-8 characters correctly (e.g. Austrian/Hungarian/German)', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
 
-        final cache = container.read(airportMetadataCacheProvider.notifier);
+      final cache = container.read(airportMetadataCacheProvider.notifier);
 
-        final mockClient = MockClient((request) async {
-          return http.Response.bytes(
-            utf8.encode(
-              json.encode({
-                'features': [
-                  {
-                    'type': 'Feature',
-                    'properties': {
-                      'id': 'apt_utf8',
-                      'name': 'Bad Vöslau / Fertőszentmiklós',
-                      'type': 1,
-                      'country': 'AT',
-                    },
+      final mockClient = MockClient((request) async {
+        return http.Response.bytes(
+          utf8.encode(
+            json.encode({
+              'features': [
+                {
+                  'type': 'Feature',
+                  'properties': {
+                    'id': 'apt_utf8',
+                    'name': 'Bad Vöslau / Fertőszentmiklós',
+                    'type': 1,
+                    'country': 'AT',
                   },
-                ],
-              }),
-            ),
-            200,
-            headers: {'content-type': 'application/json'},
-          );
-        });
+                },
+              ],
+            }),
+          ),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
 
-        await http.runWithClient(() async {
-          final result = await cache.getMetadata('apt_utf8', 'AT');
-          expect(result, isNotNull);
-          expect(result?.name, equals('Bad Vöslau / Fertőszentmiklós'));
-        }, () => mockClient);
-      },
-    );
+      await http.runWithClient(() async {
+        final result = await cache.getMetadata('apt_utf8', 'AT');
+        expect(result, isNotNull);
+        expect(result?.name, equals('Bad Vöslau / Fertőszentmiklós'));
+      }, () => mockClient);
+    });
   });
 }
