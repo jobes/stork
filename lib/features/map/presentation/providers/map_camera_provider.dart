@@ -57,6 +57,11 @@ class MapCamera extends _$MapCamera {
   Ref get refAccess => ref;
 
   MapController? _mapController;
+  int _cameraRevision = 0;
+  CameraPosition? _eventCamera;
+  CameraPosition? _presentedCamera;
+  CameraPosition? _trafficEndingCamera;
+  bool _trafficViewportDue = false;
   final _controllerCompleter = Completer<MapController>();
   Timer? _followResumeTimer;
   bool _isFollowPaused = false;
@@ -379,6 +384,11 @@ class MapCamera extends _$MapCamera {
     bool cameraPrepared = false,
     InitialMapCamera? preparedCamera,
   }) {
+    _cameraRevision++;
+    _eventCamera = controller.camera;
+    _presentedCamera = null;
+    _trafficEndingCamera = null;
+    _trafficViewportDue = false;
     _mapController = controller;
     if (!_controllerCompleter.isCompleted) {
       _controllerCompleter.complete(controller);
@@ -688,11 +698,22 @@ class MapCamera extends _$MapCamera {
     MapEvent event, {
     Function(List<dynamic> features, Geographic coordinate)? onFeaturesTapped,
   }) {
+    final eventCamera = switch (event) {
+      MapEventCameraMove(:final camera) => camera,
+      MapEventCameraMoveEnd(:final camera) => camera,
+      _ => null,
+    };
+    if (eventCamera != null && eventCamera != _eventCamera) {
+      _eventCamera = eventCamera;
+      _cameraRevision++;
+    }
     if (event is MapEventCameraMove) {
+      _trafficEndingCamera = null;
       handleUserInteraction(isExplicitInteraction: false);
       _scheduleTrafficViewportUpdate();
     }
     if (event is MapEventCameraMoveEnd) {
+      _trafficEndingCamera = event.camera;
       // Frame-by-frame follow can emit idle events between programmatic moves.
       // Share the existing viewport timer instead of rebuilding traffic per tick.
       if (!_isFollowPaused &&
@@ -703,9 +724,8 @@ class MapCamera extends _$MapCamera {
         return;
       }
       _moveThrottleTimer?.cancel();
-      _refreshTrafficAfterCameraMove = false;
+      _refreshTrafficAfterCameraMove = true;
       _updateTrafficFilter();
-      updateTrafficOnMap();
     }
     if (event is MapEventClick) {
       debugPrint('Map clicked at ${event.point}');
@@ -718,10 +738,7 @@ class MapCamera extends _$MapCamera {
   void _scheduleTrafficViewportUpdate() {
     if (_moveThrottleTimer?.isActive ?? false) return;
     _moveThrottleTimer = Timer(const Duration(milliseconds: 500), () {
-      final refreshTraffic = _refreshTrafficAfterCameraMove;
-      _refreshTrafficAfterCameraMove = false;
       _updateTrafficFilter();
-      if (refreshTraffic) updateTrafficOnMap();
     });
   }
 
@@ -778,11 +795,32 @@ class MapCamera extends _$MapCamera {
     return true;
   }
 
+  // Called by a MapLibreMap child observing the camera of the shown texture.
+  void handleCameraPresented(CameraPosition camera) {
+    if (_presentedCamera != null && _presentedCamera != camera) {
+      _cameraRevision++;
+    }
+    _presentedCamera = camera;
+    if (_trafficViewportDue) _updateTrafficFilter();
+  }
+
   void _updateTrafficFilter() {
     if (_mapController == null) return;
+    _trafficViewportDue = true;
+    final endingCamera = _trafficEndingCamera;
+    if (endingCamera != null &&
+        (_presentedCamera != endingCamera ||
+            _mapController!.camera != endingCamera)) {
+      return;
+    }
+    _trafficViewportDue = false;
     try {
       final bounds = _mapController!.getVisibleBounds();
       ref.read(trafficProvider.notifier).updateViewport(bounds);
+      if (_refreshTrafficAfterCameraMove) {
+        _refreshTrafficAfterCameraMove = false;
+        updateTrafficOnMap();
+      }
     } catch (e) {
       debugPrint('Failed to update traffic filter bounds: $e');
     }
@@ -792,9 +830,15 @@ class MapCamera extends _$MapCamera {
     MapEventClick event,
     Function(List<dynamic> features, Geographic coordinate) onFeaturesTapped,
   ) async {
-    if (_mapController == null) return;
+    final controller = _mapController;
+    if (controller == null) return;
+    final revision = _cameraRevision;
+    bool isCurrent() =>
+        ref.mounted &&
+        identical(controller, _mapController) &&
+        revision == _cameraRevision;
     try {
-      final airportFeatures = await _mapController!.queryRenderedFeatures(
+      final airportFeatures = await controller.queryRenderedFeatures(
         QueryGeometry.point(event.screenPoint),
         layerIds: [
           'airport_clicktarget',
@@ -810,27 +854,27 @@ class MapCamera extends _$MapCamera {
         ],
       );
 
-      final airspaceFeatures = await _mapController!.queryRenderedFeatures(
+      final airspaceFeatures = await controller.queryRenderedFeatures(
         QueryGeometry.point(event.screenPoint),
         layerIds: ['airspace_clicktarget'],
       );
 
-      final placeFeatures = await _mapController!.queryRenderedFeatures(
+      final placeFeatures = await controller.queryRenderedFeatures(
         QueryGeometry.point(event.screenPoint),
         layerIds: ['places_locality'],
       );
 
-      final notamFeatures = await _mapController!.queryRenderedFeatures(
+      final notamFeatures = await controller.queryRenderedFeatures(
         QueryGeometry.point(event.screenPoint),
         layerIds: ['notams-fill-layer'],
       );
 
-      final favoriteFeatures = await _mapController!.queryRenderedFeatures(
+      final favoriteFeatures = await controller.queryRenderedFeatures(
         QueryGeometry.point(event.screenPoint),
         layerIds: ['favorites-layer'],
       );
 
-      final trafficFeatures = await _mapController!.queryRenderedFeatures(
+      final trafficFeatures = await controller.queryRenderedFeatures(
         QueryGeometry.point(event.screenPoint),
         layerIds: ['traffic-layer'],
       );
@@ -881,7 +925,7 @@ class MapCamera extends _$MapCamera {
 
       if (_flightWeatherStyle != null &&
           identical(_flightWeatherStyle, _mapController?.style)) {
-        final forecastFeatures = await _mapController!.queryRenderedFeatures(
+        final forecastFeatures = await controller.queryRenderedFeatures(
           QueryGeometry.point(event.screenPoint),
           layerIds: [
             forecastHitLayer,
@@ -899,9 +943,11 @@ class MapCamera extends _$MapCamera {
         }
       }
 
+      if (!isCurrent()) return;
       debugPrint('Tapped features: $featureMaps');
       onFeaturesTapped(featureMaps, event.point);
     } catch (e) {
+      if (!isCurrent()) return;
       debugPrint('Error querying map features: $e');
       onFeaturesTapped(const [], event.point);
     }

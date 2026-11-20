@@ -111,8 +111,10 @@ class _Traffic extends Traffic {
   @override
   List<TrafficAircraft> build() => [];
 
+  final viewports = <ml.GeoBox>[];
+
   @override
-  void updateViewport(ml.GeoBox bounds) {}
+  void updateViewport(ml.GeoBox bounds) => viewports.add(bounds);
 }
 
 class _FilteredTraffic extends FilteredTraffic {
@@ -277,6 +279,7 @@ class _Map extends Fake implements ml.MapController {
   );
 
   void Function(ml.MapEvent)? onEvent;
+  void Function(ml.CameraPosition)? onPresented;
   int viewportReads = 0;
   final animatedCenters = <ml.Geographic?>[];
 
@@ -299,6 +302,7 @@ class _Map extends Fake implements ml.MapController {
         reason: ml.CameraChangeReason.programmatic,
       ),
     );
+    onPresented?.call(camera);
     onEvent?.call(
       ml.MapEventCameraMoveEnd(
         camera: camera,
@@ -318,6 +322,7 @@ class _Map extends Fake implements ml.MapController {
   }
 
   Future<void>? featureQueryGate;
+  int featureQueryGateAt = 1;
   final queriedLayers = <List<String>>[];
 
   @override
@@ -327,7 +332,7 @@ class _Map extends Fake implements ml.MapController {
     ml.Expression<bool>? filter,
   }) async {
     queriedLayers.add(layerIds!);
-    await featureQueryGate;
+    if (queriedLayers.length == featureQueryGateAt) await featureQueryGate;
     return [
       ml.RenderedFeature(
         id: layerIds.first,
@@ -400,6 +405,7 @@ _setupFollow(
   map.viewportReads = 0;
   map.style.updates.clear();
   map.onEvent = camera.handleMapEvent;
+  map.onPresented = camera.handleCameraPresented;
   return (camera: camera, map: map, telemetry: telemetry, traffic: traffic);
 }
 
@@ -470,6 +476,12 @@ void main() {
     'map clicks await 0.4 feature queries and preserve every category',
     (tester) async {
       final setup = await _setupFollow(tester, notams: _Notams());
+      setup.camera.handleMapEvent(
+        ml.MapEventCameraMoveEnd(
+          camera: setup.map.camera,
+          reason: ml.CameraChangeReason.programmatic,
+        ),
+      );
       final gate = Completer<void>();
       setup.map.featureQueryGate = gate.future;
       final result = Completer<List<dynamic>>();
@@ -484,8 +496,15 @@ void main() {
       );
       await tester.pump();
       expect(result.isCompleted, isFalse);
+      setup.camera.handleMapEvent(
+        ml.MapEventCameraMoveEnd(
+          camera: setup.map.camera,
+          reason: ml.CameraChangeReason.programmatic,
+        ),
+      );
       gate.complete();
       await tester.pump();
+      expect(result.isCompleted, isTrue);
       final features = await result.future;
       expect(tappedPoint, coordinate);
       expect(features.map((feature) => feature['layerType']), [
@@ -501,6 +520,80 @@ void main() {
       expect(features.first['properties']['metadata'], {'nested': true});
     },
   );
+
+  for (final query in [1, 7]) {
+    testWidgets(
+      'map clicks discard results when camera changes at query $query',
+      (tester) async {
+        final setup = await _setupFollow(tester, notams: _Notams());
+        final gate = Completer<void>();
+        setup.map.featureQueryGate = gate.future;
+        setup.map.featureQueryGateAt = query;
+        var taps = 0;
+        setup.camera.handleMapEvent(
+          const ml.MapEventClick(
+            point: ml.Geographic(lat: 48, lon: 17),
+            screenPoint: Offset(10, 20),
+          ),
+          onFeaturesTapped: (_, _) => taps++,
+        );
+        await tester.pump();
+        expect(setup.map.queriedLayers, hasLength(query));
+        setup.camera.handleMapEvent(
+          ml.MapEventCameraMove(
+            camera: setup.map.camera,
+            reason: ml.CameraChangeReason.gesture,
+          ),
+        );
+        gate.complete();
+        await tester.pump();
+        expect(taps, 0);
+      },
+    );
+  }
+
+  testWidgets('final traffic viewport waits for the ending presented camera', (
+    tester,
+  ) async {
+    final setup = await _setupFollow(tester);
+    final traffic =
+        setup.camera.refAccess.read(trafficProvider.notifier) as _Traffic;
+    traffic.viewports.clear();
+    final oldCamera = setup.map.camera;
+    setup.camera.handleCameraPresented(oldCamera);
+    setup.camera.handleUserInteraction();
+    final ending = ml.CameraPosition(
+      center: const ml.Geographic(lat: 49, lon: 18),
+      zoom: oldCamera.zoom,
+      pitch: oldCamera.pitch,
+      bearing: oldCamera.bearing,
+    );
+    setup.camera.handleMapEvent(
+      ml.MapEventCameraMove(
+        camera: ending,
+        reason: ml.CameraChangeReason.gesture,
+      ),
+    );
+    setup.camera.handleMapEvent(
+      ml.MapEventCameraMoveEnd(
+        camera: ending,
+        reason: ml.CameraChangeReason.gesture,
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(setup.map.viewportReads, 0);
+    setup.camera.handleCameraPresented(oldCamera);
+    expect(setup.map.viewportReads, 0);
+    setup.map.camera = ending;
+    setup.camera.handleCameraPresented(ending);
+    expect(setup.map.viewportReads, 1);
+    expect(
+      traffic.viewports.single,
+      const ml.GeoBox(south: 47, north: 49, west: 16, east: 18),
+    );
+    setup.camera.handleCameraPresented(ending);
+    expect(setup.map.viewportReads, 1);
+  });
 
   testWidgets(
     'an exact prepared snapshot does not move an uninitialized native camera',

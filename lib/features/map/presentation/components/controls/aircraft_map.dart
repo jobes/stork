@@ -22,6 +22,7 @@ class AircraftMap extends StatefulWidget {
   onStyleLoaded;
   final Function(MapEvent) onEvent;
   final VoidCallback onUserInteraction;
+  final void Function(CameraPosition camera)? onCameraPresented;
   final VoidCallback? onInitialViewReady;
   final void Function(Object error)? onInitialViewError;
 
@@ -37,6 +38,7 @@ class AircraftMap extends StatefulWidget {
     required this.onStyleLoaded,
     required this.onEvent,
     required this.onUserInteraction,
+    this.onCameraPresented,
     this.onInitialViewReady,
     this.onInitialViewError,
   });
@@ -189,6 +191,18 @@ class _AircraftMapState extends State<AircraftMap> {
         onCameraMove: widget.onEvent,
         onCameraMoveEnd: widget.onEvent,
         children: [
+          Builder(
+            builder: (context) {
+              // Native CameraPosition follows the presented texture, unlike
+              // camera-move and render-finished events.
+              final camera = CameraPosition.of(context);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted || _controller?.camera != camera) return;
+                widget.onCameraPresented?.call(camera);
+              });
+              return const SizedBox.shrink();
+            },
+          ),
           if (widget.searchPin case final point?)
             WidgetLayer(
               markers: [

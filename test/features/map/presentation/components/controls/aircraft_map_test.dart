@@ -26,6 +26,7 @@ class _Map extends platform.MapLibreMapState {
   @override
   void initState() {
     super.initState();
+    isInitialized = true;
     camera = const ml.CameraPosition(
       center: ml.Geographic(lon: 17, lat: 48),
       zoom: 6,
@@ -45,6 +46,8 @@ class _Map extends platform.MapLibreMapState {
   }
 
   void finishLoading() => widget.onStyleLoaded?.call(style);
+
+  void present(ml.CameraPosition position) => setState(() => camera = position);
 
   @override
   Widget buildPlatformWidget(BuildContext context) => const SizedBox.expand();
@@ -73,6 +76,47 @@ PreparedMapStyle _prepared(int revision, {String? json}) => PreparedMapStyle(
 );
 
 void main() {
+  testWidgets(
+    'camera notification follows the presented camera, not render events',
+    (tester) async {
+      final original = platform.MapLibrePlatform.instance;
+      final native = _Platform();
+      platform.MapLibrePlatform.instance = native;
+      addTearDown(() => platform.MapLibrePlatform.instance = original);
+      final presented = <ml.CameraPosition>[];
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: AircraftMap(
+            style: _prepared(1),
+            onMapCreated: (_) {},
+            onStyleLoaded: (_, _) {},
+            onEvent: (_) {},
+            onUserInteraction: () {},
+            onCameraPresented: presented.add,
+          ),
+        ),
+      );
+      final initial = native.map.camera;
+      expect(presented, [initial]);
+      native.map.widget.onRenderFrame?.call(
+        const ml.MapEventRenderFrame(fullyRendered: true),
+      );
+      await tester.pump();
+      expect(presented, [initial]);
+      const ending = ml.CameraPosition(
+        center: ml.Geographic(lon: 18, lat: 49),
+        zoom: 6,
+        pitch: 0,
+        bearing: 0,
+      );
+      native.map.present(ending);
+      await tester.pump();
+      expect(presented, [initial, ending]);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
   testWidgets('failed overlay initialization never reports readiness', (
     tester,
   ) async {
