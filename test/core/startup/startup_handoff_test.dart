@@ -183,13 +183,14 @@ class _Platform extends platform.MapLibrePlatform {
 
 void main() {
   final binding = _Binding();
-  for (final (retry, escape) in [
-    (false, false),
-    (true, false),
-    (false, true),
+  for (final (retry, escape, refreshFails) in [
+    (false, false, false),
+    (true, false, false),
+    (false, true, false),
+    (false, false, true),
   ]) {
     testWidgets(
-      'real startup hands prepared map to the page${retry ? ' after retry' : ''}${escape ? ' then leaves before rendering' : ''}',
+      'real startup hands prepared map to the page${retry ? ' after retry' : ''}${escape ? ' then leaves before rendering' : ''}${refreshFails ? ' with a failed refreshed preparation' : ''}',
       (tester) async {
         binding.rasterized = Completer<void>();
         rootBundle.clear();
@@ -216,6 +217,8 @@ void main() {
         final settingsInstances = <_Settings>[];
         var firAttempts = 0;
         var cameraDisposals = 0;
+        var stylePreparations = 0;
+        final refreshedStyleReady = Completer<void>();
         final monitoring = Completer<bool>();
         final container = ProviderContainer(
           retry: (_, _) => null,
@@ -226,6 +229,12 @@ void main() {
               if (++firAttempts == 1 && retry) {
                 throw StateError('FIR unavailable');
               }
+            }),
+            mapStyleProvider.overrideWith((ref) async {
+              if (++stylePreparations > 1 && !retry && !escape) {
+                await refreshedStyleReady.future;
+              }
+              return mapStyle(ref);
             }),
             startupMapAssetsProvider.overrideWith((_) async {}),
             startupOfflineDatabaseProvider.overrideWith((_) async {}),
@@ -361,6 +370,40 @@ void main() {
           await tester.pump(MapStartup.renderingBudget);
           expect(find.text('Príprava sa nepodarila'), findsOneWidget);
           await tester.tap(find.text('Skúsiť znova'));
+          // Riverpod retains the successful bootstrap while refreshing. It must
+          // not hand that old result to the new startup attempt across frames.
+          await tester.pump();
+          await tester.pump();
+          final refreshing = container.read(applicationBootstrapProvider);
+          expect(refreshing.isLoading, isTrue);
+          expect(refreshing.hasValue, isTrue);
+          expect(find.byType(StartupPage), findsOneWidget);
+          expect(find.byType(MapPage), findsNothing);
+          expect(native.styles, hasLength(1));
+          expect(weatherReleased, isFalse);
+          if (refreshFails) {
+            refreshedStyleReady.completeError(
+              StateError('Refreshed preparation failed'),
+            );
+            for (var i = 0; i < 5; i++) {
+              await tester.pump();
+            }
+            expect(
+              container.read(applicationBootstrapProvider).hasError,
+              isTrue,
+            );
+            expect(find.byType(StartupPage), findsOneWidget);
+            expect(find.text('Príprava sa nepodarila'), findsOneWidget);
+            expect(find.text('Skúsiť znova'), findsOneWidget);
+            expect(find.byType(MapPage), findsNothing);
+            expect(weatherReleased, isFalse);
+            await tester.pumpWidget(const SizedBox.shrink());
+            container.dispose();
+            disposed = true;
+            await tester.pump();
+            return;
+          }
+          refreshedStyleReady.complete();
           for (var i = 0; i < 50 && native.styles.length < 2; i++) {
             await tester.runAsync(
               () => Future<void>.delayed(const Duration(milliseconds: 2)),

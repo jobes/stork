@@ -30,6 +30,10 @@ needed, telemetry is re-read afterwards so an arriving live fix wins. The initia
 camera falls back to the regional default without GeoIP or a fresh-fix request.
 Failed or still-pending local resource providers are invalidated on retry;
 successful local dependencies are reused and the native map is recreated.
+Riverpod can retain the previous bootstrap result while refreshed preparation
+is loading. Handoff waits for that refresh to finish before mounting the retry
+map or releasing its preparation leases. A failed refresh keeps the retry page
+visible.
 
 `MapStartup` tracks an attempt number and preparation/rendering/ready/failed
 phases. Preparation has a 15-second deadline; mounting the map starts a separate

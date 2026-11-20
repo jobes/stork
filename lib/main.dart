@@ -120,7 +120,8 @@ class _StorkAppState extends ConsumerState<StorkApp>
         }
       });
     }
-    final prepared = bootstrap is AsyncData<PreparedApplication>;
+    final prepared =
+        bootstrap is AsyncData<PreparedApplication> && !bootstrap.isLoading;
     // Start monitoring once local preparation is complete, alongside the native
     // map rather than competing with the FIR parser and local reads. Its stable
     // wrapper is already mounted and monitoring never gates map readiness.

@@ -535,6 +535,12 @@ void main() {
         final gate = Completer<void>();
         setup.map.featureQueryGate = gate.future;
         setup.map.featureQueryGateAt = query;
+        setup.camera.handleMapEvent(
+          ml.MapEventCameraMove(
+            camera: setup.map.camera,
+            reason: ml.CameraChangeReason.programmatic,
+          ),
+        );
         var taps = 0;
         setup.camera.handleMapEvent(
           const ml.MapEventClick(
@@ -547,7 +553,12 @@ void main() {
         expect(setup.map.queriedLayers, hasLength(query));
         setup.camera.handleMapEvent(
           ml.MapEventCameraMove(
-            camera: setup.map.camera,
+            camera: ml.CameraPosition(
+              center: const ml.Geographic(lat: 48.1, lon: 17.1),
+              zoom: setup.map.camera.zoom,
+              pitch: setup.map.camera.pitch,
+              bearing: setup.map.camera.bearing,
+            ),
             reason: ml.CameraChangeReason.gesture,
           ),
         );
