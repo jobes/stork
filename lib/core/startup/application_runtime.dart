@@ -11,7 +11,7 @@ final applicationConfigurationProvider = FutureProvider<void>(
   retry: (_, _) => null,
 );
 
-/// Starts after the first loader frame, alongside local map preparation.
+/// Starts after local preparation, alongside native rendering without gating it.
 final applicationRuntimeProvider = FutureProvider<bool>((ref) async {
   await ref.watch(applicationConfigurationProvider.future);
   return measureStartup('Monitoring', _initializeMonitoring);

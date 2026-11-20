@@ -22,3 +22,12 @@ Future<T> measureStartup<T>(String name, FutureOr<T> Function() prepare) async {
     }
   }
 }
+
+/// A milestone, measured from Dart main rather than a nested preparation span.
+void startupMilestone(String name) {
+  developer.Timeline.instantSync('Startup: $name');
+  if (_logStartupTimings) {
+    // ignore: avoid_print
+    print('[Startup] $name (main +${appStopwatch.elapsedMilliseconds} ms)');
+  }
+}

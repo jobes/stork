@@ -23,6 +23,7 @@ import 'package:stork/core/startup/deferred_startup_tasks.dart';
 import 'package:stork/core/startup/first_frame_startup.dart';
 import 'package:stork/core/startup/local_map_preparation.dart';
 import 'package:stork/core/startup/startup_page.dart';
+import 'package:stork/core/startup/map_startup_provider.dart';
 import 'package:stork/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:stork/features/map/data/repositories/radar_repository.dart';
 import 'package:stork/features/map/domain/repositories/notam_repository.dart';
@@ -211,11 +212,12 @@ void main() {
         final settingsInstances = <_Settings>[];
         var firAttempts = 0;
         var cameraDisposals = 0;
+        final monitoring = Completer<bool>();
         final container = ProviderContainer(
           retry: (_, _) => null,
           overrides: [
             applicationConfigurationProvider.overrideWith((_) async {}),
-            applicationRuntimeProvider.overrideWith((_) async => false),
+            applicationRuntimeProvider.overrideWith((_) => monitoring.future),
             startupFirIndexProvider.overrideWith((_) async {
               if (++firAttempts == 1 && retry) {
                 throw StateError('FIR unavailable');
@@ -311,20 +313,75 @@ void main() {
           isTrue,
           reason: '${container.read(applicationBootstrapProvider)}',
         );
-        // Disposal hooks do not keep these auto-disposed providers alive.
+        for (var i = 0; i < 5; i++) {
+          await tester.pump();
+        }
+        expect(find.byType(StartupPage), findsOneWidget);
+        expect(find.byType(MapPage), findsOneWidget);
+        expect(
+          tester
+              .widget<IgnorePointer>(
+                find.byKey(const ValueKey('startup-interaction-gate')),
+              )
+              .ignoring,
+          isTrue,
+        );
+        final oldMap = tester.state<_NativeMap>(find.byType(ml.MapLibreMap));
+        oldMap.widget.onRenderFrame?.call(
+          const ml.MapEventRenderFrame(fullyRendered: false),
+        );
+        await tester.pump();
+        expect(find.byType(StartupPage), findsOneWidget);
+        if (!retry) {
+          // Native creation/style load alone cannot unlock the map. A renderer
+          // that never delivers a complete frame must expose a retry instead.
+          await tester.pump(MapStartup.renderingBudget);
+          expect(find.text('Príprava sa nepodarila'), findsOneWidget);
+          await tester.tap(find.text('Skúsiť znova'));
+          for (var i = 0; i < 50 && native.styles.length < 2; i++) {
+            await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 2)),
+            );
+            await tester.pump(const Duration(milliseconds: 10));
+          }
+          expect(native.styles, hasLength(2));
+          oldMap.widget.onRenderMap?.call(
+            const ml.MapEventRenderMap(fullyRendered: true),
+          );
+          await tester.pump();
+          expect(find.byType(StartupPage), findsOneWidget);
+        }
+        final currentMap = tester.state<_NativeMap>(
+          find.byType(ml.MapLibreMap),
+        );
+        currentMap.widget.onRenderMap?.call(
+          const ml.MapEventRenderMap(fullyRendered: true),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(find.byType(StartupPage), findsNothing);
+        // Even monitoring that never settled did not gate the map. Completing
+        // it later must not replace the native map subtree.
+        monitoring.complete(true);
+        await tester.pump();
+        expect(
+          tester.state<_NativeMap>(find.byType(ml.MapLibreMap)),
+          same(currentMap),
+        );
+        expect(
+          tester
+              .widget<IgnorePointer>(
+                find.byKey(const ValueKey('startup-interaction-gate')),
+              )
+              .ignoring,
+          isFalse,
+        );
         container
             .read(mapCameraProvider.notifier)
             .refAccess
             .onDispose(() => cameraDisposals++);
-        // The style provider's lifecycle is observed below through existence;
-        // the real map camera disposal proves the preparation lease was released.
-        for (var i = 0; i < 5; i++) {
-          await tester.pump();
-        }
-        expect(find.byType(StartupPage), findsNothing);
-        expect(find.byType(MapPage), findsOneWidget);
         expect(find.byKey(const ValueKey('native-map')), findsOneWidget);
-        expect(native.styles, hasLength(1));
+        expect(native.styles, hasLength(retry ? 1 : 2));
         expect(
           tester
               .state<_NativeMap>(find.byType(ml.MapLibreMap))
@@ -338,7 +395,7 @@ void main() {
         );
         expect(settingsInstances.length, retry ? 2 : 1);
         expect(firAttempts, retry ? 2 : 1);
-        final style = jsonDecode(native.styles.single);
+        final style = jsonDecode(native.styles.last);
         final line =
             style['sources']['navigation-route-source']['data']['features'][0]['geometry']['coordinates']
                 as List;

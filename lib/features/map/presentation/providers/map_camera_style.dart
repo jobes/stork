@@ -104,6 +104,9 @@ extension MapCameraStyle on MapCamera {
       debugPrint('Aircraft symbols initialized 😎');
     } catch (e) {
       debugPrint('Error initializing native aircraft symbol: $e');
+      // The initial-view gate must expose a retry if interaction setup failed.
+      // Recoverable live source writes are handled by their own retry paths.
+      rethrow;
     }
   }
 

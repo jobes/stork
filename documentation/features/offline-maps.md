@@ -89,6 +89,15 @@ loading, while keeping the existing telemetry interpolation, route throttling,
 NOTAM batching, weather palette updates and traffic viewport filtering. There is
 no string-keyed snapshot cache or eviction dependency.
 
+At startup, the prepared map renders behind the opaque loading screen. The
+screen is removed only after controller/overlay initialization, MapLibre's fully
+rendered initial view and a Flutter compositing frame. Fresh online overlays and
+catalog updates are deferred until the map is interactive. Uncached base map
+resources can still require network access; preparation and rendering each have
+a 15-second deadline with an explicit retry screen on failure. See
+[Application startup](../architecture/application-startup.md) for the readiness
+contract and device measurements.
+
 The upgrade retains the SQLite/PMTiles download and local HTTP serving path;
 MapLibre's native offline-region storage is not used. Android's existing API 26
 minimum and cleartext setting continue to support the loopback tile server.

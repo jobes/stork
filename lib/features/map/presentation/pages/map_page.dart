@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
 import '../../../../core/startup/initial_map_camera.dart';
+import '../../../../core/startup/map_startup_provider.dart';
 import '../../../../core/services/location_provider.dart';
 
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
@@ -294,9 +296,11 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
     }
     final initialCamera = _initialCamera;
     final styleAsync = ref.watch(mapStyleProvider);
+    final startup = ref.watch(mapStartupProvider);
     ref.listen(mapStyleProvider, (_, next) {
       if (next case AsyncError(:final error, :final stackTrace)) {
         debugPrint('MapPage: failed to load map style: $error\n$stackTrace');
+        ref.read(mapStartupProvider.notifier).fail(startup.attempt, error);
       }
     });
     final mapViewState = ref.watch(
@@ -417,6 +421,13 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 // from throttling the platform-channel source updates instead.
                 return RepaintBoundary(
                   child: AircraftMap(
+                    key: ValueKey(startup.attempt),
+                    onInitialViewReady: () => ref
+                        .read(mapStartupProvider.notifier)
+                        .ready(startup.attempt),
+                    onInitialViewError: (error) => ref
+                        .read(mapStartupProvider.notifier)
+                        .fail(startup.attempt, error),
                     style: style,
                     initialCenter:
                         initialCamera?.center ??
@@ -432,14 +443,12 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                           cameraPrepared: initialCamera != null,
                           preparedCamera: initialCamera,
                         ),
-                    onStyleLoaded: (style, preparedStyle) {
+                    onStyleLoaded: (style, preparedStyle) async {
                       _radar.attachStyle(style);
-                      unawaited(
-                        cameraController.handleStyleLoaded(
-                          style,
-                          overlaysPrepared: true,
-                          preparedStyle: preparedStyle,
-                        ),
+                      await cameraController.handleStyleLoaded(
+                        style,
+                        overlaysPrepared: true,
+                        preparedStyle: preparedStyle,
                       );
                     },
                     onEvent: (event) {

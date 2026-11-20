@@ -193,48 +193,42 @@ void main() {
     container.dispose();
     favoritesReady.complete([]);
   });
-  test(
-    'configuration gates services, then independent preparations overlap',
-    () async {
-      final configuration = Completer<void>();
-      final monitoring = Completer<bool>();
-      final fir = Completer<void>();
-      final assets = Completer<void>();
-      final database = Completer<void>();
-      final settingsReady = Completer<AppSettings>();
-      final started = <String>[];
-      final container = _container(
-        configuration: configuration.future,
-        monitoring: monitoring.future,
-        fir: () => fir.future,
-        assets: assets.future,
-        database: database.future,
-        settings: _SlowSettings(settingsReady.future),
-        started: started.add,
-      );
-      addTearDown(container.dispose);
-      final startup = container.listen(applicationBootstrapProvider, (_, _) {});
-      await container.pump();
-      expect(started, ['configuration']);
-      configuration.complete();
-      await Future<void>.delayed(Duration.zero);
-      await container.pump();
-      expect(
-        started,
-        containsAll(['monitoring', 'fir', 'assets', 'database', 'position']),
-      );
-      expect(startup.read().isLoading, isTrue);
-      settingsReady.complete(const AppSettings());
-      fir.complete();
-      assets.complete();
-      database.complete();
-      await container.pump();
-      expect(startup.read().isLoading, isTrue);
-      monitoring.complete(false);
-      await container.read(applicationBootstrapProvider.future);
-      expect(startup.read().hasValue, isTrue);
-    },
-  );
+  test('configuration gates local preparation but slow monitoring never gates the map', () async {
+    final configuration = Completer<void>();
+    final monitoring = Completer<bool>();
+    final fir = Completer<void>();
+    final assets = Completer<void>();
+    final database = Completer<void>();
+    final settingsReady = Completer<AppSettings>();
+    final started = <String>[];
+    final container = _container(
+      configuration: configuration.future,
+      monitoring: monitoring.future,
+      fir: () => fir.future,
+      assets: assets.future,
+      database: database.future,
+      settings: _SlowSettings(settingsReady.future),
+      started: started.add,
+    );
+    addTearDown(container.dispose);
+    final startup = container.listen(applicationBootstrapProvider, (_, _) {});
+    await container.pump();
+    expect(started, ['configuration']);
+    configuration.complete();
+    await Future<void>.delayed(Duration.zero);
+    await container.pump();
+    expect(started, containsAll(['fir', 'assets', 'database', 'position']));
+    expect(startup.read().isLoading, isTrue);
+    settingsReady.complete(const AppSettings());
+    fir.complete();
+    assets.complete();
+    database.complete();
+    await container.pump();
+    await container.read(applicationBootstrapProvider.future);
+    expect(startup.read().hasValue, isTrue);
+    expect(started, isNot(contains('monitoring')));
+    monitoring.complete(false);
+  });
 
   test('valid telemetry does not wait for last-known position', () async {
     final position = Completer<Geographic?>();

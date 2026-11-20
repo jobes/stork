@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
@@ -72,6 +73,119 @@ PreparedMapStyle _prepared(int revision, {String? json}) => PreparedMapStyle(
 );
 
 void main() {
+  testWidgets('failed overlay initialization never reports readiness', (
+    tester,
+  ) async {
+    final original = platform.MapLibrePlatform.instance;
+    final native = _Platform();
+    platform.MapLibrePlatform.instance = native;
+    addTearDown(() => platform.MapLibrePlatform.instance = original);
+    final initialized = Completer<void>();
+    final errors = <Object>[];
+    var ready = false;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: AircraftMap(
+          style: _prepared(1),
+          onMapCreated: (_) {},
+          onStyleLoaded: (_, _) => initialized.future,
+          onInitialViewReady: () => ready = true,
+          onInitialViewError: errors.add,
+          onEvent: (_) {},
+          onUserInteraction: () {},
+        ),
+      ),
+    );
+    native.map.finishLoading();
+    native.map.widget.onRenderMap?.call(
+      const ml.MapEventRenderMap(fullyRendered: true),
+    );
+    initialized.completeError(StateError('overlay initialization failed'));
+    await tester.pump();
+    expect(errors.single.toString(), contains('overlay initialization failed'));
+    expect(ready, isFalse);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets(
+    'waits for full rendering, style initialization and a composited frame',
+    (tester) async {
+      final original = platform.MapLibrePlatform.instance;
+      final native = _Platform();
+      platform.MapLibrePlatform.instance = native;
+      addTearDown(() => platform.MapLibrePlatform.instance = original);
+      final initialized = Completer<void>();
+      var ready = 0;
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: AircraftMap(
+            style: _prepared(1),
+            onMapCreated: (_) {},
+            onStyleLoaded: (_, _) => initialized.future,
+            onInitialViewReady: () => ready++,
+            onEvent: (_) {},
+            onUserInteraction: () {},
+          ),
+        ),
+      );
+      native.map.finishLoading();
+      native.map.widget.onRenderFrame?.call(
+        const ml.MapEventRenderFrame(fullyRendered: false),
+      );
+      await tester.pump();
+      expect(ready, 0);
+      native.map.widget.onRenderMap?.call(
+        const ml.MapEventRenderMap(fullyRendered: true),
+      );
+      await tester.pump();
+      expect(ready, 0);
+      initialized.complete();
+      await tester.pump();
+      await tester.pump();
+      expect(ready, 1);
+      native.map.widget.onRenderFrame?.call(
+        const ml.MapEventRenderFrame(fullyRendered: true),
+      );
+      await tester.pump();
+      expect(ready, 1);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'initial fatal map errors are reported without waiting for a frame',
+    (tester) async {
+      final original = platform.MapLibrePlatform.instance;
+      final native = _Platform();
+      platform.MapLibrePlatform.instance = native;
+      addTearDown(() => platform.MapLibrePlatform.instance = original);
+      final errors = <Object>[];
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: AircraftMap(
+            style: _prepared(1),
+            onMapCreated: (_) {},
+            onStyleLoaded: (_, _) {},
+            onInitialViewError: errors.add,
+            onEvent: (_) {},
+            onUserInteraction: () {},
+          ),
+        ),
+      );
+      native.map.widget.onError?.call(
+        const ml.MapEventError(
+          kind: ml.MapErrorKind.style,
+          message: 'Bad style',
+        ),
+      );
+      expect(errors.single.toString(), contains('Bad style'));
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
   testWidgets('coalesces styles and hands off the snapshot actually loaded', (
     tester,
   ) async {
