@@ -3,6 +3,21 @@ import 'package:maplibre/maplibre.dart';
 
 /// A collection of utility functions for geographical calculations.
 class GeoUtils {
+  /// Validates a telemetry/last-known position, including the unset (0, 0).
+  /// Saved waypoints are not subject to that unset-position convention.
+  static Geographic? validatedPosition(double? latitude, double? longitude) {
+    if (latitude == null ||
+        longitude == null ||
+        !latitude.isFinite ||
+        !longitude.isFinite ||
+        latitude.abs() > 90 ||
+        longitude.abs() > 180 ||
+        (latitude == 0 && longitude == 0)) {
+      return null;
+    }
+    return Geographic(lat: latitude, lon: longitude);
+  }
+
   /// Earth's mean radius in meters.
   static const double earthRadiusMeters = 6371000;
 

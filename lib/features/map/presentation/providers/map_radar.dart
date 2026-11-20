@@ -1,3 +1,4 @@
+import '../../../../core/startup/deferred_startup_tasks.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -13,7 +14,11 @@ part 'map_radar.g.dart';
 
 @riverpod
 MapRadar mapRadar(Ref ref) {
-  final radar = MapRadar(repository: ref.watch(radarRepositoryProvider));
+  final deferred = ref.watch(deferredStartupTasksProvider);
+  final radar = MapRadar(
+    repository: ref.watch(radarRepositoryProvider),
+    beforeRefresh: () => deferred.waitFor(StartupTask.radar),
+  );
   ref.onDispose(radar.dispose);
   return radar;
 }
@@ -32,9 +37,12 @@ typedef RadarTileRegistration =
     );
 
 class MapRadar extends ValueNotifier<RadarDisplay> {
-  MapRadar({required this._repository, RadarTileRegistration? registerTiles})
-    : _registerTiles = registerTiles ?? MapAssetsServer.registerRadarTiles,
-      super(_empty);
+  MapRadar({
+    required this._repository,
+    RadarTileRegistration? registerTiles,
+    this.beforeRefresh,
+  }) : _registerTiles = registerTiles ?? MapAssetsServer.registerRadarTiles,
+       super(_empty);
 
   static const refreshInterval = Duration(minutes: 5);
   static const _maxFrameAge = Duration(minutes: 20);
@@ -48,6 +56,7 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
   );
 
   final RadarRepository _repository;
+  final Future<void> Function()? beforeRefresh;
   final RadarTileRegistration _registerTiles;
   _RadarLayers? _layers;
   List<RadarFrame> _frames = const [];
@@ -95,7 +104,13 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
     }
   }
 
-  Future<void> refresh({bool force = false}) async {
+  Future<void> refresh({bool force = false}) => _refreshWhenReady(force: force);
+
+  Future<void> _refreshWhenReady({
+    bool force = false,
+    Completer<void>? playback,
+  }) async {
+    if (beforeRefresh != null) await beforeRefresh!();
     final layers = _layers;
     if (layers == null || _disposed) return;
     final now = clock.now();
@@ -103,7 +118,11 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
       _fail(layers);
     }
     if (_clearing case final clearing?) await clearing;
-    if (!layers.attached || _playback != null) return;
+    if (!layers.attached ||
+        playback?.isCompleted == true ||
+        (_playback != null && !identical(_playback, playback))) {
+      return;
+    }
     if (_refreshing case final refresh?) return refresh;
     final last = _lastRefreshAttempt;
     if (!force &&
@@ -205,13 +224,13 @@ class MapRadar extends ValueNotifier<RadarDisplay> {
     if (_clearing case final clearing?) await clearing;
     if (!layers.attached || _playback != null) return;
 
-    final refreshBeforePlaying = layers.latest == null
-        ? refresh(force: true)
-        : _refreshing;
     final stop = Completer<void>();
     final done = Completer<void>();
     _playback = stop;
     _playbackDone = done;
+    final refreshBeforePlaying = layers.latest == null
+        ? _refreshWhenReady(force: true, playback: stop)
+        : _refreshing;
     _setDisplay(
       latest: value.latest,
       preparing: !value.unavailable,

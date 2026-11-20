@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:clock/clock.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
@@ -549,14 +550,14 @@ Stream<double?> compassStream(Ref ref) {
 
   void tryEmit() {
     if (lastMag == null || lastAcc == null) return;
-    final now = DateTime.now();
+    final now = clock.now();
     if (lastUpdate != null &&
         now.difference(lastUpdate!) < const Duration(seconds: 1)) {
       return;
     }
     lastUpdate = now;
     final rawHeading = _computeHeading(lastMag!, lastAcc!);
-    if (rawHeading == null) return;
+    if (rawHeading == null || !rawHeading.isFinite) return;
     controller.add((rawHeading + orientationOffset) % 360);
   }
 

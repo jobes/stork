@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../utils/geo_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:http/http.dart' as http;
@@ -89,7 +90,10 @@ class LocationService {
               timeLimit: Duration(seconds: 5),
             ),
           );
-          return Geographic(lon: position.longitude, lat: position.latitude);
+          return GeoUtils.validatedPosition(
+            position.latitude,
+            position.longitude,
+          );
         } catch (e) {
           debugPrint('Error getting current position: $e');
           return null;
@@ -102,7 +106,10 @@ class LocationService {
         permission == geo.LocationPermission.whileInUse) {
       final position = await geo.Geolocator.getLastKnownPosition();
       if (position != null) {
-        return Geographic(lon: position.longitude, lat: position.latitude);
+        return GeoUtils.validatedPosition(
+          position.latitude,
+          position.longitude,
+        );
       }
     }
 

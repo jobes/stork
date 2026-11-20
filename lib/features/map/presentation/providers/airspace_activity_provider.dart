@@ -1,3 +1,4 @@
+import '../../../../core/startup/deferred_startup_tasks.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -115,6 +116,10 @@ class AirspaceActivityController extends _$AirspaceActivityController {
 
     _inflightFirs.add(firIcao);
     try {
+      await ref
+          .read(deferredStartupTasksProvider)
+          .waitFor(StartupTask.airspaces);
+      if (!ref.mounted || !_nearbyFirs.contains(firIcao)) return;
       final repository = ref.read(aupRepositoryProvider);
       final activities = await repository.fetchActivitiesForFir(firIcao);
       if (!ref.mounted || !_nearbyFirs.contains(firIcao)) return;

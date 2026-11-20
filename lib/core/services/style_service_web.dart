@@ -11,7 +11,7 @@ class StyleService {
     var styleJson = await rootBundle.loadString(_stylePath);
     styleJson = styleJson.replaceAll('asset://', '${Uri.base.origin}/assets/');
 
-    final latestUrl = await ProtomapsResolver.getLatestUrl();
+    final latestUrl = ProtomapsResolver.sessionUrl;
     final proxyUrl =
         'https://www.stork-nav.app/nocors.php?url=${Uri.encodeComponent(latestUrl)}';
     final newUrl = 'pmtiles://$proxyUrl';

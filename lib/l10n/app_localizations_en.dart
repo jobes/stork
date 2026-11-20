@@ -3518,4 +3518,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataSourcesIpTitle => 'ipapi.co';
+
+  @override
+  String get startupPreparing => 'Preparing your map';
+
+  @override
+  String get startupDescription => 'Loading your settings and local map data.';
+
+  @override
+  String get startupFooter => 'The map will open when preparation is complete.';
+
+  @override
+  String get startupFailed => 'Preparation failed';
+
+  @override
+  String get startupFailedDescription =>
+      'Your settings are preserved. Please try again.';
+
+  @override
+  String get startupRetry => 'Try again';
 }

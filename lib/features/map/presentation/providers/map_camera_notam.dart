@@ -41,6 +41,18 @@ extension MapCameraNotam on MapCamera {
     ];
     if (listEquals(_lastNotamMapFeatures, visible)) return;
 
+    final geojson = _buildNotamGeoJson(visible);
+
+    _lastNotamMapFeatures = visible;
+    _notamLayerWriting = true;
+    _notamLayerTimer = Timer(_notamLayerUpdateInterval, () {
+      _notamLayerTimer = null;
+      _flushNotamLayer();
+    });
+    unawaited(_writeNotamLayer(style, geojson));
+  }
+
+  String _buildNotamGeoJson(List<_NotamMapFeature> visible) {
     final features = <Map<String, dynamic>>[];
     for (final notam in visible) {
       final center = Geographic(lat: notam.lat, lon: notam.lon);
@@ -67,18 +79,7 @@ extension MapCameraNotam on MapCamera {
       });
     }
 
-    final geojson = jsonEncode({
-      'type': 'FeatureCollection',
-      'features': features,
-    });
-
-    _lastNotamMapFeatures = visible;
-    _notamLayerWriting = true;
-    _notamLayerTimer = Timer(_notamLayerUpdateInterval, () {
-      _notamLayerTimer = null;
-      _flushNotamLayer();
-    });
-    unawaited(_writeNotamLayer(style, geojson));
+    return jsonEncode({'type': 'FeatureCollection', 'features': features});
   }
 
   Future<void> _writeNotamLayer(StyleController style, String geojson) async {

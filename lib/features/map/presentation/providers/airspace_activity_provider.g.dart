@@ -87,7 +87,7 @@ final class AirspaceActivityControllerProvider
 }
 
 String _$airspaceActivityControllerHash() =>
-    r'fa6c8628995310b0ef75d63e1e06d10ab26c7c97';
+    r'5d57e82d222132d1f8c8c43508e6e6b65a5f80df';
 
 /// Holds the loaded AUP/UUP airspace activity map
 /// (`Map<String, AupAirspaceActivity>` keyed by openAIP airspace id).

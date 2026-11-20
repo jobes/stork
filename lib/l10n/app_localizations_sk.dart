@@ -3533,4 +3533,24 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get dataSourcesIpTitle => 'ipapi.co';
+
+  @override
+  String get startupPreparing => 'Pripravujeme mapu';
+
+  @override
+  String get startupDescription =>
+      'Načítavame vaše nastavenia a lokálne mapové údaje.';
+
+  @override
+  String get startupFooter => 'Mapa sa otvorí po dokončení prípravy.';
+
+  @override
+  String get startupFailed => 'Príprava sa nepodarila';
+
+  @override
+  String get startupFailedDescription =>
+      'Vaše nastavenia zostávajú zachované. Skúste to znova.';
+
+  @override
+  String get startupRetry => 'Skúsiť znova';
 }

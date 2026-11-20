@@ -377,4 +377,4 @@ final class CompassStreamProvider
   }
 }
 
-String _$compassStreamHash() => r'4f92ed651949d5901437ab22e0ff2b54d6e1b0cd';
+String _$compassStreamHash() => r'7120b7b1e8016729f99682e4eedec302f220028a';

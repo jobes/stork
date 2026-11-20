@@ -110,6 +110,74 @@ MapRadar _radar(_Style style, http.Client client) {
 }
 
 void main() {
+  testWidgets(
+    'playback before the startup gate opens performs its own initial refresh',
+    (tester) async {
+      final gate = Completer<void>();
+      final style = _Style();
+      var manifests = 0;
+      final latest = _recentTime;
+      final repository = RadarRepository(
+        client: MockClient((request) async {
+          if (request.url.host == 'api.rainviewer.com') {
+            manifests++;
+            return _manifest(latest);
+          }
+          return _tile();
+        }),
+      );
+      final radar = MapRadar(
+        repository: repository,
+        registerTiles: style.registerTiles,
+        beforeRefresh: () => gate.future,
+      );
+      radar.attachStyle(style);
+      final playback = radar.play();
+      await tester.pump();
+      expect(manifests, 0);
+      gate.complete();
+      await tester.pump();
+      expect(manifests, 1);
+      expect(radar.value.latest, _utc(latest));
+      expect(radar.value.playing, isNotNull);
+      radar.interruptPlayback();
+      await tester.pump();
+      await playback;
+      radar.dispose();
+      repository.close();
+    },
+  );
+
+  testWidgets(
+    'cancelled playback cannot start a refresh after its gate opens',
+    (tester) async {
+      final gate = Completer<void>();
+      final style = _Style();
+      var manifests = 0;
+      final repository = RadarRepository(
+        client: MockClient((request) async {
+          manifests++;
+          return _manifest(_recentTime);
+        }),
+      );
+      final radar = MapRadar(
+        repository: repository,
+        registerTiles: style.registerTiles,
+        beforeRefresh: () => gate.future,
+      );
+      radar.attachStyle(style);
+      final playback = radar.play();
+      radar.interruptPlayback();
+      await tester.pump();
+      await playback;
+      radar.dispose();
+      gate.complete();
+      await tester.pump();
+      expect(manifests, 0);
+      repository.close();
+    },
+  );
+
   testWidgets('uses a changed HTTPS tile server at the same timestamp', (
     tester,
   ) async {

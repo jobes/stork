@@ -465,7 +465,7 @@ final class FlightForecastProfilesProvider
 }
 
 String _$flightForecastProfilesHash() =>
-    r'bcf739119331cb61835868d4e18c9caf93ca6b78';
+    r'5d7321f0c48b1a5cee4e01aca9e99a546653cdf7';
 
 @ProviderFor(forecastPointTerrain)
 final forecastPointTerrainProvider = ForecastPointTerrainFamily._();

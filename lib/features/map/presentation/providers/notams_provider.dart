@@ -1,3 +1,4 @@
+import '../../../../core/startup/deferred_startup_tasks.dart';
 import 'dart:async';
 
 import 'package:clock/clock.dart';
@@ -59,10 +60,15 @@ Future<Set<String>> notamLocations(Ref ref) {
 
   var current = true;
   ref.onDispose(() => current = false);
-  return catalogs.selectLocations([
-    ?position,
-    ...route,
-  ], isCurrent: () => current);
+  final deferred = ref.read(deferredStartupTasksProvider);
+  return () async {
+    await deferred.waitFor(StartupTask.notams);
+    if (!current) return <String>{};
+    return catalogs.selectLocations([
+      ?position,
+      ...route,
+    ], isCurrent: () => current);
+  }();
 }
 
 Geographic? _gpsPosition(double? latitude, double? longitude) {

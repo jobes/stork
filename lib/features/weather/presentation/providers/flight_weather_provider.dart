@@ -1,3 +1,4 @@
+import '../../../../core/startup/deferred_startup_tasks.dart';
 import 'dart:async';
 import 'dart:collection';
 
@@ -356,6 +357,8 @@ Future<ForecastProfiles?> flightForecastProfiles(Ref ref) async {
   if (query == null) return null;
   ref.watch(flightForecastRefreshProvider);
   final repository = ref.watch(flightForecastRepositoryProvider);
+  await ref.read(deferredStartupTasksProvider).waitFor(StartupTask.weather);
+  if (!ref.mounted) return null;
   return repository.load(query);
 }
 

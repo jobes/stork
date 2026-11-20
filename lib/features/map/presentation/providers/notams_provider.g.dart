@@ -46,7 +46,7 @@ final class NotamLocationsProvider
   }
 }
 
-String _$notamLocationsHash() => r'b5609dd39d3e18aee55bf9d2731d98bfeae1818c';
+String _$notamLocationsHash() => r'bac2950c2e4e70bd36d58592598287241372f58f';
 
 @ProviderFor(Notams)
 final notamsProvider = NotamsProvider._();

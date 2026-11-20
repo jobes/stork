@@ -12,8 +12,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/location_provider.dart';
+import '../../../../core/startup/initial_map_camera.dart';
 import '../../../../core/services/location_service.dart';
-import '../../../../core/theme/stork_colors.dart';
 import '../../../../core/utils/geo_utils.dart';
 import '../../../settings/presentation/providers/display_preferences_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -32,7 +32,9 @@ import '../../../favorites/presentation/providers/favorites_provider.dart';
 import 'notams_provider.dart';
 import 'airspace_activity_provider.dart';
 import 'airspace_highlight_layers.dart';
-import 'traffic_colors.dart';
+import 'map_overlay_style.dart';
+export 'map_overlay_style.dart'
+    show kAircraftIconSize, kTrafficIconSize, kPoiIconSize;
 import '../../domain/utils/airspace_activity_utils.dart';
 import '../../utils/flight_weather_geojson.dart';
 import '../../utils/geojson_builder.dart';
@@ -69,8 +71,15 @@ class MapCamera extends _$MapCamera {
   DateTime? _lastProgrammaticMoveTime;
   bool _isAircraftSymbolInitialized = false;
   int _styleLoadGeneration = 0;
+  final _preparedStyles = <String, _PreparedOverlaySnapshot>{};
+  Object? _preparedOverlayInputs;
+  Map<String, String> _preparedSourceData = const {};
+  List<_NotamMapFeature> _preparedNotamFeatures = const [];
+  ForecastPalette? _preparedForecastPalette;
+  List<String> _preparedActiveAirspaceIds = const [];
+  List<String> _preparedInactiveAirspaceIds = const [];
   StyleController? _flightWeatherStyle;
-  _ForecastPalette? _lastFlightWeatherPalette;
+  ForecastPalette? _lastFlightWeatherPalette;
   String? _lastFlightWeatherGeoJson;
   int _flightWeatherRevision = 0;
   bool _flightWeatherWriting = false;
@@ -95,6 +104,13 @@ class MapCamera extends _$MapCamera {
   DateTime? _lastUpdateTimestamp;
   Duration _lastUpdateInterval = const Duration(seconds: 1);
   DateTime? _lastRouteUpdateTime;
+  Timer? _routeUpdateTimer;
+  Timer? _routeRetryTimer;
+  int _routeRetryAttempts = 0;
+  Geographic? _lastKnownRouteOrigin;
+  bool _routeWriting = false;
+  bool? _pendingRouteForce;
+  ({StyleController style, String data})? _lastNavigationRouteUpdate;
 
   @override
   void build() {
@@ -118,11 +134,18 @@ class MapCamera extends _$MapCamera {
         ),
       ),
       (previous, next) {
+        final position = _navigationPosition(next.latitude, next.longitude);
+        if (position != null) _lastKnownRouteOrigin = position;
         if (_mapController == null) return;
 
         if (next.latitude != previous?.latitude ||
             next.longitude != previous?.longitude) {
-          _updateNavigationRouteOnMap();
+          _updateNavigationRouteOnMap(
+            force:
+                position != null &&
+                _navigationPosition(previous?.latitude, previous?.longitude) ==
+                    null,
+          );
         }
 
         if (_isAircraftSymbolInitialized &&
@@ -274,23 +297,28 @@ class MapCamera extends _$MapCamera {
       updateTrafficOnMap();
     });
 
-    ref.listen(currentLocationProvider, (previous, next) {
-      next.whenData((location) {
-        if (location != null) {
-          final telemetry = ref.read(telemetryProvider);
-          final settings = ref.read(appSettingsProvider).value;
-          if (telemetry.mapViewState == MapViewState.init && settings != null) {
-            unawaited(
-              moveCamera(
-                center: location,
-                zoom: settings.mapDefaultZoom,
-                animate: false,
-              ),
-            );
+    // The app bootstrap has already selected a bounded local camera. Do not
+    // start a second GPS/GeoIP lookup while preparing its initial style.
+    if (ref.read(initialMapCameraProvider) == null) {
+      ref.listen(currentLocationProvider, (previous, next) {
+        next.whenData((location) {
+          if (location != null) {
+            final telemetry = ref.read(telemetryProvider);
+            final settings = ref.read(appSettingsProvider).value;
+            if (telemetry.mapViewState == MapViewState.init &&
+                settings != null) {
+              unawaited(
+                moveCamera(
+                  center: location,
+                  zoom: settings.mapDefaultZoom,
+                  animate: false,
+                ),
+              );
+            }
           }
-        }
+        });
       });
-    });
+    }
 
     ref.listen(navigationProvider, (previous, next) {
       _updateNavigationRouteOnMap(force: true);
@@ -344,6 +372,8 @@ class MapCamera extends _$MapCamera {
 
     ref.onDispose(() {
       trafficTimer.cancel();
+      _routeUpdateTimer?.cancel();
+      _routeRetryTimer?.cancel();
       _moveThrottleTimer?.cancel();
       _followResumeTimer?.cancel();
       _notamLayerTimer?.cancel();
@@ -353,12 +383,33 @@ class MapCamera extends _$MapCamera {
     });
   }
 
-  void attachController(MapController controller) {
+  void attachController(
+    MapController controller, {
+    bool cameraPrepared = false,
+    InitialMapCamera? preparedCamera,
+  }) {
     _mapController = controller;
     if (!_controllerCompleter.isCompleted) {
       _controllerCompleter.complete(controller);
     }
 
+    if (cameraPrepared) {
+      if (_hasExplicitFocus) return;
+      final telemetry = ref.read(telemetryProvider);
+      final latest = _navigationPosition(
+        telemetry.latitude,
+        telemetry.longitude,
+      );
+      // The Android plugin can call onMapCreated before populating camera.
+      final current =
+          controller.camera?.center ??
+          preparedCamera?.center ??
+          ref.read(initialMapCameraProvider)?.center;
+      if (latest == null ||
+          (latest.lat == current?.lat && latest.lon == current?.lon)) {
+        return;
+      }
+    }
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
     if (!_hasExplicitFocus &&
@@ -569,13 +620,18 @@ class MapCamera extends _$MapCamera {
   }
 
   Future<void> autoStartGps() async {
+    final preparedCamera = ref.read(initialMapCameraProvider);
+    final locationPrepared = preparedCamera != null;
+    Geographic? initialLocation = preparedCamera?.hasLocation == true
+        ? preparedCamera!.center
+        : null;
     final telemetry = ref.read(telemetryProvider);
     if (telemetry.mapViewState == MapViewState.init) {
       final settings = ref.read(appSettingsProvider).value;
 
-      final initialLocation = await LocationService.getCurrentLocation(
-        requestPermission: false,
-      );
+      initialLocation = locationPrepared
+          ? initialLocation
+          : await LocationService.getCurrentLocation(requestPermission: false);
       if (!ref.mounted) return;
 
       if (_mapController == null) {
@@ -583,7 +639,8 @@ class MapCamera extends _$MapCamera {
         if (!ref.mounted) return;
       }
 
-      if (!_hasExplicitFocus &&
+      if (!locationPrepared &&
+          !_hasExplicitFocus &&
           initialLocation != null &&
           _mapController != null &&
           ref.read(telemetryProvider).mapViewState == MapViewState.init) {
@@ -688,6 +745,14 @@ class MapCamera extends _$MapCamera {
       return;
     }
 
+    _mapController!.style!.updateGeoJsonSource(
+      id: 'traffic-source',
+      data: _buildTrafficGeoJson(traffic),
+    );
+  }
+
+  String _buildTrafficGeoJson(List<TrafficAircraft> traffic) {
+    if (traffic.isEmpty) return emptyFlightWeatherGeoJson;
     final now = DateTime.now();
 
     final telemetry = ref.read(telemetryProvider);
@@ -787,10 +852,7 @@ class MapCamera extends _$MapCamera {
       };
     }).toList();
 
-    _mapController!.style!.updateGeoJsonSource(
-      id: 'traffic-source',
-      data: jsonEncode({'type': 'FeatureCollection', 'features': features}),
-    );
+    return jsonEncode({'type': 'FeatureCollection', 'features': features});
   }
 
   // Other telemetry can republish the same traffic. The viewport and periodic
@@ -928,9 +990,9 @@ class MapCamera extends _$MapCamera {
         final forecastFeatures = _mapController!.featuresAtPoint(
           event.screenPoint,
           layerIds: [
-            _forecastHitLayer,
-            _forecastWindLayer,
-            _forecastLabelLayer,
+            forecastHitLayer,
+            forecastWindLayer,
+            forecastLabelLayer,
             'flight-weather-point-wind',
             'flight-weather-point-label',
           ],
@@ -967,143 +1029,102 @@ class MapCamera extends _$MapCamera {
     return false;
   }
 
-  void _updateNavigationRouteOnMap({bool force = false}) {
-    if (_mapController == null ||
-        !_isAircraftSymbolInitialized ||
-        _mapController?.style == null) {
-      return;
+  void _updateNavigationRouteOnMap({
+    bool force = false,
+    bool retrying = false,
+  }) {
+    if (!retrying) {
+      _routeRetryTimer?.cancel();
+      _routeRetryTimer = null;
+      _routeRetryAttempts = 0;
     }
+    final style = _mapController?.style;
+    if (!_isAircraftSymbolInitialized || style == null) return;
 
-    final now = DateTime.now();
-    if (!force) {
-      if (_lastRouteUpdateTime != null &&
-          now.difference(_lastRouteUpdateTime!) < const Duration(seconds: 2)) {
+    if (force) {
+      _routeUpdateTimer?.cancel();
+      _routeUpdateTimer = null;
+    } else if (_lastRouteUpdateTime case final previous?) {
+      final remaining =
+          const Duration(seconds: 2) - clock.now().difference(previous);
+      if (remaining > Duration.zero) {
+        // Coalesce position changes, but always deliver the latest one even
+        // when no further GPS sample arrives (for example while stationary).
+        _routeUpdateTimer ??= Timer(remaining, () {
+          _routeUpdateTimer = null;
+          if (ref.mounted) _updateNavigationRouteOnMap(force: true);
+        });
         return;
       }
     }
-    _lastRouteUpdateTime = now;
-
-    final telemetry = ref.read(telemetryProvider);
-    final navState = ref.read(navigationProvider).value;
-    final points = navState?.points ?? [];
-    final isActive = navState?.isActive ?? false;
-
-    if (!isActive ||
-        points.isEmpty ||
-        telemetry.latitude == null ||
-        telemetry.longitude == null ||
-        (telemetry.latitude == 0.0 && telemetry.longitude == 0.0)) {
-      _mapController!.style!.updateGeoJsonSource(
-        id: 'navigation-route-source',
-        data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
-      );
+    if (_routeWriting) {
+      _pendingRouteForce = force || (_pendingRouteForce ?? false);
       return;
     }
-
-    final List<List<double>> interpolatedCoordinates = [];
-    double currentLat = telemetry.latitude!;
-    double currentLon = telemetry.longitude!;
-
-    for (final p in points) {
-      final legPath = _interpolateGreatCircle(
-        currentLat,
-        currentLon,
-        p.latitude,
-        p.longitude,
-      );
-      if (legPath != null) {
-        if (interpolatedCoordinates.isNotEmpty && legPath.isNotEmpty) {
-          interpolatedCoordinates.addAll(legPath.skip(1));
-        } else {
-          interpolatedCoordinates.addAll(legPath);
-        }
-      }
-      currentLat = p.latitude;
-      currentLon = p.longitude;
-    }
-
-    if (interpolatedCoordinates.length < 2) {
-      _mapController!.style!.updateGeoJsonSource(
-        id: 'navigation-route-source',
-        data: jsonEncode({'type': 'FeatureCollection', 'features': []}),
-      );
-      return;
-    }
-
-    final geojson = jsonEncode({
-      'type': 'FeatureCollection',
-      'features': [
-        {
-          'type': 'Feature',
-          'geometry': {
-            'type': 'LineString',
-            'coordinates': interpolatedCoordinates,
-          },
-        },
-      ],
-    });
-
-    _mapController!.style!.updateGeoJsonSource(
-      id: 'navigation-route-source',
-      data: geojson,
-    );
+    final data = _buildNavigationGeoJson();
+    if (_lastNavigationRouteUpdate == (style: style, data: data)) return;
+    _lastRouteUpdateTime = clock.now();
+    _routeWriting = true;
+    unawaited(_writeNavigationRoute(style, data));
   }
 
-  List<List<double>>? _interpolateGreatCircle(
-    double lat1,
-    double lon1,
-    double lat2,
-    double lon2,
-  ) {
-    if (lat1 == lat2 && lon1 == lon2) {
-      return null;
+  Future<void> _writeNavigationRoute(StyleController style, String data) async {
+    try {
+      await style.updateGeoJsonSource(
+        id: 'navigation-route-source',
+        data: data,
+      );
+      if (ref.mounted && identical(style, _mapController?.style)) {
+        _lastNavigationRouteUpdate = (style: style, data: data);
+        _routeRetryAttempts = 0;
+      }
+    } catch (error) {
+      if (ref.mounted && identical(style, _mapController?.style)) {
+        _lastNavigationRouteUpdate = null;
+        if (_routeRetryAttempts < 3) {
+          _routeRetryAttempts++;
+          _routeRetryTimer?.cancel();
+          _routeRetryTimer = Timer(
+            Duration(milliseconds: 250 * _routeRetryAttempts),
+            () {
+              _routeRetryTimer = null;
+              if (ref.mounted && identical(style, _mapController?.style)) {
+                _updateNavigationRouteOnMap(force: true, retrying: true);
+              }
+            },
+          );
+        }
+      }
+      debugPrint('Navigation route update failed: $error');
+    } finally {
+      _routeWriting = false;
+      final pending = _pendingRouteForce;
+      _pendingRouteForce = null;
+      if (ref.mounted && pending != null) {
+        _updateNavigationRouteOnMap(force: pending);
+      }
     }
+  }
 
-    final lat1Rad = lat1 * math.pi / 180.0;
-    final lon1Rad = lon1 * math.pi / 180.0;
-    final lat2Rad = lat2 * math.pi / 180.0;
-    final lon2Rad = lon2 * math.pi / 180.0;
+  Geographic? _navigationPosition(double? latitude, double? longitude) =>
+      GeoUtils.validatedPosition(latitude, longitude);
 
-    final dLat = lat2Rad - lat1Rad;
-    final dLon = lon2Rad - lon1Rad;
-    final sinLatSq = math.sin(dLat / 2) * math.sin(dLat / 2);
-    final sinLonSq = math.sin(dLon / 2) * math.sin(dLon / 2);
-    final a = sinLatSq + math.cos(lat1Rad) * math.cos(lat2Rad) * sinLonSq;
-    final d = 2 * math.asin(math.sqrt(math.min(1.0, a)));
-
-    if (d < 1e-6) {
-      return [
-        [lon1, lat1],
-        [lon2, lat2],
-      ];
-    }
-
-    final distanceMeters = d * 6371000.0;
-    final segments = (distanceMeters / 50000.0).clamp(5, 100).toInt();
-
-    final List<List<double>> path = [];
-    final sinD = math.sin(d);
-
-    for (int i = 0; i <= segments; i++) {
-      final f = i / segments;
-      final weightA = math.sin((1.0 - f) * d) / sinD;
-      final weightB = math.sin(f * d) / sinD;
-
-      final x =
-          weightA * math.cos(lat1Rad) * math.cos(lon1Rad) +
-          weightB * math.cos(lat2Rad) * math.cos(lon2Rad);
-      final y =
-          weightA * math.cos(lat1Rad) * math.sin(lon1Rad) +
-          weightB * math.cos(lat2Rad) * math.sin(lon2Rad);
-      final z = weightA * math.sin(lat1Rad) + weightB * math.sin(lat2Rad);
-
-      final lat = math.atan2(z, math.sqrt(x * x + y * y));
-      final lon = math.atan2(y, x);
-
-      path.add([lon * 180.0 / math.pi, lat * 180.0 / math.pi]);
-    }
-
-    return path;
+  String _buildNavigationGeoJson() {
+    final telemetry = ref.read(telemetryProvider);
+    final livePosition = _navigationPosition(
+      telemetry.latitude,
+      telemetry.longitude,
+    );
+    if (livePosition != null) _lastKnownRouteOrigin = livePosition;
+    final prepared = ref.read(initialMapCameraProvider);
+    return GeoJsonBuilder.buildNavigationRouteGeoJson(
+      ref.read(navigationProvider).value,
+      origin:
+          _lastKnownRouteOrigin ??
+          (prepared?.hasLocation == true
+              ? _navigationPosition(prepared!.center.lat, prepared.center.lon)
+              : null),
+    );
   }
 
   void updateFavoritesOnMap() {
@@ -1113,6 +1134,13 @@ class MapCamera extends _$MapCamera {
       return;
     }
 
+    _mapController!.style!.updateGeoJsonSource(
+      id: 'favorites-source',
+      data: _buildFavoritesGeoJson(),
+    );
+  }
+
+  String _buildFavoritesGeoJson() {
     final favorites = ref.read(favoritesProvider).value ?? [];
 
     final features = favorites.map((f) {
@@ -1132,9 +1160,6 @@ class MapCamera extends _$MapCamera {
       };
     }).toList();
 
-    _mapController!.style!.updateGeoJsonSource(
-      id: 'favorites-source',
-      data: jsonEncode({'type': 'FeatureCollection', 'features': features}),
-    );
+    return jsonEncode({'type': 'FeatureCollection', 'features': features});
   }
 }

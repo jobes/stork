@@ -9,6 +9,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/style_provider.dart';
+import '../../../../core/startup/initial_map_camera.dart';
 import '../../../../core/services/location_provider.dart';
 
 import '../../../telemetry/presentation/providers/telemetry_provider.dart';
@@ -52,6 +53,19 @@ class MapPage extends ConsumerStatefulWidget {
 
 class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
   bool _isDrawerOpen = false;
+  late final InitialMapCamera? _initialCamera = _prepareInitialCamera();
+
+  InitialMapCamera? _prepareInitialCamera() {
+    final prepared = ref.read(initialMapCameraProvider);
+    final settings = ref.read(appSettingsProvider).value;
+    if (prepared == null || settings == null) return null;
+    return InitialMapCamera.fromTelemetry(
+      ref.read(telemetryProvider),
+      settings,
+      lastKnownPosition: prepared.hasLocation ? prepared.center : null,
+    );
+  }
+
   late final _radar = ref.read(mapRadarProvider);
   Timer? _radarRefresh;
   bool _appInForeground = true;
@@ -278,6 +292,7 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
         }
       });
     }
+    final initialCamera = _initialCamera;
     final styleAsync = ref.watch(mapStyleProvider);
     ref.listen(mapStyleProvider, (_, next) {
       if (next case AsyncError(:final error, :final stackTrace)) {
@@ -403,12 +418,29 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 return RepaintBoundary(
                   child: AircraftMap(
                     style: style,
+                    initialCenter:
+                        initialCamera?.center ??
+                        const Geographic(lon: 17.11, lat: 48.15),
+                    initialZoom: initialCamera?.zoom ?? 6,
+                    initialPitch: initialCamera?.pitch ?? 0,
+                    initialBearing: initialCamera?.bearing ?? 0,
                     searchPin: _municipalityPin,
                     onUserInteraction: cameraController.handleUserInteraction,
-                    onMapCreated: cameraController.attachController,
-                    onStyleLoaded: (style) {
+                    onMapCreated: (controller) =>
+                        cameraController.attachController(
+                          controller,
+                          cameraPrepared: initialCamera != null,
+                          preparedCamera: initialCamera,
+                        ),
+                    onStyleLoaded: (style, preparedStyle) {
                       _radar.attachStyle(style);
-                      unawaited(cameraController.handleStyleLoaded(style));
+                      unawaited(
+                        cameraController.handleStyleLoaded(
+                          style,
+                          overlaysPrepared: true,
+                          preparedStyle: preparedStyle,
+                        ),
+                      );
                     },
                     onEvent: (event) {
                       _radar.onMapEvent(event);
