@@ -210,36 +210,40 @@ void main() {
   testWidgets('loads history on demand and restores the latest raster', (
     tester,
   ) async {
-    final style = _Style();
-    final latest = _recentTime;
-    final radar = _radar(
-      style,
-      MockClient(
-        (request) async => request.url.host == 'api.rainviewer.com'
-            ? _manifest(latest)
-            : _tile(),
-      ),
-    );
-    radar.attachStyle(style);
-    await tester.pump();
-    expect(radar.value.latest, _utc(latest));
-    final latestSource = style.sources.single as RasterSource;
-    expect(latestSource.maxZoom, 7);
+    // Keep playback away from the live frame's 20-minute expiry boundary.
+    // Expiry and recovery are covered by their own test below.
+    await withClock(Clock.fixed(DateTime.utc(2026, 11, 20, 12, 5)), () async {
+      final style = _Style();
+      final latest = _recentTime;
+      final radar = _radar(
+        style,
+        MockClient(
+          (request) async => request.url.host == 'api.rainviewer.com'
+              ? _manifest(latest)
+              : _tile(),
+        ),
+      );
+      addTearDown(radar.dispose);
+      radar.attachStyle(style);
+      await tester.pump();
+      expect(radar.value.latest, _utc(latest));
+      final latestSource = style.sources.single as RasterSource;
+      expect(latestSource.maxZoom, 7);
 
-    final playback = radar.play();
-    await tester.pump();
-    expect(radar.value.preparing, isFalse);
-    expect(style.sources, hasLength(7));
+      final playback = radar.play();
+      await tester.pump();
+      expect(radar.value.preparing, isFalse);
+      expect(style.sources, hasLength(7));
 
-    for (var offset = 6; offset > 0; offset--) {
-      expect(radar.value.playing, _utc(latest - offset * _step));
-      await tester.pump(const Duration(milliseconds: 750));
-    }
-    await playback;
-    expect(radar.value.playing, isNull);
-    expect(style.sources.map((source) => source.id), [latestSource.id]);
-    expect(style.shown.last, latestSource.id);
-    radar.dispose();
+      for (var offset = 6; offset > 0; offset--) {
+        expect(radar.value.playing, _utc(latest - offset * _step));
+        await tester.pump(const Duration(milliseconds: 750));
+      }
+      await playback;
+      expect(radar.value.playing, isNull);
+      expect(style.sources.map((source) => source.id), [latestSource.id]);
+      expect(style.shown.last, latestSource.id);
+    });
   });
 
   testWidgets('gesture stops playback and a later refresh can replace latest', (
