@@ -183,14 +183,15 @@ class _Platform extends platform.MapLibrePlatform {
 
 void main() {
   final binding = _Binding();
-  for (final (retry, escape, refreshFails) in [
-    (false, false, false),
-    (true, false, false),
-    (false, true, false),
-    (false, false, true),
+  for (final (retry, escape, refreshFails, frameBeforeTimeout) in [
+    (false, false, false, false),
+    (true, false, false, false),
+    (false, true, false, false),
+    (false, false, true, false),
+    (false, false, false, true),
   ]) {
     testWidgets(
-      'real startup hands prepared map to the page${retry ? ' after retry' : ''}${escape ? ' then leaves before rendering' : ''}${refreshFails ? ' with a failed refreshed preparation' : ''}',
+      'real startup hands prepared map to the page${retry ? ' after retry' : ''}${escape ? ' then leaves before rendering' : ''}${refreshFails ? ' with a failed refreshed preparation' : ''}${frameBeforeTimeout ? ' when the deadline reveals a rendered map' : ''}',
       (tester) async {
         binding.rasterized = Completer<void>();
         rootBundle.clear();
@@ -340,11 +341,27 @@ void main() {
           isTrue,
         );
         final oldMap = tester.state<_NativeMap>(find.byType(ml.MapLibreMap));
-        oldMap.widget.onRenderFrame?.call(
-          const ml.MapEventRenderFrame(fullyRendered: false),
-        );
-        await tester.pump();
+        // Native creation and style load alone leave the loader up: a renderer
+        // that never delivers any frame must expose a retry instead.
         expect(find.byType(StartupPage), findsOneWidget);
+        if (frameBeforeTimeout) {
+          oldMap.widget.onRenderFrame?.call(
+            const ml.MapEventRenderFrame(fullyRendered: false),
+          );
+          await tester.pump();
+          expect(find.byType(StartupPage), findsOneWidget);
+          await tester.pump(MapStartup.renderingBudget);
+          await tester.pump();
+          // Remote tiles can keep the map from turning idle. The deadline
+          // reveals what the renderer already drew instead of failing.
+          expect(container.read(mapStartupProvider).ready, isTrue);
+          expect(find.byType(StartupPage), findsNothing);
+          await tester.pumpWidget(const SizedBox.shrink());
+          container.dispose();
+          disposed = true;
+          await tester.pump();
+          return;
+        }
         if (escape) {
           appRouter.go('/favorites');
           await tester.pump();

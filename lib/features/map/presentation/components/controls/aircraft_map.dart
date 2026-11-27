@@ -26,6 +26,11 @@ class AircraftMap extends StatefulWidget {
   final VoidCallback? onInitialViewReady;
   final void Function(Object error)? onInitialViewError;
 
+  /// Signals the first native render frame, even while the map is not idle.
+  /// The startup gate uses it to reveal a rendered map when remote tiles keep
+  /// the map from becoming fully rendered before the deadline.
+  final VoidCallback? onFirstFrameRendered;
+
   const AircraftMap({
     super.key,
     required this.style,
@@ -41,6 +46,7 @@ class AircraftMap extends StatefulWidget {
     this.onCameraPresented,
     this.onInitialViewReady,
     this.onInitialViewError,
+    this.onFirstFrameRendered,
   });
 
   @override
@@ -99,6 +105,7 @@ class _AircraftMapState extends State<AircraftMap> {
         return;
       }
       _styleInitialized = true;
+      _notifyFirstFrame();
       _tryReady();
     } catch (error) {
       if (mounted && generation == _generation) {
@@ -111,6 +118,24 @@ class _AircraftMapState extends State<AircraftMap> {
     if (!mounted || _initialReadySent) return;
     _fullyRendered = fullyRendered;
     _tryReady();
+  }
+
+  bool _frameSeen = false;
+  bool _firstFrameNotified = false;
+
+  void _recordFrame() {
+    _frameSeen = true;
+    _notifyFirstFrame();
+  }
+
+  /// Reports the first frame only after the overlay style is initialized, so a
+  /// deadline reveal never shows a map without its live layers.
+  void _notifyFirstFrame() {
+    if (!mounted || _firstFrameNotified || !_frameSeen || !_styleInitialized) {
+      return;
+    }
+    _firstFrameNotified = true;
+    widget.onFirstFrameRendered?.call();
   }
 
   void _tryReady() {
@@ -169,9 +194,13 @@ class _AircraftMapState extends State<AircraftMap> {
           _webResourcesLoaded = false;
         },
         onRenderFrame: (event) {
+          _recordFrame();
           if (event.fullyRendered != null) _rendered(event.fullyRendered!);
         },
-        onRenderMap: (event) => _rendered(event.fullyRendered),
+        onRenderMap: (event) {
+          _recordFrame();
+          _rendered(event.fullyRendered);
+        },
         onLoadingFinished: (_) => _webResourcesLoaded = true,
         onIdle: (_) {
           // Web does not expose fully-rendered native frames.

@@ -38,18 +38,23 @@ visible.
 `MapStartup` tracks an attempt number and preparation/rendering/ready/failed
 phases. Preparation has a 15-second deadline; mounting the map starts a separate
 15-second rendering deadline. Exceptions and fatal style/render errors show the
-existing failure page immediately. A deadline also shows failure with Retry; it
-never treats an incomplete map as ready. Late callbacks from a timed-out attempt
-cannot dismiss the failure screen or unlock a newer attempt. Timers are cancelled
-on success and disposal. Deep links to non-map destinations complete after their
-first prepared frame without waiting for a map that is not mounted.
+existing failure page immediately. The map reports its first native render frame
+for the attempt (partial frames are enough). When the rendering deadline
+expires, a map that already produced a frame is revealed instead of failing:
+remote tiles can keep it from turning idle, and the user should see the map
+while tiles keep loading. Without any frame the deadline still shows failure
+with Retry, so a broken renderer cannot leave a blank screen. Late callbacks
+from a timed-out or older attempt cannot unlock a newer attempt. Timers are
+cancelled on success and disposal. Deep links to non-map destinations complete
+after their first prepared frame without waiting for a map that is not mounted.
 
 Startup steps have timeline spans. Build release with
 `--dart-define=STORK_STARTUP_TIMINGS=true` to log durations and elapsed time from
 Dart `main()`. The `Bootstrap` duration ends after local preparation and initial
 style construction; it does not measure native map rendering or gesture latency.
 Milestones also record `First loader frame`, `Preparation started`, `Map mounted`,
-`Map fully rendered`, `Map ready` and `Interactive`. `Interactive` follows the
+`Map frame rendered`, `Map fully rendered`, `Map revealed at deadline`,
+`Map ready` and `Interactive`. `Interactive` follows the
 frame that removes the loader and enables map input. Normal release builds leave
 timing logs disabled.
 
@@ -72,8 +77,11 @@ rendered MapLibre frame for the current style. Native readiness uses
 or map-created. Web uses resource loading completion followed by idle. A Flutter
 post-frame callback allows the texture to composite before revealing it.
 Partial frames, obsolete style initialization and callbacks after disposal cannot
-signal readiness; the initial signal is emitted once. Native idle is not required,
-so continuing telemetry/camera updates cannot indefinitely postpone startup.
+signal readiness; the initial signal is emitted once. The first native frame is
+reported to `MapStartup` separately from readiness, so the rendering deadline can
+reveal an already drawn map while tiles keep loading. Native idle is not required
+for that reveal, so continuing telemetry/camera updates cannot indefinitely
+postpone startup.
 Unexpected initialization errors propagate to the retry gate; recoverable source
 updates keep their existing retry behavior.
 
@@ -116,7 +124,8 @@ still require network access if they are not stored offline.
 Verification includes startup/retry widget tests, layout checks for light/dark,
 portrait/landscape and larger text, deferred task ordering, archive stability,
 inline overlay style validity, and existing map/weather/server regressions.
-`map_startup_provider_test.dart` covers both deadlines, disposal and stale attempts.
+`map_startup_provider_test.dart` covers both deadlines, the deadline reveal of a
+rendered map, disposal and stale attempts.
 `aircraft_map_test.dart` covers partial/full render events, asynchronous style
 initialization and its failures, one-shot readiness, fatal map errors and style
 coalescing.

@@ -198,6 +198,50 @@ void main() {
     },
   );
 
+  testWidgets('signals the first rendered frame before the map is idle', (
+    tester,
+  ) async {
+    final original = platform.MapLibrePlatform.instance;
+    final native = _Platform();
+    platform.MapLibrePlatform.instance = native;
+    addTearDown(() => platform.MapLibrePlatform.instance = original);
+    var frames = 0;
+    var ready = false;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: AircraftMap(
+          style: _prepared(1),
+          onMapCreated: (_) {},
+          onStyleLoaded: (_, _) {},
+          onFirstFrameRendered: () => frames++,
+          onInitialViewReady: () => ready = true,
+          onEvent: (_) {},
+          onUserInteraction: () {},
+        ),
+      ),
+    );
+    // A frame before overlay initialization is not reported yet.
+    native.map.widget.onRenderFrame?.call(
+      const ml.MapEventRenderFrame(fullyRendered: false),
+    );
+    await tester.pump();
+    expect(frames, 0);
+    native.map.finishLoading();
+    await tester.pump();
+    expect(frames, 1);
+    expect(ready, isFalse);
+    native.map.widget.onRenderFrame?.call(
+      const ml.MapEventRenderFrame(fullyRendered: false),
+    );
+    native.map.widget.onRenderMap?.call(
+      const ml.MapEventRenderMap(fullyRendered: true),
+    );
+    await tester.pump();
+    expect(frames, 1);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets(
     'initial fatal map errors are reported without waiting for a frame',
     (tester) async {

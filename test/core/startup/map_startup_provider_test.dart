@@ -46,4 +46,51 @@ void main() {
       expect(time.pendingTimers, isEmpty);
     });
   });
+
+  test('a rendered frame lets the rendering deadline reveal the map', () {
+    fakeAsync((time) {
+      final container = ProviderContainer();
+      final gate = container.read(mapStartupProvider.notifier);
+      gate.start();
+      final attempt = container.read(mapStartupProvider).attempt;
+      gate.rendering(attempt);
+      gate.frameRendered(attempt);
+      time.elapse(MapStartup.renderingBudget);
+      final state = container.read(mapStartupProvider);
+      expect(state.ready, isTrue);
+      expect(state.failed, isFalse);
+      container.dispose();
+      expect(time.pendingTimers, isEmpty);
+    });
+  });
+
+  test('a frame cannot skip the preparation deadline', () {
+    fakeAsync((time) {
+      final container = ProviderContainer();
+      final gate = container.read(mapStartupProvider.notifier);
+      gate.start();
+      gate.frameRendered(container.read(mapStartupProvider).attempt);
+      time.elapse(MapStartup.preparationBudget);
+      expect(container.read(mapStartupProvider).failed, isTrue);
+      container.dispose();
+      expect(time.pendingTimers, isEmpty);
+    });
+  });
+
+  test('a frame from an older attempt cannot reveal a newer attempt', () {
+    fakeAsync((time) {
+      final container = ProviderContainer();
+      final gate = container.read(mapStartupProvider.notifier);
+      gate.start();
+      final old = container.read(mapStartupProvider).attempt;
+      gate.start();
+      final current = container.read(mapStartupProvider).attempt;
+      gate.rendering(current);
+      gate.frameRendered(old);
+      time.elapse(MapStartup.renderingBudget);
+      expect(container.read(mapStartupProvider).failed, isTrue);
+      container.dispose();
+      expect(time.pendingTimers, isEmpty);
+    });
+  });
 }

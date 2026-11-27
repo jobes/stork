@@ -424,6 +424,9 @@ class _MapPageState extends ConsumerState<MapPage> with WidgetsBindingObserver {
                 return RepaintBoundary(
                   child: AircraftMap(
                     key: ValueKey(startupAttempt),
+                    onFirstFrameRendered: () => ref
+                        .read(mapStartupProvider.notifier)
+                        .frameRendered(startupAttempt),
                     onInitialViewReady: () => ref
                         .read(mapStartupProvider.notifier)
                         .ready(startupAttempt),
