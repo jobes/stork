@@ -20,6 +20,7 @@ import 'core/services/protomaps_resolver.dart';
 import 'core/providers/shared_preferences_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'core/widgets/linux_window_icon.dart';
 
 import 'package:stork/core/utils/time_utils.dart';
 
@@ -161,36 +162,38 @@ class _StorkAppState extends ConsumerState<StorkApp>
       darkTheme: AppTheme.darkTheme,
       themeMode: preferences?.themeMode ?? ThemeMode.system,
       routerConfig: appRouter,
-      builder: (context, child) => SentryWidget(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (prepared)
-              ExcludeSemantics(
-                excluding: !startup.ready,
-                child: ExcludeFocus(
+      builder: (context, child) => LinuxWindowIcon(
+        child: SentryWidget(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (prepared)
+                ExcludeSemantics(
                   excluding: !startup.ready,
-                  child: IgnorePointer(
-                    key: const ValueKey('startup-interaction-gate'),
-                    ignoring: !startup.ready,
-                    child: child!,
+                  child: ExcludeFocus(
+                    excluding: !startup.ready,
+                    child: IgnorePointer(
+                      key: const ValueKey('startup-interaction-gate'),
+                      ignoring: !startup.ready,
+                      child: child!,
+                    ),
                   ),
                 ),
-              ),
-            if (!startup.ready)
-              StartupPage(
-                failed:
-                    startup.failed ||
-                    (bootstrap.hasError && !bootstrap.isLoading),
-                onRetry: () {
-                  ref.read(mapStartupProvider.notifier).start();
-                  retryApplicationBootstrap(
-                    ProviderScope.containerOf(context, listen: false),
-                    retryPending: true,
-                  );
-                },
-              ),
-          ],
+              if (!startup.ready)
+                StartupPage(
+                  failed:
+                      startup.failed ||
+                      (bootstrap.hasError && !bootstrap.isLoading),
+                  onRetry: () {
+                    ref.read(mapStartupProvider.notifier).start();
+                    retryApplicationBootstrap(
+                      ProviderScope.containerOf(context, listen: false),
+                      retryPending: true,
+                    );
+                  },
+                ),
+            ],
+          ),
         ),
       ),
       debugShowCheckedModeBanner: false,

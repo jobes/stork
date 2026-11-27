@@ -14,6 +14,37 @@ struct _MyApplication {
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
+static void set_window_icon(GtkWindow* window, gboolean dark) {
+  g_autoptr(GError) error = nullptr;
+  g_autoptr(GdkPixbuf) icon = gdk_pixbuf_new_from_resource(
+      dark ? "/" APPLICATION_ID "/app_icon_dark.png"
+           : "/" APPLICATION_ID "/app_icon.png", &error);
+  if (icon != nullptr) {
+    gtk_window_set_icon(window, icon);
+  } else {
+    g_warning("Failed to load application icon: %s", error->message);
+  }
+}
+
+static void icon_method_call_cb(FlMethodChannel* channel, FlMethodCall* call,
+                                gpointer user_data) {
+  g_autoptr(FlMethodResponse) response = nullptr;
+  FlValue* args = fl_method_call_get_args(call);
+  if (g_strcmp0(fl_method_call_get_name(call), "setDarkIcon") != 0) {
+    response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
+  } else if (args == nullptr || fl_value_get_type(args) != FL_VALUE_TYPE_BOOL) {
+    response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+        "invalid-argument", "Expected a dark-mode boolean", nullptr));
+  } else {
+    GList* windows = gtk_application_get_windows(GTK_APPLICATION(user_data));
+    if (windows != nullptr) {
+      set_window_icon(GTK_WINDOW(windows->data), fl_value_get_bool(args));
+    }
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  }
+  fl_method_call_respond(call, response, nullptr);
+}
+
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
@@ -54,6 +85,8 @@ static void my_application_activate(GApplication* application) {
 
   gtk_window_set_default_size(window, 1280, 720);
 
+  set_window_icon(window, FALSE);
+
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(
       project, self->dart_entrypoint_arguments);
@@ -74,6 +107,13 @@ static void my_application_activate(GApplication* application) {
   gtk_widget_realize(GTK_WIDGET(view));
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
+
+  g_autoptr(FlStandardMethodCodec) icon_codec = fl_standard_method_codec_new();
+  g_autoptr(FlMethodChannel) icon_channel = fl_method_channel_new(
+      fl_engine_get_binary_messenger(fl_view_get_engine(view)),
+      APPLICATION_ID "/window_icon", FL_METHOD_CODEC(icon_codec));
+  fl_method_channel_set_method_call_handler(
+      icon_channel, icon_method_call_cb, self, nullptr);
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }

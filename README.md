@@ -122,6 +122,27 @@ flutter build linux --release
 Launch `stork` from the bundle path printed by Flutter when the build completes.
 Use that path for the target architecture (for example, `x64` or `arm64`).
 
+Both window icon variants are embedded in the executable and switch with the
+application's light/dark theme, including system theme changes when following
+the system theme. GTK 3 exposes this window icon on X11/XWayland; native Wayland
+uses the installed desktop entry's static icon. For an application-menu entry
+and the dock icon on Wayland, install the bundled desktop entry and icon. From
+the complete bundle directory at its permanent location, run:
+
+```bash
+mkdir -p "$HOME/.local/bin" "$HOME/.local/share/applications" \
+  "$HOME/.local/share/icons/hicolor/512x512/apps"
+ln -sfn "$PWD/stork" "$HOME/.local/bin/stork"
+install -m 644 share/applications/com.inskycore.stork.desktop \
+  "$HOME/.local/share/applications/"
+install -m 644 share/icons/hicolor/512x512/apps/com.inskycore.stork.png \
+  "$HOME/.local/share/icons/hicolor/512x512/apps/"
+```
+
+Ensure `$HOME/.local/bin` is in your desktop session's `PATH`. If you move the
+bundle, update the symlink. A desktop session restart may be needed to refresh
+the application menu and icon cache.
+
 At runtime, Linux requires a **Vulkan 1.1-capable driver** for the bundled
 MapLibre renderer to display the map. Install the Vulkan driver appropriate for
 the machine's GPU; a working Flutter window alone does not establish map support.
