@@ -25,6 +25,7 @@ class MapStartup extends _$MapStartup {
   static const preparationBudget = Duration(seconds: 15);
   static const renderingBudget = Duration(seconds: 15);
   Timer? _deadline;
+  int? _frameAttempt;
 
   @override
   MapStartupState build() {
@@ -34,9 +35,20 @@ class MapStartup extends _$MapStartup {
 
   void start() {
     _deadline?.cancel();
+    _frameAttempt = null;
     state = MapStartupState(attempt: state.attempt + 1);
     _arm(preparationBudget);
     startupMilestone('Preparation started');
+  }
+
+  /// Records that the native renderer produced a frame for [attempt]. Remote
+  /// tiles can keep the map from turning idle, so the rendering deadline
+  /// reveals this rendered map instead of failing when the deadline expires.
+  void frameRendered(int attempt) {
+    if (state.attempt != attempt || state.ready || state.failed) return;
+    if (_frameAttempt == attempt) return;
+    _frameAttempt = attempt;
+    startupMilestone('Map frame rendered');
   }
 
   void rendering(int attempt) {
@@ -65,12 +77,19 @@ class MapStartup extends _$MapStartup {
   void _arm(Duration budget) {
     _deadline?.cancel();
     final attempt = state.attempt;
-    _deadline = Timer(
-      budget,
-      () => fail(
+    _deadline = Timer(budget, () {
+      if (state.attempt == attempt &&
+          state.phase == MapStartupPhase.rendering &&
+          _frameAttempt == attempt) {
+        _deadline = null;
+        state = MapStartupState(attempt: attempt, phase: MapStartupPhase.ready);
+        startupMilestone('Map revealed at deadline');
+        return;
+      }
+      fail(
         attempt,
         TimeoutException('Initial map ${state.phase.name}', budget),
-      ),
-    );
+      );
+    });
   }
 }
