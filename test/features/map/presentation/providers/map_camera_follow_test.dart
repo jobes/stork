@@ -1118,49 +1118,75 @@ void main() {
     },
   );
 
-  testWidgets(
-    'stationary DroneCAN fix toggles Follow without local GPS permission',
-    (tester) async {
-      final controller = StreamController<Position>.broadcast();
-      final previousPlatform = GeolocatorPlatform.instance;
-      final gps = _GpsPermissions(controller);
-      GeolocatorPlatform.instance = gps;
-      addTearDown(() async {
-        GeolocatorPlatform.instance = previousPlatform;
-        await controller.close();
-      });
-      final setup = await _setupFollow(
-        tester,
-        initialTelemetry: _Telemetry(
-          const TelemetryState(
-            latitude: 48.76925,
-            longitude: 18.59128,
-            groundSpeed: 0,
-            heading: 220,
-            isGpsDroneCan: true,
-            mapViewState: MapViewState.overview,
+  for (final point in const [
+    ml.Geographic(lat: 48.76925, lon: 18.59128),
+    ml.Geographic(lat: 0, lon: 18.59128),
+    ml.Geographic(lat: 48.76925, lon: 0),
+  ]) {
+    testWidgets(
+      'stationary DroneCAN fix at $point toggles Follow without local GPS permission',
+      (tester) async {
+        final controller = StreamController<Position>.broadcast();
+        final previousPlatform = GeolocatorPlatform.instance;
+        final gps = _GpsPermissions(controller);
+        GeolocatorPlatform.instance = gps;
+        addTearDown(() async {
+          GeolocatorPlatform.instance = previousPlatform;
+          await controller.close();
+        });
+        final setup = await _setupFollow(
+          tester,
+          initialTelemetry: _Telemetry(
+            TelemetryState(
+              latitude: point.lat.toDouble(),
+              longitude: point.lon.toDouble(),
+              groundSpeed: 0,
+              heading: 220,
+              isGpsDroneCan: true,
+              mapViewState: MapViewState.overview,
+            ),
           ),
-        ),
-      );
-      await setup.camera.handleGpsToggle();
-      await tester.pump(const Duration(milliseconds: 250));
-      expect(setup.telemetry.view, MapViewState.follow);
-      expect(setup.map.camera.bearing, 220);
-      expect(setup.map.camera.pitch, 30);
-      expect(
-        setup.map.camera.center,
-        const ml.Geographic(lat: 48.76925, lon: 18.59128),
-      );
-      expect(gps.permissionChecks, 0);
-      expect(gps.permissionRequests, 0);
-      expect(gps.getPositionStreamCallCount, 0);
+        );
+        expect(setup.map.camera.center, point);
+        await setup.camera.handleGpsToggle();
+        await tester.pump(const Duration(milliseconds: 250));
+        expect(setup.telemetry.view, MapViewState.follow);
+        expect(setup.map.camera.bearing, 220);
+        expect(setup.map.camera.pitch, 30);
+        expect(setup.map.camera.center, point);
+        expect(gps.permissionChecks, 0);
+        expect(gps.permissionRequests, 0);
+        expect(gps.getPositionStreamCallCount, 0);
 
-      await setup.camera.handleGpsToggle();
-      await tester.pump(const Duration(milliseconds: 250));
-      expect(setup.telemetry.view, MapViewState.overview);
-      expect(gps.permissionChecks, 0);
-    },
-  );
+        await setup.camera.handleGpsToggle();
+        await tester.pump(const Duration(milliseconds: 250));
+        expect(setup.telemetry.view, MapViewState.overview);
+        expect(setup.map.camera.center, point);
+        expect(setup.map.camera.pitch, 0);
+        expect(gps.permissionChecks, 0);
+      },
+    );
+  }
+
+  testWidgets('camera rejects invalid telemetry positions', (tester) async {
+    final setup = await _setupFollow(tester);
+    final initialCenter = setup.map.camera.center;
+    for (final point in [
+      const ml.Geographic(lat: 0, lon: 0),
+      ml.Geographic(lat: double.nan, lon: 17),
+      ml.Geographic(lat: 48, lon: double.infinity),
+    ]) {
+      if (point.lat.isFinite && point.lon.isFinite) {
+        setup.telemetry.changePosition(
+          point.lat.toDouble(),
+          point.lon.toDouble(),
+        );
+      }
+      await setup.camera.moveCamera(center: point, zoom: 12, animate: false);
+      await tester.pump(const Duration(seconds: 2));
+      expect(setup.map.camera.center, initialCenter);
+    }
+  });
 
   testWidgets(
     'invalid DroneCAN coordinates do not bypass local GPS permission',
