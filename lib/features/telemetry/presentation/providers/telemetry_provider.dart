@@ -292,16 +292,14 @@ class TelemetryNotifier extends _$TelemetryNotifier {
 
   @override
   TelemetryState build() {
-    ref.listen(compassStreamProvider, (previous, next) {
-      next.whenData((heading) {
-        if (heading == null) return;
-        if (!state.isFlying) {
-          updateGPS(heading: heading);
-        }
-      });
+    // Listen to raw samples: StreamProvider equality filtering suppresses a
+    // stationary compass's repeated headings, which must refresh the expiry.
+    final compassSubscription = compassStream(ref).listen((heading) {
+      if (heading != null) updateCompassHeading(heading);
     });
 
     ref.onDispose(() {
+      compassSubscription.cancel();
       _droneCanGpsTimeoutTimer?.cancel();
       _gpsLossGraceTimer?.cancel();
       _latitude.cancel();
@@ -337,6 +335,16 @@ class TelemetryNotifier extends _$TelemetryNotifier {
     });
 
     return const TelemetryState();
+  }
+
+  /// Compass orientation remains independent of the authoritative GPS source.
+  void updateCompassHeading(double? heading) {
+    if (!state.isFlying) _heading.update(heading);
+  }
+
+  /// Ground track is meaningful for map orientation only while flying.
+  void updateGpsHeading(double? heading) {
+    if (state.isFlying) _heading.update(heading);
   }
 
   void updateGPS({

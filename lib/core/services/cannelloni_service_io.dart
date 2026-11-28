@@ -119,7 +119,6 @@ bool publishDroneCanFix(Fix2 fix2, TelemetryNotifier telemetry) {
   telemetry.updateGPS(
     latitude: fix2.latitude,
     longitude: fix2.longitude,
-    heading: fix2.heading,
     groundSpeed: fix2.groundSpeed,
     gpsSatelliteCount: fix2.satellites,
     gpsHorizontalAccuracy: fix2.horizontalAccuracy,
@@ -128,6 +127,8 @@ bool publishDroneCanFix(Fix2 fix2, TelemetryNotifier telemetry) {
     gpsTimestamp: timestamp,
     isDroneCan: true,
   );
+  // A stationary Fix2 has no ground track; do not erase the device compass.
+  telemetry.updateGpsHeading(fix2.heading);
   return true;
 }
 

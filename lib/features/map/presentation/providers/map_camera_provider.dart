@@ -579,6 +579,21 @@ class MapCamera extends _$MapCamera {
   }
 
   Future<void> handleGpsToggle() async {
+    // A live external GPS fix does not require the phone's location service.
+    final external = ref.read(telemetryProvider);
+    if (external.isGpsDroneCan &&
+        GeoUtils.validatedPosition(external.latitude, external.longitude) !=
+            null) {
+      ref
+          .read(telemetryProvider.notifier)
+          .setMapViewState(
+            external.mapViewState == MapViewState.follow
+                ? MapViewState.overview
+                : MapViewState.follow,
+          );
+      return;
+    }
+
     final hasPermission = await LocationService.hasPermission();
     if (!ref.mounted) return;
 
