@@ -177,19 +177,14 @@ class MapCamera extends _$MapCamera {
         }
 
         final settings = ref.read(appSettingsProvider).value;
-        final center = Geographic(
-          lon: next.longitude ?? 0.0,
-          lat: next.latitude ?? 0.0,
+        final center = GeoUtils.validatedPosition(
+          next.latitude,
+          next.longitude,
         );
 
         if (next.mapViewState == MapViewState.follow) {
           _hasExplicitFocus = false;
-          if (next.latitude != null &&
-              next.longitude != null &&
-              next.latitude != 0.0 &&
-              next.longitude != 0.0 &&
-              !_isFollowPaused &&
-              !_isTransitionAnimating) {
+          if (center != null && !_isFollowPaused && !_isTransitionAnimating) {
             final isContinuousFollow =
                 previous?.mapViewState == MapViewState.follow;
 
@@ -237,17 +232,15 @@ class MapCamera extends _$MapCamera {
         } else {
           _cancelInterpolation();
           if (next.mapViewState == MapViewState.overview &&
-              !_hasExplicitFocus) {
+              !_hasExplicitFocus &&
+              center != null) {
             final stateChanged = previous?.mapViewState != next.mapViewState;
             final coordsBecameValid =
-                (previous?.latitude == null ||
-                    previous?.longitude == null ||
-                    previous?.latitude == 0.0 ||
-                    previous?.longitude == 0.0) &&
-                (next.latitude != null &&
-                    next.longitude != null &&
-                    next.latitude != 0.0 &&
-                    next.longitude != 0.0);
+                GeoUtils.validatedPosition(
+                  previous?.latitude,
+                  previous?.longitude,
+                ) ==
+                null;
 
             if (stateChanged || coordsBecameValid) {
               unawaited(
@@ -413,12 +406,11 @@ class MapCamera extends _$MapCamera {
     }
     final telemetry = ref.read(telemetryProvider);
     final settings = ref.read(appSettingsProvider).value;
-    if (!_hasExplicitFocus &&
-        telemetry.latitude != null &&
-        telemetry.longitude != null &&
-        telemetry.latitude != 0.0 &&
-        telemetry.longitude != 0.0 &&
-        settings != null) {
+    final center = GeoUtils.validatedPosition(
+      telemetry.latitude,
+      telemetry.longitude,
+    );
+    if (!_hasExplicitFocus && center != null && settings != null) {
       final double zoom;
       if (telemetry.mapViewState == MapViewState.overview) {
         zoom = settings.mapOverviewZoom;
@@ -430,10 +422,7 @@ class MapCamera extends _$MapCamera {
 
       unawaited(
         moveCamera(
-          center: Geographic(
-            lon: telemetry.longitude!,
-            lat: telemetry.latitude!,
-          ),
+          center: center,
           zoom: zoom,
           pitch: telemetry.mapViewState == MapViewState.follow
               ? settings.mapFollowPitch
@@ -444,10 +433,8 @@ class MapCamera extends _$MapCamera {
     }
   }
 
-  /// Moves the camera. A lat/lon of exactly 0.0 is treated as an invalid
-  /// telemetry coordinate and the move is skipped unless [allowZeroCoordinate]
-  /// is set (used for explicit points, e.g. a favourite on the Equator /
-  /// Prime Meridian).
+  /// Moves the camera to a valid telemetry position. [allowZeroCoordinate]
+  /// permits explicit points, including the unset telemetry position (0, 0).
   Future<void> moveCamera({
     required Geographic center,
     required double zoom,
@@ -459,7 +446,12 @@ class MapCamera extends _$MapCamera {
   }) async {
     _cancelInterpolation();
     if (_mapController != null &&
-        (allowZeroCoordinate || (center.lat != 0 && center.lon != 0))) {
+        (allowZeroCoordinate ||
+            GeoUtils.validatedPosition(
+                  center.lat.toDouble(),
+                  center.lon.toDouble(),
+                ) !=
+                null)) {
       _programmaticMoveCount++;
       _lastProgrammaticMoveTime = DateTime.now();
       Object? token;
@@ -579,6 +571,21 @@ class MapCamera extends _$MapCamera {
   }
 
   Future<void> handleGpsToggle() async {
+    // A live external GPS fix does not require the phone's location service.
+    final external = ref.read(telemetryProvider);
+    if (external.isGpsDroneCan &&
+        GeoUtils.validatedPosition(external.latitude, external.longitude) !=
+            null) {
+      ref
+          .read(telemetryProvider.notifier)
+          .setMapViewState(
+            external.mapViewState == MapViewState.follow
+                ? MapViewState.overview
+                : MapViewState.follow,
+          );
+      return;
+    }
+
     final hasPermission = await LocationService.hasPermission();
     if (!ref.mounted) return;
 
